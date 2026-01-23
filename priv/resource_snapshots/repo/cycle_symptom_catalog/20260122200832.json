@@ -2,7 +2,7 @@
   "attributes": [
     {
       "allow_nil?": false,
-      "default": "fragment(\"gen_random_uuid()\")",
+      "default": "fragment(\"uuid_generate_v7()\")",
       "generated?": false,
       "precision": null,
       "primary_key?": true,
@@ -21,8 +21,32 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "email",
-      "type": "citext"
+      "source": "name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "description",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "created_at",
+      "type": "utc_datetime_usec"
     }
   ],
   "base_filter": null,
@@ -30,19 +54,19 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "A36EADC8CAB7F9B0AA6F73D1EAC4B833BE8ED6C3419C7C10B2396FDF9E515E88",
+  "hash": "D25F7BA46D6611344E7904FD743284617041D1C7664FD8D22CCEED0C9DA18496",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "users_unique_email_index",
+      "index_name": "cycle_symptom_catalog_unique_name_index",
       "keys": [
         {
           "type": "atom",
-          "value": "email"
+          "value": "name"
         }
       ],
-      "name": "unique_email",
+      "name": "unique_name",
       "nils_distinct?": true,
       "where": null
     }
@@ -54,5 +78,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "users"
+  "table": "cycle_symptom_catalog"
 }
