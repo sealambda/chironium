@@ -30,7 +30,13 @@ config :chironium, Oban,
   notifier: Oban.Notifiers.Postgres,
   queues: [default: 10],
   repo: Chironium.Repo,
-  plugins: [{Oban.Plugins.Cron, []}]
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       # Run token cleanup daily at 3 AM UTC.
+       {"0 3 * * *", Chironium.Workers.TokenCleanupWorker}
+     ]}
+  ]
 
 config :mime,
   extensions: %{"json" => "application/vnd.api+json"},
@@ -61,6 +67,7 @@ config :spark,
     remove_parens?: true,
     "Ash.Resource": [
       section_order: [
+        :rate_limit,
         :admin,
         :authentication,
         :token,
@@ -101,8 +108,21 @@ config :spark,
 config :chironium,
   ecto_repos: [Chironium.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [Chironium.Accounts],
-  ash_authentication: [return_error_on_invalid_magic_link_token?: true]
+  # Default PWA URL for post-authentication redirect (overridden per environment).
+  pwa_url: "/app",
+  # Allowed PWA origins for secure post-authentication redirects.
+  # Configure per environment (dev.exs, runtime.exs).
+  # Only referrers from these origins will be trusted for redirects.
+  allowed_pwa_origins: [],
+  ash_domains: [
+    Chironium.Core,
+    Chironium.Core.Identity,
+    Chironium.Staff,
+    Chironium.Customers,
+    Chironium.Services,
+    Chironium.Health
+  ],
+  ash_rate_limiter: [hammer: Chironium.Hammer]
 
 # Configure the endpoint
 config :chironium, ChironiumWeb.Endpoint,

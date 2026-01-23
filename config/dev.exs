@@ -68,8 +68,14 @@ config :chironium, ChironiumWeb.Endpoint,
     ]
   ]
 
-# Enable dev routes for dashboard and mailbox
-config :chironium, dev_routes: true, token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE"
+# Enable dev routes for dashboard and mailbox.
+# In development, the PWA runs on Vite's dev server at port 5173.
+config :chironium,
+  dev_routes: true,
+  token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE",
+  pwa_url: "http://localhost:5173",
+  # Allowed PWA origins for secure post-authentication redirects.
+  allowed_pwa_origins: ["http://localhost:5173"]
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"

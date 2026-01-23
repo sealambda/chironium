@@ -10,8 +10,8 @@ config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :chironium, Chironium.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "chironium",
+  password: "chironium1324",
   hostname: "localhost",
   database: "chironium_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,

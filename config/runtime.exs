@@ -1,5 +1,21 @@
 import Config
 
+if config_env() in [:dev, :test] do
+  import Dotenvy
+
+  env_dir_prefix = System.get_env("RELEASE_ROOT") || Path.expand("./envs")
+
+  env_vars =
+    source!([
+      Path.absname(".env", env_dir_prefix),
+      Path.absname(".#{config_env()}.env", env_dir_prefix),
+      Path.absname(".#{config_env()}.overrides.env", env_dir_prefix),
+      System.get_env()
+    ])
+
+  System.put_env(env_vars)
+end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -20,8 +36,41 @@ if System.get_env("PHX_SERVER") do
   config :chironium, ChironiumWeb.Endpoint, server: true
 end
 
+port = System.get_env("PORT", "4000")
+
+default_host =
+  System.get_env("PHX_HOST") ||
+    if config_env() == :prod do
+      "example.com"
+    else
+      "localhost"
+    end
+
+default_scheme =
+  if config_env() == :prod do
+    "https"
+  else
+    "http"
+  end
+
+default_redirect_uri =
+  if config_env() == :prod do
+    "#{default_scheme}://#{default_host}/auth/user/google/callback"
+  else
+    "#{default_scheme}://#{default_host}:#{port}/auth/user/google/callback"
+  end
+
 config :chironium, ChironiumWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+  http: [port: String.to_integer(port)],
+  google_oauth: [
+    client_id:
+      System.get_env("GOOGLE_CLIENT_ID") ||
+        raise("Missing environment variable `GOOGLE_CLIENT_ID`!"),
+    client_secret:
+      System.get_env("GOOGLE_CLIENT_SECRET") ||
+        raise("Missing environment variable `GOOGLE_CLIENT_SECRET`!"),
+    redirect_uri: System.get_env("GOOGLE_REDIRECT_URI") || default_redirect_uri
+  ]
 
 if config_env() == :prod do
   database_url =
@@ -53,7 +102,7 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = default_host
 
   config :chironium, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
@@ -71,7 +120,18 @@ if config_env() == :prod do
   config :chironium,
     token_signing_secret:
       System.get_env("TOKEN_SIGNING_SECRET") ||
-        raise("Missing environment variable `TOKEN_SIGNING_SECRET`!")
+        raise("Missing environment variable `TOKEN_SIGNING_SECRET`!"),
+    # PWA URL for post-authentication redirects.
+    # In production, this should be the full URL of the PWA (e.g., https://app.chironium.com).
+    # Defaults to /app for same-origin deployments where PWA is served from the same domain.
+    pwa_url: System.get_env("PWA_URL", "/app"),
+    # Allowed PWA origins for secure post-authentication redirects.
+    # Comma-separated list of origins (e.g., "https://app.chironium.com,https://staging.chironium.com").
+    # Only referrers from these origins will be trusted for redirects after authentication.
+    allowed_pwa_origins:
+      (System.get_env("ALLOWED_PWA_ORIGINS") || "")
+      |> String.split(",", trim: true)
+      |> Enum.map(&String.trim/1)
 
   # ## SSL Support
   #
