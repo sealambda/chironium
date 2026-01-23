@@ -1,4 +1,9 @@
 defmodule ChironiumWeb.GraphqlSchema do
+  @moduledoc """
+  Absinthe GraphQL schema for Chironium.
+
+  Integrates with AshGraphql to expose Ash resources as GraphQL endpoints.
+  """
   use Absinthe.Schema
 
   use AshGraphql,

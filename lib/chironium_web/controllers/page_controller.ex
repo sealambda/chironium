@@ -1,11 +1,13 @@
 defmodule ChironiumWeb.PageController do
   use ChironiumWeb, :controller
 
+  @spec home(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def home(conn, _params) do
     render(conn, :home)
   end
 
-  def index conn, _params do
+  @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def index(conn, _params) do
     render(conn, :index)
   end
 end
