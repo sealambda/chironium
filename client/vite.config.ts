@@ -3,9 +3,15 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
+import { tanstackRouter } from "@tanstack/router-plugin/vite"
 
 export default defineConfig({
   plugins: [
+    // TanStack Router plugin must come before React plugin.
+    tanstackRouter({
+      target: "react",
+      autoCodeSplitting: true,
+    }),
     react(),
     tailwindcss(),
     VitePWA({
@@ -23,10 +29,15 @@ export default defineConfig({
   ],
   server: {
     proxy: {
+      // API endpoints - these go through the proxy for CORS handling.
       "/api/json": { target: "http://localhost:4000", changeOrigin: true },
       "/gql": { target: "http://localhost:4000", ws: true, changeOrigin: true },
       "/ws/gql": { target: "http://localhost:4000", ws: true, changeOrigin: true },
       "/rpc": { target: "http://localhost:4000", changeOrigin: true },
+      // Note: /sign-in, /register, /reset, /sign-out are NOT proxied.
+      // Auth pages require full browser navigation to the backend URL (port 4000)
+      // because their HTML references backend assets (/assets/js/app.js) that
+      // Vite doesn't have. See auth.tsx and route guards for direct redirects.
     },
   },
   resolve: {

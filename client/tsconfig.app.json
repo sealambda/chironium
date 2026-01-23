@@ -28,5 +28,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Exclude generated files from strict unused checks.
+  "exclude": ["src/lib/ash.ts"]
 }

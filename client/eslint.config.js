@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // Ignore build output and generated files.
+  globalIgnores(['dist', 'src/lib/ash.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -18,6 +19,16 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+    },
+    rules: {
+      // Allow exporting utilities alongside components for common patterns.
+      'react-refresh/only-export-components': [
+        'warn',
+        {
+          allowConstantExport: true,
+          allowExportNames: ['loader', 'action', 'meta', 'handle'],
+        },
+      ],
     },
   },
 ])
