@@ -26,7 +26,7 @@ erl_crash.dump
 chironium-*.tar
 
 # Ignore assets that are produced by build tools.
-/priv/static/assets/
+/priv/static/
 
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
@@ -47,3 +47,5 @@ npm-debug.log
 # Dialyzer PLT caches.
 /priv/plts/
 
+.elixir_ls/
+.DS_Store
