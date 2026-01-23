@@ -90,28 +90,19 @@ defmodule ChironiumWeb.Router do
       path: "/auth/user/magic_link",
       auth_routes_prefix: "/auth",
       on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
-      overrides: [
-        ChironiumWeb.AuthOverrides,
-        Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
-      ]
+      overrides: [ChironiumWeb.AuthOverrides]
     )
 
-    # Remove these if you'd like to use your own authentication views.
-    sign_in_route register_path: "/register",
-                  reset_path: "/reset",
-                  auth_routes_prefix: "/auth",
-                  on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
-                  overrides: [
-                    ChironiumWeb.AuthOverrides,
-                    Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
-                  ]
+    # Custom sign-in LiveView with branded design.
+    live_session :auth,
+      on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
+      layout: false do
+      live "/sign-in", SignInLive
+    end
 
     # Remove this if you do not want to use the reset password feature.
     reset_route auth_routes_prefix: "/auth",
-                overrides: [
-                  ChironiumWeb.AuthOverrides,
-                  Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
-                ]
+                overrides: [ChironiumWeb.AuthOverrides]
   end
 
   # Other scopes may use custom stacks.
