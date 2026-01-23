@@ -55,7 +55,7 @@ This document defines the standardized scopes to use in Conventional Commits for
 - `feat(auth): Add User resource in lib/chironium/accounts/user.ex`
 - `feat(auth): Add Token resource in lib/chironium/accounts/token.ex`
 - `feat(auth): Add LiveView authentication helpers in lib/chironium_web/live_user_auth.ex`
-- `feat(auth): Add magic link email sender in lib/chironium/accounts/user/senders/send_magic_link_email.ex`
+- `feat(auth): Add UserIdentity resource in lib/chironium/accounts/user_identity.ex`
 - `feat(auth): Add users and tokens tables in priv/repo/migrations/...`
 
 #### `(accounts)`

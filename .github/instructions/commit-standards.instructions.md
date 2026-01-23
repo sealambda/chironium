@@ -66,8 +66,7 @@ Standard Conventional Commits types:
 The feature area, domain, or module affected:
 
 - `auth`: Authentication/authorization
-- `client`: Client management
-- `member`: Team member management
+- `customer`: Customer management
 - `ui`: User interface components
 - `i18n`: Internationalization
 - `config`: Configuration
@@ -107,7 +106,7 @@ fix(auth): Solve session timeout issue in src/entities/session/model/store.ts
 ```
 
 ```
-feat(client): Add BMI calculation helper in src/entities/client/lib/metric-utils.ts
+feat(customer): Add BMI calculation helper in src/entities/customer/lib/metric-utils.ts
 ```
 
 ```
@@ -183,13 +182,13 @@ If a feature requires changes to multiple files:
 3. Order commits logically (dependencies first)
 4. Push all commits together in one PR
 
-**Example**: Implementing "Create Client" feature
+**Example**: Implementing "Create Customer" feature
 
 ```
-feat(client): Add client schema validation in src/entities/client/model/schema.ts
-feat(client): Implement create client API in src/shared/api/clients.ts
-feat(client): Add create client form component in src/features/clients/create-client/ui/form.tsx
-feat(client): Integrate create client feature in src/pages/clients/ui/page.tsx
+feat(customer): Add customer schema validation in src/entities/customer/model/schema.ts
+feat(customer): Implement create customer API in src/shared/api/customers.ts
+feat(customer): Add create customer form component in src/features/customers/create-customer/ui/form.tsx
+feat(customer): Integrate create customer feature in src/pages/customers/ui/page.tsx
 ```
 
 ### When Making Multiple Changes to Same File
@@ -281,7 +280,7 @@ feat(api)!: Change authentication endpoint signature in src/shared/api/auth.ts
 Keep first line under 100 characters. Use body for details:
 
 ```
-fix(client): Resolve membership calculation edge case in src/entities/client/lib/membership-utils.ts
+fix(customer): Resolve membership calculation edge case in src/entities/customer/lib/membership-utils.ts
 
 The previous logic failed when membership end date fell on a leap year February 29th.
 Now handles all edge cases including leap years, timezone boundaries, and DST transitions.

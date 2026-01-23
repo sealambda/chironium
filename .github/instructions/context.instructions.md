@@ -29,11 +29,36 @@ applyTo: '**'
 - Background jobs via ash_oban.
 - Money values must use AshMoney/Money. No float math.
 
-## Authentication
+## Authentication & Access Control
 
-- Internal users (staff): User resource with Password + Google OAuth.
-- External users (customers): Contact resource with Magic Link only.
-- These are strictly separated.
+### Google SSO (Open Sign-up)
+
+- Sign-up is open to anyone via Google SSO.
+- A Person record is created automatically from Google profile data.
+- No PersonProfile is created on sign-up - only when invited to an org.
+- During development, the Google OAuth app is unverified.
+- Only manually added GCP OAuth testers can authenticate.
+
+### Magic Link (Invite-Based)
+
+- Magic links require an existing PersonProfile (must be invited to an org first).
+- Users without a PersonProfile must use Google SSO.
+- Customers (Membership users) authenticate via magic link for filling forms and health reports.
+
+### Organisation Access (Invite-Only)
+
+- Anyone can sign up, but joining an organisation requires an invitation.
+- Invitations create PersonProfiles linking users to organisations.
+- Staff are invited via Contract creation.
+- Customers are onboarded via Membership creation.
+
+### Onboarding Flow
+
+1. User signs up via Google SSO (Person + User created, no PersonProfile).
+2. User can access basic app features but no org-specific functionality.
+3. Existing user (or new) is invited to an org → PersonProfile created.
+4. Staff invitation: Contract created → magic link sent (if no User, uses Google SSO).
+5. Customer onboarding: Membership created → magic link sent when action needed.
 
 ## Frontend rules
 
