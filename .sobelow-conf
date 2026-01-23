@@ -1,0 +1,19 @@
+# Sobelow security configuration.
+# See https://hexdocs.pm/sobelow for configuration options.
+[
+  verbose: false,
+  private: false,
+  skip: false,
+  router: "lib/chironium_web/router.ex",
+  exit: "low",
+  format: "txt",
+  out: "",
+  threshold: "low",
+  ignore: [
+    # CSP headers should be configured at the reverse proxy/CDN level in production.
+    "Config.CSP",
+    # HTTPS is enforced at infrastructure level (load balancer/reverse proxy).
+    "Config.HTTPS"
+  ],
+  ignore_files: []
+]

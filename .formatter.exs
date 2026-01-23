@@ -1,5 +1,6 @@
 [
   import_deps: [
+    :ash_rate_limiter,
     :ash_typescript,
     :ash_events,
     :ash_state_machine,
