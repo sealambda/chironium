@@ -1,4 +1,10 @@
 defmodule Chironium.Repo do
+  @moduledoc """
+  The Ecto repository for Chironium.
+
+  Uses AshPostgres with PostgreSQL 16+ and includes extensions for
+  Ash functions, case-insensitive text, and money types.
+  """
   use AshPostgres.Repo,
     otp_app: :chironium
 

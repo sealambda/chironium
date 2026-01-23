@@ -8,6 +8,7 @@ defmodule Chironium.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {Chironium.Hammer, [clean_period: 60_000]},
       ChironiumWeb.Telemetry,
       Chironium.Repo,
       {DNSCluster, query: Application.get_env(:chironium, :dns_cluster_query) || :ignore},
