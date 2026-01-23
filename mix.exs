@@ -12,7 +12,8 @@ defmodule Chironium.MixProject do
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
-      consolidate_protocols: Mix.env() != :dev
+      consolidate_protocols: Mix.env() != :dev,
+      dialyzer: dialyzer()
     ]
   end
 
@@ -41,6 +42,7 @@ defmodule Chironium.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ash_rate_limiter, "~> 0.2"},
       {:ex_money_sql, "~> 1.0"},
       {:ex_cldr, "~> 2.0"},
       {:ex_cldr_calendars, "~> 2.4"},
@@ -77,6 +79,7 @@ defmodule Chironium.MixProject do
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:phoenix, "~> 1.8.3"},
       {:phoenix_ecto, "~> 4.5"},
+      {:dotenvy, "~> 0.9"},
       {:ecto_sql, "~> 3.13"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
@@ -101,6 +104,11 @@ defmodule Chironium.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
+      {:ecto_psql_extras, "~> 0.8"},
+      # Static analysis tools.
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -123,7 +131,70 @@ defmodule Chironium.MixProject do
         "esbuild chironium --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      # Clean rebuild: Safe for daily use, preserves VCS-tracked migrations.
+      rebuild: [
+        "cmd rm -rf _build deps client/src/lib/ash.ts",
+        "deps.get",
+        "compile",
+        "ecto.drop",
+        "ecto.create",
+        "ecto.migrate",
+        "ash.codegen"
+      ],
+      # Nuclear rebuild: Regenerates all migrations. Pre-production only!
+      "rebuild.nuke": [
+        "cmd rm -rf _build deps client/src/lib/ash.ts priv/repo/migrations/* priv/resource_snapshots/*",
+        "deps.get",
+        "compile",
+        "ecto.drop",
+        "ecto.create",
+        "ash.codegen initial",
+        "cmd mix oban.install",
+        "ecto.migrate"
+      ],
+      # Quality & linting aliases.
+      "format.check": ["format --check-formatted"],
+      lint: ["format --check-formatted", "credo --strict", "sobelow --config"],
+      "lint.fix": ["format"],
+      quality: [
+        "compile --warnings-as-errors",
+        "format --check-formatted",
+        "credo --strict",
+        "sobelow --config",
+        "dialyzer"
+      ],
+      precommit: [
+        "compile --warnings-as-errors",
+        "deps.unlock --unused",
+        "format --check-formatted",
+        "credo --strict",
+        "sobelow --config",
+        "test"
+      ],
+      ci: [
+        "deps.audit",
+        "compile --warnings-as-errors",
+        "format --check-formatted",
+        "credo --strict",
+        "sobelow --config",
+        "dialyzer",
+        "test"
+      ]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+      plt_add_apps: [:mix, :ex_unit],
+      flags: [
+        :error_handling,
+        :extra_return,
+        :missing_return,
+        :underspecs,
+        :unknown
+      ],
+      ignore_warnings: ".dialyzer_ignore.exs"
     ]
   end
 end
