@@ -1,7 +1,12 @@
 defmodule ChironiumWeb.AuthOverrides do
+  @moduledoc """
+  UI overrides for AshAuthentication Phoenix components.
+
+  Customize the appearance and behavior of authentication UI elements.
+  """
   use AshAuthentication.Phoenix.Overrides
 
-  # configure your UI overrides here
+  # Configure your UI overrides here.
 
   # First argument to `override` is the component name you are overriding.
   # The body contains any number of configurations you wish to override
