@@ -1,5 +1,5 @@
 defmodule ChironiumWeb.PageControllerTest do
-  use ChironiumWeb.ConnCase
+  use ChironiumWeb.ConnCase, async: true
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
