@@ -7,6 +7,65 @@
 @source "../js";
 @source "../../lib/chironium_web";
 
+/* =============================================================================
+   Auth Page Design System - Matching ShadCN client styling.
+   Uses same OKLCH values and design tokens as client/src/index.css
+   ============================================================================= */
+
+:root {
+  /* Auth page variables matching client's dark mode ShadCN theme. */
+  --auth-bg: oklch(0.145 0 0);
+  --auth-fg: oklch(0.985 0 0);
+  --auth-card: oklch(0.205 0 0);
+  --auth-primary: oklch(0.66 0.21 354);
+  --auth-primary-hover: oklch(0.60 0.21 354);
+  --auth-primary-fg: oklch(0.97 0.01 343);
+  --auth-muted: oklch(0.708 0 0);
+  --auth-surface: oklch(0.269 0 0);
+  --auth-border: oklch(1 0 0 / 10%);
+  --auth-input-bg: oklch(1 0 0 / 15%);
+  --auth-ring: oklch(0.556 0 0);
+  --auth-glow: oklch(0.66 0.21 354 / 40%);
+  /* Match ShadCN radius system. */
+  --auth-radius: 0.625rem;
+}
+
+/* Light mode auth variables. */
+[data-auth-theme="light"] {
+  --auth-bg: oklch(1 0 0);
+  --auth-fg: oklch(0.145 0 0);
+  --auth-card: oklch(1 0 0);
+  --auth-primary: oklch(0.59 0.22 1);
+  --auth-primary-hover: oklch(0.53 0.22 1);
+  --auth-primary-fg: oklch(0.97 0.01 343);
+  --auth-muted: oklch(0.556 0 0);
+  --auth-surface: oklch(0.97 0 0);
+  --auth-border: oklch(0.922 0 0);
+  --auth-input-bg: oklch(0.922 0 0);
+  --auth-ring: oklch(0.708 0 0);
+  --auth-glow: oklch(0.59 0.22 1 / 30%);
+}
+
+/* Map auth variables to Tailwind color utilities. */
+@theme inline {
+  --color-auth-bg: var(--auth-bg);
+  --color-auth-fg: var(--auth-fg);
+  --color-auth-card: var(--auth-card);
+  --color-auth-primary: var(--auth-primary);
+  --color-auth-primary-hover: var(--auth-primary-hover);
+  --color-auth-primary-fg: var(--auth-primary-fg);
+  --color-auth-muted: var(--auth-muted);
+  --color-auth-surface: var(--auth-surface);
+  --color-auth-border: var(--auth-border);
+  --color-auth-input-bg: var(--auth-input-bg);
+  --color-auth-ring: var(--auth-ring);
+  --color-auth-glow: var(--auth-glow);
+  --radius-auth: var(--auth-radius);
+  --radius-auth-lg: calc(var(--auth-radius) + 4px);
+  --radius-auth-xl: calc(var(--auth-radius) + 8px);
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
 @plugin "../vendor/heroicons";
