@@ -44,3 +44,6 @@ npm-debug.log
 /envs/.test.overrides.env
 /envs/.prod.overrides.env
 
+# Dialyzer PLT caches.
+/priv/plts/
+
