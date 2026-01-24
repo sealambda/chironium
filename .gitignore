@@ -33,7 +33,7 @@ chironium-*.tar
 
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
-/assets/node_modules/
+node_modules/
 
 # Dotenv files.
 /envs/.env

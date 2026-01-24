@@ -10,4 +10,9 @@ defmodule ChironiumWeb.PageController do
   def index(conn, _params) do
     render(conn, :index)
   end
+
+  @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def app(conn, _params) do
+    render(conn, :app)
+  end
 end

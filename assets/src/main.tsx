@@ -1,21 +1,24 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { createRouter } from '@tanstack/react-router';
+// import "vite/modulepreload-polyfill";
 
-import { AuthProvider } from '@/lib/auth';
-import { InnerApp } from '@/components/inner-app';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { createRouter } from "@tanstack/react-router";
 
-import './index.css';
+import { AuthProvider } from "@/lib/auth";
+import { InnerApp } from "@/components/inner-app";
+
+import "./index.css";
 
 // Import the generated route tree.
-import { routeTree } from './routeTree.gen';
+import { routeTree } from "./routeTree.gen";
 
 // Create a new router instance with auth context placeholder.
 const router = createRouter({
   routeTree,
-  defaultPreload: 'intent',
+  basepath: "/app",
+  defaultPreload: "intent",
   scrollRestoration: true,
   context: {
     // Auth will be provided by InnerApp component.
@@ -24,7 +27,7 @@ const router = createRouter({
 });
 
 // Register the router instance for type safety.
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }
@@ -50,7 +53,7 @@ const queryClient = new QueryClient({
  * 3. AuthProvider - Authentication state management.
  * 4. InnerApp - Router with auth context.
  */
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -58,5 +61,5 @@ createRoot(document.getElementById('root')!).render(
       </AuthProvider>
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );

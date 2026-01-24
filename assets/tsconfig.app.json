@@ -25,10 +25,10 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    }
+      "@/*": ["./src/*"],
+    },
   },
   "include": ["src"],
   // Exclude generated files from strict unused checks.
-  "exclude": ["src/lib/ash.ts"]
+  "exclude": ["src/lib/ash.ts"],
 }

@@ -79,6 +79,9 @@ defmodule ChironiumWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    get "/app/*path", PageController, :app
+
     auth_routes AuthController, Chironium.Core.Identity.User, path: "/auth"
     sign_out_route AuthController
 

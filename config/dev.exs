@@ -3,8 +3,8 @@ config :ash, policies: [show_policy_breakdowns?: true]
 
 # Configure your database
 config :chironium, Chironium.Repo,
-  username: "chironium",
-  password: "chironium1324",
+  username: "postgres",
+  password: "postgres",
   hostname: "localhost",
   database: "chironium_dev",
   stacktrace: true,
@@ -26,9 +26,9 @@ config :chironium, ChironiumWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "P/uhoGryzby+RxBF3JAVktIHKrN1+pDoN3X4O0YdcRHJ86MmAQ3HAiDz4poVq67B",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:chironium, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:chironium, ~w(--watch)]}
-  ]
+    vite: {PhoenixVite.Npm, :run, [:vite, ~w(dev)]}
+  ],
+  static_url: [host: "localhost", port: 5173]
 
 # ## SSL Support
 #

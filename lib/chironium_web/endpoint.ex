@@ -1,6 +1,7 @@
 defmodule ChironiumWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :chironium
   use Absinthe.Phoenix.Endpoint
+  import PhoenixVite.Plug
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
@@ -17,6 +18,7 @@ defmodule ChironiumWeb.Endpoint do
     longpoll: [connect_info: [session: @session_options]]
 
   socket "/ws/gql", ChironiumWeb.GraphqlSocket, websocket: true, longpoll: true
+  plug :favicon, dev_server: {PhoenixVite.Components, :has_vite_watcher?, [__MODULE__]}
 
   # Serve at "/" the static files from "priv/static" directory.
   #

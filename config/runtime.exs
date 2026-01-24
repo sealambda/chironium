@@ -119,7 +119,8 @@ if config_env() == :prod do
       # for details about using IPv6 vs IPv4 and loopback vs public addresses.
       ip: {0, 0, 0, 0, 0, 0, 0, 0}
     ],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    cache_static_manifest_latest: PhoenixVite.cache_static_manifest_latest(:chironium)
 
   config :chironium,
     token_signing_secret:
