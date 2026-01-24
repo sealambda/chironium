@@ -31,7 +31,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
     "daisyui": "^5.0.0",
-    "phoenix_vite": "file:../deps/phoenix_vite",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.9.3",
     "vite": "^6.3.0"

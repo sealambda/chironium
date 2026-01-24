@@ -7,19 +7,12 @@
     <.live_title default="Chironium" suffix=" · Phoenix Framework">
       {assigns[:page_title]}
     </.live_title>
-    <%!-- TODO Shouldn't this come from PhoenixVite? --%>
-    <script type="module">
-      import RefreshRuntime from 'http://localhost:5173/@react-refresh'
-      RefreshRuntime.injectIntoGlobalHook(window)
-      window.$RefreshReg$ = () => {}
-      window.$RefreshSig$ = () => (type) => type
-      window.__vite_plugin_react_preamble_installed__ = true
-    </script>
     <PhoenixVite.Components.assets
-      names={["src/main.js", "js/app.js", "css/app.css"]}
+      names={["src/main.tsx", "js/app.js", "css/app.css"]}
       manifest={{:chironium, "priv/static/.vite/manifest.json"}}
       dev_server={PhoenixVite.Components.has_vite_watcher?(ChironiumWeb.Endpoint)}
       to_url={fn p -> static_url(@conn, p) end}
+      is_react?={true}
     />
     <script>
       (() => {
