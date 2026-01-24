@@ -42,7 +42,8 @@ defmodule Chironium.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix_vite, "~> 0.4"},
+      # {:phoenix_vite, "~> 0.4"},
+      {:phoenix_vite, github: "sealambda/phoenix_vite", branch: "fix/react"},
       {:ash_rate_limiter, "~> 0.2"},
       {:ex_money_sql, "~> 1.0"},
       {:ex_cldr, "~> 2.0"},

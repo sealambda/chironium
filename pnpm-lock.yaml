@@ -87,9 +87,6 @@ importers:
       daisyui:
         specifier: ^5.0.0
         version: 5.5.14
-      phoenix_vite:
-        specifier: file:../deps/phoenix_vite
-        version: file:deps/phoenix_vite
       tailwindcss:
         specifier: ^4.1.0
         version: 4.1.18
@@ -2719,9 +2716,6 @@ packages:
 
   phoenix_live_view@file:deps/phoenix_live_view:
     resolution: {directory: deps/phoenix_live_view, type: directory}
-
-  phoenix_vite@file:deps/phoenix_vite:
-    resolution: {directory: deps/phoenix_vite, type: directory}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -5756,8 +5750,6 @@ snapshots:
   phoenix_live_view@file:deps/phoenix_live_view:
     dependencies:
       morphdom: 2.7.8
-
-  phoenix_vite@file:deps/phoenix_vite: {}
 
   picocolors@1.1.1: {}
 
