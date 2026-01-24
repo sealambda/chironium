@@ -11,21 +11,33 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.19.4-erlang-28.2-debian-bullseye-20251208-slim
 #
-ARG ELIXIR_VERSION=1.19.5
-ARG OTP_VERSION=28.3.1
-ARG DEBIAN_VERSION=bullseye-20260112-slim
+ARG DEBIAN_VERSION=13-slim
 
-ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
-ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG IMAGE="debian:${DEBIAN_VERSION}"
 
-FROM ${BUILDER_IMAGE} AS builder
+FROM ${IMAGE} AS builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
+RUN apt-get update -y && apt-get install -y --no-install-recommends sudo curl git ca-certificates build-essential libncurses-dev libssl-dev \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
+
+# prepare mise to install node and elixir
+# https://mise.jdx.dev/mise-cookbook/docker.html
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ENV MISE_DATA_DIR="/mise"
+ENV MISE_CONFIG_DIR="/mise"
+ENV MISE_CACHE_DIR="/mise/cache"
+ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
+ENV PATH="/mise/shims:$PATH"
+# ENV MISE_VERSION="..."
+RUN curl https://mise.run | sh
 
 # prepare build dir
 WORKDIR /app
+
+# install mise and everything
+COPY mise.toml mise.toml
+RUN mise trust mise.toml && mise install
 
 # install hex + rebar
 RUN mix local.hex --force && \
@@ -49,7 +61,10 @@ COPY priv priv
 
 COPY lib lib
 
+# install node deps
+COPY pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY assets assets
+RUN pnpm install
 
 # Compile the release
 RUN mix compile
@@ -65,10 +80,10 @@ RUN mix release
 
 # start a new build stage so that the final image will only contain
 # the compiled release and other runtime necessities
-FROM ${RUNNER_IMAGE}
+FROM ${IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
