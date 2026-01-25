@@ -19,6 +19,7 @@ defmodule Chironium.Health.PathologyCategory do
     defaults [:read]
 
     create :create do
+      primary? true
       accept [:code, :name, :description, :display_order]
     end
 

@@ -131,17 +131,15 @@ defmodule Chironium.MixProject do
       ],
       # Clean rebuild: Safe for daily use, preserves VCS-tracked migrations.
       rebuild: [
-        "cmd rm -rf _build deps client/src/lib/ash.ts",
+        "cmd rm -rf _build deps assets/src/lib/ash.ts",
         "deps.get",
         "compile",
-        "ecto.drop",
-        "ecto.create",
-        "ecto.migrate",
+        "ecto.reset",
         "ash.codegen"
       ],
       # Nuclear rebuild: Regenerates all migrations. Pre-production only!
       "rebuild.nuke": [
-        "cmd rm -rf _build deps client/src/lib/ash.ts priv/repo/migrations/* priv/resource_snapshots/*",
+        "cmd rm -rf _build deps assets/src/lib/ash.ts priv/repo/migrations/* priv/resource_snapshots/*",
         "deps.get",
         "compile",
         "ecto.drop",

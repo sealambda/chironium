@@ -19,6 +19,7 @@ defmodule Chironium.Health.CycleSymptomCatalog do
     defaults [:read]
 
     create :create do
+      primary? true
       accept [:name, :description]
     end
 
