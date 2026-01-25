@@ -1,0 +1,214 @@
+---
+alwaysApply: true
+---
+
+# Commit Standards
+
+**Purpose:** Write surgical, revertible Git commits using Conventional Commits.
+
+**Applies to:** All commit operations.
+
+---
+
+## Core Rules
+
+1. **Follow [Conventional Commits](https://www.conventionalcommits.org/)** (MANDATORY)
+2. **One file per commit** - Enables surgical reverts (MANDATORY)
+3. **One purpose per commit** - Independent changes stay revertible (MANDATORY)
+
+---
+
+## Format
+
+```sh
+<type>(<scope>): <description> in <path>
+```
+
+**Required:** `type`, `path`.  
+**Conditional:** `description` - only when path alone is unclear.  
+**Recommended:** `scope`, infinitive verb with uppercase first letter.
+
+**Avoid redundancy:** If the path is self-explanatory, omit the description.
+
+---
+
+## Components
+
+### 1. Type (Required)
+
+Per [Conventional Commits specification](https://www.conventionalcommits.org/):
+
+`feat` `fix` `docs` `style` `refactor` `perf` `test` `build` `ci` `chore` `revert`
+
+### 2. Scope (Recommended)
+
+Identifies which part of the codebase is affected. Use consistent scopes across your project.
+
+**Example scopes for reference:**
+
+| Location Pattern  | Example Scope | Use For                      |
+| ----------------- | ------------- | ---------------------------- |
+| `frontend/**`     | `(client)`    | Frontend/client files        |
+| `backend/web/**`  | `(web)`       | Web layer (controllers, etc) |
+| `backend/auth/**` | `(auth)`      | Authentication domain        |
+| `database/**`     | `(db)`        | Migrations, seeds            |
+| `locales/**`      | `(i18n)`      | Translations                 |
+| `config/**`       | `(config)`    | Configuration files          |
+| `public/**`       | `(assets)`    | Static assets                |
+| `tests/**`        | No scope      | Use `test` type only         |
+| Root files        | No scope      | Root-level files             |
+
+**Scope guidelines:**
+
+- Same directory = same scope.
+- More specific scope wins when multiple apply.
+- Avoid nested scopes like `(client/ui)`.
+- Avoid file extensions as scopes like `(tsx)`.
+
+### 3. Verb (Recommended)
+
+**Suggested:** Use infinitive form with uppercase first letter for consistency.
+
+**Common verbs:** `Add` `Remove` `Fix` `Update` `Refactor` `Implement` `Extract` `Rename` `Move` `Improve` `Optimize` `Deprecate` `Upgrade`
+
+### 4. Description (Conditional)
+
+Brief, clear explanation when the path alone is not self-explanatory.
+
+**Guidelines:**
+
+- Avoid redundancy with scope or path.
+- Omit when path is self-explanatory (e.g., `README.md`, `AGENTS.md`, skill files).
+- Include when clarifying action or purpose (e.g., "Resolve validation", "Extract helpers").
+
+### 5. Path (Required)
+
+Relative path from project root to the modified file.
+
+---
+
+## Examples
+
+### ✅ Correct
+
+```sh
+feat(client): Add Button component in frontend/src/components/ui/button.tsx
+fix(auth): Resolve session timeout in backend/auth/user.ex
+refactor(web): Extract helper functions in backend/web/controllers/page_controller.ex
+docs: Update setup instructions in README.md
+feat(api)!: Change auth endpoint signature in backend/api/auth_controller.ex
+```
+
+### ✅ Concise (Path is Self-Explanatory)
+
+```sh
+chore: Remove AGENTS.md
+chore(cursor): Add .cursor/skills/git-commit-unstaged/SKILL.md
+docs: Update README.md
+feat(db): Add database/migrations/20260125_add_users.sql
+```
+
+**When path is clear:** The action and target are obvious from type and path alone.
+
+### ✅ Same File, Multiple Commits
+
+```sh
+fix(client): Resolve validation issue in frontend/src/components/LoginForm.tsx
+refactor(client): Extract validation schema in frontend/src/components/LoginForm.tsx
+feat(client): Add remember-me checkbox in frontend/src/components/LoginForm.tsx
+```
+
+**Result:** Three independent commits, each revertible separately.
+
+### ✅ Multiple Files, One Feature
+
+```sh
+feat(db): Add profiles table in database/migrations/20260125_add_profiles.sql
+feat(auth): Add UserProfile resource in backend/auth/user_profile.ex
+feat(web): Add profile controller in backend/web/profile_controller.ex
+feat(client): Add ProfileForm component in frontend/src/components/ProfileForm.tsx
+```
+
+### ❌ Common Mistakes
+
+```sh
+# Missing path
+feat(auth): Add login validation
+
+# Multiple files (implies many changes)
+feat(auth): Add authentication system
+
+# Redundant scope in description
+feat(client): Add client Button in frontend/src/components/ui/button.tsx
+
+# Redundant description when path is clear
+chore: Remove AGENTS.md in AGENTS.md
+chore(cursor): Add git-commit-unstaged skill in .cursor/skills/git-commit-unstaged/SKILL.md
+
+# Better versions
+chore: Remove AGENTS.md
+chore(cursor): Add .cursor/skills/git-commit-unstaged/SKILL.md
+```
+
+---
+
+## Workflow
+
+### Multiple Files
+
+1. Identify all affected files.
+2. Create one commit per file.
+3. Order logically (dependencies first).
+4. Push together in one PR.
+
+### Multiple Changes to Same File
+
+1. Make first change → commit.
+2. Make second change → commit.
+3. Continue for all independent changes.
+4. Push together in one PR.
+
+---
+
+## Why?
+
+**One file per commit:** Enables reverting `file-b.tsx` bug without losing `file-a.tsx` improvements.
+
+**One purpose per commit:** Revert new feature without losing bug fix in same file.
+
+**Include file paths:** Immediate context, easy search, clear scope.
+
+---
+
+## Checklist
+
+Before committing:
+
+- [ ] One file only?
+- [ ] One purpose only?
+- [ ] Format: `<type>(<scope>): <description> in <path>`?
+- [ ] Type is valid Conventional Commits type?
+- [ ] Path included?
+- [ ] Description omitted if path is self-explanatory?
+- [ ] No redundancy between scope/description/path?
+- [ ] Can revert independently?
+
+---
+
+## Quick Reference
+
+| Pattern  | Example                                                                   |
+| -------- | ------------------------------------------------------------------------- |
+| Frontend | `feat(client): Add Button component in frontend/components/ui/button.tsx` |
+| Backend  | `feat(auth): Add User resource in backend/auth/user.ex`                   |
+| Bug fix  | `fix(client): Resolve validation in frontend/components/LoginForm.tsx`    |
+| Refactor | `refactor(web): Extract helpers in backend/web/page_controller.ex`        |
+| Database | `feat(db): Add database/migrations/20260125_add_users.sql`                |
+| Config   | `chore(config): Update config/dev.yml`                                    |
+| Docs     | `docs: Update README.md`                                                  |
+| Deps     | `build: Add package.json`                                                 |
+| Tests    | `test: Add auth tests in tests/auth/user_test.ex`                         |
+| Skills   | `chore(cursor): Add .cursor/skills/my-skill/SKILL.md`                     |
+| Remove   | `chore: Remove AGENTS.md`                                                 |
+
+**Golden Rule:** If you can't revert this commit without affecting unrelated changes, it's not properly structured.

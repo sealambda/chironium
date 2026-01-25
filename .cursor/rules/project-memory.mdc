@@ -1,0 +1,40 @@
+---
+alwaysApply: true
+---
+
+# Project Memory
+
+**Purpose:** Project-specific conventions and preferences.
+
+**Applies to:** All files in this project.
+
+---
+
+## Package Management
+
+Use `pnpm` for all package management operations.
+
+## Branding
+
+The "Chironium" app name must always be displayed in all uppercase with small-caps style.
+
+**Examples:**
+
+```html
+<span
+  class="font-semibold uppercase tracking-wide"
+  style="font-variant: small-caps"
+  >CHIRONIUM</span
+>
+```
+
+Or use the `AppName` component when available.
+
+## Rule Quality
+
+- Keep Cursor rules concise, minimal, and non-redundant to avoid context bloat.
+- Treat non-standard conventions (e.g., scopes and verbs) as recommendations, not enforced requirements.
+
+---
+
+**Note:** This rule contains project-specific preferences that don't fit into other rule categories.

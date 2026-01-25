@@ -1,0 +1,129 @@
+---
+alwaysApply: true
+---
+
+# Punctuation Standards
+
+**Purpose:** Define punctuation rules for all code comments and documentation.
+
+**Applies to:** All comments across the entire codebase.
+
+---
+
+## Core Rule
+
+**Every complete sentence in a comment MUST end with a period (`.`).**
+
+---
+
+## Decision Tree
+
+```text
+Is this a complete sentence (subject + verb, expresses complete thought)?
+├─ YES → Add period (.)
+│   - Applies to: comments, documentation, list items, table cells
+└─ NO → Fragment, no period needed
+    - Examples: code references, section headers, fragment labels
+```
+
+---
+
+## Examples
+
+### ✅ Complete Sentences (Require Period)
+
+```typescript
+// This function handles user authentication.
+const result = await authenticate(user);
+
+/**
+ * Processes payment for the given order.
+ * Returns a promise that resolves to payment confirmation.
+ */
+async function processPayment() {}
+```
+
+```elixir
+# Calculate the total price with tax and shipping.
+def calculate_total(items, tax_rate, shipping) do
+  # Sum all item prices.
+  Enum.sum(items)
+end
+
+@doc """
+Authenticates user with email and password.
+Returns `{:ok, user}` on success or `{:error, reason}` on failure.
+"""
+def authenticate(email, password), do: User.verify(email, password)
+```
+
+### ❌ Fragments (No Period)
+
+```typescript
+// TODO: Refactor this function
+// FIXME: Memory leak
+// handleClick
+// userService
+// === Configuration ===
+```
+
+### ✅ Mixed Examples
+
+```typescript
+// TODO: Fix bug
+// TODO: This function needs refactoring to improve readability.
+
+// userService
+// This initializes the user service with default configuration.
+```
+
+### ✅ Lists and Tables (Follow Same Rules)
+
+**Benefits:**
+
+- Enables surgical rollbacks.
+- Improves code review efficiency.
+- Creates clear change attribution.
+
+| Feature    | Description                                |
+| ---------- | ------------------------------------------ |
+| Revertible | Each commit can be reverted independently. |
+| Atomic     | Single file per commit.                    |
+| Clear      | Explicit path and description.             |
+
+---
+
+## Quick Reference
+
+| Comment Type      | Requires Period? | Example                           |
+| ----------------- | ---------------- | --------------------------------- |
+| Complete sentence | ✅ YES           | `// This handles authentication.` |
+| Fragment          | ❌ NO            | `// TODO: Fix bug`                |
+| Code reference    | ❌ NO            | `// userService`                  |
+| Section header    | ❌ NO            | `// === Utilities ===`            |
+
+---
+
+## Rationale
+
+Proper punctuation:
+
+- Signals completeness of thought
+- Maintains professional consistency
+- Improves readability and AI/LLM parsing
+- Aligns with documentation best practices
+
+---
+
+## Enforcement
+
+During code writing/review:
+
+- [ ] Complete sentences end with period.
+- [ ] Fragments have no period.
+- [ ] Code references have no period.
+- [ ] Section headers have no period.
+- [ ] List items with complete sentences end with period.
+- [ ] Table cells with complete sentences end with period.
+
+**Golden Rule:** If it reads as a complete sentence, it ends with a period. If it's a fragment, no period is needed.
