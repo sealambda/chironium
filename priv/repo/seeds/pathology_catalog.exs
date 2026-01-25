@@ -36,6 +36,8 @@ defmodule Seeds.PathologyCatalog do
     |> Ash.read!()
     |> Enum.reduce(%{}, fn cat, acc -> Map.put(acc, cat.code, cat.id) end)
   end
+
+  defp seed_pathologies(category_map) do
     pathologies(category_map)
     |> Enum.each(fn attrs ->
       case Ash.create(PathologyCatalog, attrs, return_errors?: true) do

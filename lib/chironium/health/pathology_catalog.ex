@@ -20,6 +20,7 @@ defmodule Chironium.Health.PathologyCatalog do
     defaults [:read]
 
     create :create do
+      primary? true
       accept [:name, :icd_code, :gender_scope, :is_chronic, :description]
       argument :category_id, :uuid, allow_nil?: false
 
