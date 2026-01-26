@@ -1,0 +1,48 @@
+# EditorConfig for consistent coding styles across editors.
+# See https://editorconfig.org for more information.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Elixir files.
+[*.{ex,exs,heex}]
+indent_size = 2
+
+# TypeScript/JavaScript files.
+[*.{ts,tsx,js,jsx,mts,mjs}]
+indent_size = 2
+
+# JSON files.
+[*.json]
+indent_size = 2
+
+# YAML files.
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown files.
+[*.md]
+trim_trailing_whitespace = false
+
+# Shell scripts.
+[*.sh]
+indent_size = 2
+
+# Makefiles require tabs.
+[Makefile]
+indent_style = tab
+
+# Configuration files.
+[*.{toml,conf}]
+indent_size = 2
+
+# CSS files.
+[*.css]
+indent_size = 2

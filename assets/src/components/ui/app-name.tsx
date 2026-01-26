@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface AppNameProps {
   className?: string;
@@ -14,8 +14,8 @@ interface AppNameProps {
 export function AppName({ className }: AppNameProps) {
   return (
     <span
-      className={cn('font-semibold uppercase tracking-wide', className)}
-      style={{ fontVariant: 'small-caps' }}
+      className={cn("font-semibold uppercase tracking-wide", className)}
+      style={{ fontVariant: "small-caps" }}
     >
       CHIRONIUM
     </span>

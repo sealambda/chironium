@@ -1,7 +1,7 @@
-import { Link, useRouterState } from '@tanstack/react-router';
-import { LayoutDashboard, Users } from 'lucide-react';
+import { Link, useRouterState } from "@tanstack/react-router";
+import { LayoutDashboard, Users } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   to: string;
@@ -12,14 +12,14 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    to: '/dashboard',
-    label: 'Dashboard',
+    to: "/dashboard",
+    label: "Dashboard",
     icon: LayoutDashboard,
     disabled: true, // Dashboard is disabled for now.
   },
   {
-    to: '/customers',
-    label: 'Customers',
+    to: "/customers",
+    label: "Customers",
     icon: Users,
     disabled: false,
   },
@@ -43,24 +43,23 @@ export function BottomNav() {
     <nav
       className={[
         // Hidden on tablet+ where side nav is used.
-        'md:hidden',
+        "md:hidden",
         // Fixed position at bottom.
-        'fixed inset-x-0 bottom-0 z-50',
+        "fixed inset-x-0 bottom-0 z-50",
         // Styling - glass effect per Apple Liquid Glass / M3 surface container.
-        'border-t border-border/40 bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80',
-      ].join(' ')}
-      role="navigation"
+        "border-border/40 border-t bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
+      ].join(" ")}
       aria-label="Main navigation"
     >
       {/* Container: 64px height per M3 flexible nav bar + safe area padding. */}
       <div
         className={[
-          'flex items-center justify-around',
+          "flex items-center justify-around",
           // Height: 64px per M3 flexible navigation bar spec.
-          'h-16',
+          "h-16",
           // Safe area padding for home indicator on notched devices.
-          'pb-safe',
-        ].join(' ')}
+          "pb-safe",
+        ].join(" ")}
       >
         {navItems.map((item) => {
           const isActive = currentPath.startsWith(item.to);
@@ -74,13 +73,13 @@ export function BottomNav() {
                 disabled
                 className={[
                   // Touch target: minimum 44x44px.
-                  'flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 px-3 py-2',
-                  'opacity-40 cursor-not-allowed',
-                ].join(' ')}
+                  "flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 px-3 py-2",
+                  "cursor-not-allowed opacity-40",
+                ].join(" ")}
                 aria-label={`${item.label} (disabled)`}
               >
                 <Icon className="h-6 w-6 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
+                <span className="font-medium text-muted-foreground text-xs">{item.label}</span>
               </button>
             );
           }
@@ -91,20 +90,20 @@ export function BottomNav() {
               to={item.to}
               className={cn(
                 // Touch target: minimum 44x44px.
-                'flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg',
-                'transition-all duration-200',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                "flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 rounded-lg px-3 py-2",
+                "transition-all duration-200",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                  ? "text-primary"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
               )}
-              aria-current={isActive ? 'page' : undefined}
+              aria-current={isActive ? "page" : undefined}
             >
               <Icon
-                className={cn('h-6 w-6 transition-transform duration-200', isActive && 'scale-110')}
+                className={cn("h-6 w-6 transition-transform duration-200", isActive && "scale-110")}
               />
               <span
-                className={cn('text-xs font-medium transition-all', isActive && 'font-semibold')}
+                className={cn("font-medium text-xs transition-all", isActive && "font-semibold")}
               >
                 {item.label}
               </span>

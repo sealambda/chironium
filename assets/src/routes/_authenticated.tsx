@@ -1,8 +1,8 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-import { AppShell } from '@/components/layout/app-shell';
-import { AuthLoading } from '@/components/ui/auth-loading';
-import { BACKEND_URL } from '@/lib/auth-utils';
+import { AppShell } from "@/components/layout/app-shell";
+import { AuthLoading } from "@/components/ui/auth-loading";
+import { BACKEND_URL } from "@/lib/auth-utils";
 
 /**
  * Authenticated layout route.
@@ -27,7 +27,7 @@ import { BACKEND_URL } from '@/lib/auth-utils';
  * Note: AppShell is rendered here (not in root) so that public routes
  * can render without the navigation shell.
  */
-export const Route = createFileRoute('/_authenticated')({
+export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context }) => {
     // Wait for auth check to complete before making decisions.
     // This prevents redirect loops when the page loads with a token.
@@ -44,7 +44,7 @@ export const Route = createFileRoute('/_authenticated')({
       // reference backend assets that Vite doesn't have.
       window.location.href = `${BACKEND_URL}/sign-in`;
       // Throw to halt rendering while redirect is in progress.
-      throw new Error('Redirecting to sign-in...');
+      throw new Error("Redirecting to sign-in...");
     }
   },
   // Show loading state while auth is being checked.

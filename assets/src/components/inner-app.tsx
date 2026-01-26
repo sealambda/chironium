@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { RouterProvider } from '@tanstack/react-router';
-import { useAuth } from '@/lib/use-auth';
-import type { RouterContext } from '@/lib/router-context';
-import type { routeTree } from '@/routeTree.gen';
+import { RouterProvider } from "@tanstack/react-router";
+import { useEffect } from "react";
+import type { RouterContext } from "@/lib/router-context";
+import { useAuth } from "@/lib/use-auth";
+import type { routeTree } from "@/routeTree.gen";
 
-type AppRouter = ReturnType<typeof import('@tanstack/react-router').createRouter<typeof routeTree>>;
+type AppRouter = ReturnType<typeof import("@tanstack/react-router").createRouter<typeof routeTree>>;
 
 interface InnerAppProps {
   router: AppRouter;
@@ -25,7 +25,7 @@ export function InnerApp({ router }: InnerAppProps) {
   // This ensures beforeLoad guards re-run when user logs in/out.
   useEffect(() => {
     router.invalidate();
-  }, [auth.isLoading, auth.isAuthenticated, router]);
+  }, [router, auth.isAuthenticated, auth.isLoading]);
 
   return <RouterProvider router={router} context={{ auth } satisfies RouterContext} />;
 }

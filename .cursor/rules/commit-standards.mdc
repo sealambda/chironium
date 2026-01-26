@@ -4,7 +4,7 @@ alwaysApply: true
 
 # Commit Standards
 
-**Purpose:** Write surgical, revertible Git commits using Conventional Commits.
+**Purpose:** Write revertible Git commits using Conventional Commits with minimal noise.
 
 **Applies to:** All commit operations.
 
@@ -13,8 +13,8 @@ alwaysApply: true
 ## Core Rules
 
 1. **Follow [Conventional Commits](https://www.conventionalcommits.org/)** (MANDATORY)
-2. **One file per commit** - Enables surgical reverts (MANDATORY)
-3. **One purpose per commit** - Independent changes stay revertible (MANDATORY)
+2. **One purpose per commit** - Independent changes stay revertible (MANDATORY)
+3. **Group related files** - Files with a common path and same purpose can be committed together (RECOMMENDED)
 
 ---
 
@@ -24,11 +24,32 @@ alwaysApply: true
 <type>(<scope>): <description> in <path>
 ```
 
-**Required:** `type`, `path`.  
-**Conditional:** `description` - only when path alone is unclear.  
+**Required:** `type`, `path`.
+**Conditional:** `description` - only when path alone is unclear.
 **Recommended:** `scope`, infinitive verb with uppercase first letter.
 
 **Avoid redundancy:** If the path is self-explanatory, omit the description.
+
+---
+
+## Grouping Rules
+
+Files can be committed together when **ALL** conditions are met:
+
+1. **Same purpose** - All changes serve the same fix/feat/refactor/etc.
+2. **Common path** - Files share a common directory path.
+3. **Logical unit** - Changes are tightly coupled and would typically be reverted together.
+
+**When grouping:**
+
+- Use the **common path** (directory) instead of individual file paths.
+- The path should be the deepest common directory containing all files.
+
+**When NOT to group:**
+
+- Files in different top-level directories (e.g., `assets/` and `lib/`).
+- Unrelated changes that happen to be in the same directory.
+- Changes with different purposes (e.g., a fix and a refactor).
 
 ---
 
@@ -83,32 +104,35 @@ Brief, clear explanation when the path alone is not self-explanatory.
 
 ### 5. Path (Required)
 
-Relative path from project root to the modified file.
+- **Single file:** Relative path from project root to the modified file.
+- **Multiple files:** Common directory path containing all modified files.
 
 ---
 
 ## Examples
 
-### ✅ Correct
+### ✅ Single File Commits
 
 ```sh
 feat(client): Add Button component in frontend/src/components/ui/button.tsx
 fix(auth): Resolve session timeout in backend/auth/user.ex
-refactor(web): Extract helper functions in backend/web/controllers/page_controller.ex
-docs: Update setup instructions in README.md
-feat(api)!: Change auth endpoint signature in backend/api/auth_controller.ex
+docs: Update README.md
 ```
 
-### ✅ Concise (Path is Self-Explanatory)
+### ✅ Grouped Files (Same Purpose, Common Path)
 
 ```sh
-chore: Remove AGENTS.md
-chore(cursor): Add .cursor/skills/git-commit-unstaged/SKILL.md
-docs: Update README.md
-feat(db): Add database/migrations/20260125_add_users.sql
+# Multiple UI components added together
+feat(client): Add form components in assets/src/components/ui/
+
+# Multiple related fixes in the same domain
+fix(auth): Resolve token handling in lib/chironium/core/identity/
+
+# Refactoring multiple files in same directory
+refactor(client): Extract layout components in assets/src/components/layout/
 ```
 
-**When path is clear:** The action and target are obvious from type and path alone.
+**Files grouped:** All files share the common path and same purpose.
 
 ### ✅ Same File, Multiple Commits
 
@@ -120,7 +144,7 @@ feat(client): Add remember-me checkbox in frontend/src/components/LoginForm.tsx
 
 **Result:** Three independent commits, each revertible separately.
 
-### ✅ Multiple Files, One Feature
+### ✅ Multiple Files, Different Domains (Separate Commits)
 
 ```sh
 feat(db): Add profiles table in database/migrations/20260125_add_profiles.sql
@@ -129,35 +153,39 @@ feat(web): Add profile controller in backend/web/profile_controller.ex
 feat(client): Add ProfileForm component in frontend/src/components/ProfileForm.tsx
 ```
 
+**Why separate:** Files are in different domains/directories.
+
 ### ❌ Common Mistakes
 
 ```sh
 # Missing path
 feat(auth): Add login validation
 
-# Multiple files (implies many changes)
-feat(auth): Add authentication system
+# Grouping unrelated changes (different purposes)
+feat(client): Add and fix components in assets/src/components/
+
+# Grouping files from different top-level directories
+feat: Add user feature in assets/ and lib/
 
 # Redundant scope in description
 feat(client): Add client Button in frontend/src/components/ui/button.tsx
-
-# Redundant description when path is clear
-chore: Remove AGENTS.md in AGENTS.md
-chore(cursor): Add git-commit-unstaged skill in .cursor/skills/git-commit-unstaged/SKILL.md
-
-# Better versions
-chore: Remove AGENTS.md
-chore(cursor): Add .cursor/skills/git-commit-unstaged/SKILL.md
 ```
 
 ---
 
 ## Workflow
 
-### Multiple Files
+### Related Files (Same Path, Same Purpose)
 
 1. Identify all affected files.
-2. Create one commit per file.
+2. Group files that share a common path AND same purpose.
+3. Create one commit per group.
+4. Use the common directory path in the commit message.
+
+### Unrelated Files (Different Paths or Purposes)
+
+1. Identify all affected files.
+2. Create separate commits for different purposes or paths.
 3. Order logically (dependencies first).
 4. Push together in one PR.
 
@@ -172,11 +200,11 @@ chore(cursor): Add .cursor/skills/git-commit-unstaged/SKILL.md
 
 ## Why?
 
-**One file per commit:** Enables reverting `file-b.tsx` bug without losing `file-a.tsx` improvements.
+**One purpose per commit:** Revert a feature without losing a bug fix.
 
-**One purpose per commit:** Revert new feature without losing bug fix in same file.
+**Group related files:** Reduces commit noise while maintaining logical revertibility.
 
-**Include file paths:** Immediate context, easy search, clear scope.
+**Include paths:** Immediate context, easy search, clear scope.
 
 ---
 
@@ -184,11 +212,11 @@ chore(cursor): Add .cursor/skills/git-commit-unstaged/SKILL.md
 
 Before committing:
 
-- [ ] One file only?
 - [ ] One purpose only?
+- [ ] Related files grouped by common path?
 - [ ] Format: `<type>(<scope>): <description> in <path>`?
 - [ ] Type is valid Conventional Commits type?
-- [ ] Path included?
+- [ ] Path included (file or common directory)?
 - [ ] Description omitted if path is self-explanatory?
 - [ ] No redundancy between scope/description/path?
 - [ ] Can revert independently?
@@ -197,18 +225,21 @@ Before committing:
 
 ## Quick Reference
 
-| Pattern  | Example                                                                   |
-| -------- | ------------------------------------------------------------------------- |
-| Frontend | `feat(client): Add Button component in frontend/components/ui/button.tsx` |
-| Backend  | `feat(auth): Add User resource in backend/auth/user.ex`                   |
-| Bug fix  | `fix(client): Resolve validation in frontend/components/LoginForm.tsx`    |
-| Refactor | `refactor(web): Extract helpers in backend/web/page_controller.ex`        |
-| Database | `feat(db): Add database/migrations/20260125_add_users.sql`                |
-| Config   | `chore(config): Update config/dev.yml`                                    |
-| Docs     | `docs: Update README.md`                                                  |
-| Deps     | `build: Add package.json`                                                 |
-| Tests    | `test: Add auth tests in tests/auth/user_test.ex`                         |
-| Skills   | `chore(cursor): Add .cursor/skills/my-skill/SKILL.md`                     |
-| Remove   | `chore: Remove AGENTS.md`                                                 |
+| Pattern        | Example                                                                    |
+| -------------- | -------------------------------------------------------------------------- |
+| Single file    | `feat(client): Add Button component in frontend/components/ui/button.tsx`  |
+| Grouped files  | `feat(client): Add UI components in assets/src/components/ui/`             |
+| Backend        | `feat(auth): Add User resource in backend/auth/user.ex`                    |
+| Bug fix        | `fix(client): Resolve validation in frontend/components/LoginForm.tsx`     |
+| Grouped fix    | `fix(auth): Resolve token handling in lib/chironium/core/identity/`        |
+| Refactor       | `refactor(web): Extract helpers in backend/web/page_controller.ex`         |
+| Grouped refact | `refactor(client): Clean up layout components in assets/src/components/layout/` |
+| Database       | `feat(db): Add database/migrations/20260125_add_users.sql`                 |
+| Config         | `chore(config): Update config/dev.yml`                                     |
+| Docs           | `docs: Update README.md`                                                   |
+| Deps           | `build: Add package.json`                                                  |
+| Tests          | `test: Add auth tests in tests/auth/user_test.ex`                          |
+| Skills         | `chore(cursor): Add .cursor/skills/my-skill/SKILL.md`                      |
+| Remove         | `chore: Remove AGENTS.md`                                                  |
 
 **Golden Rule:** If you can't revert this commit without affecting unrelated changes, it's not properly structured.

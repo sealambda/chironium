@@ -1,7 +1,17 @@
 import Config
+
+# =============================================================================
+# DEVELOPMENT CONFIGURATION
+# =============================================================================
+# This file contains development-only settings with hardcoded credentials.
+# These values are intentionally committed for local development convenience.
+# NEVER use these values in production - use environment variables instead.
+# =============================================================================
+
 config :ash, policies: [show_policy_breakdowns?: true]
 
-# Configure your database
+# Configure your database.
+# Uses standard PostgreSQL development credentials.
 config :chironium, Chironium.Repo,
   username: "postgres",
   password: "postgres",
@@ -69,13 +79,14 @@ config :chironium, ChironiumWeb.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox.
-# In development, the PWA runs on Vite's dev server at port 5173.
+# NOTE: Secrets below are for LOCAL DEVELOPMENT ONLY.
+# Production uses environment variables configured in runtime.exs.
 config :chironium,
   dev_routes: true,
   token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE",
-  pwa_url: "http://localhost:5173",
+  pwa_url: "http://localhost:4000/app",
   # Allowed PWA origins for secure post-authentication redirects.
-  allowed_pwa_origins: ["http://localhost:5173"]
+  allowed_pwa_origins: ["http://localhost:4000"]
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"

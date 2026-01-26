@@ -1,5 +1,5 @@
-import { createContext } from 'react';
-import type { AuthState } from './auth-types';
+import { createContext } from "react";
+import type { AuthState } from "./auth-types";
 
 /**
  * Authentication context for providing auth state throughout the app.

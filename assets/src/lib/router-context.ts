@@ -1,4 +1,4 @@
-import type { AuthState } from './auth-types';
+import type { AuthState } from "./auth-types";
 
 /**
  * Router context type that includes authentication state.

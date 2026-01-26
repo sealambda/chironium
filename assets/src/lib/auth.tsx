@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback, type ReactNode } from 'react';
-import { BACKEND_URL, buildHeaders } from './auth-utils';
-import { AuthContext } from './auth-context';
-import type { User, AuthState } from './auth-types';
+import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { AuthContext } from "./auth-context";
+import type { AuthState, User } from "./auth-types";
+import { BACKEND_URL, buildHeaders } from "./auth-utils";
 
 // Re-export types for backward compatibility.
-export type { User, AuthState } from './auth-types';
+export type { AuthState, User } from "./auth-types";
 
 // ============================================================================
 // Token Storage (Internal)
 // ============================================================================
 
-const TOKEN_STORAGE_KEY = 'chironium_auth_token';
+const TOKEN_STORAGE_KEY = "chironium_auth_token";
 
 /**
  * Store the auth token in sessionStorage.
@@ -45,27 +45,27 @@ function clearStoredToken(): void {
  */
 function extractTokenFromFragment(): string | null {
   const hash = window.location.hash;
-  if (!hash || !hash.includes('token=')) {
+  if (!hash || !hash.includes("token=")) {
     return null;
   }
 
   // Parse the fragment (e.g., #token=abc123 or #token=abc123&other=value).
   const params = new URLSearchParams(hash.substring(1));
-  const token = params.get('token');
+  const token = params.get("token");
 
   // Clear the token from the URL regardless of validity.
   // Use replaceState to avoid adding to browser history.
-  const cleanUrl = window.location.href.split('#')[0];
-  window.history.replaceState(null, '', cleanUrl);
+  const cleanUrl = window.location.href.split("#")[0];
+  window.history.replaceState(null, "", cleanUrl);
 
   // Validate token format: JWTs have three dot-separated base64 segments.
   if (!token || !token.trim()) {
     return null;
   }
 
-  const parts = token.split('.');
+  const parts = token.split(".");
   if (parts.length !== 3) {
-    console.warn('Invalid token format in URL fragment');
+    console.warn("Invalid token format in URL fragment");
     return null;
   }
 
@@ -81,7 +81,7 @@ function extractTokenFromFragment(): string | null {
  * In development, this is empty to use Vite's proxy.
  * In production, this should point to the backend.
  */
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 /**
  * Fetch the current authenticated user from the backend.
@@ -93,8 +93,8 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 async function fetchCurrentUser(): Promise<User | null> {
   try {
     const response = await fetch(`${API_BASE}/api/json/users/me`, {
-      method: 'GET',
-      credentials: 'include',
+      method: "GET",
+      credentials: "include",
       headers: buildHeaders(),
     });
 
@@ -115,7 +115,7 @@ async function fetchCurrentUser(): Promise<User | null> {
       person: data.data.attributes.person || null,
     };
   } catch (error) {
-    console.error('Error fetching current user:', error);
+    console.error("Error fetching current user:", error);
     return null;
   }
 }
