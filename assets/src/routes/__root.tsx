@@ -1,7 +1,7 @@
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import type { RouterContext } from '@/lib/router-context';
+import type { RouterContext } from "@/lib/router-context";
 
 /**
  * Root route with authentication context.
@@ -33,7 +33,7 @@ function RedirectingComponent() {
     <div className="flex min-h-svh items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Redirecting to sign in...</p>
+        <p className="text-muted-foreground text-sm">Redirecting to sign in...</p>
       </div>
     </div>
   );
@@ -46,9 +46,9 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-svh items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <h1 className="text-2xl font-semibold">Page not found</h1>
-        <p className="text-sm text-muted-foreground">The page you're looking for doesn't exist.</p>
-        <a href="/" className="text-sm text-primary hover:underline">
+        <h1 className="font-semibold text-2xl">Page not found</h1>
+        <p className="text-muted-foreground text-sm">The page you're looking for doesn't exist.</p>
+        <a href="/" className="text-primary text-sm hover:underline">
           Go to home
         </a>
       </div>
@@ -66,7 +66,7 @@ function RootComponent() {
       <div className="flex min-h-svh items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground text-sm">Loading...</p>
         </div>
       </div>
     );

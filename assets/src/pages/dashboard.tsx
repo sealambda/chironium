@@ -5,13 +5,14 @@
 export function DashboardPage() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="rounded-full bg-muted p-6 mb-4">
+      <div className="mb-4 rounded-full bg-muted p-6">
         <svg
           className="h-12 w-12 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth={1.5}
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -20,8 +21,8 @@ export function DashboardPage() {
           />
         </svg>
       </div>
-      <h1 className="text-xl font-bold text-foreground mb-2">Dashboard Coming Soon</h1>
-      <p className="text-sm text-muted-foreground max-w-xs">
+      <h1 className="mb-2 font-bold text-foreground text-xl">Dashboard Coming Soon</h1>
+      <p className="max-w-xs text-muted-foreground text-sm">
         The dashboard is currently under development. Check back later for analytics and insights.
       </p>
     </div>

@@ -1,2 +1,6 @@
 packages:
   - assets
+  # Phoenix dependencies for workspace linking.
+  - deps/phoenix
+  - deps/phoenix_html
+  - deps/phoenix_live_view

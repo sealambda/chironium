@@ -41,17 +41,13 @@ defmodule ChironiumWeb.SignInLive do
   @impl true
   def handle_event("validate", %{"user" => params}, socket) do
     form =
-      socket.assigns.form.source
-      |> Form.validate(params)
-      |> to_form()
+      to_form(Form.validate(socket.assigns.form.source, params))
 
     {:noreply, assign(socket, :form, form)}
   end
 
   def handle_event("submit", %{"user" => params}, socket) do
-    form =
-      socket.assigns.form.source
-      |> Form.validate(params)
+    form = Form.validate(socket.assigns.form.source, params)
 
     if form.valid? do
       {:noreply,
@@ -113,11 +109,12 @@ defmodule ChironiumWeb.SignInLive do
 
   # Build the AshPhoenix.Form for magic link request.
   defp build_magic_link_form do
-    Form.for_action(User, :request_magic_link,
-      as: "user",
-      domain: Chironium.Core.Identity
+    to_form(
+      Form.for_action(User, :request_magic_link,
+        as: "user",
+        domain: Chironium.Core.Identity
+      )
     )
-    |> to_form()
   end
 
   # ============================================================================
@@ -214,7 +211,11 @@ defmodule ChironiumWeb.SignInLive do
           type="button"
           phx-click="toggle_theme"
           class="size-9 rounded-md flex items-center justify-center text-auth-muted hover:text-auth-fg hover:bg-auth-surface transition-all focus:outline-none focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
-          aria-label={if @theme == "dark", do: gettext("Switch to light mode"), else: gettext("Switch to dark mode")}
+          aria-label={
+            if @theme == "dark",
+              do: gettext("Switch to light mode"),
+              else: gettext("Switch to dark mode")
+          }
         >
           <.icon :if={@theme == "dark"} name="hero-sun" class="size-4" />
           <.icon :if={@theme == "light"} name="hero-moon" class="size-4" />
@@ -324,15 +325,7 @@ defmodule ChironiumWeb.SignInLive do
   defp form_errors(assigns) do
     errors =
       if used_input?(assigns.form[assigns.field]) do
-        Enum.map(assigns.form.errors[assigns.field] || [], fn
-          {msg, opts} ->
-            Enum.reduce(opts, msg, fn {key, value}, acc ->
-              String.replace(acc, "%{#{key}}", fn _ -> to_string(value) end)
-            end)
-
-          msg when is_binary(msg) ->
-            msg
-        end)
+        Enum.map(assigns.form.errors[assigns.field] || [], &format_form_error/1)
       else
         []
       end
@@ -360,6 +353,14 @@ defmodule ChironiumWeb.SignInLive do
     </div>
     """
   end
+
+  defp format_form_error({msg, opts}) do
+    Enum.reduce(opts, msg, fn {key, value}, acc ->
+      String.replace(acc, "%{#{key}}", to_string(value))
+    end)
+  end
+
+  defp format_form_error(msg) when is_binary(msg), do: msg
 
   defp oauth_buttons(assigns) do
     ~H"""
@@ -412,11 +413,17 @@ defmodule ChironiumWeb.SignInLive do
     <footer class="px-4 sm:px-6 py-3">
       <p class="text-center text-auth-muted text-xs">
         {gettext("By continuing, you agree to our")}
-        <a href="#" class="text-auth-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm">
+        <a
+          href="#"
+          class="text-auth-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm"
+        >
           {gettext("Terms of Service")}
         </a>
         {gettext("and")}
-        <a href="#" class="text-auth-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm">
+        <a
+          href="#"
+          class="text-auth-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm"
+        >
           {gettext("Privacy Policy")}
         </a>
       </p>

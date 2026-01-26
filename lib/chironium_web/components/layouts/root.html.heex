@@ -1,12 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="csrf-token" content={get_csrf_token()} />
+    <%!-- Security: Prevent MIME type sniffing. --%>
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <%!-- Security: Referrer policy for privacy. --%>
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <%!-- PWA: Theme color for browser chrome. --%>
+    <meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <%!-- SEO: Basic meta description. --%>
+    <meta
+      name="description"
+      content={assigns[:meta_description] || "Chironium - Health management platform"}
+    />
     <.live_title default="Chironium" suffix=" · Phoenix Framework">
       {assigns[:page_title]}
     </.live_title>
+    <%!-- Preconnect to external resources for faster loading. --%>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
     <PhoenixVite.Components.assets
       names={["src/main.tsx", "js/app.js", "css/app.css"]}
       manifest={{:chironium, "priv/static/.vite/manifest.json"}}
@@ -14,6 +28,7 @@
       to_url={fn p -> static_url(@conn, p) end}
       is_react?={true}
     />
+    <%!-- Theme initialization script - runs before paint to prevent flash. --%>
     <script>
       (() => {
         const setTheme = (theme) => {
@@ -33,7 +48,7 @@
       })();
     </script>
   </head>
-  <body>
+  <body class="h-full antialiased">
     {@inner_content}
   </body>
 </html>

@@ -10,7 +10,14 @@ defmodule ChironiumWeb.Endpoint do
     store: :cookie,
     key: "_chironium_key",
     signing_salt: "p2O2GnCc",
-    same_site: "Lax"
+    # Security: Prevent JavaScript access to session cookie.
+    http_only: true,
+    # Security: Only send cookie over HTTPS in production.
+    secure: Mix.env() == :prod,
+    # Security: Prevent CSRF via cross-site requests.
+    same_site: "Lax",
+    # Session expires after 14 days of inactivity.
+    max_age: 60 * 60 * 24 * 14
   ]
 
   socket "/live", Phoenix.LiveView.Socket,

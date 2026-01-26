@@ -12,9 +12,9 @@
  * In development, this is the Phoenix server URL.
  * In production, this should be the same as the API base or the main domain.
  */
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
-const TOKEN_STORAGE_KEY = 'chironium_auth_token';
+const TOKEN_STORAGE_KEY = "chironium_auth_token";
 
 /**
  * Get the current auth token from sessionStorage.
@@ -35,13 +35,13 @@ export function getStoredToken(): string | null {
  */
 export function buildHeaders(): HeadersInit {
   const headers: HeadersInit = {
-    Accept: 'application/vnd.api+json',
-    'Content-Type': 'application/vnd.api+json',
+    Accept: "application/vnd.api+json",
+    "Content-Type": "application/vnd.api+json",
   };
 
   const token = getStoredToken();
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
   }
 
   return headers;

@@ -16,10 +16,10 @@ defmodule ChironiumWeb.AuthOverrides do
 
   alias AshAuthentication.Phoenix.{
     Components,
-    SignInLive,
-    ResetLive,
     ConfirmLive,
-    MagicSignInLive
+    MagicSignInLive,
+    ResetLive,
+    SignInLive
   }
 
   # ===========================================================================

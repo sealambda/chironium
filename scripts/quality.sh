@@ -4,42 +4,39 @@
 
 set -e
 
-echo "🔍 Running quality checks..."
+echo "Running quality checks..."
 echo ""
 
 # Backend (Elixir/Phoenix/Ash).
-echo "📦 Backend (Elixir/Phoenix/Ash)..."
-echo "  → Compiling with warnings as errors..."
+echo "Backend (Elixir/Phoenix/Ash)..."
+echo "  -> Compiling with warnings as errors..."
 mix compile --warnings-as-errors
 
-echo "  → Checking for unused dependencies..."
-mix deps.unlock --unused
+echo "  -> Checking for unused dependencies..."
+mix deps.unlock --check-unused
 
-echo "  → Checking code formatting..."
+echo "  -> Checking code formatting..."
 mix format --check-formatted
 
-echo "  → Running Credo (linter)..."
+echo "  -> Running Credo (linter)..."
 mix credo --strict
 
-echo "  → Running Sobelow (security)..."
+echo "  -> Running Sobelow (security)..."
 mix sobelow --config
 
 echo ""
 
 # Frontend (React/TypeScript).
-echo "⚛️  Frontend (React/TypeScript)..."
-cd client
+echo "Frontend (React/TypeScript)..."
+cd assets
 
-echo "  → Checking code formatting..."
-pnpm run format:check
+echo "  -> Running Biome (format + lint)..."
+pnpm run check
 
-echo "  → Running ESLint..."
-pnpm run lint
-
-echo "  → Type checking..."
+echo "  -> Type checking..."
 pnpm run typecheck
 
 cd ..
 
 echo ""
-echo "✅ All quality checks passed!"
+echo "All quality checks passed!"

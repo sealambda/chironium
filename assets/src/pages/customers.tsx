@@ -1,89 +1,89 @@
-import { CustomerCard, type Customer } from '@/components/customers/customer-card';
+import { type Customer, CustomerCard } from "@/components/customers/customer-card";
 
 // Mock data for demo purposes.
 const mockCustomers: Customer[] = [
   {
-    id: '1',
-    name: 'Sarah Mitchell',
-    avatarUrl: '',
-    initials: 'SM',
-    status: 'up-to-date',
+    id: "1",
+    name: "Sarah Mitchell",
+    avatarUrl: "",
+    initials: "SM",
+    status: "up-to-date",
     membership: {
-      startDate: new Date('2025-02-15'),
+      startDate: new Date("2025-02-15"),
       planDurationMonths: 12,
-      endDate: new Date('2026-08-15'),
+      endDate: new Date("2026-08-15"),
     },
     lastReview: {
-      date: new Date('2026-01-15'),
-      label: 'Jan 15',
+      date: new Date("2026-01-15"),
+      label: "Jan 15",
     },
     reports: {
-      frequency: 'Weekly',
-      nextDate: new Date('2026-01-21'),
-      nextLabel: 'Jan 21',
+      frequency: "Weekly",
+      nextDate: new Date("2026-01-21"),
+      nextLabel: "Jan 21",
     },
   },
   {
-    id: '2',
-    name: 'Marcus Rodriguez',
-    avatarUrl: '',
-    initials: 'MR',
-    status: 'needs-attention',
+    id: "2",
+    name: "Marcus Rodriguez",
+    avatarUrl: "",
+    initials: "MR",
+    status: "needs-attention",
     membership: {
-      startDate: new Date('2025-06-01'),
+      startDate: new Date("2025-06-01"),
       planDurationMonths: 6,
-      endDate: new Date('2025-12-01'),
+      endDate: new Date("2025-12-01"),
     },
     lastReview: {
-      date: new Date('2026-01-08'),
-      label: 'Jan 8',
+      date: new Date("2026-01-08"),
+      label: "Jan 8",
     },
     reports: {
-      frequency: 'Bi-weekly',
-      nextDate: new Date('2026-01-24'),
-      nextLabel: 'Jan 24',
+      frequency: "Bi-weekly",
+      nextDate: new Date("2026-01-24"),
+      nextLabel: "Jan 24",
     },
   },
   {
-    id: '3',
-    name: 'Emily Chen',
-    avatarUrl: '',
-    initials: 'EC',
-    status: 'up-to-date',
+    id: "3",
+    name: "Emily Chen",
+    avatarUrl: "",
+    initials: "EC",
+    status: "up-to-date",
     membership: {
-      startDate: new Date('2025-09-01'),
+      startDate: new Date("2025-09-01"),
       planDurationMonths: 12,
-      endDate: new Date('2026-09-01'),
+      endDate: new Date("2026-09-01"),
     },
     lastReview: {
-      date: new Date('2026-01-18'),
-      label: 'Jan 18',
+      date: new Date("2026-01-18"),
+      label: "Jan 18",
     },
     reports: {
-      frequency: 'Monthly',
-      nextDate: new Date('2026-02-01'),
-      nextLabel: 'Feb 1',
+      frequency: "Monthly",
+      nextDate: new Date("2026-02-01"),
+      nextLabel: "Feb 1",
     },
   },
   {
-    id: '4',
-    name: 'David Park',
-    avatarUrl: '',
-    initials: 'DP',
-    status: 'overdue',
+    id: "4",
+    name: "David Park",
+    avatarUrl: "",
+    initials: "DP",
+    status: "overdue",
     membership: {
-      startDate: new Date('2025-03-15'),
+      startDate: new Date("2025-03-15"),
       planDurationMonths: 12,
-      endDate: new Date('2026-03-15'),
+      endDate: new Date("2026-03-15"),
     },
     lastReview: {
-      date: new Date('2025-12-20'),
-      label: 'Dec 20',
+      date: new Date("2025-12-20"),
+      label: "Dec 20",
     },
     reports: {
-      frequency: 'Weekly',
-      nextDate: new Date('2026-01-19'),
-      nextLabel: 'Jan 19',
+      frequency: "Weekly",
+      nextDate: new Date("2026-01-19"),
+      nextLabel: "Jan 19",
     },
   },
 ];
@@ -96,8 +96,8 @@ export function CustomersPage() {
     <div className="space-y-4 pt-2">
       {/* Page header. */}
       <header className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold uppercase tracking-wide text-foreground">Customers</h1>
-        <span className="text-sm text-muted-foreground">{mockCustomers.length} total</span>
+        <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">Customers</h1>
+        <span className="text-muted-foreground text-sm">{mockCustomers.length} total</span>
       </header>
 
       {/* Customer cards list. */}
@@ -106,9 +106,9 @@ export function CustomersPage() {
           <CustomerCard
             key={customer.id}
             customer={customer}
-            onEmailClick={() => console.log(`Email ${customer.name}`)}
-            onWhatsAppClick={() => console.log(`WhatsApp ${customer.name}`)}
-            onCallClick={() => console.log(`Call ${customer.name}`)}
+            onEmailClick={() => {}}
+            onWhatsAppClick={() => {}}
+            onCallClick={() => {}}
           />
         ))}
       </div>

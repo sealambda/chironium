@@ -64,7 +64,8 @@ COPY lib lib
 # install node deps
 COPY pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY assets assets
-RUN pnpm install
+# Use --frozen-lockfile for reproducible builds.
+RUN pnpm install --frozen-lockfile
 
 # Compile the release
 RUN mix compile

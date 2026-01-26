@@ -5,7 +5,8 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client"],
+    // Note: "types" removed to allow automatic type resolution.
+    // vite/client types are referenced via triple-slash directive in vite-env.d.ts.
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -25,10 +26,10 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-    },
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"],
   // Exclude generated files from strict unused checks.
-  "exclude": ["src/lib/ash.ts"],
+  "exclude": ["src/lib/ash.ts"]
 }

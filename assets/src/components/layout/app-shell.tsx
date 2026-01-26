@@ -1,6 +1,6 @@
-import { TopNav } from './top-nav';
-import { BottomNav } from './bottom-nav';
-import { SideNav } from './side-nav';
+import { BottomNav } from "./bottom-nav";
+import { SideNav } from "./side-nav";
+import { TopNav } from "./top-nav";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -34,18 +34,18 @@ export function AppShell({ children }: AppShellProps) {
         {/* Main content area with safe padding for fixed nav and safe areas. */}
         <main
           className={[
-            'min-w-0 flex-1 overflow-y-auto overflow-x-hidden',
+            "min-w-0 flex-1 overflow-y-auto overflow-x-hidden",
             // Top padding for fixed header: 64px (h-16) per M3 small app bar.
-            'pt-16',
+            "pt-16",
             // Mobile: padding for fixed bottom nav.
             // Formula: nav height (64px) + breathing room (16px) + safe area.
             // Per M3/HIG: content needs margin from nav bar edge for visual separation.
-            'pb-[calc(64px+16px+env(safe-area-inset-bottom))]',
+            "pb-[calc(64px+16px+env(safe-area-inset-bottom))]",
             // Tablet+: standard bottom padding (no fixed bottom nav).
-            'md:pb-8',
+            "md:pb-8",
             // Horizontal padding following M3 margins: 16px compact, 24px medium, 32px expanded.
-            'px-4 md:px-6 lg:px-8',
-          ].join(' ')}
+            "px-4 md:px-6 lg:px-8",
+          ].join(" ")}
         >
           {/* Container with max-width for large screens (prevents text line >60 chars). */}
           <div className="mx-auto w-full max-w-7xl">{children}</div>
