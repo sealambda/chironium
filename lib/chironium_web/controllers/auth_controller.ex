@@ -76,8 +76,11 @@ defmodule ChironiumWeb.AuthController do
 
       token ->
         case AuthReturnState.validate_state_token(token) do
-          {:ok, return_url} -> return_url
-          :error -> pwa_url
+          {:ok, return_url} ->
+            return_url
+
+          :error ->
+            pwa_url
         end
     end
   end

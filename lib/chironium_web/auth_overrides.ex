@@ -17,7 +17,6 @@ defmodule ChironiumWeb.AuthOverrides do
   alias AshAuthentication.Phoenix.{
     Components,
     ConfirmLive,
-    MagicSignInLive,
     ResetLive,
     SignInLive
   }
@@ -37,11 +36,6 @@ defmodule ChironiumWeb.AuthOverrides do
   end
 
   override ConfirmLive do
-    set :root_class,
-        "min-h-svh flex items-center justify-center bg-background px-4 py-8 font-sans"
-  end
-
-  override MagicSignInLive do
     set :root_class,
         "min-h-svh flex items-center justify-center bg-background px-4 py-8 font-sans"
   end
@@ -163,61 +157,6 @@ defmodule ChironiumWeb.AuthOverrides do
         "h-4 w-4 shrink-0 rounded border border-input shadow-xs focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 accent-primary"
 
     set :checkbox_label_class, "text-sm font-medium text-foreground select-none cursor-pointer"
-  end
-
-  # ===========================================================================
-  # Magic Link Strategy
-  # ===========================================================================
-
-  override Components.MagicLink do
-    set :root_class, "w-full flex flex-col gap-4"
-    set :label_class, "text-2xl font-semibold tracking-tight text-foreground mb-2"
-    set :form_class, "flex flex-col gap-4"
-    set :disable_button_text, "Sending link..."
-
-    set :request_flash_text,
-        "If this email exists in our system, you will receive a sign-in link shortly."
-
-    set :remember_me_class, "flex items-center gap-2 mt-1"
-
-    set :checkbox_class,
-        "h-4 w-4 shrink-0 rounded border border-input shadow-xs focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 accent-primary"
-
-    set :checkbox_label_class, "text-sm font-medium text-foreground select-none cursor-pointer"
-  end
-
-  override Components.MagicLink.Input do
-    set :submit_class,
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-2.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/80 transition-all focus-visible:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 w-full min-h-[44px] select-none cursor-pointer"
-
-    set :input_debounce, 350
-    set :submit_label, "Send sign-in link"
-    set :remember_me_class, "flex items-center gap-2 mt-1"
-    set :remember_me_input_label, "Remember me"
-
-    set :checkbox_class,
-        "h-4 w-4 shrink-0 rounded border border-input shadow-xs focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 accent-primary"
-
-    set :checkbox_label_class, "text-sm font-medium text-foreground select-none cursor-pointer"
-  end
-
-  # ===========================================================================
-  # Magic Link Sign In (token confirmation page)
-  # ===========================================================================
-
-  override Components.MagicLink.SignIn do
-    set :root_class,
-        "w-full max-w-sm mx-auto bg-card text-card-foreground rounded-xl shadow-xs ring-1 ring-foreground/10 p-6 sm:p-8 flex flex-col gap-6"
-
-    set :strategy_class, "w-full"
-    set :show_banner, true
-  end
-
-  override Components.MagicLink.Form do
-    set :root_class, "w-full"
-    set :label_class, "text-2xl font-semibold tracking-tight text-foreground mb-2"
-    set :form_class, "flex flex-col gap-4"
-    set :disable_button_text, "Signing in..."
   end
 
   # ===========================================================================

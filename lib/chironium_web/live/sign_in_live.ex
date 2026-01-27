@@ -3,18 +3,13 @@ defmodule ChironiumWeb.SignInLive do
   Custom sign-in LiveView with branded pink/black design.
 
   Features:
-  - Magic link authentication (primary).
-  - Google OAuth authentication (secondary).
-  - Accessible form with ARIA attributes.
-  - Loading states and error handling.
+  - Google OAuth authentication.
+  - Accessible UI with ARIA attributes.
   - Responsive mobile-first design.
   - Theme toggle (light/dark).
   - Language selector (en/es).
   """
   use ChironiumWeb, :live_view
-
-  alias AshPhoenix.Form
-  alias Chironium.Core.Identity.User
 
   @supported_locales [
     {"en", "English"},
@@ -23,15 +18,12 @@ defmodule ChironiumWeb.SignInLive do
 
   @impl true
   def mount(_params, session, socket) do
-    form = build_magic_link_form()
     locale = session["locale"] || Gettext.get_locale(ChironiumWeb.Gettext)
     theme = "dark"
 
     {:ok,
      socket
      |> assign(:page_title, gettext("Sign In"))
-     |> assign(:form, form)
-     |> assign(:trigger_action, false)
      |> assign(:theme, theme)
      |> assign(:locale, locale)
      |> assign(:supported_locales, @supported_locales)
@@ -39,26 +31,6 @@ defmodule ChironiumWeb.SignInLive do
   end
 
   @impl true
-  def handle_event("validate", %{"user" => params}, socket) do
-    form =
-      to_form(Form.validate(socket.assigns.form.source, params))
-
-    {:noreply, assign(socket, :form, form)}
-  end
-
-  def handle_event("submit", %{"user" => params}, socket) do
-    form = Form.validate(socket.assigns.form.source, params)
-
-    if form.valid? do
-      {:noreply,
-       socket
-       |> assign(:form, to_form(form))
-       |> assign(:trigger_action, true)}
-    else
-      {:noreply, assign(socket, :form, to_form(form))}
-    end
-  end
-
   def handle_event("toggle_theme", _params, socket) do
     new_theme = if socket.assigns.theme == "dark", do: "light", else: "dark"
     {:noreply, assign(socket, :theme, new_theme)}
@@ -107,16 +79,6 @@ defmodule ChironiumWeb.SignInLive do
     {:noreply, socket}
   end
 
-  # Build the AshPhoenix.Form for magic link request.
-  defp build_magic_link_form do
-    to_form(
-      Form.for_action(User, :request_magic_link,
-        as: "user",
-        domain: Chironium.Core.Identity
-      )
-    )
-  end
-
   # ============================================================================
   # Template
   # ============================================================================
@@ -139,8 +101,6 @@ defmodule ChironiumWeb.SignInLive do
         <div class="w-full max-w-sm space-y-6">
           <.brand_badge />
           <.welcome_heading />
-          <.magic_link_form form={@form} trigger_action={@trigger_action} />
-          <.divider />
           <.oauth_buttons />
         </div>
       </main>
@@ -249,118 +209,11 @@ defmodule ChironiumWeb.SignInLive do
         {gettext("Welcome Back")}
       </h1>
       <p class="text-auth-muted text-sm">
-        {gettext("Enter your email to receive a secure magic link.")}
+        {gettext("Sign in with your Google account to continue.")}
       </p>
     </div>
     """
   end
-
-  defp magic_link_form(assigns) do
-    ~H"""
-    <.form
-      :let={f}
-      for={@form}
-      id="magic-link-form"
-      action={~p"/auth/user/magic_link"}
-      method="post"
-      phx-change="validate"
-      phx-submit="submit"
-      phx-trigger-action={@trigger_action}
-      class="space-y-3 sm:space-y-4"
-    >
-      <div class="space-y-1.5 sm:space-y-2">
-        <label for={f[:email].id} class="sr-only">{gettext("Email address")}</label>
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none">
-            <.icon name="hero-envelope" class="size-4 text-auth-muted" />
-          </div>
-          <input
-            type="email"
-            id={f[:email].id}
-            name={f[:email].name}
-            value={Phoenix.HTML.Form.normalize_value("email", f[:email].value)}
-            placeholder={gettext("you@example.com")}
-            autocomplete="email"
-            required
-            aria-describedby="email-error"
-            class={[
-              "w-full h-9 sm:h-10 pl-9 pr-2.5 rounded-md",
-              "bg-auth-input-bg border border-auth-border",
-              "text-auth-fg placeholder:text-auth-muted",
-              "text-sm",
-              "shadow-xs transition-[color,box-shadow]",
-              "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50",
-              @form.errors[:email] && "border-red-500/50 ring-[3px] ring-red-500/20"
-            ]}
-          />
-        </div>
-        <.form_errors form={@form} field={:email} />
-      </div>
-
-      <button
-        type="submit"
-        class={[
-          "w-full h-9 sm:h-10 rounded-md",
-          "bg-auth-primary hover:bg-auth-primary/80",
-          "text-auth-primary-fg font-medium text-sm",
-          "flex items-center justify-center gap-1.5",
-          "shadow-xs transition-all",
-          "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50",
-          "disabled:pointer-events-none disabled:opacity-50",
-          "phx-submit-loading:opacity-75 phx-submit-loading:cursor-wait"
-        ]}
-      >
-        <span class="phx-submit-loading:hidden">{gettext("Send Magic Link")}</span>
-        <span class="hidden phx-submit-loading:inline">{gettext("Sending...")}</span>
-        <.icon name="hero-arrow-right" class="size-4 phx-submit-loading:hidden" />
-      </button>
-
-      <p class="text-center text-auth-muted text-xs">
-        {gettext("We'll send a secure link to your email for instant access.")}
-      </p>
-    </.form>
-    """
-  end
-
-  defp form_errors(assigns) do
-    errors =
-      if used_input?(assigns.form[assigns.field]) do
-        Enum.map(assigns.form.errors[assigns.field] || [], &format_form_error/1)
-      else
-        []
-      end
-
-    assigns = assign(assigns, :errors, errors)
-
-    ~H"""
-    <div :if={@errors != []} id={"#{@field}-error"} class="text-red-400 text-sm" role="alert">
-      <p :for={error <- @errors}>{error}</p>
-    </div>
-    """
-  end
-
-  defp divider(assigns) do
-    ~H"""
-    <div class="relative">
-      <div class="absolute inset-0 flex items-center" aria-hidden="true">
-        <div class="w-full border-t border-auth-border transition-colors duration-200"></div>
-      </div>
-      <div class="relative flex justify-center text-sm">
-        <span class="px-4 bg-auth-bg text-auth-muted uppercase tracking-wider text-xs transition-colors duration-200">
-          {gettext("Or continue with")}
-        </span>
-      </div>
-    </div>
-    """
-  end
-
-  defp format_form_error({msg, opts}) do
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      String.replace(acc, "%{#{key}}", to_string(value))
-    end)
-  end
-
-  defp format_form_error(msg) when is_binary(msg), do: msg
 
   defp oauth_buttons(assigns) do
     ~H"""
