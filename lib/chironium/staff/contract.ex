@@ -33,7 +33,7 @@ defmodule Chironium.Staff.Contract do
     domain: Chironium.Staff,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshStateMachine]
+    extensions: [AshStateMachine, AshGraphql.Resource]
 
   import Ash.Expr
   require Ash.Query
@@ -49,6 +49,25 @@ defmodule Chironium.Staff.Contract do
     end
 
     identity_wheres_to_sql unique_active_person_org: "(status IN ('PENDING', 'ACTIVE', 'PAUSED'))"
+  end
+
+  graphql do
+    type :contract
+
+    queries do
+      read_one :contract, :read
+      list :contracts, :read
+    end
+
+    mutations do
+      create :create_contract, :create
+      create :create_contract_by_email, :create_by_email
+      update :activate_contract, :activate
+      update :pause_contract, :pause
+      update :resume_contract, :resume
+      update :complete_contract, :complete
+      update :terminate_contract, :terminate
+    end
   end
 
   state_machine do

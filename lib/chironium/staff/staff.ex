@@ -11,7 +11,6 @@ defmodule Chironium.Staff do
   use Ash.Domain,
     otp_app: :chironium,
     extensions: [
-      AshJsonApi.Domain,
       AshGraphql.Domain,
       AshAdmin.Domain
     ]
