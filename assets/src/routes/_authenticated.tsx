@@ -3,6 +3,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/app-shell";
 import { AuthLoading } from "@/components/ui/auth-loading";
 import { BACKEND_URL } from "@/lib/auth-utils";
+import { OrgProvider } from "@/lib/org-provider";
 
 /**
  * Authenticated layout route.
@@ -12,8 +13,6 @@ import { BACKEND_URL } from "@/lib/auth-utils";
  * This route guard only checks session status - if not authenticated,
  * it redirects to the backend's /sign-in page which handles:
  * - Google OAuth sign-in.
- * - Magic link sign-in.
- * - User registration (if applicable).
  *
  * After successful authentication, the backend redirects back to the PWA
  * with a valid session cookie. The return_to parameter preserves the
@@ -29,6 +28,25 @@ import { BACKEND_URL } from "@/lib/auth-utils";
  */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context }) => {
+    // #region agent log
+    fetch("http://127.0.0.1:7242/ingest/c18d8461-c6a0-4696-9f5f-82aa23ca0758", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: "debug-session",
+        runId: "pre-fix",
+        hypothesisId: "H3",
+        location: "_authenticated.tsx:31",
+        message: "Auth guard evaluated",
+        data: {
+          isLoading: context.auth.isLoading,
+          isAuthenticated: context.auth.isAuthenticated,
+          path: window.location.pathname,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     // Wait for auth check to complete before making decisions.
     // This prevents redirect loops when the page loads with a token.
     if (context.auth.isLoading) {
@@ -58,8 +76,10 @@ export const Route = createFileRoute("/_authenticated")({
  */
 function AuthenticatedLayout() {
   return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <OrgProvider>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </OrgProvider>
   );
 }
