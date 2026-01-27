@@ -86,8 +86,8 @@ if config_env() == :prod do
     # Note: Make this configurable.
     # ssl: true,
     # url: database_url,
-    database: "postgres",
-    username: "postgres",
+    database: "chironium",
+    username: "chironium",
     socket_dir: "/var/run/postgresql",
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     # For machines with several cores, consider starting multiple pools of `pool_size`
