@@ -70,45 +70,37 @@ defmodule Chironium.Customers.Membership do
 
         case ctx.actor do
           %{person_id: actor_person_id} when not is_nil(actor_person_id) ->
-            # Check if actor is ADMIN.
-            case Ash.get(Chironium.Core.Person, actor_person_id, authorize?: false) do
-              {:ok, %{role: :ADMIN}} ->
-                # ADMIN: see all memberships in the org.
+            # Check contract role in the org.
+            contract =
+              Chironium.Staff.Contract
+              |> Ash.Query.for_read(:read)
+              |> Ash.Query.filter(expr(person_id == ^actor_person_id))
+              |> Ash.Query.filter(expr(organisation_id == ^organisation_id))
+              |> Ash.Query.filter(expr(status in [:ACTIVE, :PAUSED]))
+              |> Ash.read_one(authorize?: false)
+
+            case contract do
+              {:ok, %{role: role}} when role in [:OWNER, :MANAGER] ->
+                # OWNER/MANAGER: see all memberships in the org.
                 query
 
-              _ ->
-                # Check contract role in the org.
-                contract =
-                  Chironium.Staff.Contract
-                  |> Ash.Query.for_read(:read)
-                  |> Ash.Query.filter(expr(person_id == ^actor_person_id))
-                  |> Ash.Query.filter(expr(organisation_id == ^organisation_id))
-                  |> Ash.Query.filter(expr(status in [:ACTIVE, :PAUSED]))
-                  |> Ash.read_one(authorize?: false)
+              {:ok, %{role: :STAFF, id: contract_id}} ->
+                # STAFF: only see memberships with active assignments.
+                today = Date.utc_today()
 
-                case contract do
-                  {:ok, %{role: role}} when role in [:OWNER, :MANAGER] ->
-                    # OWNER/MANAGER: see all memberships in the org.
-                    query
-
-                  {:ok, %{role: :STAFF, id: contract_id}} ->
-                    # STAFF: only see memberships with active assignments.
-                    today = Date.utc_today()
-
-                    Ash.Query.filter(
-                      query,
-                      expr(
-                        exists(
-                          assignments,
-                          contract_id == ^contract_id and (is_nil(end_date) or end_date >= ^today)
-                        )
-                      )
+                Ash.Query.filter(
+                  query,
+                  expr(
+                    exists(
+                      assignments,
+                      contract_id == ^contract_id and (is_nil(end_date) or end_date >= ^today)
                     )
+                  )
+                )
 
-                  _ ->
-                    # No valid contract: return nothing.
-                    Ash.Query.filter(query, expr(false))
-                end
+              _ ->
+                # No valid contract: return nothing.
+                Ash.Query.filter(query, expr(false))
             end
 
           _ ->
@@ -182,7 +174,7 @@ defmodule Chironium.Customers.Membership do
   end
 
   policies do
-    # Customer list: ADMIN, OWNER/MANAGER (all), or STAFF (with assignments).
+    # Customer list: OWNER/MANAGER (all), or STAFF (with assignments).
     policy action(:customer_list) do
       description "Authenticated users can list customers based on their role."
       authorize_if actor_present()
