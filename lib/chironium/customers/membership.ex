@@ -15,7 +15,10 @@ defmodule Chironium.Customers.Membership do
     domain: Chironium.Customers,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshStateMachine]
+    extensions: [AshStateMachine, AshGraphql.Resource]
+
+  import Ash.Expr
+  require Ash.Query
 
   postgres do
     table "memberships"
@@ -28,6 +31,14 @@ defmodule Chironium.Customers.Membership do
     end
 
     identity_wheres_to_sql unique_active_person_org: "(status IN ('ACTIVE', 'PAUSED'))"
+  end
+
+  graphql do
+    type :membership
+
+    queries do
+      list :customer_list, :customer_list
+    end
   end
 
   state_machine do
@@ -46,6 +57,66 @@ defmodule Chironium.Customers.Membership do
 
   actions do
     defaults [:read]
+
+    read :customer_list do
+      description "Lists customers for the authenticated user based on their role and organisation."
+      argument :organisation_id, :uuid, allow_nil?: false
+
+      prepare fn query, ctx ->
+        organisation_id = Ash.Query.get_argument(query, :organisation_id)
+
+        # Set tenant to scope to the organisation.
+        query = Ash.Query.set_tenant(query, organisation_id)
+
+        case ctx.actor do
+          %{person_id: actor_person_id} when not is_nil(actor_person_id) ->
+            # Check if actor is ADMIN.
+            case Ash.get(Chironium.Core.Person, actor_person_id, authorize?: false) do
+              {:ok, %{role: :ADMIN}} ->
+                # ADMIN: see all memberships in the org.
+                query
+
+              _ ->
+                # Check contract role in the org.
+                contract =
+                  Chironium.Staff.Contract
+                  |> Ash.Query.for_read(:read)
+                  |> Ash.Query.filter(expr(person_id == ^actor_person_id))
+                  |> Ash.Query.filter(expr(organisation_id == ^organisation_id))
+                  |> Ash.Query.filter(expr(status in [:ACTIVE, :PAUSED]))
+                  |> Ash.read_one(authorize?: false)
+
+                case contract do
+                  {:ok, %{role: role}} when role in [:OWNER, :MANAGER] ->
+                    # OWNER/MANAGER: see all memberships in the org.
+                    query
+
+                  {:ok, %{role: :STAFF, id: contract_id}} ->
+                    # STAFF: only see memberships with active assignments.
+                    today = Date.utc_today()
+
+                    Ash.Query.filter(
+                      query,
+                      expr(
+                        exists(
+                          assignments,
+                          contract_id == ^contract_id and (is_nil(end_date) or end_date >= ^today)
+                        )
+                      )
+                    )
+
+                  _ ->
+                    # No valid contract: return nothing.
+                    Ash.Query.filter(query, expr(false))
+                end
+            end
+
+          _ ->
+            # No actor: return nothing.
+            Ash.Query.filter(query, expr(false))
+        end
+      end
+    end
 
     create :create do
       description "Creates a membership for an existing person."
@@ -111,6 +182,12 @@ defmodule Chironium.Customers.Membership do
   end
 
   policies do
+    # Customer list: ADMIN, OWNER/MANAGER (all), or STAFF (with assignments).
+    policy action(:customer_list) do
+      description "Authenticated users can list customers based on their role."
+      authorize_if actor_present()
+    end
+
     # Read access: own memberships or memberships in managed orgs.
     policy action_type(:read) do
       description "People can read their own memberships or memberships in orgs they manage."
