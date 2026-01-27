@@ -21,6 +21,42 @@
       "references": null,
       "scale": null,
       "size": null,
+      "source": "recorded_by",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "record_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "validated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
       "source": "start_date",
       "type": "date"
     },
@@ -37,7 +73,7 @@
       "type": "date"
     },
     {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -45,44 +81,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "target_kcals",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "protein_gr",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "fats_gr",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "carbs_gr",
-      "type": "bigint"
+      "source": "flow_level",
+      "type": "text"
     },
     {
       "allow_nil?": true,
@@ -127,7 +127,7 @@
           "global": true,
           "strategy": "attribute"
         },
-        "name": "nutrition_plans_assignment_id_fkey",
+        "name": "menstrual_cycles_assignment_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -140,7 +140,7 @@
       "type": "uuid"
     },
     {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -158,7 +158,7 @@
           "global": true,
           "strategy": "attribute"
         },
-        "name": "nutrition_plans_created_by_id_fkey",
+        "name": "menstrual_cycles_validated_by_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -167,7 +167,7 @@
       },
       "scale": null,
       "size": null,
-      "source": "created_by_id",
+      "source": "validated_by_id",
       "type": "uuid"
     }
   ],
@@ -176,7 +176,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "C8EEFEE1A1F500237A69B80B3746549EBDE409374A8C9EE980BA17F792C0A99F",
+  "hash": "70571F03F62CFD211D97B02EC850946CB7E160B4BA845CDA91968DB974CD2531",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -185,5 +185,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "nutrition_plans"
+  "table": "menstrual_cycles"
 }

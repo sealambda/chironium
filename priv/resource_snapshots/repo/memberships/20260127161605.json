@@ -38,19 +38,7 @@
     },
     {
       "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "role",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"PENDING\"",
+      "default": "\"LEAD\"",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
@@ -91,7 +79,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "contracts_person_id_fkey",
+        "name": "memberships_person_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
@@ -122,7 +110,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "contracts_organisation_id_fkey",
+        "name": "memberships_organisation_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
@@ -153,7 +141,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "contracts_created_by_id_fkey",
+        "name": "memberships_created_by_id_fkey",
         "on_delete": "nilify",
         "on_update": null,
         "primary_key?": true,
@@ -171,12 +159,12 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "C170007EDFA6D9D862DC8476DF23FDC296D0C02D7D72873DDACB0CAF58BF7BC0",
+  "hash": "572E025A3B805C1A57F6ABDDE785ABC4C65FA793C3F9E06CB42BB1094DDCA60B",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "contracts_unique_active_person_org_index",
+      "index_name": "memberships_unique_active_person_org_index",
       "keys": [
         {
           "type": "atom",
@@ -189,7 +177,7 @@
       ],
       "name": "unique_active_person_org",
       "nils_distinct?": true,
-      "where": "(status IN ('PENDING', 'ACTIVE', 'PAUSED'))"
+      "where": "(status IN ('ACTIVE', 'PAUSED'))"
     }
   ],
   "multitenancy": {
@@ -199,5 +187,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "contracts"
+  "table": "memberships"
 }

@@ -21,8 +21,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "event_type",
-      "type": "text"
+      "source": "diagnosis_date",
+      "type": "date"
     },
     {
       "allow_nil?": true,
@@ -33,8 +33,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "ip_address",
-      "type": "text"
+      "source": "end_date",
+      "type": "date"
     },
     {
       "allow_nil?": true,
@@ -45,20 +45,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "user_agent",
+      "source": "notes",
       "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "%{}",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "metadata",
-      "type": "map"
     },
     {
       "allow_nil?": false,
@@ -69,11 +57,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "occurred_at",
+      "source": "created_at",
       "type": "utc_datetime_usec"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -87,24 +75,24 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
+          "attribute": "organisation_id",
+          "global": true,
+          "strategy": "attribute"
         },
-        "name": "auth_events_user_id_fkey",
+        "name": "diagnoses_assignment_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "assignments"
       },
       "scale": null,
       "size": null,
-      "source": "user_id",
+      "source": "assignment_id",
       "type": "uuid"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -122,16 +110,47 @@
           "global": null,
           "strategy": null
         },
-        "name": "auth_events_person_id_fkey",
+        "name": "diagnoses_pathology_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "people"
+        "table": "pathology_catalog"
       },
       "scale": null,
       "size": null,
-      "source": "person_id",
+      "source": "pathology_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": "organisation_id",
+          "global": true,
+          "strategy": "attribute"
+        },
+        "name": "diagnoses_created_by_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "contracts"
+      },
+      "scale": null,
+      "size": null,
+      "source": "created_by_id",
       "type": "uuid"
     }
   ],
@@ -140,7 +159,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "B442161CC3D7B826CF1AC87811CDD283A4B1E35DE4CC76530E02FF74B8060B77",
+  "hash": "26283A50DDCF2D588BDF074C9727BA3F65ADBC69EDCD8A2F1BB20E54EC94ED8B",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -149,5 +168,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "auth_events"
+  "table": "diagnoses"
 }

@@ -38,6 +38,30 @@
     },
     {
       "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "role",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"PENDING\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
@@ -63,51 +87,20 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": "organisation_id",
-          "global": true,
-          "strategy": "attribute"
+          "attribute": null,
+          "global": null,
+          "strategy": null
         },
-        "name": "assignments_membership_id_fkey",
+        "name": "contracts_person_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "memberships"
+        "table": "people"
       },
       "scale": null,
       "size": null,
-      "source": "membership_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": "organisation_id",
-          "global": true,
-          "strategy": "attribute"
-        },
-        "name": "assignments_contract_id_fkey",
-        "on_delete": "delete",
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "contracts"
-      },
-      "scale": null,
-      "size": null,
-      "source": "contract_id",
+      "source": "person_id",
       "type": "uuid"
     },
     {
@@ -129,7 +122,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "assignments_organisation_id_fkey",
+        "name": "contracts_organisation_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
@@ -160,7 +153,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "assignments_created_by_id_fkey",
+        "name": "contracts_created_by_id_fkey",
         "on_delete": "nilify",
         "on_update": null,
         "primary_key?": true,
@@ -178,8 +171,27 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "3C7E6CF8AC197F3D8D5D99827018E1914F9D4CC434E811EF037E89B77DA33099",
-  "identities": [],
+  "hash": "FC0757E75B932B139D5E2676AC6DC88E9EEADC225AAF65EA2BC8977D298DA09D",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "contracts_unique_active_person_org_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "person_id"
+        },
+        {
+          "type": "atom",
+          "value": "organisation_id"
+        }
+      ],
+      "name": "unique_active_person_org",
+      "nils_distinct?": true,
+      "where": "(status IN ('PENDING', 'ACTIVE', 'PAUSED'))"
+    }
+  ],
   "multitenancy": {
     "attribute": "organisation_id",
     "global": true,
@@ -187,5 +199,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "assignments"
+  "table": "contracts"
 }

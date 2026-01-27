@@ -1,4 +1,4 @@
-defmodule Chironium.Repo.Migrations.Initial do
+defmodule Chironium.Repo.Migrations.Init do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
@@ -203,8 +203,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             name: "pathology_catalog_category_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
     end
 
     create unique_index(:pathology_catalog, [:name], name: "pathology_catalog_unique_name_index")
@@ -247,6 +246,8 @@ defmodule Chironium.Repo.Migrations.Initial do
         null: false,
         default: fragment("(now() AT TIME ZONE 'utc')")
     end
+
+    create unique_index(:organisations, [:name], name: "organisations_unique_name_index")
 
     create unique_index(:organisations, [:slug], name: "organisations_unique_slug_index")
 
@@ -303,8 +304,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
 
       add :organisation_id,
           references(:organisations,
@@ -313,8 +313,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
 
       add :created_by_id,
           references(:people,
@@ -352,8 +351,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
     end
 
     create unique_index(:health_profiles, [:person_id],
@@ -388,8 +386,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             name: "cycle_symptom_records_menstrual_cycle_id_fkey",
             type: :uuid,
             prefix: "public"
-          ),
-          null: false
+          ), null: false
 
       add :symptom_id, :uuid, null: false
     end
@@ -439,8 +436,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
 
       add :organisation_id,
           references(:organisations,
@@ -449,8 +445,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
 
       add :created_by_id,
           references(:people,
@@ -613,8 +608,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
 
       add :contract_id,
           references(:contracts,
@@ -623,8 +617,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
 
       add :organisation_id,
           references(:organisations,
@@ -633,8 +626,7 @@ defmodule Chironium.Repo.Migrations.Initial do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ),
-          null: false
+          ), null: false
 
       add :created_by_id,
           references(:people,
@@ -645,51 +637,9 @@ defmodule Chironium.Repo.Migrations.Initial do
             on_delete: :nilify_all
           )
     end
-
-    create table(:account_merge_requests, primary_key: false) do
-      add :id, :uuid, null: false, default: fragment("uuid_generate_v7()"), primary_key: true
-      add :target_email, :citext, null: false
-      add :status, :text, null: false, default: "pending"
-      add :verification_token, :text, null: false
-      add :token_expires_at, :utc_datetime_usec, null: false
-      add :verified_at, :utc_datetime_usec
-      add :completed_at, :utc_datetime_usec
-      add :merge_metadata, :map, default: %{}
-
-      add :created_at, :utc_datetime_usec,
-        null: false,
-        default: fragment("(now() AT TIME ZONE 'utc')")
-
-      add :updated_at, :utc_datetime_usec,
-        null: false,
-        default: fragment("(now() AT TIME ZONE 'utc')")
-
-      add :initiator_user_id,
-          references(:users,
-            column: :id,
-            name: "account_merge_requests_initiator_user_id_fkey",
-            type: :uuid,
-            prefix: "public"
-          ),
-          null: false
-
-      add :target_person_id,
-          references(:people,
-            column: :id,
-            name: "account_merge_requests_target_person_id_fkey",
-            type: :uuid,
-            prefix: "public"
-          )
-    end
   end
 
   def down do
-    drop constraint(:account_merge_requests, "account_merge_requests_initiator_user_id_fkey")
-
-    drop constraint(:account_merge_requests, "account_merge_requests_target_person_id_fkey")
-
-    drop table(:account_merge_requests)
-
     drop constraint(:assignments, "assignments_membership_id_fkey")
 
     drop constraint(:assignments, "assignments_contract_id_fkey")
@@ -818,6 +768,8 @@ defmodule Chironium.Repo.Migrations.Initial do
     drop table(:nutrition_plans)
 
     drop_if_exists unique_index(:organisations, [:slug], name: "organisations_unique_slug_index")
+
+    drop_if_exists unique_index(:organisations, [:name], name: "organisations_unique_name_index")
 
     alter table(:organisations) do
       remove :updated_at

@@ -2,18 +2,18 @@
   "attributes": [
     {
       "allow_nil?": false,
-      "default": "fragment(\"uuid_generate_v7()\")",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": true,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "id",
-      "type": "uuid"
+      "source": "jti",
+      "type": "text"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -21,7 +21,31 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "given_name",
+      "source": "subject",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "expires_at",
+      "type": "utc_datetime"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "purpose",
       "type": "text"
     },
     {
@@ -33,32 +57,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "st_surname",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "nd_surname",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "birth_date",
-      "type": "date"
+      "source": "extra_data",
+      "type": "map"
     },
     {
       "allow_nil?": false,
@@ -90,7 +90,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "DDA77F2DC681F5368FB621AFBD7703FC6348BBDA6D90524F1441C839385215D6",
+  "hash": "08C8F56E1909115D12E908A04CF63FA5735BB6A39AD4FD5C3D4A63B5E47C7968",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -99,5 +99,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "people"
+  "table": "tokens"
 }
