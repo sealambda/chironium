@@ -20,8 +20,6 @@
     <.live_title default="Chironium" suffix=" · Phoenix Framework">
       {assigns[:page_title]}
     </.live_title>
-    <%!-- Preconnect to external resources for faster loading. --%>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
     <PhoenixVite.Components.assets
       names={["src/main.tsx", "js/app.js", "css/app.css"]}
       manifest={{:chironium, "priv/static/.vite/manifest.json"}}
