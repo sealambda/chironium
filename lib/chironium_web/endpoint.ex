@@ -24,7 +24,7 @@ defmodule ChironiumWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
-  socket "/ws/gql", ChironiumWeb.GraphqlSocket, websocket: true, longpoll: true
+  socket "/ws/gql", ChironiumWeb.Api.Graphql.Socket, websocket: true, longpoll: true
   plug :favicon, dev_server: {PhoenixVite.Components, :has_vite_watcher?, [__MODULE__]}
 
   # Serve at "/" the static files from "priv/static" directory.
@@ -61,12 +61,19 @@ defmodule ChironiumWeb.Endpoint do
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
   plug Plug.Parsers,
-    parsers: [:urlencoded, :multipart, :json, Absinthe.Plug.Parser, AshJsonApi.Plug.Parser],
+    parsers: [:urlencoded, :multipart, :json, Absinthe.Plug.Parser],
     pass: ["*/*"],
     json_decoder: Phoenix.json_library()
 
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+
+  # Dev-only: Proxy Vite PWA assets (service worker and workbox files).
+  # Must be placed before Router to intercept requests early.
+  if code_reloading? do
+    plug ChironiumWeb.VitePwaPlug
+  end
+
   plug ChironiumWeb.Router
 end
