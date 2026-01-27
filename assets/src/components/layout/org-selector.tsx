@@ -10,19 +10,17 @@ import type { Organisation } from "@/lib/org-context";
 interface OrgSelectorProps {
   selectedOrg: Organisation | null;
   availableOrgs: Organisation[];
-  isAdmin: boolean;
   onSelectOrg: (orgId: string) => void;
   onCreateClick: () => void;
 }
 
 /**
  * Organisation selector dropdown for the top navigation.
- * Shows accessible organisations and admin-only create option.
+ * Shows accessible organisations and create option.
  */
 export function OrgSelector({
   selectedOrg,
   availableOrgs,
-  isAdmin,
   onSelectOrg,
   onCreateClick,
 }: OrgSelectorProps) {
@@ -31,13 +29,10 @@ export function OrgSelector({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          disabled={availableOrgs.length === 0 && !isAdmin}
           className={[
             "flex items-center gap-1",
             "text-left font-semibold text-sm",
-            availableOrgs.length === 0 && !isAdmin
-              ? "cursor-not-allowed text-muted-foreground"
-              : "text-foreground transition-colors hover:text-primary focus-visible:text-primary",
+            "text-foreground transition-colors hover:text-primary focus-visible:text-primary",
             "focus-visible:outline-none",
           ].join(" ")}
         >
@@ -45,8 +40,7 @@ export function OrgSelector({
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </button>
       </DropdownMenuTrigger>
-      {(availableOrgs.length > 0 || isAdmin) && (
-        <DropdownMenuContent align="start" className="w-48 p-0">
+      <DropdownMenuContent align="start" className="w-48 p-0">
           <div className="p-1">
             {availableOrgs.map((org) => (
               <DropdownMenuItem
@@ -58,25 +52,22 @@ export function OrgSelector({
               </DropdownMenuItem>
             ))}
           </div>
-          {isAdmin && (
-            <div className="sticky bottom-0 border-border/40 border-t bg-card/95">
-              <button
-                type="button"
-                onClick={onCreateClick}
-                className={[
-                  "flex h-9 w-full items-center gap-1.5 px-3",
-                  "font-medium text-primary text-xs",
-                  "transition-colors hover:bg-accent",
-                  "focus-visible:bg-accent focus-visible:outline-none",
-                ].join(" ")}
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Create New Organisation
-              </button>
-            </div>
-          )}
+          <div className="sticky bottom-0 border-border/40 border-t bg-card/95">
+            <button
+              type="button"
+              onClick={onCreateClick}
+              className={[
+                "flex h-9 w-full items-center gap-1.5 px-3",
+                "font-medium text-primary text-xs",
+                "transition-colors hover:bg-accent",
+                "focus-visible:bg-accent focus-visible:outline-none",
+              ].join(" ")}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Create New Organisation
+            </button>
+          </div>
         </DropdownMenuContent>
-      )}
     </DropdownMenu>
   );
 }
