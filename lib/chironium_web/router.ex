@@ -10,7 +10,6 @@ defmodule ChironiumWeb.Router do
     plug :fetch_session
     plug :protect_from_forgery
     plug :load_from_session
-    plug :load_from_bearer
     plug :set_actor, :user
     plug AshGraphql.Plug
   end
@@ -31,7 +30,6 @@ defmodule ChironiumWeb.Router do
     plug :accepts, ["json"]
     plug :fetch_session
     plug :protect_from_forgery
-    plug :load_from_bearer
     plug :set_actor, :user
   end
 

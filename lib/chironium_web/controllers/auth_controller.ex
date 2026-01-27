@@ -10,22 +10,17 @@ defmodule ChironiumWeb.AuthController do
           Ash.Resource.record(),
           term()
         ) :: Plug.Conn.t()
-  def success(conn, _activity, user, token) do
+  def success(conn, _activity, user, _token) do
     # Get the validated return URL from the signed state token.
     # Falls back to configured pwa_url if no valid token exists.
     return_to = get_validated_return_url(conn)
-
-    # For PWA/SPA on a different origin (development), include the auth token
-    # in the redirect URL so the client can authenticate API requests.
-    # In production (same origin), session cookies work normally.
-    redirect_url = build_redirect_url(return_to, token)
 
     conn
     |> delete_session(:auth_return_state)
     |> store_in_session(user)
     # If your resource has a different name, update the assign name here (i.e :current_admin).
     |> assign(:current_user, user)
-    |> redirect_to_pwa(redirect_url)
+    |> redirect_to_pwa(return_to)
   end
 
   @spec failure(Plug.Conn.t(), {atom(), atom()}, term()) ::
@@ -91,42 +86,6 @@ defmodule ChironiumWeb.AuthController do
       redirect(conn, external: url)
     else
       redirect(conn, to: url)
-    end
-  end
-
-  # Build the redirect URL, optionally including the auth token for cross-origin SPAs.
-  # The token is passed as a URL fragment (#token=...) so it's not logged in server logs
-  # and not sent to the server on subsequent requests.
-  defp build_redirect_url(base_url, nil), do: base_url
-  defp build_redirect_url(base_url, ""), do: base_url
-
-  defp build_redirect_url(base_url, token) when is_binary(token) do
-    # Only include token for external URLs (cross-origin SPA in development).
-    # For same-origin paths, session cookies work fine.
-    if String.starts_with?(base_url, "http://") or String.starts_with?(base_url, "https://") do
-      # Validate token appears to be a JWT (three dot-separated segments).
-      # This is a basic sanity check, not cryptographic validation.
-      if valid_jwt_format?(token) do
-        # Use URL fragment (#) instead of query param (?) for security:
-        # - Fragments are not sent to the server in HTTP requests.
-        # - Fragments are not logged in server access logs.
-        # - The client can read it and clear it from the URL immediately.
-        "#{base_url}#token=#{token}"
-      else
-        base_url
-      end
-    else
-      base_url
-    end
-  end
-
-  # Basic JWT format validation: three base64-encoded segments separated by dots.
-  # This is not cryptographic validation, just format checking to avoid passing
-  # malformed data to the client.
-  defp valid_jwt_format?(token) when is_binary(token) do
-    case String.split(token, ".") do
-      [_header, _payload, _signature] -> true
-      _ -> false
     end
   end
 end
