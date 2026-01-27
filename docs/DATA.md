@@ -262,7 +262,7 @@ Core identity for any individual (staff, customer, lead). Contains immutable per
 **Lifecycle:**
 
 1. Person can exist without authentication (e.g., a lead created by staff).
-2. User is created on first authentication (magic link or OAuth).
+2. User is created on first authentication (Google OAuth).
 3. One Person can have multiple PersonProfiles across different organisations.
 
 **Actions:**
@@ -932,7 +932,6 @@ Microsecond precision for accurate ordering and audit trails.
 | `AshPostgres`     | PostgreSQL data layer                 |
 | `AshStateMachine` | State machine for Contract/Membership |
 | `AshPaperTrail`   | Audit logging for User changes        |
-| `AshJsonApi`      | JSON:API endpoints                    |
 | `AshGraphql`      | GraphQL endpoints                     |
 | `AshAdmin`        | Admin UI                              |
 | `Ash.Policy`      | Authorization policies                |
@@ -961,7 +960,7 @@ Microsecond precision for accurate ordering and audit trails.
 Users are NOT created during invitation:
 
 1. Contract/Membership created → Person + PersonProfile only.
-2. First authentication (magic link/OAuth) → User created.
+2. First authentication (Google OAuth) → User created.
 3. Reduces unused User records.
 4. Customers may exist without ever authenticating.
 

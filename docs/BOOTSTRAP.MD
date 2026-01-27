@@ -7,9 +7,9 @@ Complete setup instructions for Chironium — an Ash Framework + Phoenix backend
 ### Backend
 
 - Elixir + Phoenix + Ash Framework
-- GraphQL & JSON:API endpoints
+- GraphQL endpoints
 - PostgreSQL with Ash.Postgres
-- Authentication (magic link)
+- Authentication (Google OAuth)
 - Background jobs (Oban)
 - Admin interface (Ash.Admin)
 
@@ -68,11 +68,11 @@ Auto-generated command from [Ash HQ](https://ash-hq.org/#get-started). Requires 
 ```sh
 sh <(curl 'https://ash-hq.org/install/chironium?install=phoenix') && cd chironium \
   && mix igniter.install \
-    ash ash_phoenix ash_graphql ash_json_api ash_postgres \
+    ash ash_phoenix ash_graphql ash_postgres \
     ash_authentication ash_authentication_phoenix ash_admin ash_oban \
     oban_web ash_state_machine ash_events ash_archival tidewave \
-    ash_paper_trail cloak ash_cloak usage_rules ash_typescript ash_money \
-    --auth-strategy magic_link --framework react --setup --yes
+    ash_paper_trail cloak ash_cloak usage_rules ash_money \
+    --auth-strategy google --framework react --setup --yes
 ```
 
 > **Note:** This approach is fast but opaque. For more control, use the step-by-step method below.
@@ -96,11 +96,11 @@ cd chironium
 
 ```sh
 mix igniter.install \
-  ash ash_phoenix ash_graphql ash_json_api ash_postgres \
+  ash ash_phoenix ash_graphql ash_postgres \
   ash_authentication ash_authentication_phoenix ash_admin ash_oban \
   oban_web ash_state_machine ash_events ash_archival tidewave \
-  ash_paper_trail cloak ash_cloak usage_rules ash_typescript ash_money \
-  --auth-strategy magic_link --framework react --setup --yes
+  ash_paper_trail cloak ash_cloak usage_rules ash_money \
+  --auth-strategy google --framework react --setup --yes
 ```
 
 #### 4. Configure Backend
