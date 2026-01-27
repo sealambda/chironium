@@ -20,12 +20,17 @@ interface InnerAppProps {
  */
 export function InnerApp({ router }: InnerAppProps) {
   const auth = useAuth();
+  const { isAuthenticated, isLoading } = auth;
 
   // Invalidate router when auth state changes to trigger re-evaluation of routes.
   // This ensures beforeLoad guards re-run when user logs in/out.
   useEffect(() => {
+    if (isLoading || isAuthenticated) {
+      router.invalidate();
+      return;
+    }
     router.invalidate();
-  }, [router, auth.isAuthenticated, auth.isLoading]);
+  }, [router, isAuthenticated, isLoading]);
 
   return <RouterProvider router={router} context={{ auth } satisfies RouterContext} />;
 }
