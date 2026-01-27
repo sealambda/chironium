@@ -44,6 +44,7 @@ defmodule Chironium.Core.Organisation do
     create :create do
       description "Creates a new organisation."
       accept [:name, :slug, :profile_picture, :theme_seed_color]
+      change &attach_owner_contract/2
     end
 
     read :read do
@@ -69,25 +70,19 @@ defmodule Chironium.Core.Organisation do
 
         case ctx.actor do
           %{person_id: actor_person_id} when not is_nil(actor_person_id) ->
-            case Ash.get(Chironium.Core.Person, actor_person_id, authorize?: false) do
-              {:ok, %{role: :ADMIN}} ->
-                query
-
-              _ ->
-                Ash.Query.filter(
-                  query,
-                  expr(
-                    exists(
-                      contracts,
-                      person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
-                    ) or
-                      exists(
-                        memberships,
-                        person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
-                      )
+            Ash.Query.filter(
+              query,
+              expr(
+                exists(
+                  contracts,
+                  person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
+                ) or
+                  exists(
+                    memberships,
+                    person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
                   )
-                )
-            end
+              )
+            )
 
           _ ->
             Ash.Query.filter(query, expr(false))
@@ -103,26 +98,20 @@ defmodule Chironium.Core.Organisation do
 
         case ctx.actor do
           %{person_id: actor_person_id} when not is_nil(actor_person_id) ->
-            case Ash.get(Chironium.Core.Person, actor_person_id, authorize?: false) do
-              {:ok, %{role: :ADMIN}} ->
-                Ash.Query.sort(query, name: :asc_nils_last)
-
-              _ ->
-                query
-                |> Ash.Query.filter(
-                  expr(
-                    exists(
-                      contracts,
-                      person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
-                    ) or
-                      exists(
-                        memberships,
-                        person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
-                      )
+            query
+            |> Ash.Query.filter(
+              expr(
+                exists(
+                  contracts,
+                  person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
+                ) or
+                  exists(
+                    memberships,
+                    person_id == ^actor_person_id and status in [:ACTIVE, :PAUSED]
                   )
-                )
-                |> Ash.Query.sort(name: :asc_nils_last)
-            end
+              )
+            )
+            |> Ash.Query.sort(name: :asc_nils_last)
 
           _ ->
             Ash.Query.filter(query, expr(false))
@@ -132,16 +121,29 @@ defmodule Chironium.Core.Organisation do
   end
 
   policies do
-    # ADMIN can create/update/destroy organisations.
-    policy action_type([:create, :update, :destroy]) do
-      description "Only system admins can modify organisations."
-      authorize_if Chironium.Core.Checks.ActorIsAdmin
+    # Authenticated users can create organisations.
+    policy action(:create) do
+      description "Authenticated users can create organisations."
+      authorize_if actor_present()
+    end
+
+    # Owners or managers can update or destroy organisations.
+    policy action([:update, :destroy]) do
+      description "Only org owners or managers can modify organisations."
+
+      authorize_if expr(
+                     exists(
+                       contracts,
+                       person_id == ^actor(:person_id) and
+                         status in [:ACTIVE, :PAUSED] and
+                         role in [:OWNER, :MANAGER]
+                     )
+                   )
     end
 
     # Default read requires explicit access.
     policy action_type(:read) do
       description "Users can read organisations they have access to."
-      authorize_if Chironium.Core.Checks.ActorIsAdmin
       authorize_if relates_to_actor_via([:contracts, :person, :user])
       authorize_if relates_to_actor_via([:memberships, :person, :user])
     end
@@ -186,5 +188,38 @@ defmodule Chironium.Core.Organisation do
   identities do
     identity :unique_name, [:name]
     identity :unique_slug, [:slug]
+  end
+
+  defp attach_owner_contract(changeset, ctx) do
+    case ctx.actor do
+      %{person_id: person_id} when not is_nil(person_id) ->
+        Ash.Changeset.after_action(changeset, fn _changeset, organisation ->
+          create_owner_contract(organisation, person_id)
+        end)
+
+      _ ->
+        Ash.Changeset.add_error(changeset,
+          field: :base,
+          message: "actor is required to create an organisation"
+        )
+    end
+  end
+
+  defp create_owner_contract(organisation, person_id) do
+    Chironium.Staff.Contract
+    |> Ash.Changeset.for_create(:create, %{
+      start_date: Date.utc_today(),
+      end_date: nil,
+      role: :OWNER,
+      person_id: person_id,
+      organisation_id: organisation.id,
+      created_by_id: person_id
+    })
+    |> Ash.Changeset.change_attribute(:status, :ACTIVE)
+    |> Ash.create(authorize?: false)
+    |> case do
+      {:ok, _contract} -> {:ok, organisation}
+      {:error, error} -> {:error, error}
+    end
   end
 end
