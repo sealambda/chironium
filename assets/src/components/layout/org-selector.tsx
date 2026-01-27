@@ -41,33 +41,33 @@ export function OrgSelector({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48 p-0">
-          <div className="p-1">
-            {availableOrgs.map((org) => (
-              <DropdownMenuItem
-                key={org.id}
-                className="min-h-11 cursor-pointer"
-                onClick={() => onSelectOrg(org.id)}
-              >
-                {org.name}
-              </DropdownMenuItem>
-            ))}
-          </div>
-          <div className="sticky bottom-0 border-border/40 border-t bg-card/95">
-            <button
-              type="button"
-              onClick={onCreateClick}
-              className={[
-                "flex h-9 w-full items-center gap-1.5 px-3",
-                "font-medium text-primary text-xs",
-                "transition-colors hover:bg-accent",
-                "focus-visible:bg-accent focus-visible:outline-none",
-              ].join(" ")}
+        <div className="p-1">
+          {availableOrgs.map((org) => (
+            <DropdownMenuItem
+              key={org.id}
+              className="min-h-11 cursor-pointer"
+              onClick={() => onSelectOrg(org.id)}
             >
-              <Plus className="h-3.5 w-3.5" />
-              Create New Organisation
-            </button>
-          </div>
-        </DropdownMenuContent>
+              {org.name}
+            </DropdownMenuItem>
+          ))}
+        </div>
+        <div className="sticky bottom-0 border-border/40 border-t bg-card/95">
+          <button
+            type="button"
+            onClick={onCreateClick}
+            className={[
+              "flex h-9 w-full items-center gap-1.5 px-3",
+              "font-medium text-primary text-xs",
+              "transition-colors hover:bg-accent",
+              "focus-visible:bg-accent focus-visible:outline-none",
+            ].join(" ")}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Create New Organisation
+          </button>
+        </div>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }
