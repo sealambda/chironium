@@ -83,10 +83,6 @@ export function TopNav() {
     };
   }, []);
 
-  // Check if user is admin.
-  const role = user?.person?.role;
-  const isAdmin = role ? role.toString().toUpperCase() === "ADMIN" : false;
-
   const displayName = getDisplayName(user);
   const initials = getInitials(user);
 
@@ -201,7 +197,6 @@ export function TopNav() {
             <OrgSelector
               selectedOrg={selectedOrg}
               availableOrgs={availableOrgs}
-              isAdmin={isAdmin}
               onSelectOrg={selectOrg}
               onCreateClick={() => setIsCreateOrgOpen(true)}
             />
