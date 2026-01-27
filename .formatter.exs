@@ -1,7 +1,6 @@
 [
   import_deps: [
     :ash_rate_limiter,
-    :ash_typescript,
     :ash_events,
     :ash_state_machine,
     :ash_oban,
@@ -10,7 +9,6 @@
     :ash_authentication_phoenix,
     :ash_authentication,
     :ash_postgres,
-    :ash_json_api,
     :ash_graphql,
     :absinthe,
     :ash_phoenix,
