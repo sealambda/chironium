@@ -1,4 +1,5 @@
-import { Bell, ChevronDown, LogOut } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { AppName } from "@/components/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/use-auth";
-
-// Mock data for demo purposes.
-const mockTenants = [
-  { id: "1", name: "Comunidad MA" },
-  { id: "2", name: "Gym Central" },
-  { id: "3", name: "Wellness Hub" },
-];
+import { useOrg } from "@/lib/use-org";
+import { CreateOrgModal } from "./create-org-modal";
+import { OrgSelector } from "./org-selector";
 
 const mockNotificationCount = 3;
 
@@ -26,15 +23,15 @@ const mockNotificationCount = 3;
 function getInitials(
   user: {
     email: string;
-    person?: { given_name: string | null; st_surname: string | null } | null;
+    person?: { givenName: string | null; stSurname: string | null } | null;
   } | null,
 ): string {
   if (!user) return "?";
 
   // Try to get initials from person name first.
-  if (user.person?.given_name) {
-    const firstName = user.person.given_name;
-    const lastName = user.person.st_surname || "";
+  if (user.person?.givenName) {
+    const firstName = user.person.givenName;
+    const lastName = user.person.stSurname || "";
     return `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase();
   }
 
@@ -51,10 +48,10 @@ function getInitials(
  * Get display name from user.
  */
 function getDisplayName(
-  user: { email: string; person?: { given_name: string | null } | null } | null,
+  user: { email: string; person?: { givenName: string | null } | null } | null,
 ): string {
   if (!user) return "User";
-  return user.person?.given_name || user.email.split("@")[0];
+  return user.person?.givenName || user.email.split("@")[0];
 }
 
 /**
@@ -71,7 +68,53 @@ function getDisplayName(
  */
 export function TopNav() {
   const { user, isAuthenticated, logout } = useAuth();
-  const currentTenant = mockTenants[0];
+  const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
+  const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
+  const [createOrgError, setCreateOrgError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<number | null>(null);
+
+  // Cleanup timeout on unmount.
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Check if user is admin.
+  const role = user?.person?.role;
+  const isAdmin = role ? role.toString().toUpperCase() === "ADMIN" : false;
+
+  const displayName = getDisplayName(user);
+  const initials = getInitials(user);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setToastMessage(null);
+      toastTimeoutRef.current = null;
+    }, 3000);
+  };
+
+  const handleCreateOrg = async (data: { name: string; slug: string }) => {
+    setCreateOrgError(null);
+    try {
+      const newOrg = await createOrg(data);
+      await selectOrg(newOrg.id);
+      showToast("Organisation created.");
+    } catch (error) {
+      console.error("Failed to create organisation:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create organisation. Please try again.";
+      setCreateOrgError(errorMessage);
+      throw error;
+    }
+  };
 
   // Don't render nav elements if not authenticated.
   if (!isAuthenticated || !user) {
@@ -93,9 +136,6 @@ export function TopNav() {
       </header>
     );
   }
-
-  const displayName = getDisplayName(user);
-  const initials = getInitials(user);
 
   return (
     <header
@@ -158,31 +198,13 @@ export function TopNav() {
 
           <div className="flex flex-col justify-center">
             <span className="text-muted-foreground text-xs">Welcome back, {displayName}!</span>
-
-            {/* Tenant selector dropdown. */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={[
-                    "flex items-center gap-1",
-                    "text-left font-semibold text-foreground text-sm",
-                    "transition-colors hover:text-primary",
-                    "focus-visible:text-primary focus-visible:outline-none",
-                  ].join(" ")}
-                >
-                  {currentTenant.name}
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                {mockTenants.map((tenant) => (
-                  <DropdownMenuItem key={tenant.id} className="min-h-11 cursor-pointer">
-                    {tenant.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <OrgSelector
+              selectedOrg={selectedOrg}
+              availableOrgs={availableOrgs}
+              isAdmin={isAdmin}
+              onSelectOrg={selectOrg}
+              onCreateClick={() => setIsCreateOrgOpen(true)}
+            />
           </div>
         </div>
 
@@ -207,6 +229,18 @@ export function TopNav() {
           )}
         </Button>
       </div>
+
+      <CreateOrgModal
+        open={isCreateOrgOpen}
+        onOpenChange={setIsCreateOrgOpen}
+        onSubmit={handleCreateOrg}
+        error={createOrgError}
+      />
+      {toastMessage && (
+        <div className="pointer-events-none fixed top-20 right-4 z-50 w-[260px] rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-700 text-sm shadow-lg">
+          {toastMessage}
+        </div>
+      )}
     </header>
   );
 }
