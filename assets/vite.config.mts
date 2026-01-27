@@ -2,7 +2,8 @@ import { resolve } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, type Plugin, type PluginOption } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 /**
  * Vite plugin for integration with the Phoenix ecosystem.
@@ -105,6 +106,48 @@ export default defineConfig({
       target: "react",
       autoCodeSplitting: true,
     }),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.ico", "robots.txt", "images/logo.svg"],
+      manifest: {
+        name: "CHIRONIUM",
+        short_name: "CHIRONIUM",
+        description: "CHIRONIUM",
+        start_url: "/app/",
+        scope: "/app/",
+        display: "standalone",
+        theme_color: "#1e1b4b",
+        background_color: "#ffffff",
+        icons: [
+          {
+            src: "/images/pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+          {
+            src: "/images/pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
+      },
+      workbox: isDev
+        ? {
+            // Avoid dev warnings when dev-dist has no precache targets.
+            globPatterns: [],
+          }
+        : {
+            globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+          },
+      // Enable service worker in dev for testing PWA behavior.
+      // Requires ChironiumWeb.VitePwaPlug in endpoint to serve PWA files.
+      // For faster dev builds, set enabled: false to disable SW in development.
+      devOptions: {
+        enabled: true,
+      },
+    }) as PluginOption,
     react(),
     tailwindcss(),
     phoenixVitePlugin({ pattern: /\.(ex|heex)$/ }),
