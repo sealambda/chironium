@@ -27,11 +27,20 @@ defmodule Chironium.Core.Person do
     otp_app: :chironium,
     domain: Chironium.Core,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshGraphql.Resource]
 
   postgres do
     table "people"
     repo Chironium.Repo
+  end
+
+  graphql do
+    type :person
+
+    queries do
+      read_one :person, :read
+    end
   end
 
   actions do
@@ -132,6 +141,14 @@ defmodule Chironium.Core.Person do
     attribute :birth_date, :date do
       allow_nil? true
       public? true
+    end
+
+    # App-wide role (system-level, independent of contract roles).
+    attribute :role, :atom do
+      allow_nil? false
+      default :STANDARD
+      public? true
+      constraints one_of: [:STANDARD, :ADMIN]
     end
 
     create_timestamp :created_at, type: :utc_datetime_usec
