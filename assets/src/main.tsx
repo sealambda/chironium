@@ -3,6 +3,7 @@
 // https://vitejs.dev/guide/backend-integration.html
 import "vite/modulepreload-polyfill";
 
+import { registerSW } from "virtual:pwa-register";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createRouter } from "@tanstack/react-router";
@@ -92,3 +93,5 @@ function mountApp(): void {
 
 // Mount the application.
 mountApp();
+
+registerSW({ immediate: true });
