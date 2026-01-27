@@ -7,6 +7,9 @@ defmodule ChironiumWeb.Router do
   import AshAuthentication.Plug.Helpers
 
   pipeline :graphql do
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :load_from_session
     plug :load_from_bearer
     plug :set_actor, :user
     plug AshGraphql.Plug
@@ -26,6 +29,8 @@ defmodule ChironiumWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug :protect_from_forgery
     plug :load_from_bearer
     plug :set_actor, :user
   end
@@ -45,34 +50,17 @@ defmodule ChironiumWeb.Router do
       # If an authenticated credential must *not* be present:
       # on_mount {ChironiumWeb.LiveUserAuth, :live_no_user}
     end
-
-    post "/rpc/run", AshTypescriptRpcController, :run
-    post "/rpc/validate", AshTypescriptRpcController, :validate
-    get "/ash-typescript", PageController, :index
-  end
-
-  scope "/api/json" do
-    pipe_through [:api]
-
-    # Auth status endpoint for the React SPA.
-    get "/users/me", ChironiumWeb.AuthStatusController, :me
-
-    forward "/swaggerui", OpenApiSpex.Plug.SwaggerUI,
-      path: "/api/json/open_api",
-      default_model_expand_depth: 4
-
-    forward "/", ChironiumWeb.AshJsonApiRouter
   end
 
   scope "/gql" do
     pipe_through [:graphql]
 
     forward "/playground", Absinthe.Plug.GraphiQL,
-      schema: Module.concat(["ChironiumWeb.GraphqlSchema"]),
-      socket: Module.concat(["ChironiumWeb.GraphqlSocket"]),
+      schema: ChironiumWeb.Api.Graphql.Schema,
+      socket: ChironiumWeb.Api.Graphql.Socket,
       interface: :simple
 
-    forward "/", Absinthe.Plug, schema: Module.concat(["ChironiumWeb.GraphqlSchema"])
+    forward "/", Absinthe.Plug, schema: ChironiumWeb.Api.Graphql.Schema
   end
 
   scope "/", ChironiumWeb do
@@ -80,21 +68,11 @@ defmodule ChironiumWeb.Router do
 
     get "/", PageController, :home
 
+    get "/index.html", PageController, :app
     get "/app/*path", PageController, :app
 
     auth_routes AuthController, Chironium.Core.Identity.User, path: "/auth"
     sign_out_route AuthController
-
-    # Magic link sign-in route for require_interaction? true.
-    # Provides confirmation page before consuming the token.
-    magic_sign_in_route(
-      Chironium.Core.Identity.User,
-      :magic_link,
-      path: "/auth/user/magic_link",
-      auth_routes_prefix: "/auth",
-      on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
-      overrides: [ChironiumWeb.AuthOverrides]
-    )
 
     # Custom sign-in LiveView with branded design.
     live_session :auth,
