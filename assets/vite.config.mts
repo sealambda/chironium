@@ -41,6 +41,7 @@ function phoenixVitePlugin(opts: { pattern?: RegExp } = {}): Plugin {
 const mixEnv = process.env.MIX_ENV ?? "dev";
 const mixBuildPath = process.env.MIX_BUILD_PATH ?? resolve(__dirname, "../_build", mixEnv);
 const isDev = mixEnv === "dev";
+const backendUrl = process.env.VITE_BACKEND_URL ?? "http://localhost:4000";
 
 export default defineConfig({
   // Development server configuration.
@@ -52,6 +53,29 @@ export default defineConfig({
     // Origin must match for CORS and asset URLs.
     origin: "http://localhost:5173",
     cors: { origin: "http://localhost:4000" },
+    proxy: {
+      "/gql": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
+      "/sign-in": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
+      "/sign-out": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
+      "/auth": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
+      "/live": {
+        target: backendUrl,
+        changeOrigin: true,
+        ws: true,
+      },
+    },
   },
   // Pre-bundle Phoenix dependencies for faster dev startup.
   optimizeDeps: {
