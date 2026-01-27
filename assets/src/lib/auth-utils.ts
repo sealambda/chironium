@@ -16,6 +16,15 @@ export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost
 
 const TOKEN_STORAGE_KEY = "chironium_auth_token";
 
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const metaTag = document.querySelector("meta[name='csrf-token']");
+  return metaTag?.getAttribute("content") ?? null;
+}
+
 /**
  * Get the current auth token from sessionStorage.
  * Returns null if no token is stored.
@@ -35,9 +44,14 @@ export function getStoredToken(): string | null {
  */
 export function buildHeaders(): HeadersInit {
   const headers: HeadersInit = {
-    Accept: "application/vnd.api+json",
-    "Content-Type": "application/vnd.api+json",
+    Accept: "application/json",
+    "Content-Type": "application/json",
   };
+
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    headers["x-csrf-token"] = csrfToken;
+  }
 
   const token = getStoredToken();
   if (token) {
