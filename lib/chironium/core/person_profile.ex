@@ -24,7 +24,8 @@ defmodule Chironium.Core.PersonProfile do
     otp_app: :chironium,
     domain: Chironium.Core,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshGraphql.Resource]
 
   postgres do
     table "person_profiles"
@@ -37,6 +38,20 @@ defmodule Chironium.Core.PersonProfile do
 
     # SQL translation for partial unique index on email.
     identity_wheres_to_sql unique_email: "(email IS NOT NULL)"
+  end
+
+  graphql do
+    type :person_profile
+
+    queries do
+      read_one :person_profile, :read
+      list :person_profiles, :read
+    end
+
+    mutations do
+      create :create_person_profile, :create
+      update :update_person_profile, :update
+    end
   end
 
   actions do
