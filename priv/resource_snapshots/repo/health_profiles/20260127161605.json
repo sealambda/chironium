@@ -13,6 +13,42 @@
       "type": "uuid"
     },
     {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "biological_sex",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "blood_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "medical_notes",
+      "type": "text"
+    },
+    {
       "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
@@ -22,6 +58,18 @@
       "scale": null,
       "size": null,
       "source": "created_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
       "type": "utc_datetime_usec"
     },
     {
@@ -43,47 +91,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "cycle_symptom_records_menstrual_cycle_id_fkey",
-        "on_delete": null,
+        "name": "health_profiles_person_id_fkey",
+        "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "menstrual_cycles"
+        "table": "people"
       },
       "scale": null,
       "size": null,
-      "source": "menstrual_cycle_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "cycle_symptom_records_symptom_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "cycle_symptom_catalog"
-      },
-      "scale": null,
-      "size": null,
-      "source": "symptom_id",
+      "source": "person_id",
       "type": "uuid"
     }
   ],
@@ -92,8 +109,23 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "FD2993394E90FC182E60ECB56025149915ACBE1CEABDB4E23C5A0838D68F4674",
-  "identities": [],
+  "hash": "F021E7FB1D2A37BC4C7AB178B91CC86D9D9A8F0601C1EC3DA412E7B4DAB2E90F",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "health_profiles_unique_person_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "person_id"
+        }
+      ],
+      "name": "unique_person",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -101,5 +133,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "cycle_symptom_records"
+  "table": "health_profiles"
 }

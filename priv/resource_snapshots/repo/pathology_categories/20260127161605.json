@@ -21,6 +21,18 @@
       "references": null,
       "scale": null,
       "size": null,
+      "source": "code",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
       "source": "name",
       "type": "text"
     },
@@ -35,6 +47,18 @@
       "size": null,
       "source": "description",
       "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "display_order",
+      "type": "bigint"
     },
     {
       "allow_nil?": false,
@@ -54,19 +78,19 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "D25F7BA46D6611344E7904FD743284617041D1C7664FD8D22CCEED0C9DA18496",
+  "hash": "FB754EF84B270225C0CB763E1BC17CA11C9040E4B256BED254AC2212A44B9FAD",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "cycle_symptom_catalog_unique_name_index",
+      "index_name": "pathology_categories_unique_code_index",
       "keys": [
         {
           "type": "atom",
-          "value": "name"
+          "value": "code"
         }
       ],
-      "name": "unique_name",
+      "name": "unique_code",
       "nils_distinct?": true,
       "where": null
     }
@@ -78,5 +102,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "cycle_symptom_catalog"
+  "table": "pathology_categories"
 }

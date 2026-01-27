@@ -90,22 +90,8 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "CC52AA72F6261055BE8C1E334C13BE44818BF61F515E880F98234FEBFAFA1147",
+  "hash": "5308570FD982FE306DCD94246299D78E3981D8D04E27D79AAA81BC54876082AF",
   "identities": [
-    {
-      "all_tenants?": false,
-      "base_filter": null,
-      "index_name": "organisations_unique_slug_index",
-      "keys": [
-        {
-          "type": "atom",
-          "value": "slug"
-        }
-      ],
-      "name": "unique_slug",
-      "nils_distinct?": true,
-      "where": null
-    },
     {
       "all_tenants?": false,
       "base_filter": null,
@@ -117,6 +103,20 @@
         }
       ],
       "name": "unique_name",
+      "nils_distinct?": true,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "organisations_unique_slug_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "slug"
+        }
+      ],
+      "name": "unique_slug",
       "nils_distinct?": true,
       "where": null
     }

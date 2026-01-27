@@ -13,7 +13,7 @@
       "type": "uuid"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -21,7 +21,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "biological_sex",
+      "source": "event_type",
       "type": "text"
     },
     {
@@ -33,7 +33,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "blood_type",
+      "source": "ip_address",
       "type": "text"
     },
     {
@@ -45,8 +45,20 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "medical_notes",
+      "source": "user_agent",
       "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "%{}",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "metadata",
+      "type": "map"
     },
     {
       "allow_nil?": false,
@@ -57,23 +69,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "created_at",
+      "source": "occurred_at",
       "type": "utc_datetime_usec"
     },
     {
-      "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "updated_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -91,8 +91,39 @@
           "global": null,
           "strategy": null
         },
-        "name": "health_profiles_person_id_fkey",
-        "on_delete": "delete",
+        "name": "auth_events_user_id_fkey",
+        "on_delete": null,
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "users"
+      },
+      "scale": null,
+      "size": null,
+      "source": "user_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "auth_events_person_id_fkey",
+        "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
@@ -109,23 +140,8 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "CC44116709DD9E90E51890A84A9B2D9C15CBC69CC32DED25441FE999F2B193F8",
-  "identities": [
-    {
-      "all_tenants?": false,
-      "base_filter": null,
-      "index_name": "health_profiles_unique_person_index",
-      "keys": [
-        {
-          "type": "atom",
-          "value": "person_id"
-        }
-      ],
-      "name": "unique_person",
-      "nils_distinct?": true,
-      "where": null
-    }
-  ],
+  "hash": "52F235C6CBA68F33F174D6A6E12BA55C2C0521691859E0F5F96010B7C4AC2995",
+  "identities": [],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -133,5 +149,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "health_profiles"
+  "table": "auth_events"
 }

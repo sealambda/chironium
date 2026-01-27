@@ -21,8 +21,20 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "version_action_type",
-      "type": "text"
+      "source": "start_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "end_date",
+      "type": "date"
     },
     {
       "allow_nil?": false,
@@ -33,8 +45,68 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "version_action_name",
+      "source": "target_kcals",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "protein_gr",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "fats_gr",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "carbs_gr",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "notes",
       "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "created_at",
+      "type": "utc_datetime_usec"
     },
     {
       "allow_nil?": false,
@@ -51,60 +123,24 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
+          "attribute": "organisation_id",
+          "global": true,
+          "strategy": "attribute"
         },
-        "name": "users_versions_version_source_id_fkey",
+        "name": "nutrition_plans_assignment_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "assignments"
       },
       "scale": null,
       "size": null,
-      "source": "version_source_id",
+      "source": "assignment_id",
       "type": "uuid"
     },
     {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "changes",
-      "type": "map"
-    },
-    {
       "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "version_inserted_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "version_updated_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -118,20 +154,20 @@
         "match_type": null,
         "match_with": null,
         "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
+          "attribute": "organisation_id",
+          "global": true,
+          "strategy": "attribute"
         },
-        "name": "users_versions_changed_by_id_fkey",
-        "on_delete": "nothing",
-        "on_update": "update",
+        "name": "nutrition_plans_created_by_id_fkey",
+        "on_delete": null,
+        "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "contracts"
       },
       "scale": null,
       "size": null,
-      "source": "changed_by_id",
+      "source": "created_by_id",
       "type": "uuid"
     }
   ],
@@ -140,7 +176,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "45764511722352B368CA2730A507D5170433A81CAFA9A513D1AD6D0ED0AADE0B",
+  "hash": "12AFB212D234D40AABB0EB6B95BF772F22DC17709168DB64CB571EFD16380330",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -149,5 +185,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "users_versions"
+  "table": "nutrition_plans"
 }

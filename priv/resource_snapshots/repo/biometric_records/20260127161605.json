@@ -21,8 +21,20 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "diagnosis_date",
-      "type": "date"
+      "source": "recorded_by",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "record_status",
+      "type": "text"
     },
     {
       "allow_nil?": true,
@@ -33,8 +45,56 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "end_date",
-      "type": "date"
+      "source": "validated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "recorded_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": 5,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "weight_kg",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": 5,
+      "primary_key?": false,
+      "references": null,
+      "scale": 2,
+      "size": null,
+      "source": "height_cm",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "measurements",
+      "type": "map"
     },
     {
       "allow_nil?": true,
@@ -79,7 +139,7 @@
           "global": true,
           "strategy": "attribute"
         },
-        "name": "diagnoses_assignment_id_fkey",
+        "name": "biometric_records_assignment_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -92,38 +152,7 @@
       "type": "uuid"
     },
     {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "diagnoses_pathology_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "pathology_catalog"
-      },
-      "scale": null,
-      "size": null,
-      "source": "pathology_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -141,7 +170,7 @@
           "global": true,
           "strategy": "attribute"
         },
-        "name": "diagnoses_created_by_id_fkey",
+        "name": "biometric_records_validated_by_id_fkey",
         "on_delete": null,
         "on_update": null,
         "primary_key?": true,
@@ -150,7 +179,7 @@
       },
       "scale": null,
       "size": null,
-      "source": "created_by_id",
+      "source": "validated_by_id",
       "type": "uuid"
     }
   ],
@@ -159,7 +188,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "853AA3460B8AD4BAC70248E697BEEFCF70718476A33F09BE17097AC82613B217",
+  "hash": "833E7515467D54CA77C1C6AAC5A22EF073FF0AF197BB63A4A18E04566EFF9A18",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -168,5 +197,5 @@
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "diagnoses"
+  "table": "biometric_records"
 }

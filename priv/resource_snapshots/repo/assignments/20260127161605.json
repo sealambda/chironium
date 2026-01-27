@@ -21,44 +21,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "target_email",
-      "type": "citext"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"pending\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "status",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "verification_token",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "token_expires_at",
-      "type": "utc_datetime_usec"
+      "source": "start_date",
+      "type": "date"
     },
     {
       "allow_nil?": true,
@@ -69,32 +33,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "verified_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "completed_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": true,
-      "default": "%{}",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "merge_metadata",
-      "type": "map"
+      "source": "end_date",
+      "type": "date"
     },
     {
       "allow_nil?": false,
@@ -110,15 +50,65 @@
     },
     {
       "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
-      "references": null,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": "organisation_id",
+          "global": true,
+          "strategy": "attribute"
+        },
+        "name": "assignments_membership_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "memberships"
+      },
       "scale": null,
       "size": null,
-      "source": "updated_at",
-      "type": "utc_datetime_usec"
+      "source": "membership_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": "organisation_id",
+          "global": true,
+          "strategy": "attribute"
+        },
+        "name": "assignments_contract_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "contracts"
+      },
+      "scale": null,
+      "size": null,
+      "source": "contract_id",
+      "type": "uuid"
     },
     {
       "allow_nil?": false,
@@ -139,16 +129,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "account_merge_requests_initiator_user_id_fkey",
-        "on_delete": null,
+        "name": "assignments_organisation_id_fkey",
+        "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "organisations"
       },
       "scale": null,
       "size": null,
-      "source": "initiator_user_id",
+      "source": "organisation_id",
       "type": "uuid"
     },
     {
@@ -170,8 +160,8 @@
           "global": null,
           "strategy": null
         },
-        "name": "account_merge_requests_target_person_id_fkey",
-        "on_delete": null,
+        "name": "assignments_created_by_id_fkey",
+        "on_delete": "nilify",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
@@ -179,7 +169,7 @@
       },
       "scale": null,
       "size": null,
-      "source": "target_person_id",
+      "source": "created_by_id",
       "type": "uuid"
     }
   ],
@@ -188,14 +178,14 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "3B937B38E7337C5E5BF79F5E42971D403FA50A1009082921901032E0FCC09176",
+  "hash": "0532E72202F9A469A0FD6CF3A89283AE7353200DA4C1139CE98AFDE9AC62BE20",
   "identities": [],
   "multitenancy": {
-    "attribute": null,
-    "global": null,
-    "strategy": null
+    "attribute": "organisation_id",
+    "global": true,
+    "strategy": "attribute"
   },
   "repo": "Elixir.Chironium.Repo",
   "schema": null,
-  "table": "account_merge_requests"
+  "table": "assignments"
 }
