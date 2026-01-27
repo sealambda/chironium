@@ -3,16 +3,15 @@ defmodule Chironium.Core do
   Core domain - Foundation entities for the CRM system.
 
   This domain contains fundamental entities that all other domains depend on:
-  - Organisation: The business entity / tenant
-  - Person: Universal identity for any individual (staff, clients, etc.)
-  - PersonProfile: Per-organisation profile preferences
+  - Organisation: The business entity / tenant.
+  - Person: Universal identity for any individual (staff, clients, etc.).
+  - PersonProfile: Per-organisation profile preferences.
 
   The Identity sub-domain handles authentication concerns separately.
   """
   use Ash.Domain,
     otp_app: :chironium,
     extensions: [
-      AshJsonApi.Domain,
       AshGraphql.Domain,
       AshAdmin.Domain
     ]
