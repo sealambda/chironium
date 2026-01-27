@@ -4,20 +4,24 @@
  * Separated to avoid circular dependencies between auth modules.
  */
 
-import type { PersonResourceSchema, UserResourceSchema } from "./ash";
-
 /**
  * User information returned from the backend.
- * Matches the User resource from Chironium.Core.Identity.User.
+ * Mirrors the GraphQL `currentUser` response shape.
  */
-export type Person = Omit<PersonResourceSchema, "__type" | "__primitiveFields">;
+export interface Person {
+  id: string;
+  givenName: string | null;
+  stSurname: string | null;
+  ndSurname: string | null;
+  birthDate: string | null;
+}
 
-export type User = Pick<
-  Omit<UserResourceSchema, "__type" | "__primitiveFields" | "person">,
-  "id" | "email" | "personId"
-> & {
+export interface User {
+  id: string;
+  email: string;
+  personId: string;
   person?: Person | null;
-};
+}
 
 /**
  * Authentication state provided throughout the application.

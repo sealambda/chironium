@@ -7,72 +7,6 @@ import { BACKEND_URL, buildHeaders } from "./auth-utils";
 export type { AuthState, User } from "./auth-types";
 
 // ============================================================================
-// Token Storage (Internal)
-// ============================================================================
-
-const TOKEN_STORAGE_KEY = "chironium_auth_token";
-
-/**
- * Store the auth token in sessionStorage.
- */
-function storeToken(token: string): void {
-  try {
-    sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
-  } catch {
-    // sessionStorage not available.
-  }
-}
-
-/**
- * Clear the stored auth token from sessionStorage.
- */
-function clearStoredToken(): void {
-  try {
-    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-  } catch {
-    // sessionStorage not available.
-  }
-}
-
-/**
- * Extract auth token from URL fragment and clear it from the URL.
- * The backend passes the token as #token=... for security:
- * - Fragments are not sent to the server in HTTP requests.
- * - Fragments are not logged in server access logs.
- *
- * Validates that the token is non-empty and appears to be a valid JWT
- * (three dot-separated base64 segments).
- */
-function extractTokenFromFragment(): string | null {
-  const hash = window.location.hash;
-  if (!hash || !hash.includes("token=")) {
-    return null;
-  }
-
-  // Parse the fragment (e.g., #token=abc123 or #token=abc123&other=value).
-  const params = new URLSearchParams(hash.substring(1));
-  const token = params.get("token");
-
-  // Clear the token from the URL regardless of validity.
-  // Use replaceState to avoid adding to browser history.
-  const cleanUrl = window.location.href.split("#")[0];
-  window.history.replaceState(null, "", cleanUrl);
-
-  // Validate token format: JWTs have three dot-separated base64 segments.
-  if (!token || !token.trim()) {
-    return null;
-  }
-
-  const parts = token.split(".");
-  if (parts.length !== 3) {
-    console.warn("Invalid token format in URL fragment");
-    return null;
-  }
-
-  return token;
-}
-
-// ============================================================================
 // API Functions
 // ============================================================================
 
@@ -87,8 +21,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
  * Fetch the current authenticated user from the backend.
  * Returns null if not authenticated.
  *
- * Uses Bearer token authentication when available (cross-origin development).
- * Falls back to session cookies for same-origin requests (production).
+ * Uses session cookies for authentication.
  */
 async function fetchCurrentUser(): Promise<User | null> {
   try {
@@ -112,7 +45,6 @@ async function fetchCurrentUser(): Promise<User | null> {
                 stSurname
                 ndSurname
                 birthDate
-                role
               }
             }
           }
@@ -123,8 +55,6 @@ async function fetchCurrentUser(): Promise<User | null> {
     if (!response.ok) {
       const errorBody = await response.text();
       if (response.status === 401 || response.status === 403) {
-        // Clear stored token if it's invalid.
-        clearStoredToken();
         return null;
       }
       throw new Error(`Failed to fetch user: ${response.status}`);
@@ -139,7 +69,6 @@ async function fetchCurrentUser(): Promise<User | null> {
           err.message === "Not authenticated" || err.message.includes("unauthorized"),
       );
       if (isAuthError) {
-        clearStoredToken();
         return null;
       }
       throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
@@ -162,7 +91,6 @@ async function fetchCurrentUser(): Promise<User | null> {
             stSurname: user.person.stSurname ?? null,
             ndSurname: user.person.ndSurname ?? null,
             birthDate: user.person.birthDate ?? null,
-            role: user.person.role,
           }
         : null,
     };
@@ -185,13 +113,11 @@ interface AuthProviderProps {
  * Manages auth state checking and provides auth methods to the application.
  *
  * Authentication flow:
- * 1. On mount, check for auth token in URL fragment (from OAuth redirect).
- * 2. If token found, store it and clear from URL.
- * 3. Check session via GraphQL currentUser query using stored token or session cookie.
- * 4. If authenticated, load user and proceed.
- * 5. If not authenticated, the route guards redirect to backend /sign-in.
- * 6. Backend handles Google OAuth / Magic Link authentication.
- * 7. Backend redirects back to PWA with auth token in URL fragment.
+ * 1. On mount, check session via GraphQL currentUser query.
+ * 2. If authenticated, load user and proceed.
+ * 3. If not authenticated, the route guards redirect to backend /sign-in.
+ * 4. Backend handles Google OAuth / Magic Link authentication.
+ * 5. Backend redirects back to the PWA using session cookies.
  *
  * Per Apple HIG: Ensures smooth authentication flow with clear loading states.
  * Per Carbon Design: Uses progressive disclosure - shows content after auth check.
@@ -200,18 +126,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
-  // Check for auth token in URL fragment and existing session on mount.
+  // Check for existing session on mount.
   useEffect(() => {
     let mounted = true;
 
     async function checkAuth() {
-      // Check for token in URL fragment (from OAuth redirect).
-      const fragmentToken = extractTokenFromFragment();
-      if (fragmentToken) {
-        storeToken(fragmentToken);
-      }
-
-      // Fetch current user using stored token or session cookie.
+      // Fetch current user using session cookie.
       const currentUser = await fetchCurrentUser();
       if (mounted) {
         setUser(currentUser);
@@ -242,15 +162,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Log out the current user.
-   * Clears the local auth token and navigates to backend sign-out endpoint.
-   * The backend will revoke the token, clear the session, and redirect back
-   * to the PWA. Since auth will be invalid, the PWA redirects to sign-in.
-   *
-   * Note: We clear the token locally to avoid an unnecessary failed API call
-   * when the PWA reloads and tries to use the (now-revoked) token.
+   * Navigates to backend sign-out endpoint.
+   * The backend will clear the session and redirect back to the PWA.
    */
   const logout = useCallback(() => {
-    clearStoredToken();
     // Full page navigation to backend sign-out endpoint.
     window.location.href = `${BACKEND_URL}/sign-out`;
   }, []);
