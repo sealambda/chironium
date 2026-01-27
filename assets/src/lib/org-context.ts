@@ -3,9 +3,13 @@ import { createContext } from "react";
 /**
  * Organisation type returned from the API.
  */
-import type { OrganisationResourceSchema } from "./ash";
-
-export type Organisation = Omit<OrganisationResourceSchema, "__type" | "__primitiveFields">;
+export type Organisation = {
+  id: string;
+  name: string;
+  slug: string;
+  profilePicture: string | null;
+  themeSeedColor: string | null;
+};
 
 /**
  * Organisation context state.
