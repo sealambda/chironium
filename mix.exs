@@ -59,7 +59,6 @@ defmodule Chironium.MixProject do
       {:oban, "~> 2.0"},
       {:open_api_spex, "~> 3.0"},
       {:ash_money, "~> 0.2"},
-      {:ash_typescript, "~> 0.12"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:ash_cloak, "~> 0.1"},
       {:cloak, "~> 1.0"},
@@ -74,7 +73,6 @@ defmodule Chironium.MixProject do
       {:ash_authentication_phoenix, "~> 2.0"},
       {:ash_authentication, "~> 4.0"},
       {:ash_postgres, "~> 2.0"},
-      {:ash_json_api, "~> 1.0"},
       {:ash_graphql, "~> 1.0"},
       {:ash_phoenix, "~> 2.0"},
       {:ash, "~> 3.0"},
@@ -131,7 +129,7 @@ defmodule Chironium.MixProject do
       ],
       # Clean rebuild: Safe for daily use, preserves VCS-tracked migrations.
       rebuild: [
-        "cmd rm -rf _build deps assets/src/lib/ash.ts",
+        "cmd rm -rf _build deps",
         "deps.get",
         "compile",
         "ecto.reset",
@@ -139,7 +137,7 @@ defmodule Chironium.MixProject do
       ],
       # Nuclear rebuild: Regenerates all migrations. Pre-production only!
       "rebuild.nuke": [
-        "cmd rm -rf _build deps assets/src/lib/ash.ts priv/repo/migrations/* priv/resource_snapshots/*",
+        "cmd rm -rf _build deps priv/repo/migrations/* priv/resource_snapshots/*",
         "deps.get",
         "compile",
         "ecto.drop",
