@@ -746,7 +746,7 @@ Validates that macronutrients sum to approximately the target calories in `Nutri
 
 **Formula:**
 
-```
+```txt
 total_kcals = (protein_gr × 4) + (carbs_gr × 4) + (fats_gr × 9)
 |total_kcals - target_kcals| ≤ 50
 ```
@@ -763,7 +763,7 @@ Ensures menstrual cycle records are only created for biologically female users.
 
 **Lookup Path:**
 
-```
+```txt
 Assignment → Membership → Person → HealthProfile → biological_sex
 ```
 

@@ -350,12 +350,12 @@ The React SPA/PWA runs on a separate origin (Vite dev server at `localhost:5173`
 
 ### Architecture Principles
 
-| Principle                    | Description                                                                 |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| **Backend-owned auth**       | All authentication logic lives in the Elixir backend via AshAuthentication. |
-| **No client-side auth logic**| The SPA only checks session status - never handles credentials directly.    |
-| **Secure redirects**         | Return URLs validated server-side against an allowlist, not client-provided.|
-| **Cross-origin support**     | JWT tokens passed via URL fragment for cross-origin development setup.      |
+| Principle                     | Description                                                                  |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| **Backend-owned auth**        | All authentication logic lives in the Elixir backend via AshAuthentication.  |
+| **No client-side auth logic** | The SPA only checks session status - never handles credentials directly.     |
+| **Secure redirects**          | Return URLs validated server-side against an allowlist, not client-provided. |
+| **Cross-origin support**      | JWT tokens passed via URL fragment for cross-origin development setup.       |
 
 ### Sign-In Flow (SPA → Backend → SPA)
 
@@ -441,28 +441,28 @@ config :chironium,
 
 For cross-origin setups (SPA on different port), session cookies don't work for API calls. The backend passes the JWT token via URL fragment:
 
-| Aspect              | Why URL Fragment (#) over Query Param (?)                              |
-| ------------------- | ---------------------------------------------------------------------- |
-| **Not sent to server** | Fragments are client-only, not included in HTTP requests.           |
-| **Not logged**       | Server access logs don't capture fragments.                           |
+| Aspect                  | Why URL Fragment (#) over Query Param (?)                             |
+| ----------------------- | --------------------------------------------------------------------- |
+| **Not sent to server**  | Fragments are client-only, not included in HTTP requests.             |
+| **Not logged**          | Server access logs don't capture fragments.                           |
 | **Cleared immediately** | SPA extracts, stores, and clears from URL via `history.replaceState`. |
 
 ```typescript
 // Frontend token extraction (auth.tsx)
 function extractTokenFromFragment(): string | null {
-  const hash = window.location.hash
-  if (!hash.includes("token=")) return null
+  const hash = window.location.hash;
+  if (!hash.includes("token=")) return null;
 
-  const params = new URLSearchParams(hash.substring(1))
-  const token = params.get("token")
+  const params = new URLSearchParams(hash.substring(1));
+  const token = params.get("token");
 
   // Clear immediately - even if invalid
-  const cleanUrl = window.location.href.split("#")[0]
-  window.history.replaceState(null, "", cleanUrl)
+  const cleanUrl = window.location.href.split("#")[0];
+  window.history.replaceState(null, "", cleanUrl);
 
   // Validate JWT format (3 dot-separated segments)
-  if (!token || token.split(".").length !== 3) return null
-  return token
+  if (!token || token.split(".").length !== 3) return null;
+  return token;
 }
 ```
 
@@ -480,23 +480,23 @@ This ensures the JWT cannot be reused even if intercepted.
 
 #### Key Components
 
-| Component          | File                                     | Purpose                                      |
-| ------------------ | ---------------------------------------- | -------------------------------------------- |
-| `AuthProvider`     | `client/src/lib/auth.tsx`                | React context for auth state and methods.    |
-| `useAuth`          | `client/src/lib/auth.tsx`                | Hook to access auth state in components.     |
-| `AuthLoading`      | `client/src/components/ui/auth-loading.tsx` | Loading spinner during auth check.        |
-| `_authenticated`   | `client/src/routes/_authenticated.tsx`   | Route guard for protected routes.            |
+| Component        | File                                        | Purpose                                   |
+| ---------------- | ------------------------------------------- | ----------------------------------------- |
+| `AuthProvider`   | `client/src/lib/auth.tsx`                   | React context for auth state and methods. |
+| `useAuth`        | `client/src/lib/auth.tsx`                   | Hook to access auth state in components.  |
+| `AuthLoading`    | `client/src/components/ui/auth-loading.tsx` | Loading spinner during auth check.        |
+| `_authenticated` | `client/src/routes/_authenticated.tsx`      | Route guard for protected routes.         |
 
 #### Auth State Interface
 
 ```typescript
 interface AuthState {
-  isLoading: boolean           // Auth check in progress
-  isAuthenticated: boolean     // User is logged in
-  user: User | null            // User data from GraphQL currentUser
-  redirectToSignIn: () => void // Navigate to backend /sign-in
-  logout: () => void           // Navigate to backend /sign-out
-  refreshUser: () => Promise<void> // Re-fetch user data
+  isLoading: boolean; // Auth check in progress
+  isAuthenticated: boolean; // User is logged in
+  user: User | null; // User data from GraphQL currentUser
+  redirectToSignIn: () => void; // Navigate to backend /sign-in
+  logout: () => void; // Navigate to backend /sign-out
+  refreshUser: () => Promise<void>; // Re-fetch user data
 }
 ```
 
@@ -508,33 +508,33 @@ Routes are protected in `beforeLoad` using TanStack Router context:
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context }) => {
     // Wait for auth check to complete
-    if (context.auth.isLoading) return
+    if (context.auth.isLoading) return;
 
     // Redirect unauthenticated users
     if (!context.auth.isAuthenticated) {
-      window.location.href = `${BACKEND_URL}/sign-in`
-      throw new Error("Redirecting to sign-in...")
+      window.location.href = `${BACKEND_URL}/sign-in`;
+      throw new Error("Redirecting to sign-in...");
     }
   },
   pendingComponent: AuthLoading,
-})
+});
 ```
 
 ### Backend Implementation
 
 #### Key Components
 
-| Component              | File                                                  | Purpose                                    |
-| ---------------------- | ----------------------------------------------------- | ------------------------------------------ |
-| `AuthReturnState`      | `lib/chironium_web/plugs/auth_return_state.ex`        | Captures Referer, generates state token.   |
-| `AuthController`       | `lib/chironium_web/controllers/auth_controller.ex`    | Handles success/failure/sign-out callbacks.|
-| `currentUser` query | `lib/chironium_web/api/graphql/schema.ex` | GraphQL auth status query.              |
+| Component           | File                                               | Purpose                                     |
+| ------------------- | -------------------------------------------------- | ------------------------------------------- |
+| `AuthReturnState`   | `lib/chironium_web/plugs/auth_return_state.ex`     | Captures Referer, generates state token.    |
+| `AuthController`    | `lib/chironium_web/controllers/auth_controller.ex` | Handles success/failure/sign-out callbacks. |
+| `currentUser` query | `lib/chironium_web/api/graphql/schema.ex`          | GraphQL auth status query.                  |
 
 #### API Endpoint
 
 The SPA checks auth status via GraphQL query:
 
-```
+```json
 POST /gql
 Authorization: Bearer <jwt-token>
 Content-Type: application/json
@@ -566,12 +566,12 @@ Content-Type: application/json
 
 #### Environment Variables
 
-| Variable               | Dev Default              | Description                                |
-| ---------------------- | ------------------------ | ------------------------------------------ |
-| `PWA_URL`              | `http://localhost:5173`  | Where to redirect after auth.              |
-| `ALLOWED_PWA_ORIGINS`  | `http://localhost:5173`  | Comma-separated allowlist for Referer.     |
-| `VITE_BACKEND_URL`     | `http://localhost:4000`  | Backend URL for full-page navigation.      |
-| `VITE_API_BASE_URL`    | (empty - uses proxy)     | API base URL for fetch requests.           |
+| Variable              | Dev Default             | Description                            |
+| --------------------- | ----------------------- | -------------------------------------- |
+| `PWA_URL`             | `http://localhost:5173` | Where to redirect after auth.          |
+| `ALLOWED_PWA_ORIGINS` | `http://localhost:5173` | Comma-separated allowlist for Referer. |
+| `VITE_BACKEND_URL`    | `http://localhost:4000` | Backend URL for full-page navigation.  |
+| `VITE_API_BASE_URL`   | (empty - uses proxy)    | API base URL for fetch requests.       |
 
 #### Vite Proxy Configuration
 
@@ -666,11 +666,11 @@ end
 
 Authentication events not captured by CRUD operations are logged via `AuthEvent`:
 
-| Event Type           | Description              |
-| -------------------- | ------------------------ |
-| `:login_google`      | Google OAuth sign-in     |
-| `:logout`            | User sign-out            |
-| `:token_revoked`     | Individual token revoked |
+| Event Type            | Description              |
+| --------------------- | ------------------------ |
+| `:login_google`       | Google OAuth sign-in     |
+| `:logout`             | User sign-out            |
+| `:token_revoked`      | Individual token revoked |
 | `:all_tokens_revoked` | All user tokens revoked  |
 
 Each event captures:
@@ -808,15 +808,15 @@ The authentication architecture is designed for a **CRM with open sign-up but in
 
 ### Implementation Overview
 
-| Component               | Implementation                                            |
-| ----------------------- | --------------------------------------------------------- |
-| **User Resource**       | `Chironium.Core.Identity.User`                            |
-| **Token Resource**      | `Chironium.Core.Identity.Token`                           |
-| **Identity Resource**   | `Chironium.Core.Identity.UserIdentity`    |
-| **Auth Events**         | `Chironium.Core.Identity.AuthEvent`       |
-| **Token Cleanup**       | `Chironium.Workers.TokenCleanupWorker`    |
-| **SPA Auth State**      | `AuthReturnState` plug + `AuthController` |
-| **SPA Auth Check**      | `currentUser` GraphQL query               |
+| Component             | Implementation                            |
+| --------------------- | ----------------------------------------- |
+| **User Resource**     | `Chironium.Core.Identity.User`            |
+| **Token Resource**    | `Chironium.Core.Identity.Token`           |
+| **Identity Resource** | `Chironium.Core.Identity.UserIdentity`    |
+| **Auth Events**       | `Chironium.Core.Identity.AuthEvent`       |
+| **Token Cleanup**     | `Chironium.Workers.TokenCleanupWorker`    |
+| **SPA Auth State**    | `AuthReturnState` plug + `AuthController` |
+| **SPA Auth Check**    | `currentUser` GraphQL query               |
 
 ### Key Features
 
@@ -833,10 +833,10 @@ The authentication architecture is designed for a **CRM with open sign-up but in
 
 ### Key Design Decisions
 
-| Aspect           | New User (no org)     | Staff                | Customer             |
-| ---------------- | --------------------- | -------------------- | -------------------- |
-| Self sign-up     | ✅ Yes (Google SSO)   | ✅ Yes (Google SSO)  | ❌ No                |
-| Auth methods     | Google SSO only       | Google SSO only      | N/A (future)         |
-| Person created   | On sign-up            | On first auth (lazy) | On invitation        |
-| PersonProfile    | ❌ No (until invited) | On Contract creation | On Membership        |
-| Dashboard access | ⚪ Limited (no org)   | ✅ Yes               | ❌ No                |
+| Aspect           | New User (no org)     | Staff                | Customer      |
+| ---------------- | --------------------- | -------------------- | ------------- |
+| Self sign-up     | ✅ Yes (Google SSO)   | ✅ Yes (Google SSO)  | ❌ No         |
+| Auth methods     | Google SSO only       | Google SSO only      | N/A (future)  |
+| Person created   | On sign-up            | On first auth (lazy) | On invitation |
+| PersonProfile    | ❌ No (until invited) | On Contract creation | On Membership |
+| Dashboard access | ⚪ Limited (no org)   | ✅ Yes               | ❌ No         |
