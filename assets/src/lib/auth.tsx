@@ -77,7 +77,7 @@ function extractTokenFromFragment(): string | null {
 // ============================================================================
 
 /**
- * Base URL for API requests (JSON:API, GraphQL, etc.).
+ * Base URL for API requests (GraphQL, etc.).
  * In development, this is empty to use Vite's proxy.
  * In production, this should point to the backend.
  */
@@ -92,13 +92,36 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
  */
 async function fetchCurrentUser(): Promise<User | null> {
   try {
-    const response = await fetch(`${API_BASE}/api/json/users/me`, {
-      method: "GET",
+    const headers = buildHeaders();
+    const response = await fetch(`${API_BASE}/gql`, {
+      method: "POST",
       credentials: "include",
-      headers: buildHeaders(),
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: JSON.stringify({
+        query: `
+          query CurrentUser {
+            currentUser {
+              id
+              email
+              person {
+                id
+                givenName
+                stSurname
+                ndSurname
+                birthDate
+                role
+              }
+            }
+          }
+        `,
+      }),
     });
 
     if (!response.ok) {
+      const errorBody = await response.text();
       if (response.status === 401 || response.status === 403) {
         // Clear stored token if it's invalid.
         clearStoredToken();
@@ -107,12 +130,41 @@ async function fetchCurrentUser(): Promise<User | null> {
       throw new Error(`Failed to fetch user: ${response.status}`);
     }
 
-    const data = await response.json();
-    // Transform JSON:API response to User type.
+    const result = await response.json();
+
+    // Handle GraphQL errors.
+    if (result.errors) {
+      const isAuthError = result.errors.some(
+        (err: { message: string }) =>
+          err.message === "Not authenticated" || err.message.includes("unauthorized"),
+      );
+      if (isAuthError) {
+        clearStoredToken();
+        return null;
+      }
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    const user = result.data?.currentUser;
+    if (!user) {
+      return null;
+    }
+
+    // Transform GraphQL response to User type.
     return {
-      id: data.data.id,
-      email: data.data.attributes.email,
-      person: data.data.attributes.person || null,
+      id: user.id,
+      email: user.email,
+      personId: user.person?.id || "",
+      person: user.person
+        ? {
+            id: user.person.id,
+            givenName: user.person.givenName ?? null,
+            stSurname: user.person.stSurname ?? null,
+            ndSurname: user.person.ndSurname ?? null,
+            birthDate: user.person.birthDate ?? null,
+            role: user.person.role,
+          }
+        : null,
     };
   } catch (error) {
     console.error("Error fetching current user:", error);
@@ -135,7 +187,7 @@ interface AuthProviderProps {
  * Authentication flow:
  * 1. On mount, check for auth token in URL fragment (from OAuth redirect).
  * 2. If token found, store it and clear from URL.
- * 3. Check session via /api/json/users/me using stored token or session cookie.
+ * 3. Check session via GraphQL currentUser query using stored token or session cookie.
  * 4. If authenticated, load user and proceed.
  * 5. If not authenticated, the route guards redirect to backend /sign-in.
  * 6. Backend handles Google OAuth / Magic Link authentication.

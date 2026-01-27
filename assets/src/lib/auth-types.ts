@@ -4,20 +4,20 @@
  * Separated to avoid circular dependencies between auth modules.
  */
 
+import type { PersonResourceSchema, UserResourceSchema } from "./ash";
+
 /**
  * User information returned from the backend.
  * Matches the User resource from Chironium.Core.Identity.User.
  */
-export interface User {
-  id: string;
-  email: string;
-  person?: {
-    id: string;
-    given_name: string | null;
-    st_surname: string | null;
-    nd_surname: string | null;
-  } | null;
-}
+export type Person = Omit<PersonResourceSchema, "__type" | "__primitiveFields">;
+
+export type User = Pick<
+  Omit<UserResourceSchema, "__type" | "__primitiveFields" | "person">,
+  "id" | "email" | "personId"
+> & {
+  person?: Person | null;
+};
 
 /**
  * Authentication state provided throughout the application.
