@@ -228,7 +228,7 @@ export function OrgProvider({ children }: OrgProviderProps) {
   );
 
   /**
-   * Create a new organisation (ADMIN only).
+   * Create a new organisation.
    */
   const createOrg = useCallback(
     async (data: { name: string; slug: string }) => {

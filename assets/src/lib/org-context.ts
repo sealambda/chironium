@@ -42,7 +42,7 @@ export interface OrgContextState {
   refreshOrgs: () => Promise<Organisation[]>;
 
   /**
-   * Create a new organisation (ADMIN only).
+   * Create a new organisation.
    */
   createOrg: (data: { name: string; slug: string }) => Promise<Organisation>;
 }
