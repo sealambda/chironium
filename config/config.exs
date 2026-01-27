@@ -17,20 +17,6 @@ config :phoenix_vite, PhoenixVite.Npm,
 
 config :ex_cldr, default_backend: Chironium.Cldr
 
-config :ash_typescript,
-  output_file: "assets/src/lib/ash.ts",
-  run_endpoint: "/rpc/run",
-  validate_endpoint: "/rpc/validate",
-  input_field_formatter: :camel_case,
-  output_field_formatter: :camel_case,
-  require_tenant_parameters: false,
-  generate_zod_schemas: false,
-  generate_phx_channel_rpc_actions: false,
-  generate_validation_functions: true,
-  zod_import_path: "zod",
-  zod_schema_suffix: "ZodSchema",
-  phoenix_import_path: "phoenix"
-
 config :ash_oban, pro?: false
 
 config :chironium, Oban,
@@ -45,14 +31,6 @@ config :chironium, Oban,
        {"0 3 * * *", Chironium.Workers.TokenCleanupWorker}
      ]}
   ]
-
-config :mime,
-  extensions: %{"json" => "application/vnd.api+json"},
-  types: %{"application/vnd.api+json" => ["json"]}
-
-config :ash_json_api,
-  show_public_calculations_when_loaded?: false,
-  authorize_update_destroy_with_error?: true
 
 config :ash_graphql, authorize_update_destroy_with_error?: true
 
@@ -81,7 +59,6 @@ config :spark,
         :token,
         :user_identity,
         :postgres,
-        :json_api,
         :graphql,
         :resource,
         :code_interface,
@@ -102,7 +79,6 @@ config :spark,
     "Ash.Domain": [
       section_order: [
         :admin,
-        :json_api,
         :graphql,
         :resources,
         :policies,

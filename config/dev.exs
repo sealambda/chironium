@@ -13,8 +13,8 @@ config :ash, policies: [show_policy_breakdowns?: true]
 # Configure your database.
 # Uses standard PostgreSQL development credentials.
 config :chironium, Chironium.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "chironium",
+  password: "chironium",
   hostname: "localhost",
   database: "chironium_dev",
   stacktrace: true,
