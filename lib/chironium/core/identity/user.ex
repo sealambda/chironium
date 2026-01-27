@@ -20,16 +20,6 @@ defmodule Chironium.Core.Identity.User do
   This means anyone can sign up via Google SSO, even without a PersonProfile.
   PersonProfiles are only created when invited to an organisation.
 
-  ### Magic Link (Invite-Based)
-
-  Magic links require an existing PersonProfile:
-  1. Input email → Find PersonProfile with that email
-  2. PersonProfile → Person
-  3. Person → User (get or create)
-  4. User authenticated
-
-  Users without a PersonProfile must use Google SSO.
-
   ## Email Handling
 
   `User.email` stores the email used for the current/last authentication.
@@ -47,29 +37,15 @@ defmodule Chironium.Core.Identity.User do
     domain: Chironium.Core.Identity,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication, AshPaperTrail.Resource, AshRateLimiter]
+    extensions: [
+      AshAuthentication,
+      AshPaperTrail.Resource,
+      AshRateLimiter,
+      AshGraphql.Resource
+    ]
 
   import Ash.Expr
   require Ash.Query
-
-  rate_limit do
-    hammer Chironium.Hammer
-
-    # Limit magic link requests: 5 per 15 minutes per email.
-    # Prevents magic link spam/abuse.
-    action :request_magic_link,
-      limit: 5,
-      per: :timer.minutes(15),
-      key: fn changeset, _context ->
-        email = Ash.Changeset.get_argument(changeset, :email) || "unknown"
-        "magic_link:#{email}"
-      end
-
-    # Limit sign-in attempts: 10 per 15 minutes per email.
-    action :sign_in_with_magic_link,
-      limit: 10,
-      per: :timer.minutes(15)
-  end
 
   authentication do
     add_ons do
@@ -92,13 +68,6 @@ defmodule Chironium.Core.Identity.User do
         client_secret Chironium.Secrets
         redirect_uri Chironium.Secrets
         identity_resource Chironium.Core.Identity.UserIdentity
-      end
-
-      magic_link do
-        identity_field :email
-        sender Chironium.Core.Identity.Senders.MagicLinkSender
-        # Require user interaction to prevent email scanners consuming tokens.
-        require_interaction? true
       end
     end
   end
@@ -123,6 +92,14 @@ defmodule Chironium.Core.Identity.User do
 
     # Use UUIDv7 for version primary keys.
     primary_key_type :uuid_v7
+  end
+
+  graphql do
+    type :user
+
+    queries do
+      read_one :user, :read
+    end
   end
 
   actions do
@@ -162,21 +139,6 @@ defmodule Chironium.Core.Identity.User do
       change AshAuthentication.GenerateTokenChange
       change AshAuthentication.Strategy.OAuth2.IdentityChange
       change &link_or_create_person_for_google/2
-    end
-
-    read :sign_in_with_magic_link do
-      description "Signs in via magic link. Looks up user via PersonProfile email."
-      argument :token, :string, allow_nil?: false
-
-      # Standard preparation required by AshAuthentication.
-      prepare AshAuthentication.Strategy.MagicLink.SignInPreparation
-      # Custom preparation that looks up User via PersonProfile email.
-      # This allows sign-in with ANY email in PersonProfiles, not just User.email.
-      prepare Chironium.Core.Identity.Preparations.MagicLinkSignIn
-
-      metadata :token, :string do
-        allow_nil? false
-      end
     end
 
     update :update_email do
@@ -239,6 +201,7 @@ defmodule Chironium.Core.Identity.User do
     belongs_to :person, Chironium.Core.Person do
       allow_nil? false
       public? true
+      attribute_public? false
     end
   end
 
