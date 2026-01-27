@@ -13,7 +13,6 @@ defmodule Chironium.Core.Identity do
   use Ash.Domain,
     otp_app: :chironium,
     extensions: [
-      AshJsonApi.Domain,
       AshGraphql.Domain,
       AshAdmin.Domain,
       AshPaperTrail.Domain
@@ -33,6 +32,5 @@ defmodule Chironium.Core.Identity do
     resource Chironium.Core.Identity.Token
     resource Chironium.Core.Identity.UserIdentity
     resource Chironium.Core.Identity.AuthEvent
-    resource Chironium.Core.Identity.AccountMergeRequest
   end
 end

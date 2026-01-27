@@ -8,12 +8,9 @@ defmodule Chironium.Core.Identity.AuthEvent do
   ## Event Types
 
   - `:login_google` - Google OAuth sign-in.
-  - `:login_magic_link` - Magic link sign-in.
   - `:logout` - User sign-out.
   - `:token_revoked` - Individual token revoked.
   - `:all_tokens_revoked` - All user tokens revoked.
-  - `:account_merge_initiated` - Account merge request created.
-  - `:account_merge_completed` - Account merge finalized.
   """
   use Ash.Resource,
     otp_app: :chironium,
@@ -67,12 +64,9 @@ defmodule Chironium.Core.Identity.AuthEvent do
 
       constraints one_of: [
                     :login_google,
-                    :login_magic_link,
                     :logout,
                     :token_revoked,
-                    :all_tokens_revoked,
-                    :account_merge_initiated,
-                    :account_merge_completed
+                    :all_tokens_revoked
                   ]
     end
 
