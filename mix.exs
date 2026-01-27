@@ -140,11 +140,9 @@ defmodule Chironium.MixProject do
         "cmd rm -rf _build deps priv/repo/migrations/* priv/resource_snapshots/*",
         "deps.get",
         "compile",
-        "ecto.drop",
-        "ecto.create",
-        "ash.codegen initial",
-        "cmd mix oban.install",
-        "ecto.migrate"
+        "ash.codegen init",
+        "oban.install",
+        "ecto.reset"
       ],
       # Quality & linting aliases.
       "format.check": ["format --check-formatted"],
