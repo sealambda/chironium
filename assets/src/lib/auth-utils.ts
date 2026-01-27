@@ -7,14 +7,11 @@
 
 /**
  * Base URL for backend endpoints that serve HTML pages (OAuth flows, etc).
- * These cannot go through Vite proxy because the HTML response contains
- * references to backend assets that Vite doesn't have.
- * In development, this is the Phoenix server URL.
+ * Use same-origin in development via Vite proxy to keep session cookies working.
+ * Set VITE_BACKEND_URL only when you intentionally bypass the proxy.
  * In production, this should be the same as the API base or the main domain.
  */
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
-
-const TOKEN_STORAGE_KEY = "chironium_auth_token";
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
 function getCsrfToken(): string | null {
   if (typeof document === "undefined") {
@@ -26,21 +23,7 @@ function getCsrfToken(): string | null {
 }
 
 /**
- * Get the current auth token from sessionStorage.
- * Returns null if no token is stored.
- */
-export function getStoredToken(): string | null {
-  try {
-    return sessionStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch {
-    // sessionStorage not available (e.g., private browsing).
-    return null;
-  }
-}
-
-/**
  * Build headers for authenticated API requests.
- * Includes Authorization header with Bearer token if available.
  */
 export function buildHeaders(): HeadersInit {
   const headers: HeadersInit = {
@@ -51,11 +34,6 @@ export function buildHeaders(): HeadersInit {
   const csrfToken = getCsrfToken();
   if (csrfToken) {
     headers["x-csrf-token"] = csrfToken;
-  }
-
-  const token = getStoredToken();
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
   }
 
   return headers;
