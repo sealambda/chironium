@@ -11,17 +11,17 @@ This allows users to sign up freely and explore the app, but organisation-specif
 
 ### User Types & Authentication Behavior
 
-| User Type    | Self Sign-up? | Auth Methods                    | Person Record Created   | PersonProfile Created           |
-| ------------ | ------------- | ------------------------------- | ----------------------- | ------------------------------- |
-| **New User** | ✅ Yes        | Google SSO only                 | On first sign-up        | ❌ No (until invited to an org) |
-| **Staff**    | ✅ Yes        | Google SSO, Magic Link          | On first authentication | On Contract creation            |
-| **Customer** | ❌ No         | Magic Link only (when prompted) | On first authentication | On Membership creation          |
+| User Type    | Self Sign-up? | Auth Methods    | Person Record Created   | PersonProfile Created           |
+| ------------ | ------------- | --------------- | ----------------------- | ------------------------------- |
+| **New User** | ✅ Yes        | Google SSO only | On first sign-up        | ❌ No (until invited to an org) |
+| **Staff**    | ✅ Yes        | Google SSO only | On first authentication | On Contract creation            |
+| **Customer** | ❌ No         | N/A (future)    | On invitation           | On Membership creation          |
 
 **New Users** can sign up via Google SSO at any time. A Person record is created for them automatically using their Google profile data. However, they won't have any PersonProfile until they're invited to an organisation. This means they can access basic app features but not org-specific functionality.
 
-**Staff** are users who have been invited to an organisation via Contract. They can authenticate via Google SSO or magic link. If they signed up before being invited, the Contract links their existing Person to the organisation.
+**Staff** are users who have been invited to an organisation via Contract. They authenticate via Google SSO. If they signed up before being invited, the Contract links their existing Person to the organisation.
 
-**Customers** do not proactively log in. They have no dashboard access. Authentication only happens when the org sends them a magic link for a specific task (onboarding form, weekly health report, etc.). A customer may exist in the system (Person + PersonProfile + Membership) without ever having a User record - the User is created lazily on first authentication.
+**Customers** do not currently have authentication capability. Customer authentication will be added in a future release.
 
 ### Diagram Color Legend
 
@@ -149,59 +149,6 @@ flowchart TD
 
 **Development Note**: Google OAuth app is unverified. Only GCP OAuth testers can authenticate, naturally restricting access to the dev team.
 
-### 2. Magic Link (Invite-Based)
-
-Magic links are used for users who already have a PersonProfile (i.e., have been invited to an organisation):
-
-#### Staff Magic Link (Proactive)
-
-**Use case**: Staff authentication when not using Google SSO.
-
-**Behavior**: Staff can enter their email and request a magic link at any time. They must have a PersonProfile (Contract exists).
-
-```mermaid
-flowchart TD
-    A[Staff enters email] --> B{PersonProfile exists}
-    B -->|Yes| C[Get Person]
-    B -->|No| D[Error: No profile - use Google SSO to sign up]
-    C --> E{User exists}
-    E -->|No| F[Create User]
-    F --> G[Send magic link]
-    E -->|Yes| G
-    G --> H[Staff clicks link]
-    H --> I[Authenticated]
-
-    style I fill:#22c55e
-    style D fill:#ef4444
-```
-
-**Note**: Users who signed up via Google SSO but haven't been invited to an org yet cannot request magic links - they must continue using Google SSO until they have a PersonProfile.
-
-#### Customer Magic Link (Org-Triggered Only)
-
-**Use case**: Customer authentication for specific tasks (forms, reports).
-
-**Behavior**: Customers never request magic links themselves. The org triggers the magic link when needed (e.g., "Send onboarding form", "Request weekly health report").
-
-```mermaid
-flowchart TD
-    A[Org triggers customer action] --> B{PersonProfile exists}
-    B -->|Yes| C[Send magic link]
-    B -->|No| D[Error: No profile]
-    C --> E[Customer clicks link]
-    E --> F{User exists}
-    F -->|No| G[Create User]
-    G --> H[Authenticated]
-    F -->|Yes| H
-    H --> I[Complete task]
-
-    style C fill:#fbbf24
-    style H fill:#22c55e
-    style D fill:#ef4444
-```
-
-**Key difference**: The User record is created lazily - only when the customer first clicks the magic link. Until then, the customer exists as Person + PersonProfile + Membership only (no User).
-
 ## Invitation Flows
 
 ### Staff Invitation (Contract)
@@ -224,11 +171,11 @@ flowchart TD
     style H fill:#22c55e
 ```
 
-**After first auth**: Staff can authenticate anytime via Google SSO or by requesting a new magic link.
+**After first auth**: Staff can authenticate anytime via Google SSO.
 
 ### Customer Onboarding (Membership)
 
-When a customer is onboarded, we create Person + PersonProfile + Membership but **NOT** the User. The User is only created when we need to send them a magic link.
+When a customer is onboarded, we create Person + PersonProfile + Membership but **NOT** a User. Customer authentication will be added in a future release.
 
 ```mermaid
 flowchart TD
@@ -241,26 +188,7 @@ flowchart TD
     style E fill:#94a3b8
 ```
 
-**Later, when auth is needed**:
-
-```mermaid
-flowchart TD
-    A[Org needs customer action] --> B{PersonProfile exists}
-    B -->|Yes| C[Send magic link]
-    B -->|No| D[Error: No profile]
-    C --> E[Customer clicks link]
-    E --> F{User exists}
-    F -->|No| G[Create User + link to Person]
-    G --> H[Authenticated]
-    F -->|Yes| H
-    H --> I[Fill form or health report]
-
-    style C fill:#fbbf24
-    style H fill:#22c55e
-    style D fill:#ef4444
-```
-
-**Key insight**: Many customers may never authenticate at all. They exist in the system for CRM/billing purposes, but if they never click a magic link, no User is ever created.
+**Note**: Customers exist in the system for CRM/billing purposes without authentication capability.
 
 ## Account Merge Flow
 
@@ -434,7 +362,7 @@ The React SPA/PWA runs on a separate origin (Vite dev server at `localhost:5173`
 ```mermaid
 flowchart TD
     A[User visits SPA localhost:5173] --> B[AuthProvider mounts]
-    B --> C[fetchCurrentUser via /api/json/users/me]
+    B --> C[fetchCurrentUser via /gql currentUser]
     C --> D{Response?}
     D -->|401 Unauthorized| E[Route guard triggers]
     E --> F[Full page navigation to backend /sign-in]
@@ -565,7 +493,7 @@ This ensures the JWT cannot be reused even if intercepted.
 interface AuthState {
   isLoading: boolean           // Auth check in progress
   isAuthenticated: boolean     // User is logged in
-  user: User | null            // User data from /api/json/users/me
+  user: User | null            // User data from GraphQL currentUser
   redirectToSignIn: () => void // Navigate to backend /sign-in
   logout: () => void           // Navigate to backend /sign-out
   refreshUser: () => Promise<void> // Re-fetch user data
@@ -600,35 +528,36 @@ export const Route = createFileRoute("/_authenticated")({
 | ---------------------- | ----------------------------------------------------- | ------------------------------------------ |
 | `AuthReturnState`      | `lib/chironium_web/plugs/auth_return_state.ex`        | Captures Referer, generates state token.   |
 | `AuthController`       | `lib/chironium_web/controllers/auth_controller.ex`    | Handles success/failure/sign-out callbacks.|
-| `AuthStatusController` | `lib/chironium_web/controllers/auth_status_controller.ex` | `/api/json/users/me` endpoint.         |
+| `currentUser` query | `lib/chironium_web/api/graphql/schema.ex` | GraphQL auth status query.              |
 
 #### API Endpoint
 
-The SPA checks auth status via JSON:API endpoint:
+The SPA checks auth status via GraphQL query:
 
 ```
-GET /api/json/users/me
+POST /gql
 Authorization: Bearer <jwt-token>
-Accept: application/vnd.api+json
+Content-Type: application/json
+
+{
+  "query": "query { currentUser { id email person { id givenName stSurname ndSurname } } }"
+}
 
 # Success (200)
 {
   "data": {
-    "id": "...",
-    "type": "user",
-    "attributes": {
+    "currentUser": {
+      "id": "...",
       "email": "user@example.com",
-      "person": { "id": "...", "given_name": "John", ... }
+      "person": { "id": "...", "givenName": "John", ... }
     }
   }
 }
 
-# Unauthorized (401)
+# Unauthorized (200 with GraphQL errors)
 {
   "errors": [{
-    "status": "401",
-    "title": "Unauthorized",
-    "detail": "Not authenticated"
+    "message": "Not authenticated"
   }]
 }
 ```
@@ -652,7 +581,6 @@ In development, API calls are proxied to avoid CORS issues:
 // vite.config.ts
 server: {
   proxy: {
-    "/api/json": { target: "http://localhost:4000", changeOrigin: true },
     "/gql": { target: "http://localhost:4000", ws: true, changeOrigin: true },
     "/rpc": { target: "http://localhost:4000", changeOrigin: true },
     // Note: /sign-in, /sign-out NOT proxied - require full navigation
@@ -712,33 +640,7 @@ The worker calls `Token.expunge_expired` via `Ash.bulk_destroy`.
 
 ## Rate Limiting
 
-Rate limiting is implemented via `AshRateLimiter` with Hammer backend:
-
-### Magic Link Requests
-
-```elixir
-action :request_magic_link,
-  limit: 5,
-  per: :timer.minutes(15),
-  key: fn changeset, _context ->
-    email = Ash.Changeset.get_argument(changeset, :email) || "unknown"
-    "magic_link:#{email}"
-  end
-```
-
-- **Limit**: 5 requests per 15 minutes per email.
-- **Purpose**: Prevents magic link spam/abuse.
-
-### Sign-in Attempts
-
-```elixir
-action :sign_in_with_magic_link,
-  limit: 10,
-  per: :timer.minutes(15)
-```
-
-- **Limit**: 10 attempts per 15 minutes.
-- **Purpose**: Prevents brute-force token guessing.
+Rate limiting will be implemented via `AshRateLimiter` with Hammer backend for future authentication methods.
 
 ## Audit Logging
 
@@ -764,15 +666,12 @@ end
 
 Authentication events not captured by CRUD operations are logged via `AuthEvent`:
 
-| Event Type                 | Description                   |
-| -------------------------- | ----------------------------- |
-| `:login_google`            | Google OAuth sign-in          |
-| `:login_magic_link`        | Magic link sign-in            |
-| `:logout`                  | User sign-out                 |
-| `:token_revoked`           | Individual token revoked      |
-| `:all_tokens_revoked`      | All user tokens revoked       |
-| `:account_merge_initiated` | Account merge request created |
-| `:account_merge_completed` | Account merge finalized       |
+| Event Type           | Description              |
+| -------------------- | ------------------------ |
+| `:login_google`      | Google OAuth sign-in     |
+| `:logout`            | User sign-out            |
+| `:token_revoked`     | Individual token revoked |
+| `:all_tokens_revoked` | All user tokens revoked  |
 
 Each event captures:
 
@@ -788,18 +687,12 @@ Each event captures:
 2. **GCP allowlist**: During dev, only approved testers can OAuth.
 3. **Token presence required**: Every auth requires valid stored token.
 4. **Email uniqueness**: PersonProfile.email is globally unique.
-5. **Rate limiting**: Prevents magic link spam and brute-force attacks.
-6. **CSRF protection**: Phoenix's `:protect_from_forgery` plug + AshAuthentication OAuth state validation.
-7. **Require interaction**: Magic links require user click (prevents email scanner consumption).
-8. **Full audit trail**: All auth events and User changes tracked.
+5. **CSRF protection**: Phoenix's `:protect_from_forgery` plug + AshAuthentication OAuth state validation.
+6. **Full audit trail**: All auth events and User changes tracked.
 
 ## Email Delivery
 
-Magic links and merge verification emails are sent via Swoosh:
-
-### Magic Link Emails
-
-**Sender**: `Chironium.Core.Identity.Senders.MagicLinkSender`
+Email functionality reserved for future features.
 
 - HTML and plain text versions.
 - 15-minute expiry notice.
@@ -888,16 +781,6 @@ scope "/", ChironiumWeb do
 
   auth_routes AuthController, Chironium.Core.Identity.User, path: "/auth"
   sign_out_route AuthController
-
-  # Required for require_interaction? true
-  magic_sign_in_route(
-    Chironium.Core.Identity.User,
-    :magic_link,
-    path: "/auth/user/magic_link",
-    auth_routes_prefix: "/auth",
-    on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
-    overrides: [ChironiumWeb.AuthOverrides, AshAuthentication.Phoenix.Overrides.DaisyUI]
-  )
 end
 ```
 
@@ -906,17 +789,12 @@ end
 ### Completed ✅
 
 - [x] **Lazy User creation** - User created on first auth, not during invitation.
-- [x] **Email delivery** - Swoosh implementation for magic links and merge verification.
-- [x] **magic_sign_in_route** - Added to router for `require_interaction?` support.
-- [x] **Account merge flow** - `AccountMergeRequest` resource with full state machine.
-- [x] **Merge verification** - Magic link confirmation via `MergeVerificationSender`.
-- [x] **Rate limiting** - AshRateLimiter with Hammer (5/15min magic link, 10/15min sign-in).
 - [x] **Audit logging** - Paper Trail on User + AuthEvent for auth actions.
 - [x] **Token cleanup** - Oban cron job daily at 3 AM UTC.
 - [x] **CSRF protection** - Phoenix plug + AshAuthentication OAuth state.
 - [x] **SPA/PWA integration** - Secure cross-origin auth with JWT in URL fragment.
 - [x] **Secure redirects** - Signed state tokens with origin allowlist validation.
-- [x] **Auth status endpoint** - `/api/json/users/me` for SPA session checks.
+- [x] **Auth status query** - `currentUser` in GraphQL for SPA session checks.
 
 ### Nice to Have
 
@@ -934,15 +812,11 @@ The authentication architecture is designed for a **CRM with open sign-up but in
 | ----------------------- | --------------------------------------------------------- |
 | **User Resource**       | `Chironium.Core.Identity.User`                            |
 | **Token Resource**      | `Chironium.Core.Identity.Token`                           |
-| **Identity Resource**   | `Chironium.Core.Identity.UserIdentity`                    |
-| **Auth Events**         | `Chironium.Core.Identity.AuthEvent`                       |
-| **Account Merge**       | `Chironium.Core.Identity.AccountMergeRequest`             |
-| **Magic Link Sender**   | `Chironium.Core.Identity.Senders.MagicLinkSender`         |
-| **Merge Sender**        | `Chironium.Core.Identity.Senders.MergeVerificationSender` |
-| **Token Cleanup**       | `Chironium.Workers.TokenCleanupWorker`                    |
-| **Rate Limiter**        | `Chironium.Hammer` (via AshRateLimiter)                   |
-| **SPA Auth State**      | `AuthReturnState` plug + `AuthController`                 |
-| **SPA Auth Check**      | `AuthStatusController` (`/api/json/users/me`)             |
+| **Identity Resource**   | `Chironium.Core.Identity.UserIdentity`    |
+| **Auth Events**         | `Chironium.Core.Identity.AuthEvent`       |
+| **Token Cleanup**       | `Chironium.Workers.TokenCleanupWorker`    |
+| **SPA Auth State**      | `AuthReturnState` plug + `AuthController` |
+| **SPA Auth Check**      | `currentUser` GraphQL query               |
 
 ### Key Features
 
@@ -950,22 +824,19 @@ The authentication architecture is designed for a **CRM with open sign-up but in
 - Multi-org support: Same person, different emails per org.
 - Open sign-up: Anyone can sign up via Google SSO.
 - Invite-only orgs: PersonProfile created only via invitation (Contract/Membership).
-- Staff auth: Google SSO + Magic Link (Magic Link requires PersonProfile).
-- Customer auth: Magic Link only (org-triggered).
-- PersonProfile-based lookup: Magic link auth works with any PersonProfile email.
+- Staff auth: Google SSO only.
+- Customer auth: Not yet implemented.
 - Email sync: User.email synced on login from auth email.
-- Self-service account merge: Users can link multiple email identities.
 - Full audit trail: Paper Trail + AuthEvent logging.
-- Rate limiting: Prevents abuse of magic link and sign-in endpoints.
 - **SPA/PWA integration**: Secure cross-origin auth with backend-owned logic.
 - **Secure redirects**: Signed state tokens prevent open redirect attacks.
 
 ### Key Design Decisions
 
-| Aspect           | New User (no org)     | Staff                  | Customer             |
-| ---------------- | --------------------- | ---------------------- | -------------------- |
-| Self sign-up     | ✅ Yes (Google SSO)   | ✅ Yes (Google SSO)    | ❌ No                |
-| Auth methods     | Google SSO only       | Google SSO, Magic Link | Magic Link only      |
-| Person created   | On sign-up            | On first auth (lazy)   | On first auth (lazy) |
-| PersonProfile    | ❌ No (until invited) | On Contract creation   | On Membership        |
-| Dashboard access | ⚪ Limited (no org)   | ✅ Yes                 | ❌ No                |
+| Aspect           | New User (no org)     | Staff                | Customer             |
+| ---------------- | --------------------- | -------------------- | -------------------- |
+| Self sign-up     | ✅ Yes (Google SSO)   | ✅ Yes (Google SSO)  | ❌ No                |
+| Auth methods     | Google SSO only       | Google SSO only      | N/A (future)         |
+| Person created   | On sign-up            | On first auth (lazy) | On invitation        |
+| PersonProfile    | ❌ No (until invited) | On Contract creation | On Membership        |
+| Dashboard access | ⚪ Limited (no org)   | ✅ Yes               | ❌ No                |
