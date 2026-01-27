@@ -15,5 +15,8 @@
     # HTTPS is enforced at infrastructure level (load balancer/reverse proxy).
     "Config.HTTPS"
   ],
-  ignore_files: []
+  ignore_files: [
+    # Dev-only proxy serving trusted local assets.
+    "lib/chironium_web/plugs/vite_pwa_plug.ex"
+  ]
 ]
