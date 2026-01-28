@@ -1,0 +1,42 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  // Ignore unknown file types to avoid unnecessary warnings.
+  "files": {
+    "ignoreUnknown": true
+  },
+  // Enable Git integration for VCS-aware features.
+  // Set root to parent directory for monorepo structure.
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "root": ".."
+  },
+  // Use spaces (2) instead of tabs for consistency across editors.
+  "formatter": {
+    "indentStyle": "space"
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  // Disable linting/formatting for generated and vendored code.
+  "overrides": [
+    {
+      "includes": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/public/**",
+        "**/vendor/**",
+        "**/routeTree.gen.ts",
+        "**/src/gql/**"
+      ],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
+}
