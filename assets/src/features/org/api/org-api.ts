@@ -1,47 +1,44 @@
-import { postGraphql } from "@/shared/api/graphql";
-import { getApiBase, getAuthHeaders } from "@/shared/api/request";
-import type { Organisation } from "../types";
+import { requestGraphql } from "@/shared/api/graphql";
+import { type Organisation } from "@/gql/graphql";
+import { graphql } from "@/gql";
 
-const API_BASE = getApiBase();
+const AccessibleOrganisationsQuery = graphql(`
+  query AccessibleOrganisations {
+    organisations {
+      id
+      name
+      slug
+      profilePicture
+      themeSeedColor
+    }
+  }
+`);
 
-function parseOrganisation(resource: {
-  id: string;
-  name: string;
-  slug: string;
-  profilePicture: string | null;
-  themeSeedColor: string | null;
-}): Organisation {
-  return {
-    id: resource.id,
-    name: resource.name,
-    slug: resource.slug,
-    profilePicture: resource.profilePicture,
-    themeSeedColor: resource.themeSeedColor,
-  };
-}
-
-/**
- * Fetch accessible organisations from the API.
- */
-export async function fetchAccessibleOrganisations(): Promise<Organisation[]> {
-  const query = `
-    query AccessibleOrganisations {
-      organisations {
+const CreateOrganisationMutation = graphql(`
+  mutation CreateOrganisation($input: CreateOrganisationInput!) {
+    createOrganisation(input: $input) {
+      result {
         id
         name
         slug
         profilePicture
         themeSeedColor
       }
+      errors {
+        message
+      }
     }
-  `;
+  }
+`);
 
-  const data = await postGraphql<{ organisations: Organisation[] }>({
-    apiBase: API_BASE,
-    query,
-    headers: getAuthHeaders(),
+/**
+ * Fetch accessible organisations from the API.
+ */
+export async function fetchAccessibleOrganisations(): Promise<Organisation[]> {
+  const data = await requestGraphql({
+    document: AccessibleOrganisationsQuery,
   });
-  return data.organisations.map(parseOrganisation);
+  return data.organisations;
 }
 
 /**
@@ -51,33 +48,9 @@ export async function createOrganisation(data: {
   name: string;
   slug: string;
 }): Promise<Organisation> {
-  const query = `
-    mutation CreateOrganisation($input: CreateOrganisationInput!) {
-      createOrganisation(input: $input) {
-        result {
-          id
-          name
-          slug
-          profilePicture
-          themeSeedColor
-        }
-        errors {
-          message
-        }
-      }
-    }
-  `;
-
-  const result = await postGraphql<{
-    createOrganisation: {
-      result: Organisation | null;
-      errors: { message?: string }[] | null;
-    };
-  }>({
-    apiBase: API_BASE,
-    query,
+  const result = await requestGraphql({
+    document: CreateOrganisationMutation,
     variables: { input: { name: data.name, slug: data.slug } },
-    headers: getAuthHeaders(),
   });
 
   const payload = result.createOrganisation;
@@ -90,5 +63,5 @@ export async function createOrganisation(data: {
     throw new Error(errorMessage);
   }
 
-  return parseOrganisation(payload.result);
+  return payload.result;
 }

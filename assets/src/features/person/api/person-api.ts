@@ -1,11 +1,28 @@
-import { postGraphql } from "@/shared/api/graphql";
-import { getApiBase, getAuthHeaders } from "@/shared/api/request";
+import { graphql } from "@/gql";
+import { requestGraphql } from "@/shared/api/graphql";
 import type { PersonOnboardingData } from "../model/person-onboarding";
 
 interface UpdatePersonOnboardingInput {
   personId: string;
   data: PersonOnboardingData;
 }
+
+const UpdatePersonMutation = graphql(`
+  mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {
+    updatePerson(id: $id, input: $input) {
+      result {
+        id
+        givenName
+        stSurname
+        ndSurname
+        birthDate
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
 
 /**
  * Update person information via GraphQL mutation.
@@ -20,31 +37,8 @@ export async function updatePersonOnboarding({
   data,
 }: UpdatePersonOnboardingInput): Promise<void> {
   try {
-    const result = await postGraphql<{
-      updatePerson: {
-        result: {
-          id: string;
-        } | null;
-        errors: { message?: string }[] | null;
-      };
-    }>({
-      apiBase: getApiBase(),
-      query: `
-        mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {
-          updatePerson(id: $id, input: $input) {
-            result {
-              id
-              givenName
-              stSurname
-              ndSurname
-              birthDate
-            }
-            errors {
-              message
-            }
-          }
-        }
-      `,
+    const result = await requestGraphql({
+      document: UpdatePersonMutation,
       variables: {
         id: personId,
         input: {
@@ -54,7 +48,6 @@ export async function updatePersonOnboarding({
           birthDate: data.birthDate,
         },
       },
-      headers: getAuthHeaders(),
     });
 
     const payload = result.updatePerson;

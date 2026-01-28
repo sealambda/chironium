@@ -1,27 +1,4 @@
-/**
- * Authentication type definitions.
- *
- * Shared to avoid cross-feature dependencies and keep auth types stable.
- */
-
-/**
- * Person information returned from the backend.
- * Mirrors the GraphQL `currentUser` response shape.
- */
-export interface Person {
-  id: string;
-  givenName: string | null;
-  stSurname: string | null;
-  ndSurname: string | null;
-  birthDate: string | null;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  personId: string;
-  person?: Person | null;
-}
+import type { User } from "@/gql/graphql";
 
 /**
  * Authentication state provided throughout the application.
