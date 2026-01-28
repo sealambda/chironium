@@ -4,55 +4,21 @@
 import "vite/modulepreload-polyfill";
 
 import { registerSW } from "virtual:pwa-register";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { createRouter } from "@tanstack/react-router";
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { InnerApp } from "@/components/inner-app";
-import { AuthProvider } from "@/lib/auth";
+import { AppProviders } from "./app/providers/app-providers";
 
-import "./index.css";
+import "./styles/index.css";
 
-// Type for auth context - will be provided at runtime by InnerApp.
-import type { AuthState } from "@/lib/auth-types";
-// Import the generated route tree.
-import { routeTree } from "./routeTree.gen";
-
-// Create a new router instance with auth context placeholder.
-// The context is typed but initialized as undefined - InnerApp provides the actual value.
-const router = createRouter({
-  routeTree,
-  basepath: "/app",
-  defaultPreload: "intent",
-  scrollRestoration: true,
-  context: {
-    // Auth will be provided by InnerApp component at runtime.
-    auth: undefined as unknown as AuthState,
-  },
-});
-
-// Register the router instance for type safety.
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
+async function startMsw(): Promise<void> {
+  if (!import.meta.env.DEV || import.meta.env.VITE_ENABLE_MSW !== "true") {
+    return;
   }
-}
 
-// Create a query client for TanStack Query with sensible defaults.
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes.
-      gcTime: 1000 * 60 * 30, // 30 minutes.
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    },
-    mutations: {
-      retry: 1,
-    },
-  },
-});
+  const { worker } = await import("./mocks/browser");
+  await worker.start({
+    onUnhandledRequest: "bypass",
+  });
+}
 
 /**
  * Safely mounts the React application to the DOM.
@@ -69,29 +35,15 @@ function mountApp(): void {
     return;
   }
 
-  /**
-   * Root application component.
-   * Wraps the app with all necessary providers.
-   *
-   * Provider order (outermost to innermost):
-   * 1. StrictMode - React development checks.
-   * 2. QueryClientProvider - TanStack Query for data fetching.
-   * 3. AuthProvider - Authentication state management.
-   * 4. InnerApp - Router with auth context.
-   */
-  createRoot(rootElement).render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <InnerApp router={router} />
-        </AuthProvider>
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-      </QueryClientProvider>
-    </StrictMode>,
-  );
+  createRoot(rootElement).render(<AppProviders />);
 }
 
 // Mount the application.
-mountApp();
-
-registerSW({ immediate: true });
+startMsw()
+  .catch((error) => {
+    console.error("Failed to start MSW.", error);
+  })
+  .finally(() => {
+    mountApp();
+    registerSW({ immediate: true });
+  });
