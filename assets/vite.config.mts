@@ -131,7 +131,7 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["favicon.ico", "robots.txt", "images/logo.svg"],
       manifest: {
         name: "CHIRONIUM",
@@ -157,19 +157,23 @@ export default defineConfig({
           },
         ],
       },
-      workbox: isDev
-        ? {
-            // Avoid dev warnings when dev-dist has no precache targets.
-            globPatterns: [],
-          }
-        : {
-            globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
-          },
-      // Enable service worker in dev for testing PWA behavior.
+      workbox: {
+        // Navigation fallback must point to the Phoenix route that serves the SPA,
+        // not the default 'index.html'. Phoenix serves the app shell at '/app'.
+        navigateFallback: "/app",
+        // Only apply navigation fallback for routes within the app scope.
+        // This prevents the service worker from intercepting API/auth routes.
+        navigateFallbackAllowlist: [/^\/app/],
+        // Precache static assets. In dev, globPatterns is empty to avoid warnings.
+        globPatterns: isDev ? [] : ["**/*.{js,css,ico,png,svg,webmanifest}"],
+      },
+      // Development service worker configuration.
       // Requires ChironiumWeb.VitePwaPlug in endpoint to serve PWA files.
-      // For faster dev builds, set enabled: false to disable SW in development.
       devOptions: {
         enabled: true,
+        // Dev service worker navigation must match the production config.
+        navigateFallback: "/app",
+        navigateFallbackAllowlist: [/^\/app/],
       },
     }) as PluginOption,
     react(),
