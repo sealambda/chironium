@@ -1,0 +1,50 @@
+/**
+ * Organisation type returned from the API.
+ */
+export type Organisation = {
+  id: string;
+  name: string;
+  slug: string;
+  profilePicture: string | null;
+  themeSeedColor: string | null;
+};
+
+/**
+ * Organisation context state.
+ */
+export interface OrgContextState {
+  /**
+   * Currently selected organisation, if any.
+   */
+  selectedOrg: Organisation | null;
+
+  /**
+   * List of accessible organisations for the current user.
+   */
+  availableOrgs: Organisation[];
+
+  /**
+   * Loading state for organisations.
+   */
+  loading: boolean;
+
+  /**
+   * Error state for organisations.
+   */
+  error: Error | null;
+
+  /**
+   * Select an organisation and persist preference.
+   */
+  selectOrg: (orgId: string) => Promise<void>;
+
+  /**
+   * Refresh accessible organisations.
+   */
+  refreshOrgs: () => Promise<Organisation[]>;
+
+  /**
+   * Create a new organisation.
+   */
+  createOrg: (data: { name: string; slug: string }) => Promise<Organisation>;
+}
