@@ -1,13 +1,4 @@
-/**
- * Organisation type returned from the API.
- */
-export type Organisation = {
-  id: string;
-  name: string;
-  slug: string;
-  profilePicture: string | null;
-  themeSeedColor: string | null;
-};
+import type { Organisation } from "@/gql/graphql";
 
 /**
  * Organisation context state.

@@ -1,10 +1,15 @@
-import type { Person } from "@/shared/types/auth";
+import type { Person } from "@/gql/graphql";
 
 /**
  * Required Person fields for onboarding.
  * When any of these fields are missing, the onboarding modal will be shown.
  */
-export const REQUIRED_PERSON_FIELDS = ["givenName", "stSurname", "ndSurname", "birthDate"] as const;
+export const REQUIRED_PERSON_FIELDS = [
+  "givenName",
+  "stSurname",
+  "ndSurname",
+  "birthDate",
+] as const;
 
 export type RequiredPersonField = (typeof REQUIRED_PERSON_FIELDS)[number];
 
@@ -25,7 +30,9 @@ export function isPersonIncomplete(person: Person | null | undefined): boolean {
  * Get a list of missing required Person fields.
  * Useful for debugging or showing specific missing fields to the user.
  */
-export function getMissingPersonFields(person: Person | null | undefined): RequiredPersonField[] {
+export function getMissingPersonFields(
+  person: Person | null | undefined,
+): RequiredPersonField[] {
   if (!person) return [...REQUIRED_PERSON_FIELDS];
 
   return REQUIRED_PERSON_FIELDS.filter((field) => {
