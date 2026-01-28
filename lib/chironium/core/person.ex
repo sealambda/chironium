@@ -41,6 +41,11 @@ defmodule Chironium.Core.Person do
     queries do
       read_one :person, :read
     end
+
+    mutations do
+      create :create_person, :create
+      update :update_person, :update
+    end
   end
 
   actions do

@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import type { Organisation } from "../types";
+import type { Organisation } from "@/gql/graphql";
 
 interface OrgSelectorProps {
   selectedOrg: Organisation | null;

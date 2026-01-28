@@ -1,9 +1,12 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { queryClient } from "@/app/providers/query-client";
-import { createOrganisation, fetchAccessibleOrganisations } from "../api/org-api";
+import {
+  createOrganisation,
+  fetchAccessibleOrganisations,
+} from "../api/org-api";
 import { getStoredPreference, storePreference } from "../model/org-preferences";
-import type { Organisation } from "../types";
+import type { Organisation } from "@/gql/graphql";
 
 export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
 
@@ -64,7 +67,8 @@ export const useOrgStore = create<OrgStoreState>()(
       selectOrg: async (orgId: string) => {
         set({ error: null }, false, "orgs/selectOrg:start");
         let availableOrgs = get().availableOrgs;
-        let org = availableOrgs.find((candidate) => candidate.id === orgId) ?? null;
+        let org =
+          availableOrgs.find((candidate) => candidate.id === orgId) ?? null;
 
         if (!org) {
           const refreshed = await queryClient.fetchQuery({
@@ -72,7 +76,8 @@ export const useOrgStore = create<OrgStoreState>()(
             queryFn: fetchAccessibleOrganisations,
           });
           availableOrgs = refreshed ?? [];
-          org = availableOrgs.find((candidate) => candidate.id === orgId) ?? null;
+          org =
+            availableOrgs.find((candidate) => candidate.id === orgId) ?? null;
           set(
             {
               availableOrgs,
