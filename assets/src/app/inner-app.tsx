@@ -1,0 +1,36 @@
+import { RouterProvider } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import type { routeTree } from "@/routeTree.gen";
+import type { RouterContext } from "@/shared/types/router-context";
+
+type AppRouter = ReturnType<typeof import("@tanstack/react-router").createRouter<typeof routeTree>>;
+
+interface InnerAppProps {
+  router: AppRouter;
+}
+
+/**
+ * Inner app component that provides auth context to the router.
+ * This pattern is recommended by TanStack Router for auth integration.
+ *
+ * Per TanStack Router authentication guide:
+ * - Auth state is passed to the router via context.
+ * - Router invalidates when auth state changes.
+ */
+export function InnerApp({ router }: InnerAppProps) {
+  const auth = useAuth();
+  const { isAuthenticated, isLoading } = auth;
+
+  // Invalidate router when auth state changes to trigger re-evaluation of routes.
+  // This ensures beforeLoad guards re-run when user logs in/out.
+  useEffect(() => {
+    if (isLoading || isAuthenticated) {
+      router.invalidate();
+      return;
+    }
+    router.invalidate();
+  }, [router, isAuthenticated, isLoading]);
+
+  return <RouterProvider router={router} context={{ auth } satisfies RouterContext} />;
+}
