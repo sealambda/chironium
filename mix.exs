@@ -132,17 +132,23 @@ defmodule Chironium.MixProject do
         "cmd rm -rf _build deps",
         "deps.get",
         "compile",
+        "ash.codegen",
+        "compile",
         "ecto.reset",
-        "ash.codegen"
+        "assets.setup",
+        "assets.build"
       ],
       # Nuclear rebuild: Regenerates all migrations. Pre-production only!
       "rebuild.nuke": [
         "cmd rm -rf _build deps priv/repo/migrations/* priv/resource_snapshots/*",
         "deps.get",
         "compile",
-        "ash.codegen init",
         "oban.install",
-        "ecto.reset"
+        "ash.codegen init",
+        "compile",
+        "ecto.reset",
+        "assets.setup",
+        "assets.build"
       ],
       # Quality & linting aliases.
       "format.check": ["format --check-formatted"],
