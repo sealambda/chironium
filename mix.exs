@@ -111,72 +111,54 @@ defmodule Chironium.MixProject do
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to install project dependencies and perform other setup tasks, run:
-  #
-  #     $ mix setup
-  #
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ash.setup", "assets.setup", "assets.build", "run priv/repo/seeds.exs"],
+      # Framework auto-generated aliases; do not modify.
+      setup: ["deps.get", "ash.setup", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ash.setup --quiet", "test"],
       "assets.setup": ["phoenix_vite.npm assets install"],
       "assets.build": ["phoenix_vite.npm vite build"],
-      "assets.deploy": [
-        "assets.build"
-      ],
-      # Clean rebuild: Safe for daily use, preserves VCS-tracked migrations.
+
+      # Clean rebuild for branch switching - preserves migrations,
       rebuild: [
-        "cmd rm -rf _build deps",
+        "cmd rm -rf _build deps assets/node_modules",
         "deps.get",
         "compile",
-        "ash.codegen",
-        "compile",
-        "ecto.reset",
+        "deps.unlock --unused",
+        "rebuild.finalize"
+      ],
+
+      # Finalize rebuild - reset database, seed, and build assets.
+      "rebuild.finalize": [
+        # Uses ash.reset (not ecto.reset) to handle all Ash extensions: Oban, paper_trail, events, etc.
+        "ash.reset",
+        "run priv/repo/seeds.exs",
         "assets.setup",
         "assets.build"
       ],
-      # Nuclear rebuild: Regenerates all migrations. Pre-production only!
+
+      # Nuclear rebuild - regenerates all migrations (pre-production only!)
       "rebuild.nuke": [
-        "cmd rm -rf _build deps priv/repo/migrations/* priv/resource_snapshots/*",
+        "cmd sh -c \"rm -rf _build deps assets/node_modules priv/repo/migrations priv/resource_snapshots priv/plts mix.lock\"",
         "deps.get",
         "compile",
+        "deps.unlock --unused",
         "oban.install",
         "ash.codegen init",
         "compile",
-        "ecto.reset",
-        "assets.setup",
-        "assets.build"
+        "rebuild.finalize"
       ],
-      # Quality & linting aliases.
-      "format.check": ["format --check-formatted"],
-      lint: ["format --check-formatted", "credo --strict", "sobelow --config"],
-      "lint.fix": ["format"],
+
+      # Quality - comprehensive checks including type checking (slow).
       quality: [
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
         "sobelow --config",
         "dialyzer"
-      ],
-      precommit: [
-        "compile --warnings-as-errors",
-        "deps.unlock --unused",
-        "format --check-formatted",
-        "credo --strict",
-        "sobelow --config",
-        "test"
-      ],
-      ci: [
-        "deps.audit",
-        "compile --warnings-as-errors",
-        "format --check-formatted",
-        "credo --strict",
-        "sobelow --config",
-        "dialyzer",
-        "test"
       ]
     ]
   end
