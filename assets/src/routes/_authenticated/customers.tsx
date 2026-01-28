@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { lazy } from "react";
 
-import { CustomersPage } from "@/pages/customers";
+// Lazy load the customers page for code splitting.
+const CustomersPage = lazy(() =>
+  import("@/features/customers/pages/customers-page").then((m) => ({
+    default: m.CustomersPage,
+  })),
+);
 
 /**
  * Customers route showing the list of customer cards.
  * Protected by _authenticated layout - requires authentication.
+ * Uses lazy loading for optimal bundle splitting.
  */
 export const Route = createFileRoute("/_authenticated/customers")({
   component: CustomersPage,

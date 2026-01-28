@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { AuthLoading } from "@/components/ui/auth-loading";
-import { BACKEND_URL } from "@/lib/auth-utils";
+import { AuthLoading } from "@/shared/ui/auth-loading";
+import { BACKEND_URL } from "@/shared/utils/auth-utils";
 
 /**
  * Index route redirects to customers since dashboard is currently disabled.
