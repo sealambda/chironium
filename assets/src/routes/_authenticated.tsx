@@ -1,9 +1,9 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-
-import { AppShell } from "@/components/layout/app-shell";
-import { AuthLoading } from "@/components/ui/auth-loading";
-import { BACKEND_URL } from "@/lib/auth-utils";
-import { OrgProvider } from "@/lib/org-provider";
+import { Suspense } from "react";
+import { OrgStoreSync } from "@/features/org/store/org-store-sync";
+import { AppShell } from "@/shared/layout/app-shell";
+import { AuthLoading } from "@/shared/ui/auth-loading";
+import { BACKEND_URL } from "@/shared/utils/auth-utils";
 
 /**
  * Authenticated layout route.
@@ -54,13 +54,17 @@ export const Route = createFileRoute("/_authenticated")({
 /**
  * Layout component for authenticated routes.
  * Wraps all authenticated pages in the AppShell with navigation.
+ * Uses Suspense to handle lazy-loaded page components.
  */
 function AuthenticatedLayout() {
   return (
-    <OrgProvider>
+    <>
+      <OrgStoreSync />
       <AppShell>
-        <Outlet />
+        <Suspense fallback={<AuthLoading />}>
+          <Outlet />
+        </Suspense>
       </AppShell>
-    </OrgProvider>
+    </>
   );
 }
