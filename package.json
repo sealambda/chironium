@@ -20,5 +20,6 @@
     "assets:typecheck": "pnpm --filter chironium-assets typecheck",
     "assets:check": "pnpm --filter chironium-assets check",
     "assets:check:fix": "pnpm --filter chironium-assets check:fix"
-  }
+  },
+  "packageManager": "pnpm@10.28.0"
 }
