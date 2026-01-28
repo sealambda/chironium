@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
-import type { Person } from "@/features/auth/types";
+import type { Person } from "@/gql/graphql";
 import type { PersonOnboardingData } from "@/features/person/model/person-onboarding";
 import { validatePersonOnboardingData } from "@/features/person/model/person-onboarding";
 import {
@@ -67,8 +67,8 @@ export function PersonOnboardingModal({
         <AlertDialogHeader>
           <AlertDialogTitle>Complete Your Profile</AlertDialogTitle>
           <AlertDialogDescription>
-            Please provide the following information to complete your profile. All fields are
-            required.
+            Please provide the following information to complete your profile.
+            All fields are required.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="grid gap-4 py-4">
@@ -78,7 +78,9 @@ export function PersonOnboardingModal({
               id="given-name"
               placeholder="John"
               value={formData.givenName || ""}
-              onChange={(e) => setFormData({ ...formData, givenName: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, givenName: e.target.value })
+              }
               disabled={isSubmitting}
               required
             />
@@ -89,7 +91,9 @@ export function PersonOnboardingModal({
               id="st-surname"
               placeholder="Doe"
               value={formData.stSurname || ""}
-              onChange={(e) => setFormData({ ...formData, stSurname: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, stSurname: e.target.value })
+              }
               disabled={isSubmitting}
               required
             />
@@ -100,7 +104,9 @@ export function PersonOnboardingModal({
               id="nd-surname"
               placeholder="Smith"
               value={formData.ndSurname || ""}
-              onChange={(e) => setFormData({ ...formData, ndSurname: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, ndSurname: e.target.value })
+              }
               disabled={isSubmitting}
               required
             />
@@ -130,7 +136,11 @@ export function PersonOnboardingModal({
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={formData.birthDate ? new Date(formData.birthDate) : undefined}
+                  selected={
+                    formData.birthDate
+                      ? new Date(formData.birthDate)
+                      : undefined
+                  }
                   onSelect={(date) => {
                     setFormData({
                       ...formData,
@@ -140,7 +150,9 @@ export function PersonOnboardingModal({
                   captionLayout="dropdown"
                   fromYear={1900}
                   toYear={new Date().getFullYear()}
-                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
                 />
               </PopoverContent>
             </Popover>
@@ -152,7 +164,10 @@ export function PersonOnboardingModal({
           )}
         </div>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={handleSubmit} disabled={isSubmitting || !isFormValid}>
+          <AlertDialogAction
+            onClick={handleSubmit}
+            disabled={isSubmitting || !isFormValid}
+          >
             {isSubmitting ? "Saving..." : "Complete Profile"}
           </AlertDialogAction>
         </AlertDialogFooter>

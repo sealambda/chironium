@@ -1,1 +1,1 @@
-export type { AuthState, Person, User } from "@/shared/types/auth";
+export type { AuthState } from "@/shared/types/auth";

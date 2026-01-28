@@ -7,6 +7,7 @@ import { OrgSelector } from "@/features/org/ui/org-selector";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
+import type { User } from "@/gql/graphql";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,12 +21,7 @@ const mockNotificationCount = 3;
 /**
  * Get user initials from email or name.
  */
-function getInitials(
-  user: {
-    email: string;
-    person?: { givenName: string | null; stSurname: string | null } | null;
-  } | null,
-): string {
+function getInitials(user: User | null): string {
   if (!user) return "?";
 
   // Try to get initials from person name first.
@@ -47,9 +43,7 @@ function getInitials(
 /**
  * Get display name from user.
  */
-function getDisplayName(
-  user: { email: string; person?: { givenName: string | null } | null } | null,
-): string {
+function getDisplayName(user: User | null): string {
   if (!user) return "User";
   return user.person?.givenName || user.email.split("@")[0];
 }
@@ -106,7 +100,9 @@ export function TopNav() {
     } catch (error) {
       console.error("Failed to create organisation:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to create organisation. Please try again.";
+        error instanceof Error
+          ? error.message
+          : "Failed to create organisation. Please try again.";
       setCreateOrgError(errorMessage);
       throw error;
     }
@@ -193,7 +189,9 @@ export function TopNav() {
           </DropdownMenu>
 
           <div className="flex flex-col justify-center">
-            <span className="text-muted-foreground text-xs">Welcome back, {displayName}!</span>
+            <span className="text-muted-foreground text-xs">
+              Welcome back, {displayName}!
+            </span>
             <OrgSelector
               selectedOrg={selectedOrg}
               availableOrgs={availableOrgs}

@@ -35,12 +35,14 @@ export function AppShell({ children }: AppShellProps) {
 
   // Show onboarding modal when user is authenticated but person data is incomplete.
   const showOnboarding =
-    !auth.isLoading && auth.isAuthenticated && isPersonIncomplete(auth.user?.person);
+    !auth.isLoading &&
+    auth.isAuthenticated &&
+    isPersonIncomplete(auth.user?.person);
 
   const handleOnboardingSubmit = async (data: PersonOnboardingData) => {
     setOnboardingError(null);
     try {
-      const personId = auth.user?.personId;
+      const personId = auth.user?.person?.id;
       if (!personId) {
         throw new Error("Missing person identifier");
       }
@@ -48,7 +50,8 @@ export function AppShell({ children }: AppShellProps) {
       // Refresh user data to re-check completion.
       await auth.refreshUser();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update profile";
+      const message =
+        error instanceof Error ? error.message : "Failed to update profile";
       setOnboardingError(message);
       throw error;
     }

@@ -12,7 +12,8 @@ defmodule ChironiumWeb.Api.Graphql.Schema do
       Chironium.Customers,
       Chironium.Staff,
       Chironium.Core.Identity
-    ]
+    ],
+    generate_sdl_file: "priv/schema.graphql"
 
   import_types Absinthe.Plug.Types
 
