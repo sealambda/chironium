@@ -74,13 +74,7 @@ export function CustomersPage() {
       ) : (
         <div className="space-y-3">
           {customers.map((customer) => (
-            <CustomerCard
-              key={customer.id}
-              customer={customer}
-              onEmailClick={() => {}}
-              onWhatsAppClick={() => {}}
-              onCallClick={() => {}}
-            />
+            <CustomerCard key={customer.id} customer={customer} />
           ))}
         </div>
       )}

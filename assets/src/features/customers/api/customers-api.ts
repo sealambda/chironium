@@ -3,6 +3,15 @@ import type { Customer } from "../ui/customer-card";
 import type { Membership } from "@/gql/graphql";
 import { graphql } from "@/gql";
 
+// Extended membership type with contact info (provided by MSW mock).
+type MembershipWithContact = Membership & {
+  contact?: {
+    email?: string;
+    phone?: string;
+    instagram?: string;
+  };
+};
+
 const CustomerListQuery = graphql(`
   query CustomerList($organisationId: ID!) {
     customerList(organisationId: $organisationId) {
@@ -56,7 +65,7 @@ function generateFullName(
 /**
  * Map membership data to Customer interface.
  */
-function mapMembershipToCustomer(membership: Membership): Customer {
+function mapMembershipToCustomer(membership: MembershipWithContact): Customer {
   const startDate = new Date(membership.startDate);
   const endDate = membership.endDate
     ? new Date(membership.endDate)
@@ -70,7 +79,6 @@ function mapMembershipToCustomer(membership: Membership): Customer {
       membership.person.stSurname || null,
       membership.person.ndSurname || null,
     ),
-    avatarUrl: "",
     initials: generateInitials(
       membership.person.givenName || null,
       membership.person.stSurname || null,
@@ -81,14 +89,10 @@ function mapMembershipToCustomer(membership: Membership): Customer {
       planDurationMonths: planDuration,
       endDate,
     },
-    lastReview: {
-      date: new Date(), // Placeholder.
-      label: "N/A",
-    },
-    reports: {
-      frequency: "Weekly", // Placeholder.
-      nextDate: new Date(), // Placeholder.
-      nextLabel: "N/A",
+    contact: {
+      email: membership.contact?.email,
+      phone: membership.contact?.phone,
+      instagram: membership.contact?.instagram,
     },
   };
 }
@@ -98,13 +102,13 @@ function mapMembershipToCustomer(membership: Membership): Customer {
  */
 async function executeCustomerListQuery(
   organisationId: string,
-): Promise<Membership[]> {
+): Promise<MembershipWithContact[]> {
   const result = await requestGraphql({
     document: CustomerListQuery,
     variables: { organisationId },
   });
 
-  return (result?.customerList as Membership[]) || [];
+  return (result?.customerList as MembershipWithContact[]) || [];
 }
 
 /**
