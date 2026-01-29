@@ -61,6 +61,30 @@ function getInstagramUrl(instagram: string): string {
   return `https://www.instagram.com/${username}`;
 }
 
+/**
+ * Format a duration in days to a human-readable string.
+ * - Less than 7 days: "X days" (or "1 day")
+ * - 7 to 29 days: "X weeks" (or "1 week")
+ * - 30+ days: "Xmo"
+ */
+function formatDuration(days: number): string {
+  if (days < 1) {
+    return "Today";
+  }
+
+  const roundedDays = Math.round(days);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+
+  if (days < 7) {
+    return roundedDays === 1 ? "1 day" : `${roundedDays} days`;
+  }
+  if (days < 30) {
+    return weeks === 1 ? "1 week" : `${weeks} weeks`;
+  }
+  return `${months}mo`;
+}
+
 interface CustomerCardProps {
   customer: Customer;
 }
@@ -79,8 +103,13 @@ export function CustomerCard({ customer }: CustomerCardProps) {
     (now.getTime() - customer.membership.startDate.getTime()) / (1000 * 60 * 60 * 24);
   const progressPercent = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
 
-  const monthsElapsed = Math.floor(elapsedDays / 30);
-  const monthsLeft = customer.membership.planDurationMonths - monthsElapsed;
+  const daysRemaining = Math.max(
+    0,
+    (customer.membership.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  const elapsedLabel = formatDuration(elapsedDays);
+  const remainingLabel = formatDuration(daysRemaining);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -177,7 +206,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
         <div className="mt-3 grid grid-cols-3 items-center gap-1 text-xs">
           {/* Left column - elapsed time. */}
           <div className="min-w-0 text-left">
-            <div className="font-medium text-muted-foreground">{monthsElapsed}mo ago</div>
+            <div className="font-medium text-muted-foreground">{elapsedLabel} ago</div>
             <div className="truncate text-[10px] text-muted-foreground/70">
               {formatDate(customer.membership.startDate)}
             </div>
@@ -190,7 +219,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           </div>
           {/* Right column - time remaining. */}
           <div className="min-w-0 text-right">
-            <div className="font-medium text-muted-foreground">{monthsLeft}mo left</div>
+            <div className="font-medium text-muted-foreground">{remainingLabel} left</div>
             <div className="truncate text-[10px] text-muted-foreground/70">
               {formatDate(customer.membership.endDate)}
             </div>
