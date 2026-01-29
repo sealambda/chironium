@@ -20,116 +20,257 @@ const currentUser: User = {
   },
 };
 
+// Contact info by person ID (not in GraphQL schema yet, but needed for mock).
+const contactByPersonId: Record<
+  string,
+  { email?: string; phone?: string; instagram?: string }
+> = {
+  "person-sara": {
+    email: "saraoleamartin@gmail.com",
+    phone: "+34695269851",
+    instagram: "@Saraom93",
+  },
+  "person-berta": {
+    email: "bertaguaschf@gmail.com",
+    phone: "+34601366557",
+    instagram: "@tuskituski__",
+  },
+  "person-lorena": {
+    email: "lorenaafonso2222@gmail.com",
+    phone: "+34677089553",
+    instagram: "@lorenaafonso_",
+  },
+  "person-jessica": {
+    email: "laubaldica@gmail.com",
+    phone: "+34619260307",
+    instagram: undefined,
+  },
+  "person-tania": {
+    email: "trodriguezescriche@hotmail.com",
+    phone: "+34627697917",
+    instagram: "@tania_r_e",
+  },
+  "person-laura": {
+    email: "akelau@gmail.com",
+    phone: "+34600299114",
+    instagram: undefined,
+  },
+  "person-sara-m": {
+    email: "zarahmuru@gmail.com",
+    phone: "+34600778198",
+    instagram: undefined,
+  },
+  "person-carmen": {
+    email: "carmengonzriv97@gmail.com",
+    phone: "+34622192710",
+    instagram: "@carmenkuki97",
+  },
+  "person-sara-r": {
+    email: "sarotaroman_89@hotmail.com",
+    phone: "+34678236894",
+    instagram: "@sarabailasola",
+  },
+  "person-isabel": {
+    email: "elise.castes@gmail.com",
+    phone: "+34635523837",
+    instagram: "@isabeelace",
+  },
+};
+
 // Mock person data store.
 const personsById: Record<string, Person> = {
   "person-1": currentUser.person,
-  "person-201": {
-    id: "person-201",
-    givenName: "Alex",
-    stSurname: "Rivera",
-    ndSurname: "Martinez",
-    birthDate: "1985-03-22",
+  "person-sara": {
+    id: "person-sara",
+    givenName: "Sara",
+    stSurname: "Olea",
+    ndSurname: "Martín",
+    birthDate: "1993-01-01",
   },
-  "person-202": {
-    id: "person-202",
-    givenName: "Priya",
-    stSurname: "Shah",
-    ndSurname: "Patel",
-    birthDate: "1992-07-08",
+  "person-berta": {
+    id: "person-berta",
+    givenName: "Berta",
+    stSurname: "Guasch",
+    ndSurname: null,
+    birthDate: "1990-01-01",
   },
-  "person-301": {
-    id: "person-301",
-    givenName: "Marco",
-    stSurname: "Santos",
-    ndSurname: "Garcia",
-    birthDate: "1988-11-30",
+  "person-lorena": {
+    id: "person-lorena",
+    givenName: "Lorena",
+    stSurname: "Alfonso",
+    ndSurname: null,
+    birthDate: "1992-01-01",
   },
-  "person-302": {
-    id: "person-302",
-    givenName: "Lina",
-    stSurname: "Gomez",
-    ndSurname: "Vega",
-    birthDate: "1995-02-14",
+  "person-jessica": {
+    id: "person-jessica",
+    givenName: "Jessica",
+    stSurname: "Mújica",
+    ndSurname: null,
+    birthDate: "1991-01-01",
   },
-  "person-303": {
-    id: "person-303",
-    givenName: "Jonas",
-    stSurname: "Keller",
-    ndSurname: "Smith",
-    birthDate: "1991-09-19",
+  "person-tania": {
+    id: "person-tania",
+    givenName: "Tania",
+    stSurname: "Rodríguez",
+    ndSurname: null,
+    birthDate: "1994-01-01",
+  },
+  "person-laura": {
+    id: "person-laura",
+    givenName: "Laura",
+    stSurname: "Blasco",
+    ndSurname: null,
+    birthDate: "1989-01-01",
+  },
+  "person-sara-m": {
+    id: "person-sara-m",
+    givenName: "Sara",
+    stSurname: "Muñoz",
+    ndSurname: null,
+    birthDate: "1990-01-01",
+  },
+  "person-carmen": {
+    id: "person-carmen",
+    givenName: "Carmen",
+    stSurname: "González",
+    ndSurname: null,
+    birthDate: "1997-01-01",
+  },
+  "person-sara-r": {
+    id: "person-sara-r",
+    givenName: "Sara",
+    stSurname: "Román",
+    ndSurname: null,
+    birthDate: "1989-01-01",
+  },
+  "person-isabel": {
+    id: "person-isabel",
+    givenName: "Isabel",
+    stSurname: "Castell",
+    ndSurname: null,
+    birthDate: "1992-01-01",
   },
 };
 
 const organisations: Organisation[] = [
   {
-    id: "org-1",
-    name: "Northwind Wellness",
-    slug: "northwind-wellness",
+    id: "org-sealambda",
+    name: "SeaLambda",
+    slug: "sealambda",
     profilePicture: null,
-    themeSeedColor: "#6366f1",
+    themeSeedColor: "#3B82F6",
   },
   {
-    id: "org-2",
-    name: "Blue Harbor Clinic",
-    slug: "blue-harbor-clinic",
+    id: "org-comunidad-mujeres-alfa",
+    name: "Comunidad Mujeres Alfa",
+    slug: "comunidad-mujeres-alfa",
     profilePicture: null,
-    themeSeedColor: "#14b8a6",
+    themeSeedColor: "#EC4899",
   },
 ];
 
 const membershipsByOrg: Record<string, Membership[]> = {
-  "org-1": [
+  "org-sealambda": [],
+  "org-comunidad-mujeres-alfa": [
     {
-      id: "mem-101",
-      startDate: "2025-11-10",
-      endDate: "2026-11-10",
+      id: "mem-sara",
+      startDate: "2025-11-25",
+      endDate: "2026-11-25",
       status: "active",
-      person: personsById["person-201"],
-      organisation: organisations[0],
-      organisationId: "org-1",
-      personId: "person-201",
+      person: personsById["person-sara"],
+      organisation: organisations[1],
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-sara",
     },
     {
-      id: "mem-102",
-      startDate: "2025-12-02",
-      endDate: null,
-      status: "trial",
-      person: personsById["person-202"],
-      organisation: organisations[0],
-      organisationId: "org-1",
-      personId: "person-202",
-    },
-  ],
-  "org-2": [
-    {
-      id: "mem-201",
-      startDate: "2025-09-18",
-      endDate: "2026-09-18",
+      id: "mem-berta",
+      startDate: "2025-12-09",
+      endDate: "2026-06-09",
       status: "active",
-      person: personsById["person-301"],
+      person: personsById["person-berta"],
       organisation: organisations[1],
-      organisationId: "org-2",
-      personId: "person-301",
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-berta",
     },
     {
-      id: "mem-202",
-      startDate: "2025-10-06",
-      endDate: "2026-04-06",
-      status: "paused",
-      person: personsById["person-302"],
+      id: "mem-lorena",
+      startDate: "2025-12-12",
+      endDate: "2026-06-12",
+      status: "active",
+      person: personsById["person-lorena"],
       organisation: organisations[1],
-      organisationId: "org-2",
-      personId: "person-302",
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-lorena",
     },
     {
-      id: "mem-203",
+      id: "mem-jessica",
+      startDate: "2025-12-12",
+      endDate: "2026-06-12",
+      status: "active",
+      person: personsById["person-jessica"],
+      organisation: organisations[1],
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-jessica",
+    },
+    {
+      id: "mem-tania",
       startDate: "2026-01-05",
-      endDate: null,
-      status: "trial",
-      person: personsById["person-303"],
+      endDate: "2026-07-05",
+      status: "active",
+      person: personsById["person-tania"],
       organisation: organisations[1],
-      organisationId: "org-2",
-      personId: "person-303",
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-tania",
+    },
+    {
+      id: "mem-laura",
+      startDate: "2025-12-15",
+      endDate: "2026-06-15",
+      status: "active",
+      person: personsById["person-laura"],
+      organisation: organisations[1],
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-laura",
+    },
+    {
+      id: "mem-sara-m",
+      startDate: "2025-12-15",
+      endDate: "2026-12-15",
+      status: "active",
+      person: personsById["person-sara-m"],
+      organisation: organisations[1],
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-sara-m",
+    },
+    {
+      id: "mem-carmen",
+      startDate: "2025-12-15",
+      endDate: "2026-06-15",
+      status: "active",
+      person: personsById["person-carmen"],
+      organisation: organisations[1],
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-carmen",
+    },
+    {
+      id: "mem-sara-r",
+      startDate: "2025-12-17",
+      endDate: "2026-06-17",
+      status: "active",
+      person: personsById["person-sara-r"],
+      organisation: organisations[1],
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-sara-r",
+    },
+    {
+      id: "mem-isabel",
+      startDate: "2025-12-19",
+      endDate: "2026-06-19",
+      status: "active",
+      person: personsById["person-isabel"],
+      organisation: organisations[1],
+      organisationId: "org-comunidad-mujeres-alfa",
+      personId: "person-isabel",
     },
   ],
 };
@@ -226,9 +367,15 @@ export const handlers = [
       typeof variables?.organisationId === "string"
         ? variables.organisationId
         : null;
-    const customerList = organisationId
+    const memberships = organisationId
       ? (membershipsByOrg[organisationId] ?? [])
       : [];
+
+    // Extend memberships with contact info for mock purposes.
+    const customerList = memberships.map((m) => ({
+      ...m,
+      contact: contactByPersonId[m.personId] ?? {},
+    }));
 
     return HttpResponse.json({
       data: {
