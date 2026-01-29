@@ -4,6 +4,7 @@ import type { Membership } from "@/gql/graphql";
 import { graphql } from "@/gql";
 
 // Extended membership type with contact info (provided by MSW mock).
+// TODO: Add contact info to graphql schema
 type MembershipWithContact = Membership & {
   contact?: {
     email?: string;

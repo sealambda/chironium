@@ -71,7 +71,7 @@ RUN pnpm install --frozen-lockfile
 RUN mix compile
 
 # compile assets
-RUN mix assets.deploy
+RUN mix assets.build
 
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
