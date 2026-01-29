@@ -4,13 +4,12 @@ import {
   type RequestOptions,
   type Variables,
 } from "graphql-request";
-import { getApiBase, getAuthHeaders } from "./request";
+import { getAuthHeaders } from "./request";
+import { BACKEND_URL } from "@/shared/utils/auth-utils";
 
 /**
  * Shared GraphQL helpers for API calls.
  */
-
-const API_BASE = getApiBase();
 
 export async function requestGraphql<TResult>({
   document,
@@ -19,7 +18,7 @@ export async function requestGraphql<TResult>({
   RequestOptions<Variables, TResult>,
   "document" | "variables"
 >): Promise<TResult> {
-  const client = new GraphQLClient(`${API_BASE}/gql`, {
+  const client = new GraphQLClient(`${BACKEND_URL}/gql`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });
