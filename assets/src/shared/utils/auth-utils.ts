@@ -11,7 +11,8 @@
  * Set VITE_BACKEND_URL only when you intentionally bypass the proxy.
  * In production, this should be the same as the API base or the main domain.
  */
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
+export const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL ?? "http://localhost:4000";
 
 function getCsrfToken(): string | null {
   if (typeof document === "undefined") {
