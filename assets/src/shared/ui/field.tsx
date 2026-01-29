@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import { AlertCircle } from "lucide-react";
 import { useMemo } from "react";
 import { Label } from "@/shared/ui/label";
 import { Separator } from "@/shared/ui/separator";
@@ -85,13 +86,19 @@ function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="field-content"
-      className={cn("group/field-content flex flex-1 flex-col gap-1 leading-snug", className)}
+      className={cn(
+        "group/field-content flex flex-1 flex-col gap-1 leading-snug",
+        className,
+      )}
       {...props}
     />
   );
 }
 
-function FieldLabel({ className, ...props }: React.ComponentProps<typeof Label>) {
+function FieldLabel({
+  className,
+  ...props
+}: React.ComponentProps<typeof Label>) {
   return (
     <Label
       data-slot="field-label"
@@ -180,7 +187,9 @@ function FieldError({
       return null;
     }
 
-    const uniqueErrors = [...new Map(errors.map((error) => [error?.message, error])).values()];
+    const uniqueErrors = [
+      ...new Map(errors.map((error) => [error?.message, error])).values(),
+    ];
     const errorMessages = uniqueErrors
       .map((error) => error?.message)
       .filter((message): message is string => !!message);
@@ -210,10 +219,15 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn("font-normal text-destructive text-sm", className)}
+      className={cn(
+        "flex items-start gap-1.5 font-normal text-destructive text-sm",
+        "animate-in fade-in-0 slide-in-from-top-1 duration-200",
+        className,
+      )}
       {...props}
     >
-      {content}
+      <AlertCircle className="mt-0.5 size-4 shrink-0" />
+      <span>{content}</span>
     </div>
   );
 }
