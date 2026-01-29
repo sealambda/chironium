@@ -1,0 +1,105 @@
+# Agent Instructions
+
+## Package Manager
+
+Always use **pnpm** for package management. Do not use npm, yarn, bun, or any other package manager.
+
+```bash
+# Install dependencies.
+pnpm install
+
+# Add a package.
+pnpm add <package-name>
+
+# Add a dev dependency.
+pnpm add -D <package-name>
+
+# Run scripts.
+pnpm <script-name>
+```
+
+## Writing and Formatting Standards
+
+All displayable text (comments, documentation, logs, errors, UI messages) must be high quality, concise, non-redundant, minimal yet readable, comprehensive, understandable, meaningful, clean, and well-formatted.
+
+### General Rules
+
+- Full sentences (containing a verb) must end with a period and be grammatically correct.
+- Fragments without verbs (labels, titles, section headers) do not need periods.
+- Avoid redundancy. Say it once, say it well.
+- Prefer active voice over passive voice.
+- Use consistent terminology throughout the codebase.
+
+### Inline Comments
+
+- Explain **why**, not **what**. The code shows what; comments explain intent.
+- Keep comments on the same line when short, above the code when longer.
+- Parenthetical remarks are part of the sentence; end with a period after the closing parenthesis.
+
+**Remove comments that are:**
+
+- Obvious from the code itself (e.g., `// Loop through items` before a `for` loop).
+- Restating what a well-named function or variable already conveys.
+- Outdated or no longer accurate.
+- Placeholder or debug comments (e.g., `// TODO: fix this`, `// temp`).
+
+**Add comments when:**
+
+- The code implements a non-obvious algorithm, workaround, or edge case.
+- Business logic or domain rules aren't self-evident from the code.
+- External constraints drive the implementation (e.g., API quirks, browser bugs).
+- Magic numbers or regex patterns need clarification.
+
+```typescript
+// Bad: Restates the obvious.
+// Filter active users.
+const active = users.filter((u) => u.isActive);
+
+// Good: Explains the why.
+// Exclude soft-deleted users from billing calculations.
+const billable = users.filter((u) => !u.deletedAt);
+
+// Good: Clarifies non-obvious logic.
+// Offset by 1 because the API uses 1-based pagination.
+const page = index + 1;
+```
+
+### Documentation
+
+- Lead with the most important information.
+- Use complete sentences for descriptions.
+- Keep examples minimal but illustrative.
+
+### Logs
+
+- Use appropriate log levels: `debug`, `info`, `warn`, `error`.
+- Include relevant context without verbosity.
+- Format: `[context] action: detail` when applicable.
+
+```typescript
+// Bad
+console.log("here");
+
+// Good
+console.info("[Auth] User authenticated:", userId);
+```
+
+### Error Messages
+
+- State what went wrong and, when possible, how to fix it.
+- Be specific. Avoid vague messages like "Something went wrong."
+- Include relevant identifiers or values for debugging.
+
+```typescript
+// Bad
+throw new Error("Invalid input");
+
+// Good
+throw new Error(`Customer email "${email}" is not a valid email address.`);
+```
+
+### UI Text
+
+- Be direct and user-friendly.
+- Use sentence case for messages, title case for headings.
+- Avoid technical jargon in user-facing text.
