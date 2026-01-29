@@ -1,6 +1,6 @@
+import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
 import { differenceInDays, format, formatDistanceStrict } from "date-fns";
 import { Mail } from "lucide-react";
-import { SiWhatsapp, SiInstagram } from "@icons-pack/react-simple-icons";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/utils";
 
@@ -19,6 +19,12 @@ export interface Customer {
     phone?: string;
     instagram?: string;
   };
+  /** Name parts for editing - optional for API customers */
+  nameParts?: {
+    givenName: string;
+    stSurname: string;
+    ndSurname?: string;
+  };
 }
 
 function getEmailUrl(email: string): string {
@@ -26,36 +32,47 @@ function getEmailUrl(email: string): string {
 }
 
 function getWhatsAppUrl(phone: string): string {
-  // Remove all non-digit characters (spaces, dashes, parentheses, +)
+  // Remove all non-digit characters (spaces, dashes, parentheses, +).
   const cleanPhone = phone.replace(/\D/g, "");
   return `https://wa.me/${cleanPhone}`;
 }
 
 function getInstagramUrl(instagram: string): string {
-  // Remove @ symbol if present
+  // Remove @ symbol if present.
   const username = instagram.startsWith("@") ? instagram.slice(1) : instagram;
   return `https://www.instagram.com/${username}`;
 }
 
 interface CustomerCardProps {
   customer: Customer;
+  /** Called when the card is clicked (for editing) */
+  onClick?: () => void;
 }
 
 /**
  * Customer card displaying membership progress, contact actions, and status.
  * Designed following the reference screenshot with dark theme styling.
  */
-export function CustomerCard({ customer }: CustomerCardProps) {
+export function CustomerCard({ customer, onClick }: CustomerCardProps) {
   const { email, phone, instagram } = customer.contact;
   const now = new Date();
   const { startDate, endDate } = customer.membership;
 
   const totalDays = differenceInDays(endDate, startDate);
   const elapsedDays = differenceInDays(now, startDate);
-  const progressPercent = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+  const progressPercent = Math.min(
+    100,
+    Math.max(0, Math.round((elapsedDays / totalDays) * 100)),
+  );
 
-  const elapsedLabel = formatDistanceStrict(startDate, now, { roundingMethod: "floor" });
-  const remainingLabel = formatDistanceStrict(now, endDate, { roundingMethod: "floor" });
+  const elapsedLabel = formatDistanceStrict(startDate, now, {
+    roundingMethod: "floor",
+    addSuffix: true,
+  });
+  const remainingLabel = formatDistanceStrict(endDate, now, {
+    roundingMethod: "floor",
+    addSuffix: true,
+  });
 
   /**
    * Get progress bar color based on percentage.
@@ -72,7 +89,21 @@ export function CustomerCard({ customer }: CustomerCardProps) {
   const progressColor = getProgressColor(progressPercent);
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-border/50 bg-card p-4 shadow-sm">
+    <article
+      className={cn(
+        "overflow-hidden rounded-2xl border border-border/50 bg-card p-4 shadow-sm",
+        onClick && "cursor-pointer transition-colors hover:bg-accent/50",
+      )}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={onClick ? 0 : undefined}
+      role={onClick ? "button" : undefined}
+    >
       {/* Header: Name and contact actions. */}
       <div className="flex items-center justify-between gap-2">
         <h3 className="min-w-0 flex-1 truncate font-semibold text-foreground">
@@ -86,7 +117,10 @@ export function CustomerCard({ customer }: CustomerCardProps) {
             size="icon"
             className="h-10 w-10 text-muted-foreground hover:text-foreground disabled:opacity-30"
             disabled={!email}
-            onClick={() => email && window.open(getEmailUrl(email), "_blank")}
+            onClick={(e) => {
+              e.stopPropagation();
+              email && window.open(getEmailUrl(email), "_blank");
+            }}
             aria-label={`Email ${customer.name}`}
           >
             <Mail className="h-5 w-5" />
@@ -96,7 +130,10 @@ export function CustomerCard({ customer }: CustomerCardProps) {
             size="icon"
             className="h-10 w-10 text-muted-foreground hover:text-emerald-500 disabled:opacity-30"
             disabled={!phone}
-            onClick={() => phone && window.open(getWhatsAppUrl(phone), "_blank")}
+            onClick={(e) => {
+              e.stopPropagation();
+              phone && window.open(getWhatsAppUrl(phone), "_blank");
+            }}
             aria-label={`WhatsApp ${customer.name}`}
           >
             <SiWhatsapp size={20} />
@@ -106,7 +143,10 @@ export function CustomerCard({ customer }: CustomerCardProps) {
             size="icon"
             className="h-10 w-10 text-muted-foreground hover:text-pink-500 disabled:opacity-30"
             disabled={!instagram}
-            onClick={() => instagram && window.open(getInstagramUrl(instagram), "_blank")}
+            onClick={(e) => {
+              e.stopPropagation();
+              instagram && window.open(getInstagramUrl(instagram), "_blank");
+            }}
             aria-label={`Instagram ${customer.name}`}
           >
             <SiInstagram size={20} />
@@ -120,14 +160,19 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           {/* Custom progress bar with dynamic color. */}
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className={cn("h-full rounded-full transition-all duration-500", progressColor)}
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                progressColor,
+              )}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
           {/* Progress percentage badge - clamped to prevent overflow. */}
           <div
             className="absolute -top-1 flex items-center justify-center"
-            style={{ left: `clamp(16px, calc(${progressPercent}% - 20px), calc(100% - 44px))` }}
+            style={{
+              left: `clamp(0px, calc(${progressPercent}% - 20px), calc(100% - 44px))`,
+            }}
           >
             <span
               className={cn(
@@ -144,7 +189,9 @@ export function CustomerCard({ customer }: CustomerCardProps) {
         <div className="mt-3 grid grid-cols-3 items-center gap-1 text-xs">
           {/* Left column - elapsed time. */}
           <div className="min-w-0 text-left">
-            <div className="font-medium text-muted-foreground">{elapsedLabel} ago</div>
+            <div className="font-medium text-muted-foreground">
+              {elapsedLabel}
+            </div>
             <div className="truncate text-[10px] text-muted-foreground/70">
               {format(startDate, "MMM d, yy")}
             </div>
@@ -157,7 +204,9 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           </div>
           {/* Right column - time remaining. */}
           <div className="min-w-0 text-right">
-            <div className="font-medium text-muted-foreground">{remainingLabel} left</div>
+            <div className="font-medium text-muted-foreground">
+              {remainingLabel}
+            </div>
             <div className="truncate text-[10px] text-muted-foreground/70">
               {format(endDate, "MMM d, yy")}
             </div>

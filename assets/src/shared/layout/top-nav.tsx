@@ -1,13 +1,15 @@
-import { Bell, LogOut } from "lucide-react";
+import { useRouterState } from "@tanstack/react-router";
+import { Bell, LogOut, UserPlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { CreateCustomerSheet } from "@/features/customers/ui/create-customer-sheet";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
+import type { User } from "@/gql/graphql";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
-import type { User } from "@/gql/graphql";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,10 +65,16 @@ function getDisplayName(user: User | null): string {
 export function TopNav() {
   const { user, isAuthenticated, logout } = useAuth();
   const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
+  const routerState = useRouterState();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
+  const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [createOrgError, setCreateOrgError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
+
+  // Detect if we're on the customers page to show Add Customer icon.
+  const isCustomersPage =
+    routerState.location.pathname.startsWith("/customers");
 
   // Cleanup timeout on unmount.
   useEffect(() => {
@@ -201,26 +209,38 @@ export function TopNav() {
           </div>
         </div>
 
-        {/* Trailing: Notifications - 44px touch target per Apple HIG. */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-10 w-10"
-          aria-label={`Notifications (${mockNotificationCount} unread)`}
-        >
-          <Bell className="h-5 w-5" />
-          {mockNotificationCount > 0 && (
-            <span
-              className={[
-                "absolute -top-0.5 -right-0.5",
-                "flex h-4.5 w-4.5 items-center justify-center",
-                "rounded-full bg-destructive font-bold text-[10px] text-white",
-              ].join(" ")}
-            >
-              {mockNotificationCount > 9 ? "9+" : mockNotificationCount}
-            </span>
-          )}
-        </Button>
+        {/* Trailing: Add Customer on /customers, Notifications elsewhere - 44px touch target per Apple HIG. */}
+        {isCustomersPage ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            aria-label="Add customer"
+            onClick={() => setIsCreateCustomerOpen(true)}
+          >
+            <UserPlus className="h-5 w-5" />
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-10 w-10"
+            aria-label={`Notifications (${mockNotificationCount} unread)`}
+          >
+            <Bell className="h-5 w-5" />
+            {mockNotificationCount > 0 && (
+              <span
+                className={[
+                  "absolute -top-0.5 -right-0.5",
+                  "flex h-4.5 w-4.5 items-center justify-center",
+                  "rounded-full bg-destructive font-bold text-[10px] text-white",
+                ].join(" ")}
+              >
+                {mockNotificationCount > 9 ? "9+" : mockNotificationCount}
+              </span>
+            )}
+          </Button>
+        )}
       </div>
 
       <CreateOrgModal
@@ -228,6 +248,10 @@ export function TopNav() {
         onOpenChange={setIsCreateOrgOpen}
         onSubmit={handleCreateOrg}
         error={createOrgError}
+      />
+      <CreateCustomerSheet
+        open={isCreateCustomerOpen}
+        onOpenChange={setIsCreateCustomerOpen}
       />
       {toastMessage && (
         <div className="pointer-events-none fixed top-20 right-4 z-50 w-[260px] rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-700 text-sm shadow-lg">
