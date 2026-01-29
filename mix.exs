@@ -121,6 +121,7 @@ defmodule Chironium.MixProject do
       test: ["ash.setup --quiet", "test"],
       "assets.setup": ["phoenix_vite.npm assets install"],
       "assets.build": ["phoenix_vite.npm vite build"],
+      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
 
       # Clean rebuild for branch switching - preserves migrations,
       rebuild: [
