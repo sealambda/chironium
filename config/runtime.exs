@@ -126,15 +126,15 @@ if config_env() == :prod do
     token_signing_secret:
       System.get_env("TOKEN_SIGNING_SECRET") ||
         raise("Missing environment variable `TOKEN_SIGNING_SECRET`!"),
-    # PWA URL for post-authentication redirects.
-    # In production, this should be the full URL of the PWA (e.g., https://app.chironium.com).
-    # Defaults to /app for same-origin deployments where PWA is served from the same domain.
-    pwa_url: System.get_env("PWA_URL", "/app"),
-    # Allowed PWA origins for secure post-authentication redirects.
+    # App URL for post-authentication redirects.
+    # In production, this should be the full URL of the app (e.g., https://app.chironium.com).
+    # Defaults to /app for same-origin deployments where the app is served from the same domain.
+    app_url: "/app",
+    # Allowed origins for secure post-authentication redirects.
     # Comma-separated list of origins (e.g., "https://app.chironium.com,https://staging.chironium.com").
     # Only referrers from these origins will be trusted for redirects after authentication.
-    allowed_pwa_origins:
-      (System.get_env("ALLOWED_PWA_ORIGINS") || "")
+    allowed_app_origins:
+      (System.get_env("ALLOWED_APP_ORIGINS") || "")
       |> String.split(",", trim: true)
       |> Enum.map(&String.trim/1)
 

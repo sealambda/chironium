@@ -3,7 +3,6 @@
 // https://vitejs.dev/guide/backend-integration.html
 import "vite/modulepreload-polyfill";
 
-import { registerSW } from "virtual:pwa-register";
 import { createRoot } from "react-dom/client";
 import { AppProviders } from "./app/providers/app-providers";
 
@@ -45,5 +44,4 @@ startMsw()
   })
   .finally(() => {
     mountApp();
-    registerSW({ immediate: true });
   });

@@ -1,20 +1,18 @@
 import { createRouter } from "@tanstack/react-router";
-import type { AuthState } from "@/features/auth/types";
 import { routeTree } from "../routeTree.gen";
 
 /**
  * Create and configure the TanStack Router instance.
- * Router is initialized with auth context placeholder - InnerApp provides the actual value.
+ *
+ * Note: Auth context is no longer needed because Phoenix guarantees
+ * authentication before the PWA loads. Route guards have been removed.
  */
 export const router = createRouter({
   routeTree,
   basepath: "/app",
   defaultPreload: "intent",
   scrollRestoration: true,
-  context: {
-    // Auth will be provided by InnerApp component at runtime.
-    auth: undefined as unknown as AuthState,
-  },
+  context: {},
 });
 
 // Register the router instance for type safety.

@@ -4,23 +4,23 @@ defmodule ChironiumWeb.Plugs.AuthReturnState do
 
   Instead of trusting a user-provided `return_to` query parameter, this plug:
   1. Extracts the Referer header to identify where the user came from.
-  2. Validates the origin against a configurable allowlist of PWA origins.
+  2. Validates the origin against a configurable allowlist of app origins.
   3. Generates a signed, time-limited state token containing the validated return URL.
   4. Stores the token in the session for use after authentication.
 
   This prevents open redirect vulnerabilities while supporting deep links
-  back to the PWA after authentication.
+  back to the app after authentication.
 
   ## Configuration
 
-  Configure allowed PWA origins in your environment config:
+  Configure allowed app origins in your environment config:
 
       # config/dev.exs
-      config :chironium, :allowed_pwa_origins, ["http://localhost:5173"]
+      config :chironium, :allowed_app_origins, ["http://localhost:5173"]
 
       # config/runtime.exs (production)
       config :chironium,
-        allowed_pwa_origins: System.get_env("ALLOWED_PWA_ORIGINS", "")
+        allowed_app_origins: System.get_env("ALLOWED_APP_ORIGINS", "")
                              |> String.split(",", trim: true)
                              |> Enum.map(&String.trim/1)
 
@@ -29,7 +29,7 @@ defmodule ChironiumWeb.Plugs.AuthReturnState do
   - Only origins in the allowlist are accepted.
   - State tokens are signed with the app's secret key base.
   - Tokens expire after 10 minutes to prevent replay attacks.
-  - Falls back to configured `pwa_url` if no valid referrer is found.
+  - Falls back to configured `app_url` if no valid referrer is found.
   """
 
   import Plug.Conn
@@ -75,13 +75,13 @@ defmodule ChironiumWeb.Plugs.AuthReturnState do
         put_session(conn, :auth_return_state, token)
 
       :error ->
-        # No valid referrer found; AuthController will use pwa_url fallback.
+        # No valid referrer found; AuthController will use app_url fallback.
         conn
     end
   end
 
   defp extract_valid_return_url(conn) do
-    allowed_origins = Application.get_env(:chironium, :allowed_pwa_origins, [])
+    allowed_origins = Application.get_env(:chironium, :allowed_app_origins, [])
 
     with [referer | _] <- get_req_header(conn, "referer"),
          {:ok, referer_uri} <- parse_uri(referer),
