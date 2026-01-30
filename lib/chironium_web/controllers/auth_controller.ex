@@ -4,12 +4,6 @@ defmodule ChironiumWeb.AuthController do
 
   alias ChironiumWeb.Plugs.AuthReturnState
 
-  @spec success(
-          Plug.Conn.t(),
-          {atom(), atom()},
-          Ash.Resource.record(),
-          term()
-        ) :: Plug.Conn.t()
   def success(conn, _activity, user, _token) do
     # Get the validated return URL from the signed state token.
     # Falls back to configured pwa_url if no valid token exists.
@@ -18,13 +12,10 @@ defmodule ChironiumWeb.AuthController do
     conn
     |> delete_session(:auth_return_state)
     |> store_in_session(user)
-    # If your resource has a different name, update the assign name here (i.e :current_admin).
     |> assign(:current_user, user)
     |> redirect_to_pwa(return_to)
   end
 
-  @spec failure(Plug.Conn.t(), {atom(), atom()}, term()) ::
-          Plug.Conn.t()
   def failure(conn, activity, reason) do
     message =
       case {activity, reason} do
@@ -48,7 +39,6 @@ defmodule ChironiumWeb.AuthController do
     |> redirect(to: ~p"/sign-in")
   end
 
-  @spec sign_out(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sign_out(conn, _params) do
     # On sign-out, always redirect to the configured PWA URL.
     # No need to validate state here since the user is ending their session.

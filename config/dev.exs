@@ -10,11 +10,10 @@ import Config
 
 config :ash, policies: [show_policy_breakdowns?: true]
 
-# Configure your database.
-# Uses standard PostgreSQL development credentials.
+# Configure your database
 config :chironium, Chironium.Repo,
-  username: "chironium",
-  password: "chironium",
+  username: "postgres",
+  password: "postgres",
   hostname: "localhost",
   database: "chironium_dev",
   stacktrace: true,
@@ -69,12 +68,12 @@ config :chironium, ChironiumWeb.Endpoint,
     web_console_logger: true,
     patterns: [
       # Static assets, except user uploads
-      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$"E,
       # Gettext translations
-      ~r"priv/gettext/.*\.po$",
+      ~r"priv/gettext/.*\.po$"E,
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/chironium_web/router\.ex$",
-      ~r"lib/chironium_web/(controllers|live|components)/.*\.(ex|heex)$"
+      ~r"lib/chironium_web/router\.ex$"E,
+      ~r"lib/chironium_web/(controllers|live|components)/.*\.(ex|heex)$"E
     ]
   ]
 

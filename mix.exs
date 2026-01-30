@@ -44,7 +44,6 @@ defmodule Chironium.MixProject do
     [
       # {:phoenix_vite, "~> 0.4"},
       {:phoenix_vite, github: "sealambda/phoenix_vite", branch: "fix/react"},
-      {:ash_rate_limiter, "~> 0.2"},
       {:ex_money_sql, "~> 1.0"},
       {:ex_cldr, "~> 2.0"},
       {:ex_cldr_calendars, "~> 2.4"},
@@ -53,19 +52,15 @@ defmodule Chironium.MixProject do
       {:ex_cldr_person_names, "~> 1.1"},
       {:ex_cldr_territories, "~> 2.11"},
       {:ex_cldr_units, "~> 3.20"},
-      {:picosat_elixir, "~> 0.2"},
+      {:ash_money, "~> 0.2"},
       {:absinthe_phoenix, "~> 2.0"},
+      {:ash_graphql, "~> 1.0"},
+      {:picosat_elixir, "~> 0.2"},
       {:sourceror, "~> 1.8", only: [:dev, :test]},
       {:oban, "~> 2.0"},
-      {:open_api_spex, "~> 3.0"},
-      {:ash_money, "~> 0.2"},
       {:usage_rules, "~> 0.1", only: [:dev]},
-      {:ash_cloak, "~> 0.1"},
-      {:cloak, "~> 1.0"},
       {:ash_paper_trail, "~> 0.5"},
-      {:tidewave, "~> 0.5", only: [:dev]},
-      {:ash_archival, "~> 2.0"},
-      {:ash_events, "~> 0.5"},
+      {:live_debugger, "~> 0.5", only: [:dev]},
       {:ash_state_machine, "~> 0.2"},
       {:oban_web, "~> 2.0"},
       {:ash_oban, "~> 0.7"},
@@ -73,7 +68,6 @@ defmodule Chironium.MixProject do
       {:ash_authentication_phoenix, "~> 2.0"},
       {:ash_authentication, "~> 4.0"},
       {:ash_postgres, "~> 2.0"},
-      {:ash_graphql, "~> 1.0"},
       {:ash_phoenix, "~> 2.0"},
       {:ash, "~> 3.0"},
       {:igniter, "~> 0.6", only: [:dev, :test]},
@@ -102,7 +96,6 @@ defmodule Chironium.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:ecto_psql_extras, "~> 0.8"},
       # Static analysis tools.
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -114,8 +107,7 @@ defmodule Chironium.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      # Framework auto-generated aliases; do not modify.
-      setup: ["deps.get", "ash.setup", "assets.setup", "assets.build"],
+      setup: ["deps.get", "ash.setup", "assets.setup", "assets.build", "run priv/repo/seeds.exs"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ash.setup --quiet", "test"],

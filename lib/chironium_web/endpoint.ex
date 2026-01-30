@@ -24,7 +24,8 @@ defmodule ChironiumWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
-  socket "/ws/gql", ChironiumWeb.Api.Graphql.Socket, websocket: true, longpoll: true
+  socket "/ws/gql", ChironiumWeb.GraphqlSocket, websocket: true, longpoll: true
+
   plug :favicon, dev_server: {PhoenixVite.Components, :has_vite_watcher?, [__MODULE__]}
 
   # Serve at "/" the static files from "priv/static" directory.
@@ -38,10 +39,6 @@ defmodule ChironiumWeb.Endpoint do
     gzip: not code_reloading?,
     only: ChironiumWeb.static_paths(),
     raise_on_missing_only: code_reloading?
-
-  if Code.ensure_loaded?(Tidewave) do
-    plug Tidewave
-  end
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

@@ -83,7 +83,7 @@ if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :chironium, Chironium.Repo,
-    # Note: Make this configurable.
+    # TODO Make this configurable.
     # ssl: true,
     # url: database_url,
     database: "chironium",

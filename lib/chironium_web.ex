@@ -22,26 +22,23 @@ defmodule ChironiumWeb do
     do:
       ~w(assets fonts images favicon.ico manifest.webmanifest robots.txt sw.js sw.js.map .vite mockServiceWorker.js)
 
-  @spec router() :: Macro.t()
   def router do
     quote do
       use Phoenix.Router, helpers: false
 
-      import Phoenix.Controller
-      import Phoenix.LiveView.Router
       # Import common connection and controller functions to use in pipelines
       import Plug.Conn
+      import Phoenix.Controller
+      import Phoenix.LiveView.Router
     end
   end
 
-  @spec channel() :: Macro.t()
   def channel do
     quote do
       use Phoenix.Channel
     end
   end
 
-  @spec controller() :: Macro.t()
   def controller do
     quote do
       use Phoenix.Controller, formats: [:html, :json]
@@ -54,7 +51,6 @@ defmodule ChironiumWeb do
     end
   end
 
-  @spec live_view() :: Macro.t()
   def live_view do
     quote do
       use Phoenix.LiveView
@@ -63,7 +59,6 @@ defmodule ChironiumWeb do
     end
   end
 
-  @spec live_component() :: Macro.t()
   def live_component do
     quote do
       use Phoenix.LiveComponent
@@ -72,7 +67,6 @@ defmodule ChironiumWeb do
     end
   end
 
-  @spec html() :: Macro.t()
   def html do
     quote do
       use Phoenix.Component
@@ -91,21 +85,20 @@ defmodule ChironiumWeb do
       # Translation
       use Gettext, backend: ChironiumWeb.Gettext
 
-      # Core UI components
-      import ChironiumWeb.CoreComponents
       # HTML escaping functionality
       import Phoenix.HTML
+      # Core UI components
+      import ChironiumWeb.CoreComponents
 
-      alias ChironiumWeb.Layouts
       # Common modules used in templates
       alias Phoenix.LiveView.JS
+      alias ChironiumWeb.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
     end
   end
 
-  @spec verified_routes() :: Macro.t()
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,

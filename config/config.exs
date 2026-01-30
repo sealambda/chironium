@@ -24,13 +24,7 @@ config :chironium, Oban,
   notifier: Oban.Notifiers.Postgres,
   queues: [default: 10],
   repo: Chironium.Repo,
-  plugins: [
-    {Oban.Plugins.Cron,
-     crontab: [
-       # Run token cleanup daily at 3 AM UTC.
-       {"0 3 * * *", Chironium.Workers.TokenCleanupWorker}
-     ]}
-  ]
+  plugins: [{Oban.Plugins.Cron, []}]
 
 config :ash_graphql, authorize_update_destroy_with_error?: true
 
@@ -53,7 +47,6 @@ config :spark,
     remove_parens?: true,
     "Ash.Resource": [
       section_order: [
-        :rate_limit,
         :admin,
         :authentication,
         :token,
@@ -99,14 +92,14 @@ config :chironium,
   # Only referrers from these origins will be trusted for redirects.
   allowed_pwa_origins: [],
   ash_domains: [
-    Chironium.Core,
-    Chironium.Core.Identity,
-    Chironium.Staff,
-    Chironium.Customers,
-    Chironium.Services,
-    Chironium.Health
+    Chironium.Accounts,
+    Chironium.CRM,
+    Chironium.Subscriptions
   ],
-  ash_rate_limiter: [hammer: Chironium.Hammer]
+  base_resources: [
+    Chironium.BaseResources.Auditable,
+    Chironium.BaseResources.Tenantable
+  ]
 
 # Configure the endpoint
 config :chironium, ChironiumWeb.Endpoint,

@@ -8,7 +8,6 @@ defmodule Chironium.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Chironium.Hammer, [clean_period: 60_000]},
       ChironiumWeb.Telemetry,
       Chironium.Repo,
       {DNSCluster, query: Application.get_env(:chironium, :dns_cluster_query) || :ignore},
@@ -22,9 +21,9 @@ defmodule Chironium.Application do
       # {Chironium.Worker, arg},
       # Start to serve requests, typically the last entry
       ChironiumWeb.Endpoint,
+      {AshAuthentication.Supervisor, [otp_app: :chironium]},
       {Absinthe.Subscription, ChironiumWeb.Endpoint},
-      AshGraphql.Subscription.Batcher,
-      {AshAuthentication.Supervisor, [otp_app: :chironium]}
+      AshGraphql.Subscription.Batcher
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
