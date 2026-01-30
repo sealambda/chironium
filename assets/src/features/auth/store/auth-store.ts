@@ -8,7 +8,10 @@ import { fetchCurrentUser } from "../api/auth-api";
 export const AUTH_QUERY_KEY = ["auth", "current-user"] as const;
 
 type AuthStoreState = AuthState & {
-  setFromQuery: (payload: { user: AuthState["user"]; isLoading: boolean }) => void;
+  setFromQuery: (payload: {
+    user: AuthState["user"];
+    isLoading: boolean;
+  }) => void;
 };
 
 export const useAuthStore = create<AuthStoreState>()(
@@ -18,10 +21,10 @@ export const useAuthStore = create<AuthStoreState>()(
       isAuthenticated: false,
       user: null,
       redirectToSignIn: () => {
-        window.location.href = `${BACKEND_URL}/sign-in`;
+        window.location.href = `/sign-in`;
       },
       logout: () => {
-        window.location.href = `${BACKEND_URL}/sign-out`;
+        window.location.href = `/sign-out`;
       },
       refreshUser: async () => {
         try {

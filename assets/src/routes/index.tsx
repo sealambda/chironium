@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
       // The backend captures the Referer header to know where to redirect back.
       // Use BACKEND_URL directly (not proxy) because HTML pages from backend
       // reference backend assets that Vite doesn't have.
-      window.location.href = `${BACKEND_URL}/sign-in`;
+      window.location.href = `/sign-in`;
       // Throw to halt rendering while redirect is in progress.
       throw new Error("Redirecting to sign-in...");
     }
