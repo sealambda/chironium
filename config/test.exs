@@ -1,6 +1,6 @@
 import Config
 config :chironium, Oban, testing: :manual
-config :chironium, token_signing_secret: "TXFx8kiOUoL2XWdOhbszlYAzi3TbxNUA"
+config :chironium, token_signing_secret: "Nfjg79CP92hf1U6EYNE6K9070SwI/ROg"
 config :bcrypt_elixir, log_rounds: 1
 config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
 
@@ -10,8 +10,8 @@ config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :chironium, Chironium.Repo,
-  username: "chironium",
-  password: "chironium",
+  username: "postgres",
+  password: "postgres",
   hostname: "localhost",
   database: "chironium_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
@@ -21,7 +21,7 @@ config :chironium, Chironium.Repo,
 # you can enable the server option below.
 config :chironium, ChironiumWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "pnMU4WQKNmQV1H/G/eaMfeQzQDiWRa77sob49vo8N7UrmNF6HTcfWi8WiZOnzW13",
+  secret_key_base: "TJigMy5eS7IYcnO9RZc81JTf4dyx3NzsZeJ605VGm1eHqFnlzo2oJKblnpw9MaSz",
   server: false
 
 # In test we don't send emails

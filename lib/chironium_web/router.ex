@@ -8,9 +8,11 @@ defmodule ChironiumWeb.Router do
 
   pipeline :graphql do
     plug :fetch_session
-    plug :protect_from_forgery
+    # TODO Re-enable in prod, just for testing with /gql/playground
+    # plug :protect_from_forgery
     plug :load_from_session
     plug :set_actor, :user
+    plug ChironiumWeb.SetTenant
     plug AshGraphql.Plug
   end
 
@@ -22,54 +24,54 @@ defmodule ChironiumWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
-    # Capture and validate referrer origin for secure PWA auth redirects.
-    plug ChironiumWeb.Plugs.AuthReturnState
+    plug ChironiumWeb.SetTenant
   end
 
-  pipeline :api do
-    plug :accepts, ["json"]
-    plug :fetch_session
-    plug :protect_from_forgery
-    plug :set_actor, :user
+  scope "/gql" do
+    pipe_through [:graphql]
+
+    # TODO need to comment out plug :protect_from_forgery in pipeline :graphql to test it
+    forward "/playground", Absinthe.Plug.GraphiQL,
+      schema: ChironiumWeb.GraphqlSchema,
+      socket: ChironiumWeb.GraphqlSocket,
+      # we'd need :advanced to support CSRF tokens, but it's broken
+      # https://github.com/absinthe-graphql/absinthe_plug/issues/303
+      interface: :playground,
+      default_headers: {__MODULE__, :graphiql_headers}
+
+    forward "/", Absinthe.Plug, schema: ChironiumWeb.GraphqlSchema
+  end
+
+  def graphiql_headers do
+    %{
+      "X-CSRF-Token" => Plug.CSRFProtection.get_csrf_token()
+    }
   end
 
   scope "/", ChironiumWeb do
     pipe_through :browser
 
     ash_authentication_live_session :authenticated_routes do
-      # In each liveview, add one of the following at the top of the module:
+      # in each liveview, add one of the following at the top of the module:
       #
-      # If an authenticated credential must be present:
+      # If an authenticated user must be present:
       # on_mount {ChironiumWeb.LiveUserAuth, :live_user_required}
       #
-      # If an authenticated credential *may* be present:
+      # If an authenticated user *may* be present:
       # on_mount {ChironiumWeb.LiveUserAuth, :live_user_optional}
       #
-      # If an authenticated credential must *not* be present:
+      # If an authenticated user must *not* be present:
       # on_mount {ChironiumWeb.LiveUserAuth, :live_no_user}
     end
-  end
-
-  scope "/gql" do
-    pipe_through [:graphql]
-
-    forward "/playground", Absinthe.Plug.GraphiQL,
-      schema: ChironiumWeb.Api.Graphql.Schema,
-      socket: ChironiumWeb.Api.Graphql.Socket,
-      interface: :simple
-
-    forward "/", Absinthe.Plug, schema: ChironiumWeb.Api.Graphql.Schema
   end
 
   scope "/", ChironiumWeb do
     pipe_through :browser
 
     get "/", PageController, :home
-
-    get "/index.html", PageController, :app
     get "/app/*path", PageController, :app
 
-    auth_routes AuthController, Chironium.Core.Identity.User, path: "/auth"
+    auth_routes AuthController, Chironium.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
     # Custom sign-in LiveView with branded design.
@@ -84,12 +86,7 @@ defmodule ChironiumWeb.Router do
                 overrides: [ChironiumWeb.AuthOverrides]
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", ChironiumWeb do
-  #   pipe_through :api
-  # end
-
-  # Enable LiveDashboard and Swoosh mailbox preview in development.
+  # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:chironium, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.

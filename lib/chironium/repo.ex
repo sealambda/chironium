@@ -2,11 +2,13 @@ defmodule Chironium.Repo do
   @moduledoc """
   The Ecto repository for Chironium.
 
-  Uses AshPostgres with PostgreSQL 16+ and includes extensions for
+  Uses AshPostgres with PostgreSQL 18+ and includes extensions for
   Ash functions, case-insensitive text, and money types.
   """
   use AshPostgres.Repo,
     otp_app: :chironium
+
+  import Ecto.Query
 
   @impl true
   def installed_extensions do
@@ -23,6 +25,16 @@ defmodule Chironium.Repo do
 
   @impl true
   def min_pg_version do
-    %Version{major: 16, minor: 0, patch: 0}
+    %Version{major: 18, minor: 0, patch: 0}
+  end
+
+  @doc """
+  Required for schema-based multitenancy
+
+  https://hexdocs.pm/ash_postgres/schema-based-multitenancy.html
+  """
+  @impl true
+  def all_tenants do
+    all(from(row in "organizations", select: fragment("? || ?", "org_", row.id)))
   end
 end

@@ -1,104 +1,21 @@
 schema {
   mutation: RootMutationType
   query: RootQueryType
+  subscription: Subscription
 }
 
-"The result of the :update_person_profile mutation"
-type UpdatePersonProfileResult {
-  "The successful result of the mutation"
-  result: PersonProfile
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input UpdatePersonProfileInput {
-  displayName: String
-  gender: String
-  email: String
-  phone: String
-  profilePicture: String
-  country: String
-  city: String
-  postCode: String
-  notes: String
-}
-
-"The result of the :create_person_profile mutation"
-type CreatePersonProfileResult {
-  "The successful result of the mutation"
-  result: PersonProfile
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreatePersonProfileInput {
-  displayName: String
-  gender: String
-  email: String
-  phone: String
-  profilePicture: String
-  country: String
-  city: String
-  postCode: String
-  notes: String
-  personId: ID!
-  organisationId: ID!
-}
-
-enum PersonProfileSortField {
-  ID
-  DISPLAY_NAME
-  GENDER
+enum ContactPointType {
+  "Email address"
   EMAIL
+
+  "Instagram username"
+  INSTAGRAM
+
+  "Phone number"
   PHONE
-  PROFILE_PICTURE
-  COUNTRY
-  CITY
-  POST_CODE
-  PERSON_ID
-  ORGANISATION_ID
 }
 
-"A keyset page of :person_profile"
-type KeysetPageOfPersonProfile {
-  "Total count on all pages"
-  count: Int
-
-  "The records contained in the page"
-  results: [PersonProfile!]
-
-  "The first keyset in the results"
-  startKeyset: String
-
-  "The last keyset in the results"
-  endKeyset: String
-}
-
-input PersonProfileFilterOrganisationId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input PersonProfileFilterPersonId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input PersonProfileFilterPostCode {
+input UserFilterGivenName {
   isNil: Boolean
   eq: String
   notEq: String
@@ -111,7 +28,7 @@ input PersonProfileFilterPostCode {
   ilike: String
 }
 
-input PersonProfileFilterCity {
+input UserFilterFamilyName {
   isNil: Boolean
   eq: String
   notEq: String
@@ -124,7 +41,7 @@ input PersonProfileFilterCity {
   ilike: String
 }
 
-input PersonProfileFilterCountry {
+input UserFilterName {
   isNil: Boolean
   eq: String
   notEq: String
@@ -137,7 +54,7 @@ input PersonProfileFilterCountry {
   ilike: String
 }
 
-input PersonProfileFilterProfilePicture {
+input UserFilterPicture {
   isNil: Boolean
   eq: String
   notEq: String
@@ -148,617 +65,6 @@ input PersonProfileFilterProfilePicture {
   greaterThanOrEqual: String
   like: String
   ilike: String
-}
-
-input PersonProfileFilterPhone {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input PersonProfileFilterEmail {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-}
-
-input PersonProfileFilterGender {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-}
-
-input PersonProfileFilterDisplayName {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input PersonProfileFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input PersonProfileFilterInput {
-  and: [PersonProfileFilterInput!]
-  or: [PersonProfileFilterInput!]
-  not: [PersonProfileFilterInput!]
-  id: PersonProfileFilterId
-  displayName: PersonProfileFilterDisplayName
-  gender: PersonProfileFilterGender
-  email: PersonProfileFilterEmail
-  phone: PersonProfileFilterPhone
-  profilePicture: PersonProfileFilterProfilePicture
-  country: PersonProfileFilterCountry
-  city: PersonProfileFilterCity
-  postCode: PersonProfileFilterPostCode
-  personId: PersonProfileFilterPersonId
-  organisationId: PersonProfileFilterOrganisationId
-  person: PersonFilterInput
-}
-
-input PersonProfileSortInput {
-  order: SortOrder
-  field: PersonProfileSortField!
-}
-
-type PersonProfile {
-  id: ID!
-  displayName: String
-  gender: String
-  email: String
-  phone: String
-  profilePicture: String
-  country: String
-  city: String
-  postCode: String
-  personId: ID!
-  organisationId: ID!
-  person: Person!
-  organisation: Organisation!
-}
-
-"The result of the :update_person mutation"
-type UpdatePersonResult {
-  "The successful result of the mutation"
-  result: Person
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input UpdatePersonInput {
-  givenName: String
-  stSurname: String
-  ndSurname: String
-  birthDate: Date
-}
-
-"The result of the :create_person mutation"
-type CreatePersonResult {
-  "The successful result of the mutation"
-  result: Person
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreatePersonInput {
-  givenName: String
-  stSurname: String
-  ndSurname: String
-  birthDate: Date
-}
-
-input PersonFilterBirthDate {
-  isNil: Boolean
-  eq: Date
-  notEq: Date
-  in: [Date]
-  lessThan: Date
-  greaterThan: Date
-  lessThanOrEqual: Date
-  greaterThanOrEqual: Date
-}
-
-input PersonFilterNdSurname {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input PersonFilterStSurname {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input PersonFilterGivenName {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input PersonFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input PersonFilterInput {
-  and: [PersonFilterInput!]
-  or: [PersonFilterInput!]
-  not: [PersonFilterInput!]
-  id: PersonFilterId
-  givenName: PersonFilterGivenName
-  stSurname: PersonFilterStSurname
-  ndSurname: PersonFilterNdSurname
-  birthDate: PersonFilterBirthDate
-}
-
-type Person {
-  id: ID!
-  givenName: String
-  stSurname: String
-  ndSurname: String
-  birthDate: Date
-}
-
-"The result of the :create_organisation mutation"
-type CreateOrganisationResult {
-  "The successful result of the mutation"
-  result: Organisation
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateOrganisationInput {
-  name: String!
-  slug: String!
-  profilePicture: String
-  themeSeedColor: String
-}
-
-type Organisation {
-  id: ID!
-  name: String!
-  slug: String!
-  profilePicture: String
-  themeSeedColor: String
-}
-
-enum SortOrder {
-  DESC
-  DESC_NULLS_FIRST
-  DESC_NULLS_LAST
-  ASC
-  ASC_NULLS_FIRST
-  ASC_NULLS_LAST
-}
-
-"An error generated by a failed mutation"
-type MutationError {
-  "The human readable error message"
-  message: String
-
-  "A shorter error message, with vars not replaced"
-  shortMessage: String
-
-  "Replacements for the short message"
-  vars: Json
-
-  "An error code for the given error"
-  code: String
-
-  "The field or fields that produced the error"
-  fields: [String!]
-}
-
-enum MembershipSortField {
-  ID
-  START_DATE
-  END_DATE
-  STATUS
-  PERSON_ID
-  ORGANISATION_ID
-  CREATED_BY_ID
-}
-
-input MembershipFilterCreatedById {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input MembershipFilterOrganisationId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input MembershipFilterPersonId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input MembershipFilterStatus {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String!]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-}
-
-input MembershipFilterEndDate {
-  isNil: Boolean
-  eq: Date
-  notEq: Date
-  in: [Date]
-  lessThan: Date
-  greaterThan: Date
-  lessThanOrEqual: Date
-  greaterThanOrEqual: Date
-}
-
-input MembershipFilterStartDate {
-  isNil: Boolean
-  eq: Date
-  notEq: Date
-  in: [Date!]
-  lessThan: Date
-  greaterThan: Date
-  lessThanOrEqual: Date
-  greaterThanOrEqual: Date
-}
-
-input MembershipFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input MembershipFilterInput {
-  and: [MembershipFilterInput!]
-  or: [MembershipFilterInput!]
-  not: [MembershipFilterInput!]
-  id: MembershipFilterId
-  startDate: MembershipFilterStartDate
-  endDate: MembershipFilterEndDate
-  status: MembershipFilterStatus
-  personId: MembershipFilterPersonId
-  organisationId: MembershipFilterOrganisationId
-  createdById: MembershipFilterCreatedById
-  person: PersonFilterInput
-  createdBy: PersonFilterInput
-}
-
-input MembershipSortInput {
-  order: SortOrder
-  field: MembershipSortField!
-}
-
-type Membership {
-  id: ID!
-  startDate: Date!
-  endDate: Date
-  status: String!
-  personId: ID!
-  organisationId: ID!
-  createdById: ID
-  person: Person!
-  organisation: Organisation!
-  createdBy: Person
-}
-
-"The result of the :terminate_contract mutation"
-type TerminateContractResult {
-  "The successful result of the mutation"
-  result: Contract
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-"The result of the :complete_contract mutation"
-type CompleteContractResult {
-  "The successful result of the mutation"
-  result: Contract
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-"The result of the :resume_contract mutation"
-type ResumeContractResult {
-  "The successful result of the mutation"
-  result: Contract
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-"The result of the :pause_contract mutation"
-type PauseContractResult {
-  "The successful result of the mutation"
-  result: Contract
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-"The result of the :activate_contract mutation"
-type ActivateContractResult {
-  "The successful result of the mutation"
-  result: Contract
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-"The result of the :create_contract_by_email mutation"
-type CreateContractByEmailResult {
-  "The successful result of the mutation"
-  result: Contract
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateContractByEmailInput {
-  startDate: Date!
-  endDate: Date
-  role: String!
-  organisationId: ID!
-  createdById: ID
-  email: String!
-}
-
-"The result of the :create_contract mutation"
-type CreateContractResult {
-  "The successful result of the mutation"
-  result: Contract
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateContractInput {
-  startDate: Date!
-  endDate: Date
-  role: String!
-  personId: ID!
-  organisationId: ID!
-  createdById: ID
-}
-
-enum ContractSortField {
-  ID
-  START_DATE
-  END_DATE
-  ROLE
-  STATUS
-  PERSON_ID
-  ORGANISATION_ID
-  CREATED_BY_ID
-}
-
-"A keyset page of :contract"
-type KeysetPageOfContract {
-  "Total count on all pages"
-  count: Int
-
-  "The records contained in the page"
-  results: [Contract!]
-
-  "The first keyset in the results"
-  startKeyset: String
-
-  "The last keyset in the results"
-  endKeyset: String
-}
-
-input ContractFilterCreatedById {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ContractFilterOrganisationId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ContractFilterPersonId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ContractFilterStatus {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String!]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-}
-
-input ContractFilterRole {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String!]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-}
-
-input ContractFilterEndDate {
-  isNil: Boolean
-  eq: Date
-  notEq: Date
-  in: [Date]
-  lessThan: Date
-  greaterThan: Date
-  lessThanOrEqual: Date
-  greaterThanOrEqual: Date
-}
-
-input ContractFilterStartDate {
-  isNil: Boolean
-  eq: Date
-  notEq: Date
-  in: [Date!]
-  lessThan: Date
-  greaterThan: Date
-  lessThanOrEqual: Date
-  greaterThanOrEqual: Date
-}
-
-input ContractFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ContractFilterInput {
-  and: [ContractFilterInput!]
-  or: [ContractFilterInput!]
-  not: [ContractFilterInput!]
-  id: ContractFilterId
-  startDate: ContractFilterStartDate
-  endDate: ContractFilterEndDate
-  role: ContractFilterRole
-  status: ContractFilterStatus
-  personId: ContractFilterPersonId
-  organisationId: ContractFilterOrganisationId
-  createdById: ContractFilterCreatedById
-  person: PersonFilterInput
-  createdBy: PersonFilterInput
-}
-
-input ContractSortInput {
-  order: SortOrder
-  field: ContractSortField!
-}
-
-type Contract {
-  id: ID!
-  startDate: Date!
-  endDate: Date
-  role: String!
-  status: String!
-  personId: ID!
-  organisationId: ID!
-  createdById: ID
-  person: Person!
-  organisation: Organisation!
-  createdBy: Person
 }
 
 input UserFilterEmail {
@@ -789,127 +95,380 @@ input UserFilterInput {
   not: [UserFilterInput!]
   id: UserFilterId
   email: UserFilterEmail
-  person: PersonFilterInput
+  picture: UserFilterPicture
+  name: UserFilterName
+  familyName: UserFilterFamilyName
+  givenName: UserFilterGivenName
 }
 
 type User {
   id: ID!
   email: String!
-  person: Person!
+  picture: String
+  name: String
+  familyName: String
+  givenName: String
+}
+
+"The result of the :create_organization mutation"
+type CreateOrganizationResult {
+  "The successful result of the mutation"
+  result: Organization
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateOrganizationInput {
+  name: String!
+  slug: String!
+}
+
+"A keyset page of :organization"
+type KeysetPageOfOrganization {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Organization!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+type Organization {
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+enum SortOrder {
+  DESC
+  DESC_NULLS_FIRST
+  DESC_NULLS_LAST
+  ASC
+  ASC_NULLS_FIRST
+  ASC_NULLS_LAST
+}
+
+"An error generated by a failed mutation"
+type MutationError {
+  "The human readable error message"
+  message: String
+
+  "A shorter error message, with vars not replaced"
+  shortMessage: String
+
+  "Replacements for the short message"
+  vars: Json
+
+  "An error code for the given error"
+  code: String
+
+  "The field or fields that produced the error"
+  fields: [String!]
+}
+
+input ContactCreateWithContactPointsContactPointsInput {
+  label: String
+  type: ContactPointType
+  value: String
+  isPrimary: Boolean
+}
+
+"The result of the :update_contact_point mutation"
+type UpdateContactPointResult {
+  "The successful result of the mutation"
+  result: ContactPoint
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateContactPointInput {
+  label: String
+  value: String
+  isPrimary: Boolean
+}
+
+"The result of the :create_contact_point mutation"
+type CreateContactPointResult {
+  "The successful result of the mutation"
+  result: ContactPoint
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateContactPointInput {
+  type: ContactPointType
+  label: String
+  value: String
+  isPrimary: Boolean
+  contactId: ID!
+}
+
+enum ContactPointSortField {
+  ID
+  TYPE
+  LABEL
+  VALUE
+  IS_PRIMARY
+  CONTACT_ID
+}
+
+input ContactPointFilterContactId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ContactPointFilterIsPrimary {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input ContactPointFilterValue {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ContactPointFilterLabel {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ContactPointFilterType {
+  isNil: Boolean
+  eq: ContactPointType
+  notEq: ContactPointType
+  in: [ContactPointType]
+  lessThan: ContactPointType
+  greaterThan: ContactPointType
+  lessThanOrEqual: ContactPointType
+  greaterThanOrEqual: ContactPointType
+}
+
+input ContactPointFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ContactPointFilterInput {
+  and: [ContactPointFilterInput!]
+  or: [ContactPointFilterInput!]
+  not: [ContactPointFilterInput!]
+  id: ContactPointFilterId
+  type: ContactPointFilterType
+  label: ContactPointFilterLabel
+  value: ContactPointFilterValue
+  isPrimary: ContactPointFilterIsPrimary
+  contactId: ContactPointFilterContactId
+  contact: ContactFilterInput
+}
+
+input ContactPointSortInput {
+  order: SortOrder
+  field: ContactPointSortField!
+}
+
+type ContactPoint {
+  id: ID!
+  type: ContactPointType
+  label: String
+  value: String
+  isPrimary: Boolean!
+  contactId: ID!
+  contact: Contact!
+}
+
+"The result of the :update_contact mutation"
+type UpdateContactResult {
+  "The successful result of the mutation"
+  result: Contact
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateContactInput {
+  name: String
+}
+
+"The result of the :create_contact_with_contact_points mutation"
+type CreateContactWithContactPointsResult {
+  "The successful result of the mutation"
+  result: Contact
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateContactWithContactPointsInput {
+  name: String
+  contactPoints: [ContactCreateWithContactPointsContactPointsInput!]
+}
+
+"The result of the :create_contact mutation"
+type CreateContactResult {
+  "The successful result of the mutation"
+  result: Contact
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateContactInput {
+  name: String
+}
+
+input ContactFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ContactFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ContactFilterInput {
+  and: [ContactFilterInput!]
+  or: [ContactFilterInput!]
+  not: [ContactFilterInput!]
+  id: ContactFilterId
+  name: ContactFilterName
+  contactPoints: ContactPointFilterInput
+}
+
+type Contact {
+  id: ID!
+  name: String
+  contactPoints(
+    "How to sort the records in the response"
+    sort: [ContactPointSortInput]
+
+    "A filter to limit the results"
+    filter: ContactPointFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ContactPoint!]!
+}
+
+type Subscription {
+  id: ID!
+  state: String!
+  subscriberId: ID!
+  planId: ID!
+  subscriber: Contact!
+  plan: SubscriptionPlan!
+}
+
+type SubscriptionPlan {
+  id: ID!
+  name: String
+  periodDuration: String
+  priceAmount: Money
 }
 
 type RootQueryType {
-  currentUser: User
+  "Retrieve the info for the actor that is currently signed in."
+  currentActor: User
 
-  user(
+  getOrganization: Organization
+
+  listOrganizations(
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfOrganization
+
+  getUser(
     "A filter to limit the results"
     filter: UserFilterInput
   ): User
+}
 
-  contract(
-    "A filter to limit the results"
-    filter: ContractFilterInput
-  ): Contract
-
-  contracts(
-    "How to sort the records in the response"
-    sort: [ContractSortInput]
-
-    "A filter to limit the results"
-    filter: ContractFilterInput
-
-    "The number of records to return from the beginning. Maximum 250"
-    first: Int
-
-    "Show records before the specified keyset."
-    before: String
-
-    "Show records after the specified keyset."
-    after: String
-
-    "The number of records to return to the end. Maximum 250"
-    last: Int
-  ): KeysetPageOfContract
-
-  "Lists customers for the authenticated user based on their role and organisation."
-  customerList(
-    "How to sort the records in the response"
-    sort: [MembershipSortInput]
-
-    "A filter to limit the results"
-    filter: MembershipFilterInput
-
-    organisationId: ID!
-  ): [Membership!]!
-
-  "Get a single organisation by unique identifier (id, name, or slug)."
-  organisation(id: ID, name: String, slug: String): Organisation
-
-  "Returns organisations the actor can access."
-  organisations: [Organisation!]!
-
-  person(
-    "A filter to limit the results"
-    filter: PersonFilterInput
-  ): Person
-
-  personProfile(
-    "A filter to limit the results"
-    filter: PersonProfileFilterInput
-  ): PersonProfile
-
-  personProfiles(
-    "How to sort the records in the response"
-    sort: [PersonProfileSortInput]
-
-    "A filter to limit the results"
-    filter: PersonProfileFilterInput
-
-    "The number of records to return from the beginning. Maximum 250"
-    first: Int
-
-    "Show records before the specified keyset."
-    before: String
-
-    "Show records after the specified keyset."
-    after: String
-
-    "The number of records to return to the end. Maximum 250"
-    last: Int
-  ): KeysetPageOfPersonProfile
+type Money {
+  amount: Decimal!
+  currency: String!
 }
 
 type RootMutationType {
-  "Creates a contract for an existing person (for renewals)."
-  createContract(input: CreateContractInput!): CreateContractResult!
+  createContact(input: CreateContactInput): CreateContactResult!
 
-  "Creates a contract by email. Finds or creates person, profile, and user."
-  createContractByEmail(input: CreateContractByEmailInput!): CreateContractByEmailResult!
+  "Create a contact with initial contact points (email, phone, ...)"
+  createContactWithContactPoints(input: CreateContactWithContactPointsInput): CreateContactWithContactPointsResult!
 
-  activateContract(id: ID!): ActivateContractResult!
+  updateContact(id: ID!, input: UpdateContactInput): UpdateContactResult!
 
-  pauseContract(id: ID!): PauseContractResult!
+  createContactPoint(input: CreateContactPointInput!): CreateContactPointResult!
 
-  resumeContract(id: ID!): ResumeContractResult!
+  updateContactPoint(id: ID!, input: UpdateContactPointInput): UpdateContactPointResult!
 
-  completeContract(id: ID!): CompleteContractResult!
-
-  terminateContract(id: ID!): TerminateContractResult!
-
-  "Creates a new organisation."
-  createOrganisation(input: CreateOrganisationInput!): CreateOrganisationResult!
-
-  "Creates a Person with provided data."
-  createPerson(input: CreatePersonInput): CreatePersonResult!
-
-  "Updates a Person's personal data."
-  updatePerson(id: ID!, input: UpdatePersonInput): UpdatePersonResult!
-
-  "Creates a profile for a person in an organisation."
-  createPersonProfile(input: CreatePersonProfileInput!): CreatePersonProfileResult!
-
-  "Updates profile preferences."
-  updatePersonProfile(id: ID!, input: UpdatePersonProfileInput): UpdatePersonProfileResult!
+  createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 }
 
 """
@@ -920,7 +479,8 @@ human-readable json string.
 scalar Json
 
 """
-The `Date` scalar type represents a date. The Date appears in a JSON
-response as an ISO8601 formatted string, without a time component.
+The `Decimal` scalar type represents signed double-precision fractional
+values parsed by the `Decimal` library. The Decimal appears in a JSON
+response as a string to preserve precision.
 """
-scalar Date
+scalar Decimal

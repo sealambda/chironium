@@ -7,16 +7,10 @@ defmodule Chironium.Secrets do
   """
   use AshAuthentication.Secret
 
-  @spec secret_for(
-          secret_path :: [atom()],
-          resource :: module(),
-          opts :: keyword(),
-          context :: map()
-        ) :: {:ok, String.t() | nil} | :error
   # Token signing secret.
   def secret_for(
         [:authentication, :tokens, :signing_secret],
-        Chironium.Core.Identity.User,
+        Chironium.Accounts.User,
         _opts,
         _context
       ) do
@@ -26,7 +20,7 @@ defmodule Chironium.Secrets do
   # Google OAuth client ID.
   def secret_for(
         [:authentication, :strategies, :google, :client_id],
-        Chironium.Core.Identity.User,
+        Chironium.Accounts.User,
         _opts,
         _context
       ) do
@@ -39,7 +33,7 @@ defmodule Chironium.Secrets do
   # Google OAuth client secret.
   def secret_for(
         [:authentication, :strategies, :google, :client_secret],
-        Chironium.Core.Identity.User,
+        Chironium.Accounts.User,
         _opts,
         _context
       ) do
@@ -52,7 +46,7 @@ defmodule Chironium.Secrets do
   # Google OAuth redirect URI.
   def secret_for(
         [:authentication, :strategies, :google, :redirect_uri],
-        Chironium.Core.Identity.User,
+        Chironium.Accounts.User,
         _opts,
         _context
       ) do
