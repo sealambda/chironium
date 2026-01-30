@@ -45,6 +45,8 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
+ENV VITE_BACKEND_URL="https://chironium.appfor.it"
+ENV VITE_ENABLE_MSW="true"
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
