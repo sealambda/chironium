@@ -1,7 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { StrictMode } from "react";
-import { AuthStoreSync } from "@/features/auth/store/auth-store-sync";
+import { UserStoreSync } from "@/features/user/store/user-store-sync";
 import { InnerApp } from "../inner-app";
 import { router } from "../router";
 import { queryClient } from "./query-client";
@@ -13,14 +13,14 @@ import { queryClient } from "./query-client";
  * Provider order (outermost to innermost):
  * 1. StrictMode - React development checks.
  * 2. QueryClientProvider - TanStack Query for data fetching.
- * 3. AuthStoreSync - Sync auth state into Zustand.
- * 4. InnerApp - Router with auth context.
+ * 3. UserStoreSync - Sync current user profile into Zustand.
+ * 4. InnerApp - Router provider.
  */
 export function AppProviders() {
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <AuthStoreSync />
+        <UserStoreSync />
         <InnerApp router={router} />
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>

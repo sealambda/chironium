@@ -85,12 +85,12 @@ config :spark,
 config :chironium,
   ecto_repos: [Chironium.Repo],
   generators: [timestamp_type: :utc_datetime],
-  # Default PWA URL for post-authentication redirect (overridden per environment).
-  pwa_url: "/app",
-  # Allowed PWA origins for secure post-authentication redirects.
+  # Default app URL for post-authentication redirect (overridden per environment).
+  app_url: "/app",
+  # Allowed origins for secure post-authentication redirects.
   # Configure per environment (dev.exs, runtime.exs).
   # Only referrers from these origins will be trusted for redirects.
-  allowed_pwa_origins: [],
+  allowed_app_origins: [],
   ash_domains: [
     Chironium.Accounts,
     Chironium.CRM,

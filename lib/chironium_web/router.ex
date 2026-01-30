@@ -48,6 +48,10 @@ defmodule ChironiumWeb.Router do
     }
   end
 
+  pipeline :require_authenticated_user do
+    plug ChironiumWeb.Plugs.RequireAuthenticatedUser
+  end
+
   scope "/", ChironiumWeb do
     pipe_through :browser
 
@@ -75,7 +79,9 @@ defmodule ChironiumWeb.Router do
     sign_out_route AuthController
 
     # Custom sign-in LiveView with branded design.
-    live_session :auth,
+    # Uses ash_authentication_live_session to load user from session,
+    # then :live_no_user redirects authenticated users to /app.
+    ash_authentication_live_session :auth,
       on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
       layout: false do
       live "/sign-in", SignInLive
@@ -84,6 +90,16 @@ defmodule ChironiumWeb.Router do
     # Remove this if you do not want to use the reset password feature.
     reset_route auth_routes_prefix: "/auth",
                 overrides: [ChironiumWeb.AuthOverrides]
+  end
+
+  # PWA routes - requires authenticated user.
+  # Phoenix is the sole auth gatekeeper: if a user reaches these routes,
+  # they are authenticated. The PWA doesn't manage auth state.
+  scope "/", ChironiumWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    get "/index.html", PageController, :app
+    get "/app/*path", PageController, :app
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

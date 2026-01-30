@@ -4,6 +4,7 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import type { User } from "@/gql/graphql";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
@@ -14,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { AUTH_URLS } from "@/shared/utils/url-utils";
 
 /**
  * Get user initials from name or email.
@@ -54,7 +56,7 @@ function getInitials(user: User | null): string {
  * - Desktop: Offset for navigation drawer (256px).
  */
 export function TopNav() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isLoading } = useCurrentUser();
   const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
   const [createOrgError, setCreateOrgError] = useState<string | null>(null);
@@ -100,8 +102,12 @@ export function TopNav() {
     }
   };
 
-  // Don't render nav elements if not authenticated.
-  if (!isAuthenticated || !user) {
+  const handleLogout = () => {
+    window.location.href = AUTH_URLS.signOut;
+  };
+
+  // Show minimal header while loading or if no user data yet.
+  if (isLoading || !user) {
     return (
       <header
         className={[
