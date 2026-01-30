@@ -1,21 +1,20 @@
-import type { AuthState } from "./auth";
-
 /**
- * Router context type that includes authentication state.
- * Used with createRootRouteWithContext for type-safe auth in routes.
+ * Router context type for TanStack Router.
+ * Used with createRootRouteWithContext for type-safe context in routes.
  *
- * Separated from auth.tsx to maintain Fast Refresh compatibility.
+ * Note: Auth state is intentionally NOT included because Phoenix
+ * handles authentication before the PWA loads. The frontend trusts
+ * that if it's running, the user is authenticated.
  *
  * @example
  * ```tsx
  * import { createRootRouteWithContext } from '@tanstack/react-router';
- * import type { RouterContext } from '@/lib/router-context';
+ * import type { RouterContext } from '@/shared/types/router-context';
  *
  * export const Route = createRootRouteWithContext<RouterContext>()({
  *   component: RootComponent,
  * });
  * ```
  */
-export interface RouterContext {
-  auth: AuthState;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type RouterContext = {};
