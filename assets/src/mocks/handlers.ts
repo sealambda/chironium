@@ -1,11 +1,6 @@
 import { graphql, HttpResponse } from "msw";
-import {
-  type Organisation,
-  type Membership,
-  type Person,
-  type User,
-} from "@/gql/graphql";
-import { BACKEND_URL } from "@/shared/utils";
+import type { Membership, Organisation, Person, User } from "@/gql/graphql";
+import { API_PATHS } from "@/shared/utils/url-utils";
 
 // Mock current user data.
 const currentUser: User = {
@@ -343,7 +338,7 @@ function updatePerson(
 }
 
 // Create a GraphQL link for the specific endpoint.
-const gql = graphql.link(`${BACKEND_URL}/gql`);
+const gql = graphql.link(API_PATHS.graphql);
 
 export const handlers = [
   gql.query("CurrentUser", () => {

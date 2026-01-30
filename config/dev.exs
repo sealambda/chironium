@@ -83,10 +83,7 @@ config :chironium, ChironiumWeb.Endpoint,
 # Production uses environment variables configured in runtime.exs.
 config :chironium,
   dev_routes: true,
-  token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE",
-  pwa_url: "http://localhost:4000/app",
-  # Allowed PWA origins for secure post-authentication redirects.
-  allowed_pwa_origins: ["http://localhost:4000"]
+  token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"

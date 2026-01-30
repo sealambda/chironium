@@ -1,11 +1,11 @@
 import { useRouterState } from "@tanstack/react-router";
 import { Bell, LogOut, UserPlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/features/auth/hooks/use-auth";
-import { CreateCustomerSheet } from "@/features/customers/ui/create-customer-sheet";
+import { CustomerSheet } from "@/features/customers/ui/create-customer-sheet";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import type { User } from "@/gql/graphql";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { AUTH_URLS } from "@/shared/utils/url-utils";
 
 const mockNotificationCount = 3;
 
@@ -63,7 +64,7 @@ function getDisplayName(user: User | null): string {
  * - Desktop: Offset for navigation drawer (256px).
  */
 export function TopNav() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isLoading } = useCurrentUser();
   const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
   const routerState = useRouterState();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
@@ -116,8 +117,12 @@ export function TopNav() {
     }
   };
 
-  // Don't render nav elements if not authenticated.
-  if (!isAuthenticated || !user) {
+  const handleLogout = () => {
+    window.location.href = AUTH_URLS.signOut;
+  };
+
+  // Show minimal header while loading or if no user data yet.
+  if (isLoading || !user) {
     return (
       <header
         className={[
@@ -188,7 +193,7 @@ export function TopNav() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
-                onClick={() => logout()}
+                onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
@@ -249,7 +254,7 @@ export function TopNav() {
         onSubmit={handleCreateOrg}
         error={createOrgError}
       />
-      <CreateCustomerSheet
+      <CustomerSheet
         open={isCreateCustomerOpen}
         onOpenChange={setIsCreateCustomerOpen}
       />

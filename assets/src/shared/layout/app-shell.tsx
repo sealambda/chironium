@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useUpdatePersonOnboarding } from "@/features/person/hooks/use-update-person-onboarding";
 import {
   isPersonIncomplete,
   type PersonOnboardingData,
 } from "@/features/person/model/person-onboarding";
 import { PersonOnboardingModal } from "@/features/person/ui/person-onboarding-modal";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import { BottomNav } from "./bottom-nav";
 import { SideNav } from "./side-nav";
 import { TopNav } from "./top-nav";
@@ -29,26 +29,24 @@ interface AppShellProps {
  * - Extra-large: ≥1600px.
  */
 export function AppShell({ children }: AppShellProps) {
-  const auth = useAuth();
+  const { user, isLoading, refreshUser } = useCurrentUser();
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
   const updatePersonMutation = useUpdatePersonOnboarding();
 
-  // Show onboarding modal when user is authenticated but person data is incomplete.
+  // Show onboarding modal when user data is loaded but person data is incomplete.
   const showOnboarding =
-    !auth.isLoading &&
-    auth.isAuthenticated &&
-    isPersonIncomplete(auth.user?.person);
+    !isLoading && !!user && isPersonIncomplete(user.person);
 
   const handleOnboardingSubmit = async (data: PersonOnboardingData) => {
     setOnboardingError(null);
     try {
-      const personId = auth.user?.person?.id;
+      const personId = user?.person?.id;
       if (!personId) {
         throw new Error("Missing person identifier");
       }
       await updatePersonMutation.mutateAsync({ personId, data });
       // Refresh user data to re-check completion.
-      await auth.refreshUser();
+      await refreshUser();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to update profile";
@@ -94,7 +92,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* Person Onboarding Modal - Compulsory modal shown when required fields are missing. */}
       <PersonOnboardingModal
         open={showOnboarding}
-        person={auth.user?.person}
+        person={user?.person}
         onSubmit={handleOnboardingSubmit}
         error={onboardingError}
       />

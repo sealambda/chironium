@@ -1,4 +1,4 @@
-import { buildHeaders } from "@/shared/utils/auth-utils";
+import { buildHeaders } from "@/shared/utils/request-utils";
 
 /**
  * Build auth-aware headers for API requests.

@@ -69,10 +69,10 @@ defmodule ChironiumWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
 
-  # Dev-only: Proxy Vite PWA assets (service worker and workbox files).
+  # Dev-only: Proxy Vite assets (i18n locales).
   # Must be placed before Router to intercept requests early.
   if code_reloading? do
-    plug ChironiumWeb.VitePwaPlug
+    plug ChironiumWeb.ViteDevProxyPlug
   end
 
   plug ChironiumWeb.Router

@@ -2,8 +2,7 @@ import { resolve } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin, type PluginOption } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
+import { defineConfig, type Plugin } from "vite";
 
 /**
  * Vite plugin for integration with the Phoenix ecosystem.
@@ -39,43 +38,20 @@ function phoenixVitePlugin(opts: { pattern?: RegExp } = {}): Plugin {
 }
 
 const mixEnv = process.env.MIX_ENV ?? "dev";
-const mixBuildPath = process.env.MIX_BUILD_PATH ?? resolve(__dirname, "../_build", mixEnv);
+const mixBuildPath =
+  process.env.MIX_BUILD_PATH ?? resolve(__dirname, "../_build", mixEnv);
 const isDev = mixEnv === "dev";
-const backendUrl = process.env.VITE_BACKEND_URL ?? "http://localhost:4000";
 
 export default defineConfig({
   // Development server configuration.
+  // Note: The app is always accessed via Phoenix (localhost:4000), not directly
+  // through Vite. This server config is only for HMR and asset serving.
   server: {
-    // Bind to localhost only for security (use 'true' if network access needed).
     host: "localhost",
     port: 5173,
     strictPort: true,
-    // Origin must match for CORS and asset URLs.
     origin: "http://localhost:5173",
     cors: { origin: "http://localhost:4000" },
-    proxy: {
-      "/gql": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/sign-in": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/sign-out": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/auth": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/live": {
-        target: backendUrl,
-        changeOrigin: true,
-        ws: true,
-      },
-    },
   },
   // Pre-bundle Phoenix dependencies for faster dev startup.
   optimizeDeps: {
@@ -130,52 +106,6 @@ export default defineConfig({
       target: "react",
       autoCodeSplitting: true,
     }),
-    VitePWA({
-      registerType: "prompt",
-      includeAssets: ["favicon.ico", "robots.txt", "images/logo.svg"],
-      manifest: {
-        name: "CHIRONIUM",
-        short_name: "CHIRONIUM",
-        description: "CHIRONIUM",
-        start_url: "/app/",
-        scope: "/app/",
-        display: "standalone",
-        theme_color: "#1e1b4b",
-        background_color: "#ffffff",
-        icons: [
-          {
-            src: "/images/pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any maskable",
-          },
-          {
-            src: "/images/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any maskable",
-          },
-        ],
-      },
-      workbox: {
-        // Navigation fallback must point to the Phoenix route that serves the SPA,
-        // not the default 'index.html'. Phoenix serves the app shell at '/app'.
-        navigateFallback: "/app",
-        // Only apply navigation fallback for routes within the app scope.
-        // This prevents the service worker from intercepting API/auth routes.
-        navigateFallbackAllowlist: [/^\/app/],
-        // Precache static assets. In dev, globPatterns is empty to avoid warnings.
-        globPatterns: isDev ? [] : ["**/*.{js,css,ico,png,svg,webmanifest}"],
-      },
-      // Development service worker configuration.
-      // Requires ChironiumWeb.VitePwaPlug in endpoint to serve PWA files.
-      devOptions: {
-        enabled: true,
-        // Dev service worker navigation must match the production config.
-        navigateFallback: "/app",
-        navigateFallbackAllowlist: [/^\/app/],
-      },
-    }) as PluginOption,
     react(),
     tailwindcss(),
     phoenixVitePlugin({ pattern: /\.(ex|heex)$/ }),
