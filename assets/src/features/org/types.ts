@@ -1,41 +1,41 @@
-import type { Organisation } from "@/gql/graphql";
+import type { Organization } from "@/gql/graphql";
 
 /**
  * Organisation context state.
  */
 export interface OrgContextState {
   /**
-   * Currently selected organisation, if any.
+   * Currently selected organization, if any.
    */
-  selectedOrg: Organisation | null;
+  selectedOrg: Organization | null;
 
   /**
-   * List of accessible organisations for the current user.
+   * List of accessible organizations for the current user.
    */
-  availableOrgs: Organisation[];
+  availableOrgs: Organization[];
 
   /**
-   * Loading state for organisations.
+   * Loading state for organizations.
    */
   loading: boolean;
 
   /**
-   * Error state for organisations.
+   * Error state for organizations.
    */
   error: Error | null;
 
   /**
-   * Select an organisation and persist preference.
+   * Select an organization and persist preference.
    */
   selectOrg: (orgId: string) => Promise<void>;
 
   /**
-   * Refresh accessible organisations.
+   * Refresh accessible organizations.
    */
-  refreshOrgs: () => Promise<Organisation[]>;
+  refreshOrgs: () => Promise<Organization[]>;
 
   /**
-   * Create a new organisation.
+   * Create a new organization.
    */
-  createOrg: (data: { name: string; slug: string }) => Promise<Organisation>;
+  createOrg: (data: { name: string; slug: string }) => Promise<Organization>;
 }

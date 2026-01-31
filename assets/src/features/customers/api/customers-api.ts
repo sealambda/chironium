@@ -1,115 +1,105 @@
+import { addMonths } from "date-fns";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { Customer } from "../ui/customer-card";
-import type { Membership } from "@/gql/graphql";
-import { graphql } from "@/gql";
+import { graphql } from "@/gql/gql";
+import type { Subscription } from "@/gql/graphql";
 
-// Extended membership type with contact info (provided by MSW mock).
-// TODO: Add contact info to graphql schema
-type MembershipWithContact = Membership & {
-  contact?: {
-    email?: string;
-    phone?: string;
-    instagram?: string;
+type SubscriptionListQuery = {
+  listSubscriptions: {
+    results: Subscription[];
   };
 };
 
-const CustomerListQuery = graphql(`
-  query CustomerList($organisationId: ID!) {
-    customerList(organisationId: $organisationId) {
-      id
-      startDate
-      endDate
-      status
-      person {
+const SubscriptionListQuery = graphql(`
+  query SubscriptionList($first: Int) {
+    listSubscriptions(first: $first) {
+      results {
         id
-        givenName
-        stSurname
-        ndSurname
+        state
+        startDate
+        subscriber {
+          id
+          name
+          contactPoints {
+            type
+            value
+          }
+        }
+        plan {
+          id
+          name
+          periodDuration
+        }
       }
     }
   }
 `);
 
-/**
- * Calculate plan duration in months from start to end date.
- */
-function calculatePlanDuration(startDate: Date, endDate: Date): number {
-  const diffMs = endDate.getTime() - startDate.getTime();
-  const diffDays = diffMs / (1000 * 60 * 60 * 24);
-  return Math.max(1, Math.round(diffDays / 30));
+function parsePlanDurationMonths(periodDuration?: string | null): number {
+  if (!periodDuration) return 3;
+  const normalized = periodDuration.trim().toLowerCase();
+  const isoMatch = /^p(\d+)m$/.exec(normalized);
+  if (isoMatch) {
+    return Number.parseInt(isoMatch[1] ?? "3", 10);
+  }
+  const textMatch = /(\d+)\s*(mo|month)/.exec(normalized);
+  if (textMatch) {
+    return Number.parseInt(textMatch[1] ?? "3", 10);
+  }
+  return 3;
 }
 
-/**
- * Generate initials from person name.
- */
-function generateInitials(
-  givenName: string | null,
-  surname: string | null,
-): string {
-  const first = givenName?.trim()?.[0]?.toUpperCase() || "";
-  const last = surname?.trim()?.[0]?.toUpperCase() || "";
-  return `${first}${last}` || "?";
+function mapSubscriptionState(state?: string | null): Customer["status"] {
+  switch (state) {
+    case "active":
+      return "up-to-date";
+    case "suspended":
+      return "needs-attention";
+    case "expired":
+    case "canceled":
+      return "overdue";
+    default:
+      return "up-to-date";
+  }
 }
 
-/**
- * Generate full name from person data.
- */
-function generateFullName(
-  givenName: string | null,
-  stSurname: string | null,
-  ndSurname: string | null,
-): string {
-  const parts = [givenName, stSurname, ndSurname].filter(Boolean);
-  return parts.join(" ") || "Unknown";
-}
+function toCustomer(item: Subscription): Customer {
+  const name = item.subscriber.name?.trim() || "Unknown";
+  const planDurationMonths = parsePlanDurationMonths(item.plan.periodDuration);
+  const startDate = new Date(item.startDate);
+  const endDate = addMonths(startDate, planDurationMonths);
+  const nameParts = name.split(/\s+/).filter(Boolean);
+  const firstInitial = nameParts.at(0)?.[0] || "";
+  const lastInitial = nameParts.at(-1)?.[0] || "";
+  const initials =
+    `${firstInitial}${lastInitial || firstInitial}`.toUpperCase() || "?";
 
-/**
- * Map membership data to Customer interface.
- */
-function mapMembershipToCustomer(membership: MembershipWithContact): Customer {
-  const startDate = new Date(membership.startDate);
-  const endDate = membership.endDate
-    ? new Date(membership.endDate)
-    : new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000);
-  const planDuration = calculatePlanDuration(startDate, endDate);
+  const email = item.subscriber.contactPoints?.find(
+    (point) => point.type === "EMAIL",
+  )?.value;
+  const phone = item.subscriber.contactPoints?.find(
+    (point) => point.type === "PHONE",
+  )?.value;
+  const instagram = item.subscriber.contactPoints?.find(
+    (point) => point.type === "INSTAGRAM",
+  )?.value;
 
   return {
-    id: membership.id,
-    name: generateFullName(
-      membership.person.givenName || null,
-      membership.person.stSurname || null,
-      membership.person.ndSurname || null,
-    ),
-    initials: generateInitials(
-      membership.person.givenName || null,
-      membership.person.stSurname || null,
-    ),
-    status: "up-to-date", // Placeholder - to be calculated from actual data.
-    membership: {
+    id: item.subscriber.id,
+    name,
+    initials,
+    status: mapSubscriptionState(item.state),
+    subscription: {
       startDate,
-      planDurationMonths: planDuration,
+      planDurationMonths,
       endDate,
     },
     contact: {
-      email: membership.contact?.email,
-      phone: membership.contact?.phone,
-      instagram: membership.contact?.instagram,
+      email: email || undefined,
+      phone: phone || undefined,
+      instagram: instagram || undefined,
     },
   };
-}
-
-/**
- * Execute the GraphQL query and parse response.
- */
-async function executeCustomerListQuery(
-  organisationId: string,
-): Promise<MembershipWithContact[]> {
-  const result = await requestGraphql({
-    document: CustomerListQuery,
-    variables: { organisationId },
-  });
-
-  return (result?.customerList as MembershipWithContact[]) || [];
 }
 
 /**
@@ -120,8 +110,18 @@ async function executeCustomerListQuery(
  * @throws Error if the fetch fails or GraphQL returns errors.
  */
 export async function fetchCustomerList(
-  organisationId: string,
+  organizationId: string,
 ): Promise<Customer[]> {
-  const memberships = await executeCustomerListQuery(organisationId);
-  return memberships.map(mapMembershipToCustomer);
+  if (!organizationId) {
+    return [];
+  }
+
+  const result = await requestGraphql<SubscriptionListQuery>({
+    document: SubscriptionListQuery,
+    variables: { first: 250 },
+    organizationId,
+  });
+
+  const subscriptions = result.listSubscriptions?.results ?? [];
+  return subscriptions.map(toCustomer);
 }

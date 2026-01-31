@@ -1,15 +1,12 @@
-import { useRouterState } from "@tanstack/react-router";
-import { Bell, LogOut, UserPlus } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { CreateCustomerSheet } from "@/features/customers/ui/create-customer-sheet";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
 import type { User } from "@/gql/graphql";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,36 +15,30 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 
-const mockNotificationCount = 3;
-
 /**
- * Get user initials from email or name.
+ * Get user initials from name or email.
  */
 function getInitials(user: User | null): string {
   if (!user) return "?";
 
-  // Try to get initials from person name first.
-  if (user.person?.givenName) {
-    const firstName = user.person.givenName;
-    const lastName = user.person.stSurname || "";
-    return `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase();
+  let parts = [];
+
+  if (user.name) {
+    // Try to get initials from name first.
+    parts = user.name.trim().split(/\s+/).filter(Boolean);
+  } else {
+    // Fall back to email.
+    const emailPart = user.email.split("@")[0];
+    parts = emailPart.split(/[._-]/).filter(Boolean);
   }
 
-  // Fall back to email.
-  const emailPart = user.email.split("@")[0];
-  if (emailPart.includes(".")) {
-    const parts = emailPart.split(".");
+  if (parts.length >= 2) {
     return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  } else if (parts.length === 1) {
+    return `${parts[0][0] || ""}`.toUpperCase();
+  } else {
+    return "?";
   }
-  return emailPart.slice(0, 2).toUpperCase();
-}
-
-/**
- * Get display name from user.
- */
-function getDisplayName(user: User | null): string {
-  if (!user) return "User";
-  return user.person?.givenName || user.email.split("@")[0];
 }
 
 /**
@@ -65,35 +56,28 @@ function getDisplayName(user: User | null): string {
 export function TopNav() {
   const { user, isAuthenticated, logout } = useAuth();
   const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
-  const routerState = useRouterState();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
-  const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [createOrgError, setCreateOrgError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const toastTimeoutRef = useRef<number | null>(null);
-
-  // Detect if we're on the customers page to show Add Customer icon.
-  const isCustomersPage =
-    routerState.location.pathname.startsWith("/customers");
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cleanup timeout on unmount.
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) {
-        window.clearTimeout(toastTimeoutRef.current);
+        globalThis.clearTimeout(toastTimeoutRef.current);
       }
     };
   }, []);
 
-  const displayName = getDisplayName(user);
   const initials = getInitials(user);
 
   const showToast = (message: string) => {
     setToastMessage(message);
     if (toastTimeoutRef.current) {
-      window.clearTimeout(toastTimeoutRef.current);
+      globalThis.clearTimeout(toastTimeoutRef.current);
     }
-    toastTimeoutRef.current = window.setTimeout(() => {
+    toastTimeoutRef.current = globalThis.setTimeout(() => {
       setToastMessage(null);
       toastTimeoutRef.current = null;
     }, 3000);
@@ -157,90 +141,65 @@ export function TopNav() {
           "px-4 md:px-6 lg:px-8",
         ].join(" ")}
       >
-        {/* Leading: Profile avatar and welcome/tenant selector. */}
-        <div className="flex items-center gap-3">
-          {/* Profile dropdown with logout option. */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className={[
-                  // Touch target: 40px avatar within 44px minimum hit area.
-                  "rounded-full ring-offset-background transition-opacity",
-                  "hover:opacity-80",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                ].join(" ")}
-                aria-label="Open profile menu"
-              >
-                <Avatar className="h-10 w-10 border-2 border-primary/20">
-                  <AvatarImage src="" alt={displayName} />
-                  <AvatarFallback className="bg-primary/10 font-medium text-primary text-sm">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="font-medium text-sm">{displayName}</p>
-                <p className="text-muted-foreground text-xs">{user.email}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
-                onClick={() => logout()}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Tenant selector. */}
+        <OrgSelector
+          selectedOrg={selectedOrg}
+          availableOrgs={availableOrgs}
+          onSelectOrg={selectOrg}
+          onCreateClick={() => setIsCreateOrgOpen(true)}
+        />
 
-          <div className="flex flex-col justify-center">
-            <span className="text-muted-foreground text-xs">
-              Welcome back, {displayName}!
-            </span>
-            <OrgSelector
-              selectedOrg={selectedOrg}
-              availableOrgs={availableOrgs}
-              onSelectOrg={selectOrg}
-              onCreateClick={() => setIsCreateOrgOpen(true)}
-            />
-          </div>
-        </div>
-
-        {/* Trailing: Add Customer on /customers, Notifications elsewhere - 44px touch target per Apple HIG. */}
-        {isCustomersPage ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10"
-            aria-label="Add customer"
-            onClick={() => setIsCreateCustomerOpen(true)}
-          >
-            <UserPlus className="h-5 w-5" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative h-10 w-10"
-            aria-label={`Notifications (${mockNotificationCount} unread)`}
-          >
-            <Bell className="h-5 w-5" />
-            {mockNotificationCount > 0 && (
-              <span
-                className={[
-                  "absolute -top-0.5 -right-0.5",
-                  "flex h-4.5 w-4.5 items-center justify-center",
-                  "rounded-full bg-destructive font-bold text-[10px] text-white",
-                ].join(" ")}
+        {/* Profile. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={[
+                // Touch target: 40px avatar within 44px minimum hit area.
+                "rounded-full ring-offset-background transition-opacity",
+                "hover:opacity-80",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              ].join(" ")}
+              aria-label="Open profile menu"
+            >
+              <Avatar className="h-10 w-10 border-2 border-primary/20 cursor-pointer">
+                {user.picture && (
+                  <AvatarImage
+                    src={user.picture}
+                    alt={user.name || user.email}
+                  />
+                )}
+                <AvatarFallback className="bg-primary/10 font-medium text-primary text-sm">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <div className="px-2 py-1.5">
+              {user.name && (
+                <p className="font-semibold text-sm">{user.name}</p>
+              )}
+              <p
+                className={
+                  user.name
+                    ? "text-muted-foreground text-xs"
+                    : "font-semibold text-sm"
+                }
               >
-                {mockNotificationCount > 9 ? "9+" : mockNotificationCount}
-              </span>
-            )}
-          </Button>
-        )}
+                {user.email}
+              </p>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
+              onClick={() => logout()}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <CreateOrgModal
@@ -248,10 +207,6 @@ export function TopNav() {
         onOpenChange={setIsCreateOrgOpen}
         onSubmit={handleCreateOrg}
         error={createOrgError}
-      />
-      <CreateCustomerSheet
-        open={isCreateCustomerOpen}
-        onOpenChange={setIsCreateCustomerOpen}
       />
       {toastMessage && (
         <div className="pointer-events-none fixed top-20 right-4 z-50 w-[260px] rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-700 text-sm shadow-lg">

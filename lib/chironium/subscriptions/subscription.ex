@@ -20,17 +20,32 @@ defmodule Chironium.Subscriptions.Subscription do
 
   graphql do
     type :subscription
+
+    queries do
+      list :list_subscriptions, :read
+    end
   end
 
   postgres do
     table "subscriptions"
   end
 
+  policies do
+    policy always() do
+      authorize_if always()
+    end
+  end
+
   attributes do
+    attribute :start_date, :date do
+      allow_nil? false
+      public? true
+      default &Date.utc_today/0
+    end
   end
 
   actions do
-    defaults [:read, :destroy, create: [:subscriber_id, :plan_id]]
+    defaults [:read, :destroy, create: [:subscriber_id, :plan_id, :start_date]]
 
     create :create_with_new_subscriber do
       argument :subscriber, :map do

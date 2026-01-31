@@ -1,17 +1,9 @@
-import { useState } from "react";
-import { useAuth } from "@/features/auth/hooks/use-auth";
-import { useUpdatePersonOnboarding } from "@/features/person/hooks/use-update-person-onboarding";
-import {
-  isPersonIncomplete,
-  type PersonOnboardingData,
-} from "@/features/person/model/person-onboarding";
-import { PersonOnboardingModal } from "@/features/person/ui/person-onboarding-modal";
 import { BottomNav } from "./bottom-nav";
 import { SideNav } from "./side-nav";
 import { TopNav } from "./top-nav";
 
 interface AppShellProps {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 /**
@@ -29,34 +21,6 @@ interface AppShellProps {
  * - Extra-large: ≥1600px.
  */
 export function AppShell({ children }: AppShellProps) {
-  const auth = useAuth();
-  const [onboardingError, setOnboardingError] = useState<string | null>(null);
-  const updatePersonMutation = useUpdatePersonOnboarding();
-
-  // Show onboarding modal when user is authenticated but person data is incomplete.
-  const showOnboarding =
-    !auth.isLoading &&
-    auth.isAuthenticated &&
-    isPersonIncomplete(auth.user?.person);
-
-  const handleOnboardingSubmit = async (data: PersonOnboardingData) => {
-    setOnboardingError(null);
-    try {
-      const personId = auth.user?.person?.id;
-      if (!personId) {
-        throw new Error("Missing person identifier");
-      }
-      await updatePersonMutation.mutateAsync({ personId, data });
-      // Refresh user data to re-check completion.
-      await auth.refreshUser();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to update profile";
-      setOnboardingError(message);
-      throw error;
-    }
-  };
-
   return (
     <div className="flex min-h-svh w-full max-w-full overflow-x-hidden bg-background">
       {/* Side Navigation - Hidden on mobile (compact), visible on tablet+ (medium+). */}
@@ -90,14 +54,6 @@ export function AppShell({ children }: AppShellProps) {
         {/* Bottom Navigation - Visible on mobile only. */}
         <BottomNav />
       </div>
-
-      {/* Person Onboarding Modal - Compulsory modal shown when required fields are missing. */}
-      <PersonOnboardingModal
-        open={showOnboarding}
-        person={auth.user?.person}
-        onSubmit={handleOnboardingSubmit}
-        error={onboardingError}
-      />
     </div>
   );
 }

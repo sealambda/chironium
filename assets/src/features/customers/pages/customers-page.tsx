@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { Button } from "@/shared/ui/button";
 import { fetchCustomerList } from "../api/customers-api";
 import { useCustomersStore } from "../store/customers-store";
 import { CustomerSheet } from "../ui/create-customer-sheet";
@@ -15,6 +17,7 @@ const EMPTY_CUSTOMERS: Customer[] = [];
 export function CustomersPage() {
   const { selectedOrg } = useOrg();
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
 
   const {
     data: apiCustomers = [],
@@ -84,12 +87,23 @@ export function CustomersPage() {
     <div className="space-y-4 pt-2">
       {/* Page header. */}
       <header className="flex items-baseline justify-between">
-        <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
-          Customers
-        </h1>
-        <span className="text-muted-foreground text-sm">
-          {customers.length} total
-        </span>
+        <div className="flex items-baseline gap-3">
+          <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
+            Customers
+          </h1>
+          <span className="text-muted-foreground text-sm">
+            {customers.length} total
+          </span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10"
+          aria-label="Add customer"
+          onClick={() => setIsCreateCustomerOpen(true)}
+        >
+          <UserPlus className="size-5" />
+        </Button>
       </header>
 
       {/* Customer cards list. */}
@@ -121,6 +135,10 @@ export function CustomersPage() {
         open={editingCustomer !== null}
         onOpenChange={(open) => !open && setEditingCustomer(null)}
         customer={editingCustomer ?? undefined}
+      />
+      <CustomerSheet
+        open={isCreateCustomerOpen}
+        onOpenChange={setIsCreateCustomerOpen}
       />
     </div>
   );

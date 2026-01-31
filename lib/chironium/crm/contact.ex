@@ -36,6 +36,12 @@ defmodule Chironium.CRM.Contact do
     end
   end
 
+  policies do
+    policy always() do
+      authorize_if always()
+    end
+  end
+
   attributes do
     attribute :name, :string do
       public? true
