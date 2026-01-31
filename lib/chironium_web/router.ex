@@ -69,18 +69,16 @@ defmodule ChironiumWeb.Router do
     end
   end
 
+  # Public routes - no authentication required.
   scope "/", ChironiumWeb do
     pipe_through :browser
-
-    get "/", PageController, :home
-    get "/app/*path", PageController, :app
 
     auth_routes AuthController, Chironium.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
     # Custom sign-in LiveView with branded design.
     # Uses ash_authentication_live_session to load user from session,
-    # then :live_no_user redirects authenticated users to /app.
+    # then :live_no_user redirects authenticated users to /.
     ash_authentication_live_session :auth,
       on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
       layout: false do
@@ -92,17 +90,8 @@ defmodule ChironiumWeb.Router do
                 overrides: [ChironiumWeb.AuthOverrides]
   end
 
-  # PWA routes - requires authenticated user.
-  # Phoenix is the sole auth gatekeeper: if a user reaches these routes,
-  # they are authenticated. The PWA doesn't manage auth state.
-  scope "/", ChironiumWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    get "/index.html", PageController, :app
-    get "/app/*path", PageController, :app
-  end
-
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  # Enable LiveDashboard and Swoosh mailbox preview in development.
+  # These routes MUST come before the catch-all PWA routes.
   if Application.compile_env(:chironium, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
@@ -133,5 +122,16 @@ defmodule ChironiumWeb.Router do
 
       ash_admin "/"
     end
+  end
+
+  # PWA routes - requires authenticated user.
+  # Phoenix is the sole auth gatekeeper: if a user reaches these routes,
+  # they are authenticated. The PWA doesn't manage auth state.
+  # IMPORTANT: This catch-all MUST be defined last, after all specific routes.
+  scope "/", ChironiumWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    get "/", PageController, :app
+    get "/*path", PageController, :app
   end
 end

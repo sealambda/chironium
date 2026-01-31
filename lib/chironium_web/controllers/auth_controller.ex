@@ -42,7 +42,7 @@ defmodule ChironiumWeb.AuthController do
   def sign_out(conn, _params) do
     # On sign-out, always redirect to the configured app URL.
     # No need to validate state here since the user is ending their session.
-    app_url = Application.get_env(:chironium, :app_url, "/app")
+    app_url = Application.get_env(:chironium, :app_url, "/")
 
     conn
     |> clear_session(:chironium)
@@ -53,7 +53,7 @@ defmodule ChironiumWeb.AuthController do
   # Extract and validate the return URL from the signed state token.
   # Falls back to the configured app_url if no valid token is found.
   defp get_validated_return_url(conn) do
-    app_url = Application.get_env(:chironium, :app_url, "/app")
+    app_url = Application.get_env(:chironium, :app_url, "/")
 
     case get_session(conn, :auth_return_state) do
       nil ->

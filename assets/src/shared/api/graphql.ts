@@ -34,10 +34,9 @@ export async function requestGraphql<TResult>({
   document,
   variables,
   organizationId,
-}: Pick<
-  RequestOptions<Variables, TResult>,
-  "document" | "variables"
->): Promise<TResult> {
+}: Pick<RequestOptions<Variables, TResult>, "document" | "variables"> & {
+  organizationId?: string;
+}): Promise<TResult> {
   // GraphQLClient requires an absolute URL.
   // Use current origin since the PWA is always served through Phoenix.
   const endpoint = `${window.location.origin}${API_PATHS.graphql}`;

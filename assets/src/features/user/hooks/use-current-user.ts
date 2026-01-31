@@ -23,7 +23,7 @@ export interface CurrentUserState {
  *
  *   if (isLoading) return <Spinner />;
  *
- *   return <div>Welcome, {user?.person?.givenName}</div>;
+ *   return <div>Welcome, {user?.name || user?.email}</div>;
  * }
  * ```
  */
