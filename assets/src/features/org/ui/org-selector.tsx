@@ -1,15 +1,15 @@
 import { ChevronDown, Plus } from "lucide-react";
+import type { Organization } from "@/gql/graphql";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import type { Organisation } from "@/gql/graphql";
 
 interface OrgSelectorProps {
-  selectedOrg: Organisation | null;
-  availableOrgs: Organisation[];
+  selectedOrg: Organization | null;
+  availableOrgs: Organization[];
   onSelectOrg: (orgId: string) => void;
   onCreateClick: () => void;
 }

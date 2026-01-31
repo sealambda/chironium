@@ -22,5 +22,5 @@
     "assets:check:fix": "pnpm --filter chironium-assets check:fix",
     "assets:codegen": "pnpm --filter chironium-assets codegen"
   },
-  "packageManager": "pnpm@10.28.0"
+  "packageManager": "pnpm@10.28.2"
 }

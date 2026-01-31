@@ -45,13 +45,12 @@ const toggleGroupItemVariants = cva(
   },
 );
 
-interface ToggleGroupProps
-  extends VariantProps<typeof toggleGroupVariants>,
-    React.ComponentPropsWithoutRef<"div"> {
+interface ToggleGroupProps extends VariantProps<typeof toggleGroupVariants> {
   value: string;
   onValueChange: (value: string) => void;
   children: React.ReactNode;
   disabled?: boolean;
+  className?: string;
 }
 
 /**
@@ -65,7 +64,6 @@ function ToggleGroup({
   className,
   children,
   disabled,
-  ...props
 }: ToggleGroupProps) {
   return (
     <ToggleGroupPrimitive
@@ -79,7 +77,6 @@ function ToggleGroup({
       }}
       disabled={disabled}
       className={cn(toggleGroupVariants({ size }), className)}
-      {...props}
     >
       {children}
     </ToggleGroupPrimitive>
