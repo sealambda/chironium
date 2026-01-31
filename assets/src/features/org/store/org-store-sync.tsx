@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { fetchAccessibleOrganisations } from "../api/org-api";
+import { fetchAccessibleOrganizations } from "../api/org-api";
 import { ORG_QUERY_KEY, useOrgStore } from "./org-store";
 
 /**
@@ -11,14 +11,19 @@ export function OrgStoreSync() {
   const setFromQuery = useOrgStore((state) => state.setFromQuery);
   const { data, isLoading, error } = useQuery({
     queryKey: ORG_QUERY_KEY,
-    queryFn: fetchAccessibleOrganisations,
+    queryFn: fetchAccessibleOrganizations,
   });
 
   useEffect(() => {
     setFromQuery({
       availableOrgs: data ?? [],
       loading: isLoading,
-      error: error instanceof Error ? error : error ? new Error("Unknown error") : null,
+      error:
+        error instanceof Error
+          ? error
+          : error
+            ? new Error("Unknown error")
+            : null,
     });
   }, [data, isLoading, error, setFromQuery]);
 

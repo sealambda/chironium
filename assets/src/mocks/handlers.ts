@@ -1,283 +1,412 @@
 import { graphql, HttpResponse } from "msw";
-import {
-  type Organisation,
-  type Membership,
-  type Person,
-  type User,
-} from "@/gql/graphql";
+import { type Organization, type User } from "@/gql/graphql";
 import { BACKEND_URL } from "@/shared/utils";
 
-// Mock current user data.
-const currentUser: User = {
+type CreateOrganizationPayload = {
+  result: Organization | null;
+  errors: Array<{ message?: string | null }>;
+};
+
+type ContactPointInput = {
+  id?: string;
+  type?: "EMAIL" | "PHONE" | "INSTAGRAM" | null;
+  label?: string | null;
+  value?: string | null;
+  isPrimary: boolean;
+};
+
+type ContactPoint = ContactPointInput & {
+  id: string;
+};
+
+type Contact = {
+  id: string;
+  name?: string | null;
+  contactPoints?: ContactPoint[] | null;
+};
+
+type SubscriptionSeed = {
+  id: string;
+  organizationId: string;
+  state: string;
+  startDate: string;
+  subscriber: {
+    id: string;
+    name?: string | null;
+    contactPoints?: ContactPointInput[] | null;
+  };
+  plan: {
+    id: string;
+    name?: string | null;
+    periodDuration?: string | null;
+  };
+};
+
+type CreateContactPayload = {
+  result: Contact | null;
+  errors: Array<{ message?: string | null }>;
+};
+
+// Mock current actor data.
+const currentActor: User = {
   id: "user-1",
   email: "admin@example.com",
-  person: {
-    id: "person-1",
-    givenName: "Jordan",
-    stSurname: "Taylor",
-    ndSurname: "Tovar",
-    birthDate: "1990-05-15",
-  },
 };
 
-// Contact info by person ID (not in GraphQL schema yet, but needed for mock).
-const contactByPersonId: Record<
-  string,
-  { email?: string; phone?: string; instagram?: string }
-> = {
-  "person-sara": {
-    email: "saraoleamartin@gmail.com",
-    phone: "+34695269851",
-    instagram: "@Saraom93",
-  },
-  "person-berta": {
-    email: "bertaguaschf@gmail.com",
-    phone: "+34601366557",
-    instagram: "@tuskituski__",
-  },
-  "person-lorena": {
-    email: "lorenaafonso2222@gmail.com",
-    phone: "+34677089553",
-    instagram: "@lorenaafonso_",
-  },
-  "person-jessica": {
-    email: "laubaldica@gmail.com",
-    phone: "+34619260307",
-    instagram: undefined,
-  },
-  "person-tania": {
-    email: "trodriguezescriche@hotmail.com",
-    phone: "+34627697917",
-    instagram: "@tania_r_e",
-  },
-  "person-laura": {
-    email: "akelau@gmail.com",
-    phone: "+34600299114",
-    instagram: undefined,
-  },
-  "person-sara-m": {
-    email: "zarahmuru@gmail.com",
-    phone: "+34600778198",
-    instagram: undefined,
-  },
-  "person-carmen": {
-    email: "carmengonzriv97@gmail.com",
-    phone: "+34622192710",
-    instagram: "@carmenkuki97",
-  },
-  "person-sara-r": {
-    email: "sarotaroman_89@hotmail.com",
-    phone: "+34678236894",
-    instagram: "@sarabailasola",
-  },
-  "person-isabel": {
-    email: "elise.castes@gmail.com",
-    phone: "+34635523837",
-    instagram: "@isabeelace",
-  },
-};
-
-// Mock person data store.
-const personsById: Record<string, Person> = {
-  "person-1": currentUser.person,
-  "person-sara": {
-    id: "person-sara",
-    givenName: "Sara",
-    stSurname: "Olea",
-    ndSurname: "Martín",
-    birthDate: "1993-01-01",
-  },
-  "person-berta": {
-    id: "person-berta",
-    givenName: "Berta",
-    stSurname: "Guasch",
-    ndSurname: null,
-    birthDate: "1990-01-01",
-  },
-  "person-lorena": {
-    id: "person-lorena",
-    givenName: "Lorena",
-    stSurname: "Alfonso",
-    ndSurname: null,
-    birthDate: "1992-01-01",
-  },
-  "person-jessica": {
-    id: "person-jessica",
-    givenName: "Jessica",
-    stSurname: "Mújica",
-    ndSurname: null,
-    birthDate: "1991-01-01",
-  },
-  "person-tania": {
-    id: "person-tania",
-    givenName: "Tania",
-    stSurname: "Rodríguez",
-    ndSurname: null,
-    birthDate: "1994-01-01",
-  },
-  "person-laura": {
-    id: "person-laura",
-    givenName: "Laura",
-    stSurname: "Blasco",
-    ndSurname: null,
-    birthDate: "1989-01-01",
-  },
-  "person-sara-m": {
-    id: "person-sara-m",
-    givenName: "Sara",
-    stSurname: "Muñoz",
-    ndSurname: null,
-    birthDate: "1990-01-01",
-  },
-  "person-carmen": {
-    id: "person-carmen",
-    givenName: "Carmen",
-    stSurname: "González",
-    ndSurname: null,
-    birthDate: "1997-01-01",
-  },
-  "person-sara-r": {
-    id: "person-sara-r",
-    givenName: "Sara",
-    stSurname: "Román",
-    ndSurname: null,
-    birthDate: "1989-01-01",
-  },
-  "person-isabel": {
-    id: "person-isabel",
-    givenName: "Isabel",
-    stSurname: "Castell",
-    ndSurname: null,
-    birthDate: "1992-01-01",
-  },
-};
-
-const organisations: Organisation[] = [
+const organizations: Organization[] = [
   {
     id: "org-sealambda",
     name: "SeaLambda",
     slug: "sealambda",
-    profilePicture: null,
-    themeSeedColor: "#3B82F6",
   },
   {
     id: "org-comunidad-mujeres-alfa",
     name: "Comunidad Mujeres Alfa",
     slug: "comunidad-mujeres-alfa",
-    profilePicture: null,
-    themeSeedColor: "#EC4899",
   },
 ];
 
-const membershipsByOrg: Record<string, Membership[]> = {
-  "org-sealambda": [],
-  "org-comunidad-mujeres-alfa": [
-    {
-      id: "mem-sara",
-      startDate: "2025-11-25",
-      endDate: "2026-11-25",
-      status: "active",
-      person: personsById["person-sara"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-sara",
-    },
-    {
-      id: "mem-berta",
-      startDate: "2025-12-09",
-      endDate: "2026-06-09",
-      status: "active",
-      person: personsById["person-berta"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-berta",
-    },
-    {
-      id: "mem-lorena",
-      startDate: "2025-12-12",
-      endDate: "2026-06-12",
-      status: "active",
-      person: personsById["person-lorena"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-lorena",
-    },
-    {
-      id: "mem-jessica",
-      startDate: "2025-12-12",
-      endDate: "2026-06-12",
-      status: "active",
-      person: personsById["person-jessica"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-jessica",
-    },
-    {
-      id: "mem-tania",
-      startDate: "2026-01-05",
-      endDate: "2026-07-05",
-      status: "active",
-      person: personsById["person-tania"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-tania",
-    },
-    {
-      id: "mem-laura",
-      startDate: "2025-12-15",
-      endDate: "2026-06-15",
-      status: "active",
-      person: personsById["person-laura"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-laura",
-    },
-    {
-      id: "mem-sara-m",
-      startDate: "2025-12-15",
-      endDate: "2026-12-15",
-      status: "active",
-      person: personsById["person-sara-m"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-sara-m",
-    },
-    {
-      id: "mem-carmen",
-      startDate: "2025-12-15",
-      endDate: "2026-06-15",
-      status: "active",
-      person: personsById["person-carmen"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-carmen",
-    },
-    {
-      id: "mem-sara-r",
-      startDate: "2025-12-17",
-      endDate: "2026-06-17",
-      status: "active",
-      person: personsById["person-sara-r"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-sara-r",
-    },
-    {
-      id: "mem-isabel",
-      startDate: "2025-12-19",
-      endDate: "2026-06-19",
-      status: "active",
-      person: personsById["person-isabel"],
-      organisation: organisations[1],
-      organisationId: "org-comunidad-mujeres-alfa",
-      personId: "person-isabel",
-    },
-  ],
-};
+const contacts: Contact[] = [];
 
-function createOrganisation(
-  input: { name?: string; slug?: string } | null | undefined,
-) {
+const subscriptions: SubscriptionSeed[] = [
+  {
+    id: "sub-comunidad-sara",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2025-11-25",
+    subscriber: {
+      id: "contact-sara",
+      name: "Sara Olea Martín",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "saraoleamartin@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34695269851",
+          isPrimary: false,
+        },
+        {
+          type: "INSTAGRAM",
+          label: "Instagram",
+          value: "@Saraom93",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-12m",
+      name: "12 month plan",
+      periodDuration: "P12M",
+    },
+  },
+  {
+    id: "sub-comunidad-berta",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2025-12-09",
+    subscriber: {
+      id: "contact-berta",
+      name: "Berta Guasch",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "bertaguaschf@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34601366557",
+          isPrimary: false,
+        },
+        {
+          type: "INSTAGRAM",
+          label: "Instagram",
+          value: "@tuskituski__",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+  {
+    id: "sub-comunidad-lorena",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2025-12-12",
+    subscriber: {
+      id: "contact-lorena",
+      name: "Lorena Alfonso",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "lorenaafonso2222@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34677089553",
+          isPrimary: false,
+        },
+        {
+          type: "INSTAGRAM",
+          label: "Instagram",
+          value: "@lorenaafonso_",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+  {
+    id: "sub-comunidad-jessica",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2025-12-12",
+    subscriber: {
+      id: "contact-jessica",
+      name: "Jessica Mújica",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "laubaldica@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34619260307",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+  {
+    id: "sub-comunidad-tania",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2026-01-05",
+    subscriber: {
+      id: "contact-tania",
+      name: "Tania Rodríguez",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "trodriguezescriche@hotmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34627697917",
+          isPrimary: false,
+        },
+        {
+          type: "INSTAGRAM",
+          label: "Instagram",
+          value: "@tania_r_e",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+  {
+    id: "sub-comunidad-laura",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2025-12-19",
+    subscriber: {
+      id: "contact-laura",
+      name: "Laura Blasco",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "akelau@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34600299114",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-12m",
+      name: "12 month plan",
+      periodDuration: "P12M",
+    },
+  },
+  {
+    id: "sub-comunidad-sara-m",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2025-12-23",
+    subscriber: {
+      id: "contact-sara-m",
+      name: "Sara Muñoz",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "zarahmuru@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34600778198",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+  {
+    id: "sub-comunidad-carmen",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2025-12-28",
+    subscriber: {
+      id: "contact-carmen",
+      name: "Carmen González",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "carmengonzriv97@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34622192710",
+          isPrimary: false,
+        },
+        {
+          type: "INSTAGRAM",
+          label: "Instagram",
+          value: "@carmenkuki97",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+  {
+    id: "sub-comunidad-sara-r",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2026-01-02",
+    subscriber: {
+      id: "contact-sara-r",
+      name: "Sara Román",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "sarotaroman_89@hotmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34678236894",
+          isPrimary: false,
+        },
+        {
+          type: "INSTAGRAM",
+          label: "Instagram",
+          value: "@sarabailasola",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+  {
+    id: "sub-comunidad-isabel",
+    organizationId: "org-comunidad-mujeres-alfa",
+    state: "active",
+    startDate: "2026-01-06",
+    subscriber: {
+      id: "contact-isabel",
+      name: "Isabel Castell",
+      contactPoints: [
+        {
+          type: "EMAIL",
+          label: "Email",
+          value: "elise.castes@gmail.com",
+          isPrimary: true,
+        },
+        {
+          type: "PHONE",
+          label: "Phone",
+          value: "+34635523837",
+          isPrimary: false,
+        },
+        {
+          type: "INSTAGRAM",
+          label: "Instagram",
+          value: "@isabeelace",
+          isPrimary: false,
+        },
+      ],
+    },
+    plan: {
+      id: "plan-6m",
+      name: "6 month plan",
+      periodDuration: "P6M",
+    },
+  },
+];
+
+function createOrganization(input?: {
+  name?: string;
+  slug?: string;
+}): CreateOrganizationPayload {
   if (!input?.name || !input?.slug) {
     return {
       result: null,
@@ -285,16 +414,13 @@ function createOrganisation(
     };
   }
 
-  const newOrg: Organisation = {
-    id: `org-${organisations.length + 1}`,
+  const newOrg: Organization = {
+    id: `org-${organizations.length + 1}`,
     name: input.name,
     slug: input.slug,
-    profilePicture: null,
-    themeSeedColor: "#f97316",
   };
 
-  organisations.push(newOrg);
-  membershipsByOrg[newOrg.id] = [];
+  organizations.push(newOrg);
 
   return {
     result: newOrg,
@@ -302,42 +428,35 @@ function createOrganisation(
   };
 }
 
-function updatePerson(
-  id: string,
-  input:
-    | {
-        givenName?: string | null;
-        stSurname?: string | null;
-        ndSurname?: string | null;
-        birthDate?: string | null;
-      }
-    | null
-    | undefined,
-) {
-  const person = personsById[id];
-  if (!person) {
+function createContact(input?: {
+  name?: string;
+  contactPoints?: ContactPointInput[] | null;
+}): CreateContactPayload {
+  if (!input?.name) {
     return {
       result: null,
-      errors: [{ message: `Person with id ${id} not found.` }],
+      errors: [{ message: "Name is required." }],
     };
   }
 
-  // Update person fields.
-  if (input?.givenName !== undefined) {
-    person.givenName = input.givenName;
-  }
-  if (input?.stSurname !== undefined) {
-    person.stSurname = input.stSurname;
-  }
-  if (input?.ndSurname !== undefined) {
-    person.ndSurname = input.ndSurname;
-  }
-  if (input?.birthDate !== undefined) {
-    person.birthDate = input.birthDate;
-  }
+  const contactId = `contact-${contacts.length + 1}`;
+  const contactPoints =
+    input.contactPoints?.map((point, index) => ({
+      ...point,
+      id: point.id || `cp-${contactId}-${index + 1}`,
+      isPrimary: point.isPrimary ?? index === 0,
+    })) ?? [];
+
+  const contact: Contact = {
+    id: contactId,
+    name: input.name,
+    contactPoints,
+  };
+
+  contacts.push(contact);
 
   return {
-    result: person,
+    result: contact,
     errors: [],
   };
 }
@@ -346,74 +465,61 @@ function updatePerson(
 const gql = graphql.link(`${BACKEND_URL}/gql`);
 
 export const handlers = [
-  gql.query("CurrentUser", () => {
+  gql.query("CurrentActor", () => {
     return HttpResponse.json({
       data: {
-        currentUser,
+        currentActor,
       },
     });
   }),
 
-  gql.query("AccessibleOrganisations", () => {
+  gql.query("ListOrganizations", () => {
     return HttpResponse.json({
       data: {
-        organisations,
+        listOrganizations: {
+          results: organizations,
+        },
       },
     });
   }),
 
-  gql.query("CustomerList", ({ variables }) => {
-    const organisationId =
-      typeof variables?.organisationId === "string"
-        ? variables.organisationId
-        : null;
-    const memberships = organisationId
-      ? (membershipsByOrg[organisationId] ?? [])
-      : [];
-
-    // Extend memberships with contact info for mock purposes.
-    const customerList = memberships.map((m) => ({
-      ...m,
-      contact: contactByPersonId[m.personId] ?? {},
-    }));
+  gql.query("SubscriptionList", ({ request }) => {
+    const orgId = request.headers.get("x-chironium-organizationid");
+    const results = orgId
+      ? subscriptions.filter((sub) => sub.organizationId === orgId)
+      : subscriptions;
 
     return HttpResponse.json({
       data: {
-        customerList,
+        listSubscriptions: {
+          results,
+        },
       },
     });
   }),
 
-  gql.mutation("CreateOrganisation", ({ variables }) => {
-    const payload = createOrganisation(
-      variables?.input as { name?: string; slug?: string },
+  gql.mutation("CreateOrganization", ({ variables }) => {
+    const payload = createOrganization(
+      variables?.input as { name?: string; slug?: string } | undefined,
     );
 
     return HttpResponse.json({
       data: {
-        createOrganisation: payload,
+        createOrganization: payload,
       },
     });
   }),
 
-  gql.mutation("UpdatePerson", ({ variables }) => {
-    const id = typeof variables?.id === "string" ? variables.id : "";
-    const payload = updatePerson(
-      id,
+  gql.mutation("CreateContactWithContactPoints", ({ variables }) => {
+    const payload = createContact(
       variables?.input as
-        | {
-            givenName?: string | null;
-            stSurname?: string | null;
-            ndSurname?: string | null;
-            birthDate?: string | null;
-          }
-        | null
+        | { name?: string; contactPoints?: ContactPoint[] | null }
         | undefined,
     );
 
     return HttpResponse.json({
       data: {
-        updatePerson: payload,
+        createContactWithContactPoints: payload,
       },
     });
   }),

@@ -14,18 +14,16 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query CurrentUser {\n    currentUser {\n      id\n      email\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n    }\n  }\n": typeof types.CurrentUserDocument,
-    "\n  query CustomerList($organisationId: ID!) {\n    customerList(organisationId: $organisationId) {\n      id\n      startDate\n      endDate\n      status\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n      }\n    }\n  }\n": typeof types.CustomerListDocument,
-    "\n  query AccessibleOrganisations {\n    organisations {\n      id\n      name\n      slug\n      profilePicture\n      themeSeedColor\n    }\n  }\n": typeof types.AccessibleOrganisationsDocument,
-    "\n  mutation CreateOrganisation($input: CreateOrganisationInput!) {\n    createOrganisation(input: $input) {\n      result {\n        id\n        name\n        slug\n        profilePicture\n        themeSeedColor\n      }\n      errors {\n        message\n      }\n    }\n  }\n": typeof types.CreateOrganisationDocument,
-    "\n  mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {\n    updatePerson(id: $id, input: $input) {\n      result {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n      errors {\n        message\n      }\n    }\n  }\n": typeof types.UpdatePersonDocument,
+    "\n  query CurrentActor {\n    currentActor {\n      id\n      email\n    }\n  }\n": typeof types.CurrentActorDocument,
+    "\n  query SubscriptionList($first: Int) {\n    listSubscriptions(first: $first) {\n      results {\n        id\n        state\n        startDate\n        subscriber {\n          id\n          name\n          contactPoints {\n            type\n            value\n          }\n        }\n        plan {\n          id\n          name\n          periodDuration\n        }\n      }\n    }\n  }\n": typeof types.SubscriptionListDocument,
+    "\n  query ListOrganizations($first: Int) {\n    listOrganizations(first: $first) {\n      results {\n        id\n        name\n        slug\n      }\n    }\n  }\n": typeof types.ListOrganizationsDocument,
+    "\n  mutation CreateOrganization($input: CreateOrganizationInput!) {\n    createOrganization(input: $input) {\n      result {\n        id\n        name\n        slug\n      }\n      errors {\n        message\n      }\n    }\n  }\n": typeof types.CreateOrganizationDocument,
 };
 const documents: Documents = {
-    "\n  query CurrentUser {\n    currentUser {\n      id\n      email\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n    }\n  }\n": types.CurrentUserDocument,
-    "\n  query CustomerList($organisationId: ID!) {\n    customerList(organisationId: $organisationId) {\n      id\n      startDate\n      endDate\n      status\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n      }\n    }\n  }\n": types.CustomerListDocument,
-    "\n  query AccessibleOrganisations {\n    organisations {\n      id\n      name\n      slug\n      profilePicture\n      themeSeedColor\n    }\n  }\n": types.AccessibleOrganisationsDocument,
-    "\n  mutation CreateOrganisation($input: CreateOrganisationInput!) {\n    createOrganisation(input: $input) {\n      result {\n        id\n        name\n        slug\n        profilePicture\n        themeSeedColor\n      }\n      errors {\n        message\n      }\n    }\n  }\n": types.CreateOrganisationDocument,
-    "\n  mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {\n    updatePerson(id: $id, input: $input) {\n      result {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n      errors {\n        message\n      }\n    }\n  }\n": types.UpdatePersonDocument,
+    "\n  query CurrentActor {\n    currentActor {\n      id\n      email\n    }\n  }\n": types.CurrentActorDocument,
+    "\n  query SubscriptionList($first: Int) {\n    listSubscriptions(first: $first) {\n      results {\n        id\n        state\n        startDate\n        subscriber {\n          id\n          name\n          contactPoints {\n            type\n            value\n          }\n        }\n        plan {\n          id\n          name\n          periodDuration\n        }\n      }\n    }\n  }\n": types.SubscriptionListDocument,
+    "\n  query ListOrganizations($first: Int) {\n    listOrganizations(first: $first) {\n      results {\n        id\n        name\n        slug\n      }\n    }\n  }\n": types.ListOrganizationsDocument,
+    "\n  mutation CreateOrganization($input: CreateOrganizationInput!) {\n    createOrganization(input: $input) {\n      result {\n        id\n        name\n        slug\n      }\n      errors {\n        message\n      }\n    }\n  }\n": types.CreateOrganizationDocument,
 };
 
 /**
@@ -45,23 +43,19 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query CurrentUser {\n    currentUser {\n      id\n      email\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n    }\n  }\n"): (typeof documents)["\n  query CurrentUser {\n    currentUser {\n      id\n      email\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query CurrentActor {\n    currentActor {\n      id\n      email\n    }\n  }\n"): (typeof documents)["\n  query CurrentActor {\n    currentActor {\n      id\n      email\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query CustomerList($organisationId: ID!) {\n    customerList(organisationId: $organisationId) {\n      id\n      startDate\n      endDate\n      status\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n      }\n    }\n  }\n"): (typeof documents)["\n  query CustomerList($organisationId: ID!) {\n    customerList(organisationId: $organisationId) {\n      id\n      startDate\n      endDate\n      status\n      person {\n        id\n        givenName\n        stSurname\n        ndSurname\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query SubscriptionList($first: Int) {\n    listSubscriptions(first: $first) {\n      results {\n        id\n        state\n        startDate\n        subscriber {\n          id\n          name\n          contactPoints {\n            type\n            value\n          }\n        }\n        plan {\n          id\n          name\n          periodDuration\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query SubscriptionList($first: Int) {\n    listSubscriptions(first: $first) {\n      results {\n        id\n        state\n        startDate\n        subscriber {\n          id\n          name\n          contactPoints {\n            type\n            value\n          }\n        }\n        plan {\n          id\n          name\n          periodDuration\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query AccessibleOrganisations {\n    organisations {\n      id\n      name\n      slug\n      profilePicture\n      themeSeedColor\n    }\n  }\n"): (typeof documents)["\n  query AccessibleOrganisations {\n    organisations {\n      id\n      name\n      slug\n      profilePicture\n      themeSeedColor\n    }\n  }\n"];
+export function graphql(source: "\n  query ListOrganizations($first: Int) {\n    listOrganizations(first: $first) {\n      results {\n        id\n        name\n        slug\n      }\n    }\n  }\n"): (typeof documents)["\n  query ListOrganizations($first: Int) {\n    listOrganizations(first: $first) {\n      results {\n        id\n        name\n        slug\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation CreateOrganisation($input: CreateOrganisationInput!) {\n    createOrganisation(input: $input) {\n      result {\n        id\n        name\n        slug\n        profilePicture\n        themeSeedColor\n      }\n      errors {\n        message\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateOrganisation($input: CreateOrganisationInput!) {\n    createOrganisation(input: $input) {\n      result {\n        id\n        name\n        slug\n        profilePicture\n        themeSeedColor\n      }\n      errors {\n        message\n      }\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {\n    updatePerson(id: $id, input: $input) {\n      result {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n      errors {\n        message\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {\n    updatePerson(id: $id, input: $input) {\n      result {\n        id\n        givenName\n        stSurname\n        ndSurname\n        birthDate\n      }\n      errors {\n        message\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  mutation CreateOrganization($input: CreateOrganizationInput!) {\n    createOrganization(input: $input) {\n      result {\n        id\n        name\n        slug\n      }\n      errors {\n        message\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateOrganization($input: CreateOrganizationInput!) {\n    createOrganization(input: $input) {\n      result {\n        id\n        name\n        slug\n      }\n      errors {\n        message\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

@@ -9,7 +9,7 @@ export interface Customer {
   name: string;
   initials: string;
   status: "up-to-date" | "needs-attention" | "overdue";
-  membership: {
+  subscription: {
     startDate: Date;
     planDurationMonths: number;
     endDate: Date;
@@ -19,12 +19,6 @@ export interface Customer {
     phone?: string;
     instagram?: string;
   };
-  /** Name parts for editing - optional for API customers */
-  nameParts?: {
-    givenName: string;
-    stSurname: string;
-    ndSurname?: string;
-  };
 }
 
 function getEmailUrl(email: string): string {
@@ -33,7 +27,7 @@ function getEmailUrl(email: string): string {
 
 function getWhatsAppUrl(phone: string): string {
   // Remove all non-digit characters (spaces, dashes, parentheses, +).
-  const cleanPhone = phone.replace(/\D/g, "");
+  const cleanPhone = phone.replaceAll(/\D/g, "");
   return `https://wa.me/${cleanPhone}`;
 }
 
@@ -50,13 +44,16 @@ interface CustomerCardProps {
 }
 
 /**
- * Customer card displaying membership progress, contact actions, and status.
+ * Customer card displaying subscription progress, contact actions, and status.
  * Designed following the reference screenshot with dark theme styling.
  */
-export function CustomerCard({ customer, onClick }: CustomerCardProps) {
+export function CustomerCard({
+  customer,
+  onClick,
+}: Readonly<CustomerCardProps>) {
   const { email, phone, instagram } = customer.contact;
   const now = new Date();
-  const { startDate, endDate } = customer.membership;
+  const { startDate, endDate } = customer.subscription;
 
   const totalDays = differenceInDays(endDate, startDate);
   const elapsedDays = differenceInDays(now, startDate);
@@ -88,22 +85,8 @@ export function CustomerCard({ customer, onClick }: CustomerCardProps) {
 
   const progressColor = getProgressColor(progressPercent);
 
-  return (
-    <article
-      className={cn(
-        "overflow-hidden rounded-2xl border border-border/50 bg-card p-4 shadow-sm",
-        onClick && "cursor-pointer transition-colors hover:bg-accent/50",
-      )}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (onClick && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      tabIndex={onClick ? 0 : undefined}
-      role={onClick ? "button" : undefined}
-    >
+  const content = (
+    <>
       {/* Header: Name and contact actions. */}
       <div className="flex items-center justify-between gap-2">
         <h3 className="min-w-0 flex-1 truncate font-semibold text-foreground">
@@ -185,7 +168,7 @@ export function CustomerCard({ customer, onClick }: CustomerCardProps) {
           </div>
         </div>
 
-        {/* Membership duration info - 3-column grid for proper alignment. */}
+        {/* Subscription duration info - 3-column grid for proper alignment. */}
         <div className="mt-3 grid grid-cols-3 items-center gap-1 text-xs">
           {/* Left column - elapsed time. */}
           <div className="min-w-0 text-left">
@@ -199,7 +182,7 @@ export function CustomerCard({ customer, onClick }: CustomerCardProps) {
           {/* Center column - plan duration badge. */}
           <div className="flex justify-center">
             <div className="rounded-md bg-muted px-2 py-0.5 font-medium text-[10px] text-foreground">
-              {customer.membership.planDurationMonths}mo plan
+              {customer.subscription.planDurationMonths}mo plan
             </div>
           </div>
           {/* Right column - time remaining. */}
@@ -213,6 +196,27 @@ export function CustomerCard({ customer, onClick }: CustomerCardProps) {
           </div>
         </div>
       </div>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={cn(
+          "w-full overflow-hidden rounded-2xl border border-border/50 bg-card p-4 text-left shadow-sm",
+          "cursor-pointer transition-colors hover:bg-accent/50",
+        )}
+        onClick={onClick}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-border/50 bg-card p-4 shadow-sm">
+      {content}
     </article>
   );
 }

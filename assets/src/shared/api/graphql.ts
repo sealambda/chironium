@@ -14,13 +14,18 @@ import { BACKEND_URL } from "@/shared/utils/auth-utils";
 export async function requestGraphql<TResult>({
   document,
   variables,
+  organizationId,
 }: Pick<
   RequestOptions<Variables, TResult>,
-  "document" | "variables"
->): Promise<TResult> {
+  "document" | "variables" | "requestHeaders"
+> & { organizationId?: string }): Promise<TResult> {
   const client = new GraphQLClient(`${BACKEND_URL}/gql`, {
     credentials: "include",
-    headers: getAuthHeaders(),
+    headers: getAuthHeaders({
+      ...(organizationId
+        ? { "x-chironium-organizationid": `org_${organizationId}` }
+        : {}),
+    }),
   });
 
   try {

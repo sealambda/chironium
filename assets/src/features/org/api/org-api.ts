@@ -1,28 +1,26 @@
 import { requestGraphql } from "@/shared/api/graphql";
-import { type Organisation } from "@/gql/graphql";
+import { type Organization } from "@/gql/graphql";
 import { graphql } from "@/gql";
 
-const AccessibleOrganisationsQuery = graphql(`
-  query AccessibleOrganisations {
-    organisations {
-      id
-      name
-      slug
-      profilePicture
-      themeSeedColor
+const ListOrganizationsQuery = graphql(`
+  query ListOrganizations($first: Int) {
+    listOrganizations(first: $first) {
+      results {
+        id
+        name
+        slug
+      }
     }
   }
 `);
 
-const CreateOrganisationMutation = graphql(`
-  mutation CreateOrganisation($input: CreateOrganisationInput!) {
-    createOrganisation(input: $input) {
+const CreateOrganizationMutation = graphql(`
+  mutation CreateOrganization($input: CreateOrganizationInput!) {
+    createOrganization(input: $input) {
       result {
         id
         name
         slug
-        profilePicture
-        themeSeedColor
       }
       errors {
         message
@@ -32,34 +30,35 @@ const CreateOrganisationMutation = graphql(`
 `);
 
 /**
- * Fetch accessible organisations from the API.
+ * Fetch accessible organizations from the API.
  */
-export async function fetchAccessibleOrganisations(): Promise<Organisation[]> {
+export async function fetchAccessibleOrganizations(): Promise<Organization[]> {
   const data = await requestGraphql({
-    document: AccessibleOrganisationsQuery,
+    document: ListOrganizationsQuery,
+    variables: { first: 10 },
   });
-  return data.organisations;
+  return data.listOrganizations?.results ?? [];
 }
 
 /**
- * Create a new organisation via API.
+ * Create a new organization via API.
  */
-export async function createOrganisation(data: {
+export async function createOrganization(data: {
   name: string;
   slug: string;
-}): Promise<Organisation> {
+}): Promise<Organization> {
   const result = await requestGraphql({
-    document: CreateOrganisationMutation,
+    document: CreateOrganizationMutation,
     variables: { input: { name: data.name, slug: data.slug } },
   });
 
-  const payload = result.createOrganisation;
+  const payload = result.createOrganization;
   if (!payload?.result) {
     const errorMessage =
       payload?.errors
         ?.map((error) => error.message)
         .filter(Boolean)
-        .join(" ") || "Failed to create organisation";
+        .join(" ") || "Failed to create organization";
     throw new Error(errorMessage);
   }
 

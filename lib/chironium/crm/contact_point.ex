@@ -25,6 +25,12 @@ defmodule Chironium.CRM.ContactPoint do
     defaults [:read, :destroy, create: :*, update: [:label, :value, :is_primary]]
   end
 
+  policies do
+    policy always() do
+      authorize_if always()
+    end
+  end
+
   attributes do
     attribute :type, ContactPoint.Type do
       public? true

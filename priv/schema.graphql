@@ -409,13 +409,168 @@ type Contact {
   ): [ContactPoint!]!
 }
 
+enum SubscriptionSortField {
+  ID
+  START_DATE
+  STATE
+  SUBSCRIBER_ID
+  PLAN_ID
+}
+
+"A keyset page of :subscription"
+type KeysetPageOfSubscription {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Subscription!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input SubscriptionFilterPlanId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionFilterSubscriberId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionFilterState {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input SubscriptionFilterStartDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date!]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+}
+
+input SubscriptionFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionFilterInput {
+  and: [SubscriptionFilterInput!]
+  or: [SubscriptionFilterInput!]
+  not: [SubscriptionFilterInput!]
+  id: SubscriptionFilterId
+  startDate: SubscriptionFilterStartDate
+  state: SubscriptionFilterState
+  subscriberId: SubscriptionFilterSubscriberId
+  planId: SubscriptionFilterPlanId
+  subscriber: ContactFilterInput
+  plan: SubscriptionPlanFilterInput
+}
+
+input SubscriptionSortInput {
+  order: SortOrder
+  field: SubscriptionSortField!
+}
+
 type Subscription {
   id: ID!
+  startDate: Date!
   state: String!
   subscriberId: ID!
   planId: ID!
   subscriber: Contact!
   plan: SubscriptionPlan!
+}
+
+input SubscriptionPlanFilterPriceAmount {
+  isNil: Boolean
+  eq: MoneyInput
+  notEq: MoneyInput
+  in: [MoneyInput]
+  lessThan: MoneyInput
+  greaterThan: MoneyInput
+  lessThanOrEqual: MoneyInput
+  greaterThanOrEqual: MoneyInput
+}
+
+input SubscriptionPlanFilterPeriodDuration {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input SubscriptionPlanFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input SubscriptionPlanFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionPlanFilterInput {
+  and: [SubscriptionPlanFilterInput!]
+  or: [SubscriptionPlanFilterInput!]
+  not: [SubscriptionPlanFilterInput!]
+  id: SubscriptionPlanFilterId
+  name: SubscriptionPlanFilterName
+  periodDuration: SubscriptionPlanFilterPeriodDuration
+  priceAmount: SubscriptionPlanFilterPriceAmount
 }
 
 type SubscriptionPlan {
@@ -428,6 +583,26 @@ type SubscriptionPlan {
 type RootQueryType {
   "Retrieve the info for the actor that is currently signed in."
   currentActor: User
+
+  listSubscriptions(
+    "How to sort the records in the response"
+    sort: [SubscriptionSortInput]
+
+    "A filter to limit the results"
+    filter: SubscriptionFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfSubscription
 
   getOrganization: Organization
 
@@ -456,6 +631,11 @@ type Money {
   currency: String!
 }
 
+input MoneyInput {
+  amount: Decimal!
+  currency: String!
+}
+
 type RootMutationType {
   createContact(input: CreateContactInput): CreateContactResult!
 
@@ -477,6 +657,12 @@ character sequences. The Json type is most often used to represent a free-form
 human-readable json string.
 """
 scalar Json
+
+"""
+The `Date` scalar type represents a date. The Date appears in a JSON
+response as an ISO8601 formatted string, without a time component.
+"""
+scalar Date
 
 """
 The `Decimal` scalar type represents signed double-precision fractional

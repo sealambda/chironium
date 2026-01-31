@@ -21,13 +21,11 @@ import {
   customerFormSchema,
   defaultCustomerFormValues,
   emailSchema,
-  givenNameSchema,
   instagramSchema,
-  ndSurnameSchema,
+  nameSchema,
   phoneSchema,
   planDurationSchema,
   startDateSchema,
-  stSurnameSchema,
 } from "../model/customer-schema";
 import { DatePickerField } from "./date-picker-field";
 import { EmailInput } from "./email-input";
@@ -58,7 +56,7 @@ export function CustomerForm({
   hideFooter,
   initialValues,
   submitLabel = "Create Customer",
-}: CustomerFormProps) {
+}: Readonly<CustomerFormProps>) {
   const form = useForm({
     defaultValues: initialValues ?? defaultCustomerFormValues,
     // No form-level validators - we use field-level validators instead.
@@ -87,13 +85,13 @@ export function CustomerForm({
         </h3>
 
         <form.Field
-          name="givenName"
-          validators={{ onBlur: createFieldValidator(givenNameSchema) }}
+          name="name"
+          validators={{ onBlur: createFieldValidator(nameSchema) }}
         >
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>
-                Given Name <span className="text-destructive">*</span>
+                Full Name <span className="text-destructive">*</span>
               </FieldLabel>
               <FieldContent>
                 <NameInput
@@ -103,58 +101,8 @@ export function CustomerForm({
                   onChange={field.handleChange}
                   onBlur={field.handleBlur}
                   aria-invalid={field.state.meta.errors.length > 0}
-                  placeholder="Enter given name"
-                  autoComplete="given-name"
-                />
-                <FieldError errors={mapFieldErrors(field.state.meta.errors)} />
-              </FieldContent>
-            </Field>
-          )}
-        </form.Field>
-
-        <form.Field
-          name="stSurname"
-          validators={{ onBlur: createFieldValidator(stSurnameSchema) }}
-        >
-          {(field) => (
-            <Field data-invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor={field.name}>
-                First Surname <span className="text-destructive">*</span>
-              </FieldLabel>
-              <FieldContent>
-                <NameInput
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  onBlur={field.handleBlur}
-                  aria-invalid={field.state.meta.errors.length > 0}
-                  placeholder="Enter first surname"
-                  autoComplete="family-name"
-                />
-                <FieldError errors={mapFieldErrors(field.state.meta.errors)} />
-              </FieldContent>
-            </Field>
-          )}
-        </form.Field>
-
-        <form.Field
-          name="ndSurname"
-          validators={{ onBlur: createFieldValidator(ndSurnameSchema) }}
-        >
-          {(field) => (
-            <Field data-invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor={field.name}>Second Surname</FieldLabel>
-              <FieldContent>
-                <NameInput
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value || ""}
-                  onChange={field.handleChange}
-                  onBlur={field.handleBlur}
-                  aria-invalid={field.state.meta.errors.length > 0}
-                  placeholder="Enter second surname (optional)"
-                  autoComplete="additional-name"
+                  placeholder="Enter full name"
+                  autoComplete="name"
                 />
                 <FieldError errors={mapFieldErrors(field.state.meta.errors)} />
               </FieldContent>
@@ -242,12 +190,14 @@ export function CustomerForm({
 
       <FieldSeparator />
 
-      {/* Membership */}
+      {/* Subscription */}
       <FieldGroup>
-        <h3 className="text-base font-semibold text-foreground">Membership</h3>
+        <h3 className="text-base font-semibold text-foreground">
+          Subscription
+        </h3>
 
         <form.Field
-          name="membership.startDate"
+          name="subscription.startDate"
           validators={{ onBlur: createFieldValidator(startDateSchema) }}
         >
           {(field) => (
@@ -267,7 +217,7 @@ export function CustomerForm({
         </form.Field>
 
         <form.Field
-          name="membership.planDurationMonths"
+          name="subscription.planDurationMonths"
           validators={{ onBlur: createFieldValidator(planDurationSchema) }}
         >
           {(field) => (
@@ -288,9 +238,9 @@ export function CustomerForm({
         </form.Field>
 
         {/* Calculated End Date (read-only) */}
-        <form.Subscribe selector={(state) => state.values.membership}>
-          {(membership) => {
-            const { startDate, planDurationMonths } = membership;
+        <form.Subscribe selector={(state) => state.values.subscription}>
+          {(subscription) => {
+            const { startDate, planDurationMonths } = subscription;
             if (!startDate) return null;
 
             const endDate = new Date(startDate);

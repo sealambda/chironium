@@ -2,33 +2,33 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { queryClient } from "@/app/providers/query-client";
 import {
-  createOrganisation,
-  fetchAccessibleOrganisations,
+  createOrganization,
+  fetchAccessibleOrganizations,
 } from "../api/org-api";
 import { getStoredPreference, storePreference } from "../model/org-preferences";
-import type { Organisation } from "@/gql/graphql";
+import type { Organization } from "@/gql/graphql";
 
 export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
 
 type OrgStoreState = {
-  selectedOrg: Organisation | null;
-  availableOrgs: Organisation[];
+  selectedOrg: Organization | null;
+  availableOrgs: Organization[];
   loading: boolean;
   error: Error | null;
   setFromQuery: (payload: {
-    availableOrgs: Organisation[];
+    availableOrgs: Organization[];
     loading: boolean;
     error: Error | null;
   }) => void;
   selectOrg: (orgId: string) => Promise<void>;
-  refreshOrgs: () => Promise<Organisation[]>;
-  createOrg: (data: { name: string; slug: string }) => Promise<Organisation>;
+  refreshOrgs: () => Promise<Organization[]>;
+  createOrg: (data: { name: string; slug: string }) => Promise<Organization>;
 };
 
 function resolveSelectedOrg(
-  current: Organisation | null,
-  availableOrgs: Organisation[],
-): Organisation | null {
+  current: Organization | null,
+  availableOrgs: Organization[],
+): Organization | null {
   if (availableOrgs.length === 0) {
     return null;
   }
@@ -73,7 +73,7 @@ export const useOrgStore = create<OrgStoreState>()(
         if (!org) {
           const refreshed = await queryClient.fetchQuery({
             queryKey: ORG_QUERY_KEY,
-            queryFn: fetchAccessibleOrganisations,
+            queryFn: fetchAccessibleOrganizations,
           });
           availableOrgs = refreshed ?? [];
           org =
@@ -89,7 +89,7 @@ export const useOrgStore = create<OrgStoreState>()(
         }
 
         if (!org) {
-          const error = new Error("Organisation not found");
+          const error = new Error("Organization not found");
           set({ error }, false, "orgs/selectOrg:error");
           throw error;
         }
@@ -101,7 +101,7 @@ export const useOrgStore = create<OrgStoreState>()(
         set({ error: null }, false, "orgs/refresh:start");
         const refreshed = await queryClient.fetchQuery({
           queryKey: ORG_QUERY_KEY,
-          queryFn: fetchAccessibleOrganisations,
+          queryFn: fetchAccessibleOrganizations,
         });
         const availableOrgs = refreshed ?? [];
         set(
@@ -116,9 +116,9 @@ export const useOrgStore = create<OrgStoreState>()(
       },
       createOrg: async (data: { name: string; slug: string }) => {
         set({ error: null }, false, "orgs/create:start");
-        const organisation = await createOrganisation(data);
+        const organization = await createOrganization(data);
         await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
-        return organisation;
+        return organization;
       },
     }),
     { name: "OrgStore", enabled: import.meta.env.DEV },

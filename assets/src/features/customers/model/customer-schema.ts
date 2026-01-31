@@ -22,40 +22,19 @@ const NAME_PATTERN_ERROR =
  * Detects any consecutive special characters like "..", ".-", "'-", etc.
  * These are not valid in names (e.g., "Jr......" or "O'-Sullivan")
  */
-const CONSECUTIVE_SPECIAL_PATTERN = /[.''-]{2,}/;
+const CONSECUTIVE_SPECIAL_PATTERN = /[.'-]{2,}/;
 const CONSECUTIVE_SPECIAL_ERROR =
   "Consecutive special characters are not allowed";
 
-export const givenNameSchema = z
+export const nameSchema = z
   .string()
-  .min(1, "Given name is required")
-  .max(50, "Given name must be 50 characters or less")
+  .min(1, "Name is required")
+  .max(120, "Name must be 120 characters or less")
   .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
   .refine(
     (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
     CONSECUTIVE_SPECIAL_ERROR,
   );
-
-export const stSurnameSchema = z
-  .string()
-  .min(1, "First surname is required")
-  .max(50, "First surname must be 50 characters or less")
-  .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
-  .refine(
-    (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
-    CONSECUTIVE_SPECIAL_ERROR,
-  );
-
-export const ndSurnameSchema = z
-  .string()
-  .max(50, "Second surname must be 50 characters or less")
-  .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
-  .refine(
-    (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
-    CONSECUTIVE_SPECIAL_ERROR,
-  )
-  .optional()
-  .or(z.literal(""));
 
 export const emailSchema = z
   .email("Please enter a valid email address")
@@ -66,7 +45,7 @@ export const phoneSchema = z
   .string()
   .refine((val) => {
     if (!val) return true;
-    const digits = val.replace(/\D/g, "");
+    const digits = val.replaceAll(/\D/g, "");
     return digits.length >= 7;
   }, "Phone number must be at least 7 digits")
   .optional()
@@ -78,8 +57,8 @@ export const instagramSchema = z
     if (!val) return "";
     const clean = val
       .toLowerCase()
-      .replace(/^@/, "")
-      .replace(/[^a-z0-9_.]/g, "");
+      .replaceAll(/^@/g, "")
+      .replaceAll(/[^a-z0-9_.]/g, "");
     return clean ? `@${clean}` : "";
   })
   .refine(
@@ -107,34 +86,15 @@ export const planDurationSchema = z
  * Follows TanStack Form + Zod best practices from basecn.dev docs.
  */
 export const customerFormSchema = z.object({
-  givenName: z
+  name: z
     .string()
-    .min(1, "Given name is required")
-    .max(50, "Given name must be 50 characters or less")
+    .min(1, "Name is required")
+    .max(120, "Name must be 120 characters or less")
     .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
     .refine(
       (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
       CONSECUTIVE_SPECIAL_ERROR,
     ),
-  stSurname: z
-    .string()
-    .min(1, "First surname is required")
-    .max(50, "First surname must be 50 characters or less")
-    .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
-    .refine(
-      (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
-      CONSECUTIVE_SPECIAL_ERROR,
-    ),
-  ndSurname: z
-    .string()
-    .max(50, "Second surname must be 50 characters or less")
-    .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
-    .refine(
-      (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
-      CONSECUTIVE_SPECIAL_ERROR,
-    )
-    .optional()
-    .or(z.literal("")),
   contact: z.object({
     email: z
       .email("Please enter a valid email address")
@@ -144,7 +104,7 @@ export const customerFormSchema = z.object({
       .string()
       .refine((val) => {
         if (!val) return true;
-        const digits = val.replace(/\D/g, "");
+        const digits = val.replaceAll(/\D/g, "");
         return digits.length >= 7; // Max is prevented by input mask.
       }, "Phone number must be at least 7 digits")
       .optional()
@@ -155,8 +115,8 @@ export const customerFormSchema = z.object({
         if (!val) return "";
         const clean = val
           .toLowerCase()
-          .replace(/^@/, "")
-          .replace(/[^a-z0-9_.]/g, "");
+          .replaceAll(/^@/g, "")
+          .replaceAll(/[^a-z0-9_.]/g, "");
         return clean ? `@${clean}` : "";
       })
       .refine(
@@ -166,7 +126,7 @@ export const customerFormSchema = z.object({
       .optional()
       .or(z.literal("")),
   }),
-  membership: z.object({
+  subscription: z.object({
     startDate: z.date({
       message: "Start date is required",
     }),
@@ -189,19 +149,22 @@ export function formDataToCustomer(
   data: CustomerFormData,
   existingId?: string,
 ): Customer {
-  const { givenName, stSurname, ndSurname } = data;
-  const { startDate, planDurationMonths } = data.membership;
+  const { name } = data;
+  const { startDate, planDurationMonths } = data.subscription;
   const endDate = addMonths(startDate, planDurationMonths);
 
-  const fullName = [givenName, stSurname, ndSurname].filter(Boolean).join(" ");
-  const initials = `${givenName[0] || ""}${stSurname[0] || ""}`.toUpperCase();
+  const nameParts = name.trim().split(/\s+/).filter(Boolean);
+  const firstInitial = nameParts.at(0)?.[0] || "";
+  const lastInitial = nameParts.at(-1)?.[0] || "";
+  const initials =
+    `${firstInitial}${lastInitial || firstInitial}`.toUpperCase() || "?";
 
   return {
     id: existingId ?? `local-${crypto.randomUUID()}`,
-    name: fullName,
+    name,
     initials,
     status: "up-to-date", // New customers start as up-to-date.
-    membership: {
+    subscription: {
       startDate,
       planDurationMonths,
       endDate,
@@ -211,11 +174,6 @@ export function formDataToCustomer(
       phone: data.contact.phone || undefined,
       instagram: data.contact.instagram || undefined,
     },
-    nameParts: {
-      givenName,
-      stSurname,
-      ndSurname: ndSurname || undefined,
-    },
   };
 }
 
@@ -224,35 +182,16 @@ export function formDataToCustomer(
  * Falls back to parsing name string if nameParts are not available.
  */
 export function customerToFormData(customer: Customer): CustomerFormData {
-  // Use stored name parts if available, otherwise try to parse from name.
-  let givenName = "";
-  let stSurname = "";
-  let ndSurname = "";
-
-  if (customer.nameParts) {
-    givenName = customer.nameParts.givenName;
-    stSurname = customer.nameParts.stSurname;
-    ndSurname = customer.nameParts.ndSurname || "";
-  } else {
-    // Fallback: split by spaces (lossy for complex names).
-    const parts = customer.name.split(" ");
-    givenName = parts[0] || "";
-    stSurname = parts[1] || "";
-    ndSurname = parts.slice(2).join(" ");
-  }
-
   return {
-    givenName,
-    stSurname,
-    ndSurname,
+    name: customer.name,
     contact: {
       email: customer.contact.email || "",
       phone: customer.contact.phone || "",
       instagram: customer.contact.instagram || "",
     },
-    membership: {
-      startDate: customer.membership.startDate,
-      planDurationMonths: customer.membership.planDurationMonths,
+    subscription: {
+      startDate: customer.subscription.startDate,
+      planDurationMonths: customer.subscription.planDurationMonths,
     },
   };
 }
@@ -261,15 +200,13 @@ export function customerToFormData(customer: Customer): CustomerFormData {
  * Default form values for new customer creation.
  */
 export const defaultCustomerFormValues: CustomerFormData = {
-  givenName: "",
-  stSurname: "",
-  ndSurname: "",
+  name: "",
   contact: {
     email: "",
     phone: "",
     instagram: "",
   },
-  membership: {
+  subscription: {
     startDate: new Date(),
     planDurationMonths: 3,
   },
