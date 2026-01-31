@@ -1,5 +1,5 @@
 import { graphql, HttpResponse } from "msw";
-import type { Membership, Organisation, Person, User } from "@/gql/graphql";
+import type { Organization, User } from "@/gql/graphql";
 import { API_PATHS } from "@/shared/utils/url-utils";
 
 type CreateOrganizationPayload = {
@@ -51,6 +51,10 @@ type CreateContactPayload = {
 const currentActor: User = {
   id: "user-1",
   email: "admin@example.com",
+  picture: null,
+  name: "Admin User",
+  familyName: "User",
+  givenName: "Admin",
 };
 
 const organizations: Organization[] = [
@@ -484,7 +488,11 @@ export const handlers = [
   }),
 
   gql.query("SubscriptionList", ({ request }) => {
-    const orgId = request.headers.get("x-chironium-organizationid");
+    // Header format is "org_${organizationId}", strip prefix for matching
+    const orgIdHeader = request.headers.get("x-chironium-organizationid");
+    const orgId = orgIdHeader?.startsWith("org_")
+      ? orgIdHeader.slice(4)
+      : orgIdHeader;
     const results = orgId
       ? subscriptions.filter((sub) => sub.organizationId === orgId)
       : subscriptions;

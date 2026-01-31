@@ -1,4 +1,16 @@
 defmodule Chironium.Accounts.User do
+  @moduledoc """
+  User resource representing an authenticated user.
+
+  Profile fields (`name`, `given_name`, `family_name`, `picture`) are populated from
+  Google OpenID Connect claims during OAuth authentication.
+
+  **Important**: None of these profile claims are guaranteed to be present.
+  Only the `email` field is reliably provided when the `email` scope is requested.
+
+  See: https://developers.google.com/identity/openid-connect/openid-connect#an-id-tokens-payload
+  """
+
   use Chironium.BaseResources.Auditable,
     otp_app: :chironium,
     domain: Chironium.Accounts,
@@ -107,18 +119,30 @@ defmodule Chironium.Accounts.User do
       constraints casing: :lower
     end
 
+    # The URL of the user's profile picture. Might be provided when:
+    # - The request scope included the string "profile".
+    # - The ID token is returned from a token refresh.
+    # Note: This claim is never guaranteed to be present.
     attribute :picture, :string do
       public? true
     end
 
+    # The user's full name, in a displayable form. Might be provided when:
+    # - The request scope included the string "profile".
+    # - The ID token is returned from a token refresh.
+    # Note: This claim is never guaranteed to be present.
     attribute :name, :string do
       public? true
     end
 
+    # The user's surname(s) or last name(s).
+    # Might be provided when a name claim is present.
     attribute :family_name, :string do
       public? true
     end
 
+    # The user's given name(s) or first name(s).
+    # Might be provided when a name claim is present.
     attribute :given_name, :string do
       public? true
     end

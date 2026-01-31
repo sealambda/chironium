@@ -1,6 +1,5 @@
 import { LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
@@ -199,7 +198,7 @@ export function TopNav() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
-              onClick={() => logout()}
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sign out

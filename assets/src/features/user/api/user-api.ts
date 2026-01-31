@@ -2,18 +2,15 @@ import { graphql } from "@/gql";
 import type { User } from "@/gql/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
 
-const CurrentUserQuery = graphql(`
-  query CurrentUser {
-    currentUser {
+const CurrentActorQuery = graphql(`
+  query CurrentActor {
+    currentActor {
       id
       email
-      person {
-        id
-        givenName
-        stSurname
-        ndSurname
-        birthDate
-      }
+      picture
+      name
+      familyName
+      givenName
     }
   }
 `);
@@ -29,17 +26,13 @@ const CurrentUserQuery = graphql(`
  */
 export async function fetchCurrentUser(): Promise<User> {
   const result = await requestGraphql({
-    document: CurrentUserQuery,
+    document: CurrentActorQuery,
   });
 
-  const user = result.currentUser;
+  const user = result.currentActor;
   if (!user) {
     throw new Error("User not found - session may have expired");
   }
 
-  return {
-    id: user.id,
-    email: user.email,
-    person: user.person,
-  };
+  return user;
 }
