@@ -19,7 +19,8 @@ defmodule ChironiumWeb do
 
   @spec static_paths() :: [String.t(), ...]
   def static_paths,
-    do: ~w(assets fonts images locales favicon.ico robots.txt .vite mockServiceWorker.js)
+    do:
+      ~w(assets fonts images locales favicon.ico robots.txt .vite/manifest.json mockServiceWorker.js)
 
   def router do
     quote do
