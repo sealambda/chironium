@@ -10,9 +10,8 @@ const DashboardPage = lazy(() =>
 
 /**
  * Dashboard route (currently disabled in navigation).
- * Protected by _authenticated layout - requires authentication.
  * Uses lazy loading for optimal bundle splitting.
  */
-export const Route = createFileRoute("/_authenticated/dashboard")({
+export const Route = createFileRoute("/_app/dashboard")({
   component: DashboardPage,
 });

@@ -119,32 +119,44 @@ defmodule Chironium.Accounts.User do
       constraints casing: :lower
     end
 
-    # The URL of the user's profile picture. Might be provided when:
-    # - The request scope included the string "profile".
-    # - The ID token is returned from a token refresh.
-    # Note: This claim is never guaranteed to be present.
     attribute :picture, :string do
       public? true
+
+      description """
+      The URL of the user's profile picture. Might be provided when:
+      - The request scope included the string "profile".
+      - The ID token is returned from a token refresh.
+      Note: This claim is never guaranteed to be present.
+      """
     end
 
-    # The user's full name, in a displayable form. Might be provided when:
-    # - The request scope included the string "profile".
-    # - The ID token is returned from a token refresh.
-    # Note: This claim is never guaranteed to be present.
     attribute :name, :string do
       public? true
+
+      description """
+      The user's full name, in a displayable form. Might be provided when:
+      - The request scope included the string "profile".
+      - The ID token is returned from a token refresh.
+      Note: This claim is never guaranteed to be present.
+      """
     end
 
-    # The user's surname(s) or last name(s).
-    # Might be provided when a name claim is present.
     attribute :family_name, :string do
       public? true
+
+      description """
+      The user's surname(s) or last name(s).
+      Might be provided when a name claim is present.
+      """
     end
 
-    # The user's given name(s) or first name(s).
-    # Might be provided when a name claim is present.
     attribute :given_name, :string do
       public? true
+
+      description """
+      The user's given name(s) or first name(s).
+      Might be provided when a name claim is present.
+      """
     end
   end
 
