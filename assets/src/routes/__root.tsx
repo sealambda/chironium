@@ -6,11 +6,8 @@ import type { RouterContext } from "@/shared/types/router-context";
 /**
  * Root route with router context.
  *
- * Note: Auth checks are no longer performed here because Phoenix
- * guarantees authentication before the PWA loads. If you're seeing
- * this component, you're authenticated.
- *
- * AppShell is rendered in _authenticated layout, not here.
+ * Auth is handled by Phoenix before the PWA loads.
+ * AppShell is rendered in _app layout, not here.
  */
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,

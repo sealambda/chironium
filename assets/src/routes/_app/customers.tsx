@@ -10,9 +10,8 @@ const CustomersPage = lazy(() =>
 
 /**
  * Customers route showing the list of customer cards.
- * Protected by _authenticated layout - requires authentication.
  * Uses lazy loading for optimal bundle splitting.
  */
-export const Route = createFileRoute("/_authenticated/customers")({
+export const Route = createFileRoute("/_app/customers")({
   component: CustomersPage,
 });

@@ -91,7 +91,7 @@ defmodule ChironiumWeb.Router do
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development.
-  # These routes MUST come before the catch-all PWA routes.
+  # These routes MUST come before the catch-all app routes.
   if Application.compile_env(:chironium, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
