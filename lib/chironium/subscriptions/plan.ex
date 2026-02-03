@@ -10,6 +10,10 @@ defmodule Chironium.Subscriptions.Plan do
     type :subscription_plan
   end
 
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:subscription_plan]}
+  end
+
   postgres do
     table "subscription_plans"
   end
