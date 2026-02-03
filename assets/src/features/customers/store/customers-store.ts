@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import type { Customer } from "../ui/customer-card";
+import type { Customer } from "../model/customer-types";
 
 /** Stable empty array to avoid infinite loops in selectors */
 const EMPTY_CUSTOMERS: Customer[] = [];
@@ -16,6 +16,13 @@ interface CustomersStoreState {
   getCustomers: (orgId: string) => Customer[];
   /** Clear all local customers (useful for testing) */
   clearCustomers: () => void;
+
+  /** Sheet state management */
+  isCreateSheetOpen: boolean;
+  /** Open the create customer sheet */
+  openCreateSheet: () => void;
+  /** Close the create customer sheet */
+  closeCreateSheet: () => void;
 }
 
 /**
@@ -27,6 +34,7 @@ export const useCustomersStore = create<CustomersStoreState>()(
   devtools(
     (set, get) => ({
       mockCustomers: new Map(),
+      isCreateSheetOpen: false,
 
       addCustomer: (orgId, customer) => {
         set(
@@ -63,6 +71,14 @@ export const useCustomersStore = create<CustomersStoreState>()(
 
       clearCustomers: () => {
         set({ mockCustomers: new Map() }, undefined, "clearCustomers");
+      },
+
+      openCreateSheet: () => {
+        set({ isCreateSheetOpen: true }, undefined, "openCreateSheet");
+      },
+
+      closeCreateSheet: () => {
+        set({ isCreateSheetOpen: false }, undefined, "closeCreateSheet");
       },
     }),
     {

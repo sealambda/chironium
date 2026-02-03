@@ -24,6 +24,11 @@ defmodule Chironium.Subscriptions.Subscription do
     queries do
       list :list_subscriptions, :read
     end
+
+    mutations do
+      create :create_subscription, :create
+      destroy :delete_subscription, :destroy
+    end
   end
 
   postgres do

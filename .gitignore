@@ -36,6 +36,9 @@ chironium-*.tar
 npm-debug.log
 node_modules/
 
+# GraphQL generated types (regenerated at build time).
+/assets/src/gql/
+
 # Dotenv files.
 /envs/.env
 /envs/.dev.env

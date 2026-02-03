@@ -1,5 +1,5 @@
-import { BottomNav } from "./bottom-nav";
-import { SideNav } from "./side-nav";
+import { BottomNav } from "@/shared/layout/bottom-nav";
+import { SideNav } from "@/shared/layout/side-nav";
 import { TopNav } from "./top-nav";
 
 interface AppShellProps {

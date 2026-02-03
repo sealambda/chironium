@@ -1,6 +1,6 @@
-import { requestGraphql } from "@/shared/api/graphql";
-import { type Organization } from "@/gql/graphql";
 import { graphql } from "@/gql";
+import type { Organization } from "@/gql/graphql";
+import { requestGraphql } from "@/shared/api/graphql";
 
 const ListOrganizationsQuery = graphql(`
   query ListOrganizations($first: Int) {

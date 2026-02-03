@@ -1,20 +1,12 @@
-import { LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
-import { OrgSelector } from "@/features/org/ui/org-selector";
+import { OrgSelectorCombobox } from "@/features/org/ui/org-selector-combobox";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import type { User } from "@/gql/graphql";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
-import { AUTH_URLS } from "@/shared/utils/url-utils";
+import { QuickActions } from "./quick-actions";
 
 /**
  * Get user initials from name or email.
@@ -101,10 +93,6 @@ export function TopNav() {
     }
   };
 
-  const handleLogout = () => {
-    window.location.href = AUTH_URLS.signOut;
-  };
-
   // Show minimal header while loading or if no user data yet.
   if (isLoading || !user) {
     return (
@@ -141,33 +129,29 @@ export function TopNav() {
       {/* Container: 64px height per M3 small app bar spec. */}
       <div
         className={[
-          "flex h-16 items-center justify-between",
+          "flex h-16 items-center",
           // M3 margins: 16px compact, 24px medium, 32px expanded.
           "px-4 md:px-6 lg:px-8",
         ].join(" ")}
       >
-        {/* Tenant selector. */}
-        <OrgSelector
-          selectedOrg={selectedOrg}
-          availableOrgs={availableOrgs}
-          onSelectOrg={selectOrg}
-          onCreateClick={() => setIsCreateOrgOpen(true)}
-        />
-
-        {/* Profile. */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <div className="flex items-center justify-between gap-4 flex-1 min-w-0">
+          {/* Leading section: avatar + org selector */}
+          <div className="flex items-start gap-3 min-w-0">
+            {/* Profile Avatar (clickable, will redirect to profile page) */}
             <button
               type="button"
+              onClick={() => {
+                /* TODO: Navigate to /profile when implemented */
+              }}
               className={[
                 // Touch target: 40px avatar within 44px minimum hit area.
                 "rounded-full ring-offset-background transition-opacity",
                 "hover:opacity-80",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               ].join(" ")}
-              aria-label="Open profile menu"
+              aria-label="View profile"
             >
-              <Avatar className="h-10 w-10 border-2 border-primary/20 cursor-pointer">
+              <Avatar className="h-10 w-10 border-2 border-primary/20">
                 {user.picture && (
                   <AvatarImage
                     src={user.picture}
@@ -179,32 +163,39 @@ export function TopNav() {
                 </AvatarFallback>
               </Avatar>
             </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <div className="px-2 py-1.5">
-              {user.name && (
-                <p className="font-semibold text-sm">{user.name}</p>
-              )}
-              <p
-                className={
-                  user.name
-                    ? "text-muted-foreground text-xs"
-                    : "font-semibold text-sm"
-                }
-              >
-                {user.email}
-              </p>
+
+            {/* Welcome text + Org selector stacked */}
+            <div className="flex flex-col gap-0 min-w-0 mt-1.5">
+              {/* Welcome message - bottom line aligns with avatar center */}
+              <div className="text-xs leading-tight">
+                <span className="text-muted-foreground">
+                  Welcome back
+                  {user.name && (
+                    <>
+                      ,{" "}
+                      <span className="font-medium text-foreground truncate inline-block max-w-[200px] align-bottom">
+                        {user.name}
+                      </span>
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {/* Organization selector */}
+              <OrgSelectorCombobox
+                selectedOrg={selectedOrg}
+                availableOrgs={availableOrgs}
+                onSelectOrg={selectOrg}
+                onCreateClick={() => setIsCreateOrgOpen(true)}
+              />
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </div>
+
+          {/* Trailing section: context-relevant quick-actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            <QuickActions />
+          </div>
+        </div>
       </div>
 
       <CreateOrgModal

@@ -1,29 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users } from "lucide-react";
 
 import { cn } from "@/shared/utils";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  disabled?: boolean;
-}
-
-const navItems: NavItem[] = [
-  {
-    to: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    disabled: true, // Dashboard is disabled for now.
-  },
-  {
-    to: "/customers",
-    label: "Customers",
-    icon: Users,
-    disabled: false,
-  },
-];
+import { navItems } from "./nav-items";
 
 /**
  * Bottom navigation bar for mobile (compact) layouts only.
@@ -79,7 +57,9 @@ export function BottomNav() {
                 aria-label={`${item.label} (disabled)`}
               >
                 <Icon className="h-6 w-6 text-muted-foreground" />
-                <span className="font-medium text-muted-foreground text-xs">{item.label}</span>
+                <span className="font-medium text-muted-foreground text-xs">
+                  {item.label}
+                </span>
               </button>
             );
           }
@@ -100,10 +80,16 @@ export function BottomNav() {
               aria-current={isActive ? "page" : undefined}
             >
               <Icon
-                className={cn("h-6 w-6 transition-transform duration-200", isActive && "scale-110")}
+                className={cn(
+                  "h-6 w-6 transition-transform duration-200",
+                  isActive && "scale-110",
+                )}
               />
               <span
-                className={cn("font-medium text-xs transition-all", isActive && "font-semibold")}
+                className={cn(
+                  "font-medium text-xs transition-all",
+                  isActive && "font-semibold",
+                )}
               >
                 {item.label}
               </span>

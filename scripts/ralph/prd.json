@@ -1,0 +1,450 @@
+{
+  "project": "Chironium",
+  "branchName": "ralph/codebase-quality-review",
+  "description": "Codebase Quality Review & Cleanup - Comprehensive directory-by-directory review to eliminate duplication, enforce best practices, improve type safety, and establish clean architecture",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Review root entry files",
+      "description": "As a developer, I want the application entry point to be minimal and clear so that the bootstrap process is easy to understand.",
+      "acceptanceCriteria": [
+        "Review `main.tsx` - ensure it contains only essential bootstrap logic",
+        "Remove any unused imports or dead code from `main.tsx`",
+        "Add proper error boundary setup if missing",
+        "Review `vite-env.d.ts` for correctness",
+        "Typecheck passes (`pnpm typecheck`)",
+        "Lint passes (`pnpm lint`)"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "main.tsx was already clean and minimal. Added error boundary to __root.tsx. Updated biome schema to 2.3.13."
+    },
+    {
+      "id": "US-002",
+      "title": "Review app providers and router",
+      "description": "As a developer, I want the app initialization layer to be well-organized so that adding new providers or routes is straightforward.",
+      "acceptanceCriteria": [
+        "Review `app/inner-app.tsx` - ensure clean component structure",
+        "Review `app/providers/app-providers.tsx` - ensure provider composition follows React best practices",
+        "Review `app/providers/query-client.ts` - ensure query client configuration is optimized (stale time, cache time, retry logic)",
+        "Review `app/router.ts` - ensure router configuration is minimal and delegates to route files",
+        "No circular dependencies between these files",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "All files reviewed and follow best practices. Simplified router type in inner-app.tsx to use direct type reference instead of complex ReturnType construction. No circular dependencies found."
+    },
+    {
+      "id": "US-003",
+      "title": "Review shared API utilities",
+      "description": "As a developer, I want API utilities to be robust and consistent so that all data fetching follows the same patterns.",
+      "acceptanceCriteria": [
+        "Review `shared/api/graphql.ts` - ensure GraphQL client setup is minimal and properly typed",
+        "Review `shared/api/request.ts` - ensure request utilities handle errors consistently",
+        "No duplicated error handling logic between files",
+        "Proper TypeScript generics for type-safe requests",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "API layer is well-structured: graphql.ts has centralized auth error handling with proper TypeScript generics, request.ts is minimal wrapper for header building. Fixed type import style in org-api.ts. No duplicated logic found."
+    },
+    {
+      "id": "US-004",
+      "title": "Review shared utility functions",
+      "description": "As a developer, I want utility functions to be pure, well-tested, and reusable so that common operations are centralized.",
+      "acceptanceCriteria": [
+        "Review all files in `shared/utils/`: form-utils.ts, index.ts, phone-utils.ts, request-utils.ts, url-utils.ts, utils.ts",
+        "No duplicate utility functions across files",
+        "If `utils.ts` is a catch-all junk drawer, split into focused modules",
+        "Ensure `index.ts` exports only what's needed publicly",
+        "All utilities are pure functions where possible",
+        "No `any` types - use proper TypeScript types",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "All utility files reviewed. No duplicates found. utils.ts is NOT a junk drawer - contains only cn() for Tailwind class merging. Fixed type import style in utils.ts to use separate import type statement. Each file has focused purpose: form-utils (TanStack Form + Zod), phone-utils (libphonenumber-js formatting), request-utils (CSRF headers), url-utils (API/auth paths), utils (Tailwind cn). All pure functions with proper TypeScript types."
+    },
+    {
+      "id": "US-005",
+      "title": "Review shared types",
+      "description": "As a developer, I want shared types to be well-organized and comprehensive so that type safety is consistent across the app.",
+      "acceptanceCriteria": [
+        "Review `shared/types/router-context.ts` - ensure types are properly exported",
+        "No overly permissive types (`any`, `unknown` without guards)",
+        "Consider if more shared types should be centralized here",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "RouterContext type reviewed - empty object is intentional per documentation (Phoenix handles auth). Fixed outdated ESLint comment to use Biome ignore. No `any` types found in codebase. `unknown` usages in form-utils.ts are correct - they use proper type guards for narrowing. Type organization is sensible: feature types in feature dirs, shared types in shared/types/."
+    },
+    {
+      "id": "US-006",
+      "title": "Review shared layout components",
+      "description": "As a developer, I want layout components to be composable and consistent so that page structure is unified.",
+      "acceptanceCriteria": [
+        "Review `shared/layout/app-shell.tsx` - ensure clean composition",
+        "Review `shared/layout/bottom-nav.tsx` - check for duplication with other navs",
+        "Review `shared/layout/quick-actions.tsx` - ensure proper patterns",
+        "Review `shared/layout/side-nav.tsx` - check for duplication",
+        "Review `shared/layout/top-nav.tsx` - check for duplication",
+        "No duplicated styling or layout logic between nav components",
+        "Responsive behavior is consistent across components",
+        "Proper accessibility (landmarks, focus management)",
+        "Components are properly memoized if needed",
+        "No prop drilling - use context where appropriate",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Extracted duplicated navItems array from bottom-nav.tsx and side-nav.tsx into shared nav-items.ts. All components follow responsive design patterns (M3/Apple HIG), have proper accessibility (aria-labels, landmarks, touch targets), and no prop drilling issues."
+    },
+    {
+      "id": "US-007",
+      "title": "Review shared UI primitives - Form controls",
+      "description": "As a developer, I want form control components to be consistent and accessible so that forms are easy to build.",
+      "acceptanceCriteria": [
+        "Review `shared/ui/input.tsx`, `input-group.tsx`, `textarea.tsx`, `select.tsx`, `label.tsx`, `field.tsx`, `phone-input.tsx`",
+        "Consistent prop interfaces across form controls",
+        "Proper `forwardRef` usage for all inputs",
+        "Accessibility: labels linked to inputs, error states announced",
+        "No duplicated styling logic",
+        "Proper TypeScript types for all props",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "All form control components reviewed. React 19+ pattern uses ComponentProps instead of forwardRef (refs passed via props). Fixed type import style issues in input-group.tsx, field.tsx, and phone-input.tsx. No duplicated styling logic worth extracting - similar base styles are intentional for design system flexibility. All components have proper accessibility: aria-invalid states, role=\"alert\" for errors, Radix/Base UI primitives handle ARIA."
+    },
+    {
+      "id": "US-008",
+      "title": "Review shared UI primitives - Buttons and badges",
+      "description": "As a developer, I want button and badge components to have clear variant systems so that visual consistency is enforced.",
+      "acceptanceCriteria": [
+        "Review `shared/ui/button.tsx`, `button-variants.ts`, `badge.tsx`, `badge-variants.ts`, `toggle-group.tsx`",
+        "Variant systems use consistent patterns (CVA or similar)",
+        "No unused variants",
+        "Proper disabled and loading states",
+        "Accessible: proper roles, focus indicators",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": "All button/badge components reviewed. Deleted unused button-variants.ts (dead code - buttonVariants was defined inline in button.tsx). Fixed type import style in button.tsx and toggle-group.tsx. Variant systems use CVA consistently. Some variants are unused but kept for design system completeness. Disabled states handled via `disabled:pointer-events-none disabled:opacity-50`. Accessibility: proper focus indicators via focus-visible, data-slot attributes for styling, Radix primitives handle ARIA."
+    },
+    {
+      "id": "US-009",
+      "title": "Review shared UI primitives - Overlays and dialogs",
+      "description": "As a developer, I want overlay components to handle focus, escape, and click-outside consistently so that modal interactions are reliable.",
+      "acceptanceCriteria": [
+        "Review `shared/ui/dialog.tsx`, `sheet.tsx`, `popover.tsx`, `dropdown-menu.tsx`, `alert-dialog.tsx`",
+        "Consistent portal usage across components",
+        "Focus trap implemented correctly",
+        "Escape key closes overlays",
+        "Click outside behavior is consistent",
+        "Proper z-index management",
+        "Accessible: role=\"dialog\", aria-modal, focus management",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": "All overlay components reviewed. Fixed PopoverAnchor -> PopoverArrow naming (was wrapping Arrow primitive but named Anchor). Added missing data-slot to SheetContent close button. All components use consistent patterns: Portal for rendering, z-50 z-index, Base UI/Radix primitives handle focus trap/escape/click-outside/ARIA. AlertDialog uses Radix UI directly while others use Base UI."
+    },
+    {
+      "id": "US-010",
+      "title": "Review shared UI primitives - Data display",
+      "description": "As a developer, I want data display components to be flexible and performant so that lists and tables render efficiently.",
+      "acceptanceCriteria": [
+        "Review `shared/ui/card.tsx`, `table.tsx`, `avatar.tsx`, `progress.tsx`, `separator.tsx`, `empty.tsx`",
+        "Table component supports sorting, loading states",
+        "Avatar handles missing images gracefully",
+        "Progress component is accessible (role=\"progressbar\", aria-valuenow)",
+        "No unnecessary re-renders in list contexts",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 10,
+      "passes": true,
+      "notes": "All data display components reviewed. Added missing data-slot attribute to empty.tsx for consistency. Card uses proper composition with data-slot/data-size. Table is a low-level primitive (sorting/loading handled by consuming components like TanStack Table). Avatar uses Base UI primitive with Fallback for missing images. Progress uses Radix UI which handles accessibility (role=progressbar, aria-valuenow). Separator uses Radix UI for proper ARIA roles. Empty component is clean with proper TypeScript interface."
+    },
+    {
+      "id": "US-011",
+      "title": "Review shared UI primitives - Combobox and command",
+      "description": "As a developer, I want autocomplete and command palette components to be performant and accessible so that search interactions are smooth.",
+      "acceptanceCriteria": [
+        "Review `shared/ui/combobox.tsx`, `command.tsx`, `use-combobox-anchor.ts`",
+        "Proper debouncing for search inputs if applicable",
+        "Keyboard navigation (arrow keys, enter, escape)",
+        "Screen reader announcements for results",
+        "No performance issues with large option lists",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 11,
+      "passes": true,
+      "notes": "Fixed type import style in use-combobox-anchor.ts. All components reviewed: combobox.tsx uses Base UI Combobox primitive with comprehensive component set (chips, groups, separators, empty state). command.tsx uses cmdk for command palette with search. Debouncing handled at data-fetching layer (correct pattern). Keyboard navigation and screen reader support provided by Base UI and cmdk primitives. combobox.tsx is currently unused but kept for design system - org-selector-combobox.tsx uses Popover+Command composition pattern instead."
+    },
+    {
+      "id": "US-012",
+      "title": "Review shared UI primitives - Calendar and misc",
+      "description": "As a developer, I want remaining UI primitives to be consistent with the design system so that edge cases are handled.",
+      "acceptanceCriteria": [
+        "Review `shared/ui/calendar.tsx` - ensure accessible (keyboard navigation, ARIA)",
+        "Review `shared/ui/app-name.tsx` - ensure clean implementation",
+        "Review `shared/ui/auth-loading.tsx` - ensure loading states are consistent",
+        "No orphaned or unused components",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 12,
+      "passes": true,
+      "notes": "Fixed type import style in calendar.tsx (separated type import from value imports). All three components reviewed: calendar.tsx uses react-day-picker with proper keyboard navigation and focus management, app-name.tsx is clean with proper styling for brand identity, auth-loading.tsx provides consistent loading spinner pattern. All components are actively used - no orphaned components found. CalendarDayButton is exported but unused externally - kept for design system customization potential."
+    },
+    {
+      "id": "US-013",
+      "title": "Review customers feature - API and store",
+      "description": "As a developer, I want the customers data layer to be efficient and properly typed so that customer operations are reliable.",
+      "acceptanceCriteria": [
+        "Review `features/customers/api/customers-api.ts` - ensure API functions are properly typed with GraphQL types",
+        "Review `features/customers/store/customers-store.ts` - ensure store follows Zustand best practices",
+        "No duplicated state management logic",
+        "Proper loading, error, and success states",
+        "Optimistic updates implemented correctly if used",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 13,
+      "passes": true,
+      "notes": "Added createCustomer function to customers-api.ts with proper GraphQL mutations (CreateContactWithContactPoints + CreateSubscription). Removed unused addCustomer variable from create-customer-sheet.tsx. Store follows Zustand best practices with devtools middleware. No duplicated state management logic found. Loading/error states handled via React Query mutations. No optimistic updates used (backend is source of truth)."
+    },
+    {
+      "id": "US-014",
+      "title": "Review customers feature - models and utils",
+      "description": "As a developer, I want customer types and utilities to be comprehensive so that business logic is centralized.",
+      "acceptanceCriteria": [
+        "Review `features/customers/model/customer-schema.ts` - ensure Zod schema matches API types",
+        "Review `features/customers/model/customer-types.ts` - ensure no duplicated type definitions",
+        "Review `features/customers/utils/customer-status.ts` - ensure status utilities are exhaustive",
+        "Review `features/customers/utils/progress-utils.ts` - ensure progress calculations are correct",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 14,
+      "passes": true,
+      "notes": "Created customer-types.ts as canonical type location with Customer, CustomerStatus, CustomerAction, CustomerActionType. customer-status.ts not needed - status utilities are in progress-utils.ts. Created plan-selector.tsx and status-avatar.tsx to fix missing component errors. Fixed action-cell.tsx exhaustive return. Updated imports across feature to use canonical type location. Fixed status value in customer-schema.ts from 'on-track' to 'up-to-date'."
+    },
+    {
+      "id": "US-015",
+      "title": "Review customers feature - UI components Part 1",
+      "description": "As a developer, I want customer UI components to be well-structured so that the customer list and details are maintainable.",
+      "acceptanceCriteria": [
+        "Review `features/customers/ui/customer-card.tsx` - check for duplication with table view",
+        "Review `features/customers/ui/customer-table.tsx` - check for duplication with card view",
+        "Review `features/customers/ui/customer-progress-bar.tsx` - ensure it reuses shared progress component",
+        "Review `features/customers/ui/action-cell.tsx` - ensure accessible (keyboard, screen reader)",
+        "Review `features/customers/ui/status-avatar.tsx` - ensure proper implementation",
+        "Proper memoization for list items",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 15,
+      "passes": true,
+      "notes": "Extracted contact URL helpers (getEmailUrl, getWhatsAppUrl, getInstagramUrl) to contact-utils.ts. Updated customer-card.tsx and customer-table.tsx to use shared utilities. Removed duplicated getProgressColor from customer-progress-bar.tsx - now uses shared progress-utils.ts. All components have proper accessibility (aria-labels, keyboard support). StatusAvatar uses proper type-safe lookup objects for status ring colors. Memoization not needed for these components - they don't create new objects/functions on each render."
+    },
+    {
+      "id": "US-016",
+      "title": "Review customers feature - UI components Part 2 Forms",
+      "description": "As a developer, I want customer form components to be consistent and reusable so that create/edit flows are unified.",
+      "acceptanceCriteria": [
+        "Review `features/customers/ui/create-customer-sheet.tsx`, `customer-form.tsx`, `date-picker-field.tsx`",
+        "Review `features/customers/ui/email-input.tsx`, `instagram-input.tsx`, `name-input.tsx`",
+        "Review `features/customers/ui/plan-duration-select.tsx`, `plan-selector.tsx`",
+        "Form inputs reuse shared UI primitives",
+        "No duplicated validation logic",
+        "Proper form state management (react-hook-form patterns)",
+        "Error messages are consistent and accessible",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 16,
+      "passes": true,
+      "notes": "Eliminated duplicated Zod validation by composing customerFormSchema from individual field schemas. Fixed type import style in email-input.tsx. Fixed Customer import location in create-customer-sheet.tsx. Deleted unused plan-duration-select.tsx. All form inputs reuse shared UI primitives (Input, InputGroup, ToggleGroup, Calendar/Popover, Field components). TanStack Form manages state with field-level onBlur validation. Error messages are consistent (FieldError with role=alert). Form uses proper react-hook-form patterns via TanStack Form."
+    },
+    {
+      "id": "US-017",
+      "title": "Review customers feature - page",
+      "description": "As a developer, I want the customers page to be well-organized so that the feature entry point is clear.",
+      "acceptanceCriteria": [
+        "Review `features/customers/pages/customers-page.tsx`",
+        "Page component orchestrates sub-components cleanly",
+        "No business logic in page component (delegated to hooks/store)",
+        "Loading and error states handled",
+        "Proper data fetching patterns (suspense or loading states)",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 17,
+      "passes": true,
+      "notes": "Fixed Customer type import to use canonical location (model/customer-types.ts). Refactored inline empty states to use shared Empty component from shared/ui/empty.tsx. Added action button to empty customers state. Loading state now uses AuthLoading component for consistency. No business logic in page - data fetching delegated to React Query, local state via Zustand."
+    },
+    {
+      "id": "US-018",
+      "title": "Review org feature - complete",
+      "description": "As a developer, I want the org feature to be well-structured so that organization management is reliable.",
+      "acceptanceCriteria": [
+        "Review `features/org/api/org-api.ts` - ensure API functions are properly typed",
+        "Review `features/org/hooks/use-org.ts` - ensure clean hook implementation",
+        "Review `features/org/model/org-preferences.ts` - ensure preferences schema is validated",
+        "Review `features/org/store/org-store-sync.tsx` and `org-store.ts` - ensure store sync pattern is clean",
+        "Review `features/org/types.ts` - ensure proper type definitions",
+        "Review `features/org/ui/create-org-modal.tsx`, `org-selector-combobox.tsx`, `org-selector.tsx`",
+        "No duplicated org selection logic between combobox and selector",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 18,
+      "passes": true,
+      "notes": "Deleted unused components: org-selector.tsx (OrgSelectorCombobox is used instead) and types.ts (OrgContextState was not imported anywhere). All remaining files are well-structured: org-api.ts uses proper GraphQL typing, use-org.ts uses useShallow for optimal re-renders, org-preferences.ts handles localStorage gracefully, org-store.ts follows Zustand best practices with devtools, org-store-sync.tsx cleanly syncs React Query data. CreateOrgModal has good form handling with auto-slug generation. OrgSelectorCombobox uses Popover+Command pattern for searchable org selection."
+    },
+    {
+      "id": "US-019",
+      "title": "Review user feature - complete",
+      "description": "As a developer, I want the user feature to be minimal and focused so that authentication state is clear.",
+      "acceptanceCriteria": [
+        "Review `features/user/api/user-api.ts` - ensure proper API implementation",
+        "Review `features/user/hooks/use-current-user.ts` - ensure clean hook",
+        "Review `features/user/index.ts` - ensure clean public API",
+        "Review `features/user/store/user-store-sync.tsx` and `user-store.ts`",
+        "No duplicated auth logic",
+        "Proper null handling for unauthenticated state",
+        "Store sync follows same pattern as org",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 19,
+      "passes": true,
+      "notes": "Fixed type export style in index.ts (separated type export from value export). All files reviewed: user-api.ts has proper GraphQL implementation with error handling for expired sessions, use-current-user.ts uses useShallow for optimal re-renders, user-store.ts follows same patterns as org-store (devtools, queryClient integration), user-store-sync.tsx syncs React Query data with smart retry logic that skips auth errors. No duplicated auth logic - Phoenix handles authentication. Null handling is correct (user: User | null)."
+    },
+    {
+      "id": "US-020",
+      "title": "Review dashboard feature",
+      "description": "As a developer, I want the dashboard to be a clean entry point so that the home view is performant.",
+      "acceptanceCriteria": [
+        "Review `features/dashboard/pages/dashboard-page.tsx`",
+        "Dashboard is not a dumping ground for unrelated components",
+        "Data fetching is optimized (no waterfall requests)",
+        "Proper loading states",
+        "Typecheck passes",
+        "Lint passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 20,
+      "passes": true,
+      "notes": "Refactored dashboard placeholder to use shared Empty component for consistency with customers-page.tsx pattern. Dashboard is clean placeholder (not a dumping ground), no data fetching (no waterfall possible), lazy-loaded at route level for code splitting. Disabled in nav-items.ts."
+    },
+    {
+      "id": "US-021",
+      "title": "Review route definitions",
+      "description": "As a developer, I want route files to be minimal and consistent so that navigation structure is clear.",
+      "acceptanceCriteria": [
+        "Review `routes/__root.tsx`, `_app.tsx`, `_app/customers.tsx`, `_app/dashboard.tsx`, `index.tsx`",
+        "Route files delegate to feature pages",
+        "No business logic in route files",
+        "Proper loader/action patterns if using data routers",
+        "Error boundaries at appropriate levels",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 21,
+      "passes": true,
+      "notes": "All 5 route files reviewed and follow TanStack Router best practices. __root.tsx has error boundary and not-found handling. _app.tsx provides layout shell with Suspense. customers.tsx and dashboard.tsx use lazy loading for code splitting. index.tsx uses beforeLoad for redirect (proper loader pattern). No business logic in any route file - all delegate to feature pages. Pre-existing lint issues in codegen.ts and app.css are documented separately."
+    },
+    {
+      "id": "US-022",
+      "title": "Review mocks",
+      "description": "As a developer, I want mock handlers to be maintainable so that development and testing is reliable.",
+      "acceptanceCriteria": [
+        "Review `mocks/browser.ts` and `mocks/handlers.ts`",
+        "Mock handlers match actual API structure",
+        "No outdated mock data",
+        "Easy to enable/disable mocking",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 22,
+      "passes": true,
+      "notes": "Added missing CreateSubscription mock handler for complete customer creation flow. Added plans data and createSubscription function. Updated ContactPointInput type to use ContactPointType from GraphQL schema. Mock handlers now match all API operations. MSW enabled via VITE_ENABLE_MSW=true in dev mode with bypass for non-mocked requests."
+    },
+    {
+      "id": "US-023",
+      "title": "Audit for dead code and unused exports",
+      "description": "As a developer, I want no dead code in the codebase so that the bundle is minimal and code is not confusing.",
+      "acceptanceCriteria": [
+        "Run analysis to find unused exports (consider using knip or similar tool)",
+        "Remove any components/functions not imported anywhere",
+        "Remove commented-out code blocks",
+        "Delete orphaned files (like action-cell.tsx if unused)",
+        "Verify bundle size is not regressed",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 23,
+      "passes": true,
+      "notes": "Ran knip analysis. Removed deprecated CreateCustomerSheet alias and unused Customer re-export from customer-card.tsx. Fixed codegen.ts type import. Added css/app.css to biome ignore (Tailwind 4 syntax). Design system primitives (badge, card, combobox, etc.) kept even if unused - they're part of the component library."
+    },
+    {
+      "id": "US-024",
+      "title": "Audit for circular dependencies",
+      "description": "As a developer, I want no circular dependencies so that the module graph is clean and predictable.",
+      "acceptanceCriteria": [
+        "Run circular dependency check (consider using madge or similar tool)",
+        "Resolve any circular imports found",
+        "Document module dependency direction (features -> shared, not reverse)",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "Audit for consistency patterns",
+      "description": "As a developer, I want consistent patterns across all features so that the codebase is predictable.",
+      "acceptanceCriteria": [
+        "All features follow same directory structure (api/, model/, store/, ui/, pages/)",
+        "All stores follow same patterns",
+        "All API modules follow same patterns",
+        "Naming conventions are consistent (PascalCase components, camelCase utils)",
+        "Import ordering is consistent",
+        "Typecheck passes",
+        "Lint passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

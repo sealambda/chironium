@@ -1,3 +1,5 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { Button } from "@/shared/ui/button";
 import {
@@ -7,13 +9,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/shared/ui/sheet";
+import { createCustomer } from "../api/customers-api";
 import {
   type CustomerFormData,
   customerToFormData,
   formDataToCustomer,
 } from "../model/customer-schema";
+import type { Customer } from "../model/customer-types";
 import { useCustomersStore } from "../store/customers-store";
-import type { Customer } from "./customer-card";
 import { CustomerForm } from "./customer-form";
 
 interface CustomerSheetProps {
@@ -34,8 +37,9 @@ export function CustomerSheet({
   customer,
 }: CustomerSheetProps) {
   const { selectedOrg } = useOrg();
-  const addCustomer = useCustomersStore((state) => state.addCustomer);
+  const queryClient = useQueryClient();
   const updateCustomer = useCustomersStore((state) => state.updateCustomer);
+  const [error, setError] = useState<string | null>(null);
 
   const isEditMode = Boolean(customer);
   const title = isEditMode ? "Edit Customer" : "Add Customer";
@@ -44,20 +48,56 @@ export function CustomerSheet({
     : "Enter the customer's information below. Required fields are marked with *.";
   const submitLabel = isEditMode ? "Update Customer" : "Create Customer";
 
+  const createCustomerMutation = useMutation({
+    mutationFn: async (data: CustomerFormData) => {
+      if (!selectedOrg) throw new Error("No organization selected");
+
+      return createCustomer(selectedOrg.id, {
+        name: data.name,
+        contact: {
+          email: data.contact.email || undefined,
+          phone: data.contact.phone || undefined,
+          instagram: data.contact.instagram || undefined,
+        },
+        subscription: {
+          startDate: data.subscription.startDate,
+          planId: data.subscription.planId,
+        },
+      });
+    },
+    onSuccess: () => {
+      // Invalidate customers query to refresh list
+      queryClient.invalidateQueries({
+        queryKey: ["customers", "list", selectedOrg?.id],
+      });
+      setError(null);
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error ? error.message : "Failed to create customer";
+      setError(message);
+    },
+  });
+
   const handleSubmit = (data: CustomerFormData) => {
     if (!selectedOrg) return;
 
+    setError(null);
+
     if (isEditMode && customer) {
+      // For edit mode, use local store for now
       const updatedCustomer = formDataToCustomer(data, customer.id);
       updateCustomer(selectedOrg.id, updatedCustomer);
+      onOpenChange(false);
     } else {
-      const newCustomer = formDataToCustomer(data);
-      addCustomer(selectedOrg.id, newCustomer);
+      // For create mode, use backend mutation
+      createCustomerMutation.mutate(data);
     }
-    onOpenChange(false);
   };
 
   const handleCancel = () => {
+    setError(null);
     onOpenChange(false);
   };
 
@@ -74,6 +114,11 @@ export function CustomerSheet({
         <SheetHeader className="px-4 pt-4">
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>
+          {error && (
+            <div className="mt-2 rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-destructive text-sm">
+              {error}
+            </div>
+          )}
         </SheetHeader>
 
         {/* Scrollable content area */}
@@ -113,6 +158,3 @@ export function CustomerSheet({
     </Sheet>
   );
 }
-
-/** @deprecated Use CustomerSheet instead */
-export const CreateCustomerSheet = CustomerSheet;

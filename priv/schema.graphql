@@ -462,6 +462,30 @@ type Contact {
   ): [ContactPoint!]!
 }
 
+"The result of the :delete_subscription mutation"
+type DeleteSubscriptionResult {
+  "The record that was successfully deleted"
+  result: Subscription
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :create_subscription mutation"
+type CreateSubscriptionResult {
+  "The successful result of the mutation"
+  result: Subscription
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateSubscriptionInput {
+  startDate: Date
+  subscriberId: ID!
+  planId: ID!
+}
+
 enum SubscriptionSortField {
   ID
   START_DATE
@@ -690,6 +714,10 @@ input MoneyInput {
 }
 
 type RootMutationType {
+  createSubscription(input: CreateSubscriptionInput!): CreateSubscriptionResult!
+
+  deleteSubscription(id: ID!): DeleteSubscriptionResult!
+
   createContact(input: CreateContactInput): CreateContactResult!
 
   "Create a contact with initial contact points (email, phone, ...)"

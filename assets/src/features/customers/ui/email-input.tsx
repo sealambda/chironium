@@ -1,4 +1,5 @@
-import { type ComponentProps, useCallback } from "react";
+import type { ComponentProps } from "react";
+import { useCallback } from "react";
 import { Input } from "@/shared/ui/input";
 
 /**

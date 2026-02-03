@@ -1,4 +1,5 @@
-import { cva, type VariantProps } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { AlertCircle } from "lucide-react";
 import { useMemo } from "react";
 import { Label } from "@/shared/ui/label";

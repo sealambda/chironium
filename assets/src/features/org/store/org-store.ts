@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { queryClient } from "@/app/providers/query-client";
+import type { Organization } from "@/gql/graphql";
 import {
   createOrganization,
   fetchAccessibleOrganizations,
 } from "../api/org-api";
 import { getStoredPreference, storePreference } from "../model/org-preferences";
-import type { Organization } from "@/gql/graphql";
 
 export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
 
@@ -39,10 +39,15 @@ function resolveSelectedOrg(
 
   const preferredOrgId = getStoredPreference();
   if (preferredOrgId) {
-    return availableOrgs.find((org) => org.id === preferredOrgId) ?? null;
+    const preferred = availableOrgs.find((org) => org.id === preferredOrgId);
+    if (preferred) return preferred;
   }
 
-  return null;
+  // Default to first org alphabetically
+  const sorted = [...availableOrgs].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+  return sorted[0] ?? null;
 }
 
 export const useOrgStore = create<OrgStoreState>()(

@@ -1,4 +1,5 @@
-import { type RefObject, useRef } from "react";
+import type { RefObject } from "react";
+import { useRef } from "react";
 
 /**
  * Hook for managing combobox anchor reference.

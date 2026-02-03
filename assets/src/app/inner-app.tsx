@@ -1,12 +1,8 @@
 import { RouterProvider } from "@tanstack/react-router";
-import type { routeTree } from "@/routeTree.gen";
-
-type AppRouter = ReturnType<
-  typeof import("@tanstack/react-router").createRouter<typeof routeTree>
->;
+import type { router } from "./router";
 
 interface InnerAppProps {
-  router: AppRouter;
+  router: typeof router;
 }
 
 /**

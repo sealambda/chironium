@@ -1,30 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users } from "lucide-react";
 
 import { AppName } from "@/shared/ui/app-name";
 import { cn } from "@/shared/utils";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  disabled?: boolean;
-}
-
-const navItems: NavItem[] = [
-  {
-    to: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    disabled: true, // Dashboard is disabled for now.
-  },
-  {
-    to: "/customers",
-    label: "Customers",
-    icon: Users,
-    disabled: false,
-  },
-];
+import { navItems } from "./nav-items";
 
 /**
  * Side navigation for tablet and desktop layouts.

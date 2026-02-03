@@ -1,5 +1,5 @@
 import { graphql, HttpResponse } from "msw";
-import type { Organization, User } from "@/gql/graphql";
+import type { ContactPointType, Organization, User } from "@/gql/graphql";
 import { API_PATHS } from "@/shared/utils/url-utils";
 
 type CreateOrganizationPayload = {
@@ -9,7 +9,7 @@ type CreateOrganizationPayload = {
 
 type ContactPointInput = {
   id?: string;
-  type?: "EMAIL" | "PHONE" | "INSTAGRAM" | null;
+  type?: ContactPointType | null;
   label?: string | null;
   value?: string | null;
   isPrimary: boolean;
@@ -45,6 +45,26 @@ type SubscriptionSeed = {
 type CreateContactPayload = {
   result: Contact | null;
   errors: Array<{ message?: string | null }>;
+};
+
+type SubscriptionResult = {
+  id: string;
+  state: string;
+  startDate: string;
+  subscriber: {
+    id: string;
+    name?: string | null;
+  };
+  plan: {
+    id: string;
+    name?: string | null;
+    periodDuration?: string | null;
+  };
+};
+
+type CreateSubscriptionPayload = {
+  result: SubscriptionResult | null;
+  errors: Array<{ message?: string | null; fields?: string[] | null }>;
 };
 
 // Mock current actor data.
@@ -465,6 +485,87 @@ function createContact(input?: {
   };
 }
 
+/** Available plans that can be referenced when creating subscriptions */
+const plans: Record<string, { name: string; periodDuration: string }> = {
+  "plan-3m": { name: "3 month plan", periodDuration: "P3M" },
+  "plan-6m": { name: "6 month plan", periodDuration: "P6M" },
+  "plan-12m": { name: "12 month plan", periodDuration: "P12M" },
+};
+
+function createSubscription(
+  organizationId: string,
+  input?: {
+    subscriberId?: string;
+    planId?: string;
+    startDate?: string;
+  },
+): CreateSubscriptionPayload {
+  if (!input?.subscriberId || !input?.planId || !input?.startDate) {
+    return {
+      result: null,
+      errors: [
+        { message: "subscriberId, planId, and startDate are required." },
+      ],
+    };
+  }
+
+  // Find the contact (subscriber)
+  const contact = contacts.find((c) => c.id === input.subscriberId);
+  if (!contact) {
+    return {
+      result: null,
+      errors: [{ message: `Subscriber not found: ${input.subscriberId}` }],
+    };
+  }
+
+  // Find the plan
+  const plan = plans[input.planId];
+  if (!plan) {
+    return {
+      result: null,
+      errors: [{ message: `Plan not found: ${input.planId}` }],
+    };
+  }
+
+  const subscriptionId = `sub-${subscriptions.length + 1}`;
+  const subscription: SubscriptionSeed = {
+    id: subscriptionId,
+    organizationId,
+    state: "active",
+    startDate: input.startDate,
+    subscriber: {
+      id: contact.id,
+      name: contact.name,
+      contactPoints: contact.contactPoints,
+    },
+    plan: {
+      id: input.planId,
+      name: plan.name,
+      periodDuration: plan.periodDuration,
+    },
+  };
+
+  subscriptions.push(subscription);
+
+  return {
+    result: {
+      id: subscriptionId,
+      state: subscription.state,
+      startDate: subscription.startDate,
+      subscriber: {
+        id: contact.id,
+        name: contact.name,
+      },
+      plan: {
+        id: input.planId,
+        name: plan.name,
+        periodDuration: plan.periodDuration,
+      },
+    },
+    errors: [],
+  };
+}
+
 // Create a GraphQL link for the specific endpoint.
 const gql = graphql.link(API_PATHS.graphql);
 
@@ -528,6 +629,27 @@ export const handlers = [
     return HttpResponse.json({
       data: {
         createContactWithContactPoints: payload,
+      },
+    });
+  }),
+
+  gql.mutation("CreateSubscription", ({ variables, request }) => {
+    // Extract organization ID from header for associating subscription
+    const orgIdHeader = request.headers.get("x-chironium-organizationid");
+    const orgId = orgIdHeader?.startsWith("org_")
+      ? orgIdHeader.slice(4)
+      : (orgIdHeader ?? "");
+
+    const payload = createSubscription(
+      orgId,
+      variables?.input as
+        | { subscriberId?: string; planId?: string; startDate?: string }
+        | undefined,
+    );
+
+    return HttpResponse.json({
+      data: {
+        createSubscription: payload,
       },
     });
   }),

@@ -1,0 +1,379 @@
+# Ralph Progress Log
+Started: Tue Feb  3 20:58:00 GMT 2026
+
+## Codebase Patterns
+- Error boundaries should be added to routes using TanStack Router's `errorComponent` property
+- The app uses biome for linting (not eslint) - run `pnpm lint` in the assets directory
+- Typecheck via `pnpm typecheck` in the assets directory
+- There are pre-existing lint issues in the codebase (codegen.ts, create-customer-sheet.tsx, app.css) that should be addressed separately
+- API utilities follow a clean pattern: graphql.ts handles all GraphQL requests with centralized auth error handling, request.ts provides header building utilities
+- Use `import type { X }` instead of `import { type X }` for type-only imports (biome lint rule)
+- Layout follows M3 window size classes: <600px (compact/mobile), 600-839px (medium/tablet), 840px+ (expanded/desktop)
+- Navigation configuration lives in shared/layout/nav-items.ts - update there to add new nav items
+- Overlay components (dialog, sheet, popover, dropdown-menu) use Base UI; alert-dialog uses Radix UI
+- All overlays use z-50 for z-index and Portal for rendering outside the DOM tree
+- Import graphql from @/gql (not @/gql/gql) for proper codegen type inference
+- pnpm typecheck uses root tsconfig - use `tsc -b --noEmit` to check all project references
+- Feature types should live in model/ directory (e.g., customer-types.ts), not in UI components
+- Use exhaustive switch checks with `const _exhaustiveCheck: never = value; return _exhaustiveCheck;`
+
+---
+
+## 2026-02-03 - US-001
+- What was implemented: Added error boundary to the root route (__root.tsx) using TanStack Router's errorComponent
+- Files changed:
+  - assets/src/routes/__root.tsx - Added ErrorComponent with user-friendly error display and retry button
+  - assets/biome.jsonc - Updated schema version from 2.3.11 to 2.3.13
+- **Learnings for future iterations:**
+  - main.tsx was already clean and minimal - used proper polyfill imports, MSW setup, and safe mounting
+  - vite-env.d.ts was correctly set up with Vite type reference and polyfill module declaration
+  - TanStack Router uses `errorComponent` property for error boundaries (not React's ErrorBoundary class)
+  - The ErrorComponentProps from @tanstack/react-router provides `error` and `reset` callback
+  - Dev-only content should use `import.meta.env.DEV` conditional
+---
+
+## 2026-02-03 - US-002
+- What was implemented: Reviewed app initialization layer (inner-app.tsx, app-providers.tsx, query-client.ts, router.ts)
+- Files changed:
+  - assets/src/app/inner-app.tsx - Simplified router type from complex ReturnType construction to direct `typeof router` reference
+- **Learnings for future iterations:**
+  - The app initialization layer is well-organized with clear provider ordering documented in app-providers.tsx
+  - Query client uses sensible defaults: 5 min stale time, 30 min GC time, exponential backoff retry
+  - Router configuration is minimal and delegates to auto-generated routeTree
+  - Use type-only imports (`import type`) to reference router types to avoid circular dependency issues
+  - Import paths should be relative within the same module (e.g., `./router` not `@/app/router`)
+---
+
+## 2026-02-03 - US-003
+- What was implemented: Reviewed shared API utilities (graphql.ts, request.ts, request-utils.ts)
+- Files changed:
+  - assets/src/features/org/api/org-api.ts - Fixed type import from `import { type Organization }` to `import type { Organization }`
+- **Learnings for future iterations:**
+  - The API layer is well-structured with clear separation of concerns:
+    - `graphql.ts` - GraphQL client with centralized auth error handling and proper TypeScript generics
+    - `request.ts` - Simple wrapper to merge auth headers
+    - `request-utils.ts` - CSRF token handling and header building
+  - Auth error detection checks both HTTP 401 and GraphQL error codes/messages
+  - The `isAuthError` function is private to graphql.ts but handles all auth redirect logic
+  - All API consumers use the same `requestGraphql` function, ensuring consistent error handling
+  - graphql-codegen typed documents provide proper type inference, so explicit type parameters are optional
+---
+
+## 2026-02-03 - US-004
+- What was implemented: Reviewed all shared utility functions (6 files)
+- Files changed:
+  - assets/src/shared/utils/utils.ts - Fixed type import from `import { type ClassValue, clsx }` to separate `import type` statement
+- **Learnings for future iterations:**
+  - The utility layer is well-organized with focused responsibilities:
+    - `form-utils.ts` - TanStack Form + Zod integration helpers (createFieldValidator, extractErrorMessage, mapFieldErrors)
+    - `phone-utils.ts` - Comprehensive phone number utilities using libphonenumber-js
+    - `request-utils.ts` - CSRF token handling and header building
+    - `url-utils.ts` - API and auth URL constants
+    - `utils.ts` - Single `cn()` function for Tailwind class merging (NOT a junk drawer)
+    - `index.ts` - Barrel export for common utilities
+  - No duplicate functions exist across files
+  - All utilities are pure functions with proper TypeScript types
+  - Barrel exports (`@/shared/utils`) are used for `cn()`, while specialized utilities (form-utils, phone-utils) are imported directly from their modules
+  - This pattern is intentional - commonly used utilities go through barrel, specialized ones use direct imports
+---
+
+## 2026-02-03 - US-005
+- What was implemented: Reviewed shared types directory
+- Files changed:
+  - assets/src/shared/types/router-context.ts - Fixed outdated ESLint ignore comment to use Biome ignore (`biome-ignore lint/complexity/noBannedTypes`)
+- **Learnings for future iterations:**
+  - The shared/types directory contains only RouterContext for TanStack Router
+  - RouterContext is intentionally an empty object `{}` - Phoenix handles authentication before the PWA loads
+  - Use biome-ignore comments (not eslint-disable) since the project uses Biome for linting
+  - The `unknown` type usages in form-utils.ts are correct - they properly use type guards for narrowing
+  - No `any` types exist in the codebase (good!)
+  - Type organization pattern: feature-specific types in feature directories, shared types in shared/types/
+---
+
+## 2026-02-03 - US-006
+- What was implemented: Reviewed all shared layout components and extracted duplicated navigation configuration
+- Files changed:
+  - assets/src/shared/layout/nav-items.ts - Created new file with shared NavItem interface and navItems array
+  - assets/src/shared/layout/bottom-nav.tsx - Removed duplicated navItems, now imports from nav-items.ts
+  - assets/src/shared/layout/side-nav.tsx - Removed duplicated navItems, now imports from nav-items.ts
+- **Learnings for future iterations:**
+  - Layout components follow Material Design 3 and Apple HIG patterns consistently
+  - app-shell.tsx orchestrates all nav components (SideNav, TopNav, BottomNav) with proper responsive breakpoints
+  - Responsive breakpoints: mobile (bottom nav), tablet md: (side rail 72px), desktop lg: (side drawer 256px)
+  - All nav components have proper accessibility: aria-label="Main navigation", aria-current="page", min touch targets 44px
+  - TopNav has inline toast implementation (lines 68-77, 207-211) - consider extracting to shared toast system in future
+  - quick-actions.tsx uses route-based rendering pattern to show context-appropriate actions
+  - Memoization not needed for static nav items - only needed if navItems were dynamic/computed
+---
+
+## 2026-02-03 - US-007
+- What was implemented: Reviewed all shared UI form control components
+- Files changed:
+  - assets/src/shared/ui/input-group.tsx - Fixed type import style (separate `import type`)
+  - assets/src/shared/ui/field.tsx - Fixed type import style (separate `import type`)
+  - assets/src/shared/ui/phone-input.tsx - Fixed type import style (separate `import type`)
+- **Learnings for future iterations:**
+  - React 19+ uses ComponentProps pattern instead of forwardRef - refs are passed via props
+  - Form controls follow consistent patterns:
+    - input.tsx, textarea.tsx: Simple wrappers with data-slot attributes and Tailwind styling
+    - select.tsx: Uses Base UI primitives with proper ARIA
+    - label.tsx: Uses Radix UI Label primitive
+    - field.tsx: Comprehensive field composition system with CVA variants
+    - phone-input.tsx: Composed with InputGroup, has country flag detection
+  - Similar styling across form controls (border-input, aria-invalid, dark mode) is intentional - allows per-component customization
+  - FieldError component uses `role="alert"` for proper error announcement to screen readers
+  - InputGroupAddon has click-to-focus behavior: clicking addon focuses the input inside the group
+---
+
+## 2026-02-03 - US-008
+- What was implemented: Reviewed button.tsx, badge.tsx, toggle-group.tsx, badge-variants.ts; deleted unused button-variants.ts
+- Files changed:
+  - assets/src/shared/ui/button.tsx - Fixed type import style (separate `import type`)
+  - assets/src/shared/ui/toggle-group.tsx - Fixed type import style (separate `import type`)
+  - assets/src/shared/ui/button-variants.ts - DELETED (dead code - buttonVariants was defined inline in button.tsx)
+- **Learnings for future iterations:**
+  - button-variants.ts was dead code - button.tsx defines its own inline buttonVariants and exports it
+  - badge-variants.ts IS used by badge.tsx (different pattern from button)
+  - Variant systems all use CVA consistently: button, badge, toggle-group
+  - Some variants are unused but kept for design system completeness (secondary, destructive, link for button)
+  - Disabled states: `disabled:pointer-events-none disabled:opacity-50` is the standard pattern
+  - Loading states are NOT implemented in button.tsx - could be added later if needed
+  - Focus indicators: `focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50`
+  - Button uses Radix Slot for `asChild` composition pattern
+  - Toggle group uses Base UI primitives (@base-ui/react/toggle, @base-ui/react/toggle-group)
+---
+
+## 2026-02-03 - US-009
+- What was implemented: Reviewed all overlay/dialog components (dialog.tsx, sheet.tsx, popover.tsx, dropdown-menu.tsx, alert-dialog.tsx)
+- Files changed:
+  - assets/src/shared/ui/popover.tsx - Renamed PopoverAnchor to PopoverArrow (was incorrectly named - wraps Arrow primitive not Anchor)
+  - assets/src/shared/ui/sheet.tsx - Added missing data-slot="sheet-close" to close button inside SheetContent for consistency
+- **Learnings for future iterations:**
+  - Overlay components use two different primitive libraries:
+    - Base UI (@base-ui/react): dialog, sheet (as dialog), popover, dropdown-menu
+    - Radix UI: alert-dialog
+  - All overlays use consistent z-index: z-50
+  - Portal usage is consistent across all components - each wraps content in a Portal
+  - Focus trap, escape key, and click-outside behavior is handled by Base UI/Radix primitives
+  - Accessibility is handled by primitives: Title/Description components provide proper ARIA labeling
+  - sheet.tsx uses the same Dialog primitive as dialog.tsx but styled for side panels
+  - dropdown-menu.tsx has the most comprehensive component set (checkbox items, radio groups, submenus)
+  - alert-dialog.tsx includes AlertDialogMedia for icons/images in the header
+  - data-slot attributes are used consistently for styling hooks (e.g., `[data-slot=dialog-title]`)
+---
+
+## 2026-02-03 - US-010
+- What was implemented: Reviewed all data display components (card.tsx, table.tsx, avatar.tsx, progress.tsx, separator.tsx, empty.tsx)
+- Files changed:
+  - assets/src/shared/ui/empty.tsx - Added data-slot="empty" for consistency with other components
+- **Learnings for future iterations:**
+  - Data display components are low-level primitives - they don't implement sorting/loading themselves, that's handled by consuming components (TanStack Table, etc.)
+  - Card component uses data-size attribute for size variants, with group/card CSS class for descendant styling
+  - Avatar uses Base UI Avatar primitive which handles missing images via Fallback component
+  - Progress uses Radix UI Progress which provides proper accessibility (role="progressbar", aria-valuenow) automatically
+  - Separator uses Radix UI Separator which handles ARIA roles and supports both horizontal/vertical orientation
+  - Empty component pattern: icon, title, description, optional action button - good for empty states
+  - "use client" directives in table.tsx and progress.tsx are unnecessary (no hooks) but harmless - they're shadcn artifacts
+  - All components use data-slot attributes for styling hooks - maintain this pattern
+---
+
+## 2026-02-03 - US-011
+- What was implemented: Reviewed combobox and command palette components (combobox.tsx, command.tsx, use-combobox-anchor.ts)
+- Files changed:
+  - assets/src/shared/ui/use-combobox-anchor.ts - Fixed type import style (separate `import type` statement)
+- **Learnings for future iterations:**
+  - Two patterns exist for combobox-like behavior in this codebase:
+    1. Base UI Combobox (combobox.tsx) - full-featured with chips, groups, etc.
+    2. Popover + Command composition (used in org-selector-combobox.tsx) - cmdk + popover
+  - combobox.tsx is currently unused but kept as part of the design system
+  - Debouncing for search should be handled at the data-fetching layer, not in the UI components
+  - Base UI and cmdk handle keyboard navigation (arrow keys, enter, escape) natively
+  - Screen reader support is provided by the primitives (proper ARIA attributes)
+  - use-combobox-anchor.ts exists for Fast Refresh compatibility (hooks separated from components)
+  - Command palette pattern: CommandDialog wraps Command in Dialog with sr-only header for accessibility
+---
+
+## 2026-02-03 - US-012
+- What was implemented: Reviewed calendar.tsx, app-name.tsx, and auth-loading.tsx; fixed type import style in calendar.tsx
+- Files changed:
+  - assets/src/shared/ui/calendar.tsx - Fixed type import style (separated `import type { DayButton }` from value imports)
+- **Learnings for future iterations:**
+  - calendar.tsx uses react-day-picker with proper keyboard navigation (focused modifier + useEffect)
+  - CalendarDayButton is exported but not imported anywhere - kept for design system customization potential
+  - app-name.tsx uses fontVariant: "small-caps" inline style - Tailwind 4 may support this as utility class in future
+  - auth-loading.tsx is the only loading spinner in the codebase - consistent pattern
+  - All three components are actively used: Calendar in date-picker-field.tsx, AppName in side-nav + top-nav, AuthLoading in _app.tsx
+---
+
+## 2026-02-03 - US-013
+- What was implemented: Review and fix customers feature API and store
+- Files changed:
+  - assets/src/features/customers/api/customers-api.ts - Added createCustomer function with GraphQL mutations, defined SubscriptionResult type, updated imports to use @/gql
+  - assets/src/features/customers/ui/create-customer-sheet.tsx - Removed unused addCustomer variable
+  - assets/src/gql/gql.ts - Added codegen output for new mutations
+  - assets/src/gql/graphql.ts - Added codegen types for CreateContactWithContactPoints and CreateSubscription mutations
+- **Learnings for future iterations:**
+  - GraphQL codegen types match query selection shape, not full schema types - use local interfaces for query results
+  - Creating a "customer" requires two mutations: createContactWithContactPoints + createSubscription
+  - Import graphql from @/gql (barrel export) not @/gql/gql for proper type inference
+  - pnpm typecheck uses root tsconfig with "files": [] - use tsc -b --noEmit to check all project references
+  - customers-store.ts uses Map<string, Customer[]> for org-scoped mock customers - follows Zustand patterns
+  - Store addCustomer was unused because create-customer-sheet now uses backend mutation instead of local store
+---
+
+## 2026-02-03 - US-014
+- What was implemented: Created missing customer type definitions and fixed broken imports across customers feature
+- Files changed:
+  - assets/src/features/customers/model/customer-types.ts - NEW: Canonical Customer, CustomerStatus, CustomerAction, CustomerActionType types
+  - assets/src/features/customers/ui/plan-selector.tsx - NEW: ToggleGroup for plan ID selection (plan-3m, plan-6m, plan-12m)
+  - assets/src/features/customers/ui/status-avatar.tsx - NEW: Avatar with status-colored ring (green/orange/red)
+  - assets/src/features/customers/ui/action-cell.tsx - Fixed missing return statement with exhaustive type check
+  - assets/src/features/customers/model/customer-schema.ts - Fixed status value "on-track" to "up-to-date"
+  - assets/src/features/customers/ui/customer-card.tsx - Import Customer from canonical location, re-export for backwards compatibility
+  - assets/src/features/customers/api/customers-api.ts - Updated import to use canonical type location
+  - assets/src/features/customers/store/customers-store.ts - Updated import to use canonical type location
+- **Learnings for future iterations:**
+  - Canonical Customer type should live in model/customer-types.ts, not in UI components
+  - CustomerStatus values are: "up-to-date", "needs-attention", "overdue" (mapped from backend: active, suspended, expired/canceled)
+  - customer-status.ts file mentioned in PRD doesn't exist - status utilities are in progress-utils.ts
+  - Use exhaustive type checking in switch statements: `const _exhaustiveCheck: never = type; return _exhaustiveCheck;`
+  - Re-export types from old location for backwards compatibility: `export type { Customer } from "../model/customer-types";`
+  - progress-utils.ts has correct progress calculations using date-fns differenceInDays
+---
+
+## 2026-02-03 - US-015
+- What was implemented: Reviewed customer UI components Part 1 (customer-card.tsx, customer-table.tsx, customer-progress-bar.tsx, action-cell.tsx, status-avatar.tsx) and eliminated code duplication
+- Files changed:
+  - assets/src/features/customers/utils/contact-utils.ts - NEW: Extracted getEmailUrl, getWhatsAppUrl, getInstagramUrl helpers
+  - assets/src/features/customers/ui/customer-card.tsx - Removed local URL helpers and progress functions, now uses shared utilities
+  - assets/src/features/customers/ui/customer-table.tsx - Updated to use shared contact-utils
+  - assets/src/features/customers/ui/customer-progress-bar.tsx - Removed duplicated getProgressColor function, now uses progress-utils.ts
+- **Learnings for future iterations:**
+  - Contact URL helpers live in utils/contact-utils.ts - use these instead of inline URL construction
+  - Progress utilities (calculateProgressPercent, getProgressColor, formatPlanDuration) live in utils/progress-utils.ts
+  - CustomerProgressBar does NOT use the shared Progress component because it has domain-specific styling (color coding, percentage badge, date labels)
+  - Memoization is NOT needed for these list item components - they don't create new objects/functions that would cause unnecessary re-renders
+  - action-cell.tsx has proper accessibility: aria-hidden on decorative icons, aria-label on status icons, title for tooltip
+  - status-avatar.tsx uses Record<CustomerStatus, string> for type-safe ring color lookup
+---
+
+## 2026-02-03 - US-016
+- What was implemented: Reviewed customer form components (create-customer-sheet.tsx, customer-form.tsx, date-picker-field.tsx, email-input.tsx, instagram-input.tsx, name-input.tsx, plan-selector.tsx) and eliminated validation schema duplication
+- Files changed:
+  - assets/src/features/customers/model/customer-schema.ts - Composed customerFormSchema from individual field schemas instead of duplicating validation logic
+  - assets/src/features/customers/ui/email-input.tsx - Fixed type import style (separate import type statement)
+  - assets/src/features/customers/ui/create-customer-sheet.tsx - Fixed Customer import to use canonical location (model/customer-types)
+  - assets/src/features/customers/ui/plan-duration-select.tsx - DELETED (dead code - plan-selector.tsx is used instead)
+- **Learnings for future iterations:**
+  - Form validation uses a two-layer approach: individual field schemas (nameSchema, emailSchema, etc.) for field-level validation, composed into customerFormSchema for full form submit validation
+  - TanStack Form uses field-level validators (onBlur) that validate only that field, improving UX over form-level validation
+  - Form inputs correctly reuse shared primitives: Input, InputGroup, ToggleGroup, Calendar+Popover, Field/FieldError/FieldLabel etc.
+  - Character filtering happens at the input component level (NameInput, EmailInput, InstagramInput) while schema validation handles format rules
+  - plan-selector.tsx uses string plan IDs ("plan-3m") which map to durations via getPlanDuration() - this allows plan IDs from backend later
+  - plan-duration-select.tsx was dead code (used numeric values but the form uses string plan IDs)
+  - FieldError components use role="alert" for proper error announcement to screen readers
+---
+
+## 2026-02-03 - US-017
+- What was implemented: Reviewed customers-page.tsx and refactored to use shared components for consistency
+- Files changed:
+  - assets/src/features/customers/pages/customers-page.tsx - Fixed Customer import to canonical location, replaced inline empty states with shared Empty component, replaced loading state with AuthLoading component
+- **Learnings for future iterations:**
+  - Page components should orchestrate sub-components only - no business logic (data fetching via React Query, local state via Zustand store)
+  - Use shared Empty component for empty/error states instead of inline divs - ensures visual consistency
+  - Use AuthLoading component for loading states - single source of truth for loading spinners
+  - Import types from canonical locations (e.g., model/customer-types.ts) not from UI components that re-export them
+  - Empty component supports action prop for CTA buttons in empty states
+  - Pre-existing lint issues (codegen.ts, app.css) are documented and should be fixed separately
+---
+
+## 2026-02-03 - US-018
+- What was implemented: Reviewed org feature completely and removed unused components
+- Files changed:
+  - assets/src/features/org/types.ts - DELETED (OrgContextState interface was never imported anywhere)
+  - assets/src/features/org/ui/org-selector.tsx - DELETED (OrgSelectorCombobox is used instead)
+- **Learnings for future iterations:**
+  - org-api.ts: GraphQL API functions are well-typed with proper error handling via payload.errors
+  - use-org.ts: Uses useShallow from zustand/react/shallow to avoid unnecessary re-renders
+  - org-preferences.ts: Simple localStorage persistence with try/catch for graceful degradation
+  - org-store.ts: Clean Zustand store with devtools middleware (dev-only via import.meta.env.DEV)
+  - org-store-sync.tsx: Syncs React Query data to Zustand store - good pattern for combining server state with client state
+  - resolveSelectedOrg function implements preference fallback chain: current selection -> stored preference -> first alphabetically
+  - CreateOrgModal auto-generates slug from name using regex transformation
+  - OrgSelector was dead code - OrgSelectorCombobox with Popover+Command composition is the actual implementation
+  - OrgContextState in types.ts was unused - org-store.ts defines its own OrgStoreState inline
+---
+
+## 2026-02-03 - US-019
+- What was implemented: Reviewed user feature completely; fixed type export style in index.ts
+- Files changed:
+  - assets/src/features/user/index.ts - Fixed type export style (separated `export type { CurrentUserState }` from value exports)
+- **Learnings for future iterations:**
+  - user-api.ts: Well-structured with proper GraphQL query and error handling for expired sessions
+  - use-current-user.ts: Uses useShallow from zustand/react/shallow - same pattern as use-org.ts
+  - user-store.ts: Follows same patterns as org-store.ts (devtools middleware, queryClient integration, proper typing)
+  - user-store-sync.tsx: Smart retry logic that skips auth errors (session expired) since graphql.ts handles redirect
+  - Export style: Use `export type { X }` on separate line instead of `export { type X }` within block (biome lint rule)
+  - No duplicated auth logic - Phoenix handles authentication, user feature is purely for profile data access
+  - Null handling is correct: `user: User | null` with `isLoading` and `error` states for proper UI feedback
+  - UserStoreSync matches OrgStoreSync pattern exactly - good consistency across features
+---
+
+## 2026-02-03 - US-020
+- What was implemented: Reviewed dashboard feature and refactored to use shared Empty component
+- Files changed:
+  - assets/src/features/dashboard/pages/dashboard-page.tsx - Replaced inline SVG and markup with shared Empty component
+- **Learnings for future iterations:**
+  - Dashboard is a clean placeholder page - not a dumping ground for unrelated components
+  - Dashboard route uses lazy() for proper code splitting (in routes/_app/dashboard.tsx)
+  - Dashboard is disabled in navigation via nav-items.ts disabled: true flag
+  - Use shared Empty component for "coming soon" or empty states - ensures visual consistency
+  - No data fetching means no waterfall potential - placeholder pages are simple
+---
+
+## 2026-02-03 - US-021
+- What was implemented: Reviewed all 5 route definition files; no changes needed (all follow best practices)
+- Files changed: None - all route files are well-structured
+- Files reviewed:
+  - assets/src/routes/__root.tsx - Root route with error boundary, not-found handling, and dev tools
+  - assets/src/routes/_app.tsx - Layout route with AppShell, OrgStoreSync, and Suspense
+  - assets/src/routes/_app/customers.tsx - Lazy-loaded customer page route
+  - assets/src/routes/_app/dashboard.tsx - Lazy-loaded dashboard page route
+  - assets/src/routes/index.tsx - Index route with redirect to /customers
+- **Learnings for future iterations:**
+  - TanStack Router error boundaries use `errorComponent` prop on route definition
+  - TanStack Router uses `beforeLoad` for loaders/redirects (not React Router's loader pattern)
+  - Route files should only delegate to feature pages - no business logic
+  - Use lazy() + dynamic import for code splitting in route files
+  - Layout routes (_app.tsx) provide shared shell and sync components like OrgStoreSync
+  - Pre-existing lint issues (codegen.ts, app.css) are separate from route definitions
+---
+
+## 2026-02-03 - US-022
+- What was implemented: Reviewed and fixed MSW mock handlers to match actual API structure
+- Files changed:
+  - assets/src/mocks/handlers.ts - Added CreateSubscription mock handler, plans data structure, createSubscription function, updated ContactPointInput to use GraphQL ContactPointType
+- **Learnings for future iterations:**
+  - MSW is enabled via `VITE_ENABLE_MSW=true` environment variable in dev mode only
+  - Mock handlers use `graphql.link(API_PATHS.graphql)` to target the correct endpoint
+  - Organization ID header format is `org_${organizationId}` - handlers strip `org_` prefix for matching
+  - Creating a customer requires two mutations: CreateContactWithContactPoints then CreateSubscription
+  - Mock plans data uses ISO 8601 duration format (P3M, P6M, P12M) matching backend schema
+  - browser.ts is minimal - just setupWorker with handlers, all logic in handlers.ts
+  - `onUnhandledRequest: "bypass"` allows non-mocked requests to pass through to real API
+---
+
+## 2026-02-03 - US-023
+- What was implemented: Audited codebase for dead code and unused exports using knip analysis
+- Files changed:
+  - assets/src/features/customers/ui/create-customer-sheet.tsx - Removed deprecated CreateCustomerSheet alias
+  - assets/src/features/customers/ui/customer-card.tsx - Removed unused Customer type re-export
+  - assets/codegen.ts - Fixed type import style (import type { CodegenConfig })
+  - assets/biome.jsonc - Added css/app.css to ignore list (Tailwind 4 syntax not parseable by Biome)
+- **Learnings for future iterations:**
+  - Knip analysis requires context - Phoenix backend files (css/app.css, js/app.js, vendor/heroicons.js) appear unused to knip but are used by server-rendered pages
+  - Design system components should be kept even if currently unused - they're part of the component library for future use
+  - The accepted pattern is to keep primitives (badge, card, combobox, dropdown-menu, progress, select, table) for design system completeness
+  - Customer table view components (customer-table.tsx, action-cell.tsx, etc.) are alternative to card view and should be kept
+  - css/app.css uses Tailwind 4 @custom-variant syntax which Biome cannot parse - added to biome ignore list
+---

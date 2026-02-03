@@ -1,16 +1,8 @@
 import * as Flags from "country-flag-icons/react/3x2";
 import type { CountryCode } from "libphonenumber-js";
 import { Globe } from "lucide-react";
-import {
-  type ComponentProps,
-  type FC,
-  type SVGProps,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import type { ComponentProps, FC, SVGProps } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   InputGroup,

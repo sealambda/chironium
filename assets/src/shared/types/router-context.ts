@@ -16,5 +16,5 @@
  * });
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// biome-ignore lint/complexity/noBannedTypes: Empty object is intentional - RouterContext is a placeholder for future context properties that routes may need.
 export type RouterContext = {};

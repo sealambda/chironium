@@ -23,7 +23,12 @@ interface CreateOrgModalProps {
  * Modal for creating a new organisation.
  * Handles form state and slug auto-generation.
  */
-export function CreateOrgModal({ open, onOpenChange, onSubmit, error }: CreateOrgModalProps) {
+export function CreateOrgModal({
+  open,
+  onOpenChange,
+  onSubmit,
+  error,
+}: CreateOrgModalProps) {
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -57,8 +62,8 @@ export function CreateOrgModal({ open, onOpenChange, onSubmit, error }: CreateOr
         <AlertDialogHeader>
           <AlertDialogTitle>Create New Organisation</AlertDialogTitle>
           <AlertDialogDescription>
-            Enter the details for the new organisation. The slug will be used in URLs and must be
-            unique.
+            Enter the details for the new organisation. The slug will be used in
+            URLs and must be unique.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="grid gap-4 py-4">

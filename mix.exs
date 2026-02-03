@@ -113,9 +113,11 @@ defmodule Chironium.MixProject do
       test: ["ash.setup --quiet", "test"],
       "assets.setup": ["phoenix_vite.npm assets install"],
       "assets.build": ["phoenix_vite.npm vite build"],
+      "assets.codegen": ["phoenix_vite.npm assets run codegen"],
+      codegen: ["ash.codegen graphql", "assets.codegen"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
 
-      # Clean rebuild for branch switching - preserves migrations,
+      # Clean rebuild for branch switching - preserves migrations.
       rebuild: [
         "cmd rm -rf _build deps assets/node_modules",
         "deps.get",
@@ -130,6 +132,7 @@ defmodule Chironium.MixProject do
         "ash.reset",
         "run priv/repo/seeds.exs",
         "assets.setup",
+        "codegen",
         "assets.build"
       ],
 

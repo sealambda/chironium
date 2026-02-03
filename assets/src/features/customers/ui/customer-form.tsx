@@ -21,17 +21,18 @@ import {
   customerFormSchema,
   defaultCustomerFormValues,
   emailSchema,
+  getPlanDuration,
   instagramSchema,
   nameSchema,
   phoneSchema,
-  planDurationSchema,
+  planIdSchema,
   startDateSchema,
 } from "../model/customer-schema";
 import { DatePickerField } from "./date-picker-field";
 import { EmailInput } from "./email-input";
 import { InstagramInput } from "./instagram-input";
 import { NameInput } from "./name-input";
-import { PlanDurationSelect } from "./plan-duration-select";
+import { PlanSelector } from "./plan-selector";
 
 interface CustomerFormProps {
   id?: string;
@@ -217,16 +218,16 @@ export function CustomerForm({
         </form.Field>
 
         <form.Field
-          name="subscription.planDurationMonths"
-          validators={{ onBlur: createFieldValidator(planDurationSchema) }}
+          name="subscription.planId"
+          validators={{ onBlur: createFieldValidator(planIdSchema) }}
         >
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel>
-                Plan Duration <span className="text-destructive">*</span>
+                Plan <span className="text-destructive">*</span>
               </FieldLabel>
               <FieldContent>
-                <PlanDurationSelect
+                <PlanSelector
                   value={field.state.value}
                   onChange={field.handleChange}
                   className="w-full"
@@ -240,9 +241,10 @@ export function CustomerForm({
         {/* Calculated End Date (read-only) */}
         <form.Subscribe selector={(state) => state.values.subscription}>
           {(subscription) => {
-            const { startDate, planDurationMonths } = subscription;
-            if (!startDate) return null;
+            const { startDate, planId } = subscription;
+            if (!startDate || !planId) return null;
 
+            const planDurationMonths = getPlanDuration(planId);
             const endDate = new Date(startDate);
             endDate.setMonth(endDate.getMonth() + planDurationMonths);
 
@@ -254,7 +256,7 @@ export function CustomerForm({
                     {format(endDate, "PPP")}
                   </div>
                   <FieldDescription>
-                    Automatically calculated from start date and duration
+                    Automatically calculated from start date and plan
                   </FieldDescription>
                 </FieldContent>
               </Field>
