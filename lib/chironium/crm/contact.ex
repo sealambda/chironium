@@ -16,6 +16,10 @@ defmodule Chironium.CRM.Contact do
     end
   end
 
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:contact]}
+  end
+
   postgres do
     table "contacts"
   end

@@ -32,6 +32,10 @@ defmodule Chironium.Accounts.User do
     end
   end
 
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:user]}
+  end
+
   admin do
     actor? true
   end

@@ -31,4 +31,3 @@ defmodule Chironium.Release do
     Application.ensure_loaded(@app)
   end
 end
-

@@ -14,13 +14,17 @@ defmodule Chironium.BaseResources.Auditable do
       end
 
       paper_trail do
-        # TODO Mixin to expose via GraphQL: https://hexdocs.pm/ash_paper_trail/getting-started-with-ash-paper-trail.html#enriching-the-versions-resource
-
         belongs_to_actor :changed_by, Chironium.Accounts.User, domain: Chironium.Accounts
         ignore_attributes [:created_at, :updated_at]
         store_action_name? true
         change_tracking_mode :changes_only
         primary_key_type :uuid_v7
+
+        # TODO I can't figure out a way to pass in :type
+        # mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, ["TODO".to_atom()]}
+
+        relationship_opts public?: true
+        version_extensions extensions: [AshGraphql.Resource]
       end
     end
   end

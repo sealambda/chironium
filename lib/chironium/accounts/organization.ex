@@ -26,6 +26,10 @@ defmodule Chironium.Accounts.Organization do
     end
   end
 
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:organization]}
+  end
+
   postgres do
     table "organizations"
 
