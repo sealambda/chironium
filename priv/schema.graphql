@@ -161,6 +161,14 @@ type User {
   Might be provided when a name claim is present.
   """
   givenName: String
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [UserVersion!]!
 }
 
 "The result of the :create_organization mutation"
@@ -196,6 +204,31 @@ type Organization {
   id: ID!
   name: String!
   slug: String!
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [OrganizationVersion!]!
+}
+
+type OrganizationVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Organization!
+}
+
+type UserVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: User!
 }
 
 enum SortOrder {
@@ -368,6 +401,13 @@ type ContactPoint {
   value: String
   isPrimary: Boolean!
   contactId: ID!
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ContactPointVersion!]!
   contact: Contact!
 }
 
@@ -447,6 +487,13 @@ input ContactFilterInput {
 type Contact {
   id: ID!
   name: String
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ContactVersion!]!
   contactPoints(
     "How to sort the records in the response"
     sort: [ContactPointSortInput]
@@ -460,6 +507,24 @@ type Contact {
     "The number of records to skip."
     offset: Int
   ): [ContactPoint!]!
+}
+
+type ContactVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Contact!
+}
+
+type ContactPointVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: ContactPoint!
 }
 
 enum SubscriptionSortField {
@@ -564,6 +629,13 @@ type Subscription {
   state: String!
   subscriberId: ID!
   planId: ID!
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [SubscriptionVersion!]!
   subscriber: Contact!
   plan: SubscriptionPlan!
 }
@@ -631,6 +703,31 @@ type SubscriptionPlan {
   name: String
   periodDuration: String
   priceAmount: Money
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [SubscriptionPlanVersion!]!
+}
+
+type SubscriptionPlanVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: SubscriptionPlan!
+}
+
+type SubscriptionVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Subscription!
 }
 
 type RootQueryType {
@@ -703,6 +800,13 @@ type RootMutationType {
 
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 }
+
+"""
+The `Json` scalar type represents arbitrary json string data, represented as UTF-8
+character sequences. The Json type is most often used to represent a free-form
+human-readable json string.
+"""
+scalar JsonString
 
 """
 The `Json` scalar type represents arbitrary json string data, represented as UTF-8
