@@ -1,13 +1,11 @@
 // TEMPORARY: Remove when backend implements body metrics
 
 export interface BodyMeasurements {
-  hip?: number; // cm
-  waist?: number; // cm
   chest?: number; // cm
-  bicepsLeft?: number; // cm
-  bicepsRight?: number; // cm
-  quadricepsLeft?: number; // cm
-  quadricepsRight?: number; // cm
+  waist?: number; // cm
+  hip?: number; // cm
+  biceps?: number; // cm
+  quadriceps?: number; // cm
 }
 
 export interface BodyMetricsRecord {

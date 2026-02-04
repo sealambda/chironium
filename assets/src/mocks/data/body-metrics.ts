@@ -10,13 +10,11 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.65,
     bmi: 22.96,
     measurements: {
-      hip: 96,
-      waist: 72,
       chest: 88,
-      bicepsLeft: 27,
-      bicepsRight: 27.5,
-      quadricepsLeft: 52,
-      quadricepsRight: 52,
+      waist: 72,
+      hip: 96,
+      biceps: 27,
+      quadriceps: 52,
     },
   },
   {
@@ -27,13 +25,11 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.65,
     bmi: 23.22,
     measurements: {
-      hip: 97,
-      waist: 73,
       chest: 89,
-      bicepsLeft: 26.5,
-      bicepsRight: 27,
-      quadricepsLeft: 52.5,
-      quadricepsRight: 52.5,
+      waist: 73,
+      hip: 97,
+      biceps: 27,
+      quadriceps: 52.5,
     },
   },
   {
@@ -44,13 +40,11 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.65,
     bmi: 23.51,
     measurements: {
-      hip: 98,
-      waist: 74,
       chest: 90,
-      bicepsLeft: 26,
-      bicepsRight: 26.5,
-      quadricepsLeft: 53,
-      quadricepsRight: 53,
+      waist: 74,
+      hip: 98,
+      biceps: 26,
+      quadriceps: 53,
     },
   },
   {
@@ -61,13 +55,11 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.65,
     bmi: 23.92,
     measurements: {
-      hip: 99,
-      waist: 75,
       chest: 91,
-      bicepsLeft: 25.5,
-      bicepsRight: 26,
-      quadricepsLeft: 53.5,
-      quadricepsRight: 53.5,
+      waist: 75,
+      hip: 99,
+      biceps: 26,
+      quadriceps: 53.5,
     },
   },
   {
@@ -78,13 +70,11 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.65,
     bmi: 24.36,
     measurements: {
-      hip: 100,
-      waist: 76,
       chest: 92,
-      bicepsLeft: 25,
-      bicepsRight: 25.5,
-      quadricepsLeft: 54,
-      quadricepsRight: 54,
+      waist: 76,
+      hip: 100,
+      biceps: 25,
+      quadriceps: 54,
     },
   },
   {
@@ -95,9 +85,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.65,
     bmi: 24.91,
     measurements: {
-      hip: 101,
-      waist: 78,
       chest: 93,
+      waist: 78,
+      hip: 101,
     },
   },
   {
@@ -108,9 +98,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.65,
     bmi: 25.17,
     measurements: {
-      hip: 102,
-      waist: 79,
       chest: 94,
+      waist: 79,
+      hip: 102,
     },
   },
   // Berta Guasch
@@ -122,13 +112,11 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.6,
     bmi: 22.66,
     measurements: {
-      hip: 92,
-      waist: 68,
       chest: 84,
-      bicepsLeft: 25,
-      bicepsRight: 25,
-      quadricepsLeft: 48,
-      quadricepsRight: 48,
+      waist: 68,
+      hip: 92,
+      biceps: 25,
+      quadriceps: 48,
     },
   },
   {
@@ -139,9 +127,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.6,
     bmi: 22.85,
     measurements: {
-      hip: 93,
-      waist: 69,
       chest: 85,
+      waist: 69,
+      hip: 93,
     },
   },
   {
@@ -152,9 +140,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.6,
     bmi: 23.13,
     measurements: {
-      hip: 94,
-      waist: 70,
       chest: 86,
+      waist: 70,
+      hip: 94,
     },
   },
   {
@@ -165,9 +153,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.6,
     bmi: 23.44,
     measurements: {
-      hip: 95,
-      waist: 71,
       chest: 87,
+      waist: 71,
+      hip: 95,
     },
   },
   {
@@ -178,9 +166,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.6,
     bmi: 23.83,
     measurements: {
-      hip: 96,
-      waist: 72,
       chest: 88,
+      waist: 72,
+      hip: 96,
     },
   },
   // Lorena Alfonso
@@ -192,13 +180,11 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.7,
     bmi: 24.22,
     measurements: {
-      hip: 100,
-      waist: 76,
       chest: 92,
-      bicepsLeft: 28,
-      bicepsRight: 28,
-      quadricepsLeft: 55,
-      quadricepsRight: 55,
+      waist: 76,
+      hip: 100,
+      biceps: 28,
+      quadriceps: 55,
     },
   },
   {
@@ -209,9 +195,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.7,
     bmi: 24.74,
     measurements: {
-      hip: 101,
-      waist: 77,
       chest: 93,
+      waist: 77,
+      hip: 101,
     },
   },
   {
@@ -222,9 +208,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.7,
     bmi: 25.19,
     measurements: {
-      hip: 102,
-      waist: 79,
       chest: 94,
+      waist: 79,
+      hip: 102,
     },
   },
   {
@@ -235,9 +221,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.7,
     bmi: 25.61,
     measurements: {
-      hip: 103,
-      waist: 80,
       chest: 95,
+      waist: 80,
+      hip: 103,
     },
   },
   {
@@ -248,9 +234,9 @@ export const bodyMetrics: BodyMetricsRecord[] = [
     heightM: 1.7,
     bmi: 26.02,
     measurements: {
-      hip: 104,
-      waist: 82,
       chest: 96,
+      waist: 82,
+      hip: 104,
     },
   },
 ];

@@ -6,7 +6,7 @@ import {
   fetchNutritionPlans,
   fetchPathologies,
   fetchSubscriptionHistory,
-} from "../api/customer-detail-api";
+} from "@/mocks/api/customer-detail-api";
 
 /** Combine loading and error states from multiple queries. */
 function combineQueryStates(...queries: UseQueryResult<unknown, Error>[]) {

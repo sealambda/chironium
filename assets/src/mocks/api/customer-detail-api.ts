@@ -40,13 +40,11 @@ const BodyMetricsHistoryQuery = gql`
         heightM
         bmi
         measurements {
-          hip
-          waist
           chest
-          bicepsLeft
-          bicepsRight
-          quadricepsLeft
-          quadricepsRight
+          waist
+          hip
+          biceps
+          quadriceps
         }
       }
     }

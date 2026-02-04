@@ -25,20 +25,40 @@ mocks/
 │   ├── organizations.ts
 │   └── ...
 │
-├── types/           # TEMPORARY types (until backend implements)
+├── types/           # TEMPORARY entity types (until backend implements)
 │   ├── index.ts
 │   ├── body-metrics.ts
 │   └── ...
 │
+├── graphql/         # TEMPORARY GraphQL definitions (until codegen available)
+│   ├── index.ts
+│   ├── documents/   # Reusable query/mutation strings
+│   │   ├── subscription-list.ts
+│   │   └── ...
+│   └── types/       # Input/output types for GraphQL operations
+│       ├── subscription.ts
+│       └── ...
+│
 └── handlers/        # GraphQL handlers by domain
+    ├── utils.ts     # Shared utilities (gql link, extractOrgId)
     ├── user.ts
     ├── organization.ts
     └── ...
 ```
 
+### Directory Purposes
+
+| Directory            | Contains                        | Used By               | Example                                    |
+| -------------------- | ------------------------------- | --------------------- | ------------------------------------------ |
+| `types/`             | Entity/record types             | API layer, handlers   | `BodyMetricsRecord`, `CycleRecord`         |
+| `graphql/types/`     | GraphQL input/output types      | API layer, handlers   | `CreateSubscriptionInput`, `Subscription`  |
+| `graphql/documents/` | Reusable query/mutation strings | API layer             | `SubscriptionListQuery`                    |
+
 ## Adding a New Mocked Feature
 
 ### 1. Create temporary types (if backend hasn't implemented yet)
+
+For **entity types** (data records):
 
 ```typescript
 // mocks/types/my-feature.ts
@@ -51,12 +71,24 @@ export interface MyFeatureRecord {
 }
 ```
 
-Export from index:
+For **GraphQL input/output types** (mutations, complex queries):
 
 ```typescript
-// mocks/types/index.ts
-export * from "./my-feature";
+// mocks/graphql/types/my-feature.ts
+// TEMPORARY: Remove when backend implements my-feature
+
+export interface CreateMyFeatureInput {
+  name: string;
+  // ...
+}
+
+export interface CreateMyFeatureResult {
+  result: { id: string } | null;
+  errors: Array<{ message: string }>;
+}
 ```
+
+Export from the respective index files.
 
 ### 2. Add seed data
 
@@ -87,10 +119,11 @@ export const db = {
 // mocks/handlers/my-feature.ts
 import { HttpResponse } from "msw";
 import { db } from "../db";
-import { gql } from "./utils";
+import { extractOrgId, gql } from "./utils";
 
 export const myFeatureHandlers = [
-  gql.query("MyFeatureList", ({ variables }) => {
+  gql.query("MyFeatureList", ({ request, variables }) => {
+    const orgId = extractOrgId(request);
     const customerId = variables?.customerId as string | undefined;
     const results = customerId
       ? db.myFeature.filter((r) => r.customerId === customerId)
@@ -114,6 +147,27 @@ export const handlers = [
 ];
 ```
 
+### 6. Create API layer (optional - for reusable queries)
+
+Queries can be defined inline in the API file or exported from `graphql/documents/`:
+
+```typescript
+// mocks/graphql/documents/my-feature-list.ts
+// TEMPORARY: Remove when backend implements listMyFeature query
+
+export const MyFeatureListQuery = `
+  query MyFeatureList($customerId: String!) {
+    myFeatureList(customerId: $customerId) {
+      results {
+        id
+        customerId
+        ...
+      }
+    }
+  }
+`;
+```
+
 ## Migrating to Real Backend
 
 When the backend implements the feature:
@@ -123,6 +177,8 @@ When the backend implements the feature:
 3. Update API function to use codegen query
 4. Delete from mocks:
    - `mocks/types/my-feature.ts`
+   - `mocks/graphql/types/my-feature.ts` (if created)
+   - `mocks/graphql/documents/my-feature-list.ts` (if created)
    - `mocks/data/my-feature.ts`
    - `mocks/handlers/my-feature.ts`
    - Remove from `db.ts` and `handlers.ts`
@@ -144,7 +200,7 @@ resetDb(); // Clears localStorage and reloads page
 ## Boundaries
 
 - **Components** → Import from `@/features/*/api` (never from `@/mocks`)
-- **API layer** → Types from `@/gql/graphql` OR `@/mocks/types` (temporary)
-- **MSW handlers** → Use `@/mocks/db` directly
+- **API layer** → Types from `@/gql/graphql` OR `@/mocks/types` OR `@/mocks/graphql` (temporary)
+- **MSW handlers** → Use `@/mocks/db` and `@/mocks/graphql` directly
 
 The API layer is the abstraction boundary. Components don't know if data comes from MSW or real backend.
