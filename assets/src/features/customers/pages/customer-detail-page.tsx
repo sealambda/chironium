@@ -12,8 +12,12 @@ import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
   analyzePhoneNumber,
+  formatInstagramDisplay,
   formatPhoneDisplay,
-} from "@/shared/utils/phone-utils";
+  getEmailUrl,
+  getInstagramUrl,
+  getWhatsAppUrl,
+} from "@/shared/utils";
 import { fetchCustomerList } from "../api/customers-api";
 import { useCustomerDetail } from "../hooks/use-customer-detail";
 import type { Customer } from "../ui/customer-card";
@@ -25,20 +29,13 @@ import {
   CompactSubscriptionCard,
   CustomerDetailHeader,
 } from "../ui/detail";
-
-function getEmailUrl(email: string): string {
-  return `mailto:${encodeURIComponent(email)}`;
-}
-
-function getWhatsAppUrl(phone: string): string {
-  const cleanPhone = phone.replaceAll(/\D/g, "");
-  return `https://wa.me/${cleanPhone}`;
-}
-
-function getInstagramUrl(instagram: string): string {
-  const username = instagram.startsWith("@") ? instagram.slice(1) : instagram;
-  return `https://www.instagram.com/${username}`;
-}
+import {
+  BodyMetricsDrawer,
+  CycleDrawer,
+  NutritionDrawer,
+  PathologiesDrawer,
+  SubscriptionDrawer,
+} from "../ui/drawers";
 
 function getFlag(
   countryCode: CountryCode | undefined,
@@ -60,11 +57,7 @@ function CustomerProfileSection({ customer }: { customer: Customer }) {
     [phoneAnalysis?.country],
   );
 
-  const instagramHandle = instagram
-    ? instagram.startsWith("@")
-      ? instagram
-      : `@${instagram}`
-    : null;
+  const instagramHandle = instagram ? formatInstagramDisplay(instagram) : null;
 
   return (
     <div className="flex flex-col items-center gap-3 py-4">
@@ -74,13 +67,11 @@ function CustomerProfileSection({ customer }: { customer: Customer }) {
         </AvatarFallback>
       </Avatar>
 
-      {/* Name and contact info - centered */}
       <div className="flex flex-col items-center gap-1">
         <h1 className="text-xl font-semibold text-foreground">
           {customer.name}
         </h1>
 
-        {/* Contact information */}
         {email && (
           <a
             href={getEmailUrl(email)}
@@ -126,14 +117,6 @@ function CustomerProfileSection({ customer }: { customer: Customer }) {
     </div>
   );
 }
-
-import {
-  BodyMetricsDrawer,
-  CycleDrawer,
-  NutritionDrawer,
-  PathologiesDrawer,
-  SubscriptionDrawer,
-} from "../ui/drawers";
 
 type DrawerType =
   | "subscription"

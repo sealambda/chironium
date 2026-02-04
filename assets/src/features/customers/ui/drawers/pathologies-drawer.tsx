@@ -5,12 +5,7 @@ import type { PathologyRecord } from "@/mocks/types";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
-
-const statusConfig = {
-  active: { variant: "destructive" as const },
-  managed: { variant: "outline" as const },
-  resolved: { variant: "secondary" as const },
-};
+import { pathologyStatusConfig } from "../../model/status-config";
 
 interface PathologiesDrawerProps {
   isOpen: boolean;
@@ -51,10 +46,10 @@ export function PathologiesDrawer({
           <SortableHeader column={column}>Status</SortableHeader>
         ),
         cell: ({ getValue }) => {
-          const status = getValue() as keyof typeof statusConfig;
+          const status = getValue() as keyof typeof pathologyStatusConfig;
           return (
             <Badge
-              variant={statusConfig[status].variant}
+              variant={pathologyStatusConfig[status]?.variant}
               className="capitalize"
             >
               {status}
@@ -74,18 +69,12 @@ export function PathologiesDrawer({
     [],
   );
 
-  const handleAdd = () => {
-    // TODO: Implement add pathology form
-    console.log("Add pathology clicked");
-    onAdd?.();
-  };
-
   return (
     <HistoryDrawer
       title="Pathologies"
       isOpen={isOpen}
       onClose={onClose}
-      onAdd={handleAdd}
+      onAdd={onAdd}
       addButtonLabel="Add Pathology"
     >
       <DataTable

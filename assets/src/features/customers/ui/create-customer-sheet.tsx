@@ -121,9 +121,6 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
   );
 }
 
-/** @deprecated Use CustomerSheet instead */
-export const CreateCustomerSheet = CustomerSheet;
-
 function buildContactPoints(contact: CustomerFormData["contact"]) {
   const points: Array<{
     type: "EMAIL" | "PHONE" | "INSTAGRAM";

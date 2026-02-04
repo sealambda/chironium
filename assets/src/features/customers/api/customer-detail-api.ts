@@ -102,134 +102,81 @@ const PathologiesListQuery = gql`
   }
 `;
 
-// Response types matching MSW mock handler responses
-
-type SubscriptionHistoryResponse = {
-  subscriptionHistory: {
-    results: SubscriptionHistoryRecord[];
-  };
-};
-
-type BodyMetricsHistoryResponse = {
-  bodyMetricsHistory: {
-    results: BodyMetricsRecord[];
-  };
-};
-
-type NutritionPlansHistoryResponse = {
-  nutritionPlansHistory: {
-    results: NutritionPlanRecord[];
-  };
-};
-
-type CycleHistoryResponse = {
-  cycleHistory: {
-    results: CycleRecord[];
-  };
-};
-
-type PathologiesListResponse = {
-  pathologiesList: {
-    results: PathologyRecord[];
-  };
+// Generic response type for customer data queries
+type CustomerDataResponse<K extends string, T> = {
+  [key in K]: { results: T[] };
 };
 
 /**
- * Fetch subscription history for a customer.
+ * Generic fetcher for customer-scoped GraphQL queries.
+ * Handles validation and result extraction with consistent error handling.
  */
-export async function fetchSubscriptionHistory(
+async function fetchCustomerData<K extends string, T>(
   customerId: string,
   organizationId: string,
-): Promise<SubscriptionHistoryRecord[]> {
+  document: string,
+  resultKey: K,
+): Promise<T[]> {
   if (!customerId || !organizationId) {
     return [];
   }
 
-  const result = await requestGraphql<SubscriptionHistoryResponse>({
-    document: SubscriptionHistoryQuery,
+  const result = await requestGraphql<CustomerDataResponse<K, T>>({
+    document,
     variables: { customerId },
     organizationId,
   });
 
-  return result.subscriptionHistory?.results ?? [];
+  return result[resultKey]?.results ?? [];
 }
 
-/**
- * Fetch body metrics history for a customer.
- */
-export async function fetchBodyMetrics(
+/** Fetch subscription history for a customer. */
+export const fetchSubscriptionHistory = (
   customerId: string,
   organizationId: string,
-): Promise<BodyMetricsRecord[]> {
-  if (!customerId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql<BodyMetricsHistoryResponse>({
-    document: BodyMetricsHistoryQuery,
-    variables: { customerId },
+) =>
+  fetchCustomerData<"subscriptionHistory", SubscriptionHistoryRecord>(
+    customerId,
     organizationId,
-  });
+    SubscriptionHistoryQuery,
+    "subscriptionHistory",
+  );
 
-  return result.bodyMetricsHistory?.results ?? [];
-}
+/** Fetch body metrics history for a customer. */
+export const fetchBodyMetrics = (customerId: string, organizationId: string) =>
+  fetchCustomerData<"bodyMetricsHistory", BodyMetricsRecord>(
+    customerId,
+    organizationId,
+    BodyMetricsHistoryQuery,
+    "bodyMetricsHistory",
+  );
 
-/**
- * Fetch nutrition plans history for a customer.
- */
-export async function fetchNutritionPlans(
+/** Fetch nutrition plans history for a customer. */
+export const fetchNutritionPlans = (
   customerId: string,
   organizationId: string,
-): Promise<NutritionPlanRecord[]> {
-  if (!customerId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql<NutritionPlansHistoryResponse>({
-    document: NutritionPlansHistoryQuery,
-    variables: { customerId },
+) =>
+  fetchCustomerData<"nutritionPlansHistory", NutritionPlanRecord>(
+    customerId,
     organizationId,
-  });
+    NutritionPlansHistoryQuery,
+    "nutritionPlansHistory",
+  );
 
-  return result.nutritionPlansHistory?.results ?? [];
-}
-
-/**
- * Fetch cycle history for a customer.
- */
-export async function fetchCycleHistory(
-  customerId: string,
-  organizationId: string,
-): Promise<CycleRecord[]> {
-  if (!customerId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql<CycleHistoryResponse>({
-    document: CycleHistoryQuery,
-    variables: { customerId },
+/** Fetch cycle history for a customer. */
+export const fetchCycleHistory = (customerId: string, organizationId: string) =>
+  fetchCustomerData<"cycleHistory", CycleRecord>(
+    customerId,
     organizationId,
-  });
+    CycleHistoryQuery,
+    "cycleHistory",
+  );
 
-  return result.cycleHistory?.results ?? [];
-}
-
-/**
- * Fetch pathologies list for a customer.
- */
-export async function fetchPathologies(
-  customerId: string,
-  organizationId: string,
-): Promise<PathologyRecord[]> {
-  if (!customerId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql<PathologiesListResponse>({
-    document: PathologiesListQuery,
-    variables: { customerId },
+/** Fetch pathologies list for a customer. */
+export const fetchPathologies = (customerId: string, organizationId: string) =>
+  fetchCustomerData<"pathologiesList", PathologyRecord>(
+    customerId,
     organizationId,
-  });
-
-  return result.pathologiesList?.results ?? [];
-}
+    PathologiesListQuery,
+    "pathologiesList",
+  );

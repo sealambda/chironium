@@ -1,29 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users } from "lucide-react";
 
 import { cn } from "@/shared/utils";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  disabled?: boolean;
-}
-
-const navItems: NavItem[] = [
-  {
-    to: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    disabled: true, // Dashboard is disabled for now.
-  },
-  {
-    to: "/customers",
-    label: "Customers",
-    icon: Users,
-    disabled: false,
-  },
-];
+import { navItems } from "./nav-config";
 
 /**
  * Bottom navigation bar for mobile (compact) layouts only.
@@ -41,25 +19,25 @@ export function BottomNav() {
 
   return (
     <nav
-      className={[
+      className={cn(
         // Hidden on tablet+ where side nav is used.
         "md:hidden",
         // Fixed position at bottom.
         "fixed inset-x-0 bottom-0 z-50",
         // Styling - glass effect per Apple Liquid Glass / M3 surface container.
         "border-border/40 border-t bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
-      ].join(" ")}
+      )}
       aria-label="Main navigation"
     >
       {/* Container: 64px height per M3 flexible nav bar + safe area padding. */}
       <div
-        className={[
+        className={cn(
           "flex items-center justify-around",
           // Height: 64px per M3 flexible navigation bar spec.
           "h-16",
           // Safe area padding for home indicator on notched devices.
           "pb-safe",
-        ].join(" ")}
+        )}
       >
         {navItems.map((item) => {
           const isActive = currentPath.startsWith(item.to);
@@ -71,15 +49,17 @@ export function BottomNav() {
                 key={item.to}
                 type="button"
                 disabled
-                className={[
+                className={cn(
                   // Touch target: minimum 44x44px.
                   "flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 px-3 py-2",
                   "cursor-not-allowed opacity-40",
-                ].join(" ")}
+                )}
                 aria-label={`${item.label} (disabled)`}
               >
                 <Icon className="h-6 w-6 text-muted-foreground" />
-                <span className="font-medium text-muted-foreground text-xs">{item.label}</span>
+                <span className="font-medium text-muted-foreground text-xs">
+                  {item.label}
+                </span>
               </button>
             );
           }
@@ -100,10 +80,16 @@ export function BottomNav() {
               aria-current={isActive ? "page" : undefined}
             >
               <Icon
-                className={cn("h-6 w-6 transition-transform duration-200", isActive && "scale-110")}
+                className={cn(
+                  "h-6 w-6 transition-transform duration-200",
+                  isActive && "scale-110",
+                )}
               />
               <span
-                className={cn("font-medium text-xs transition-all", isActive && "font-semibold")}
+                className={cn(
+                  "font-medium text-xs transition-all",
+                  isActive && "font-semibold",
+                )}
               >
                 {item.label}
               </span>

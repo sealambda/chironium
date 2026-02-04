@@ -88,18 +88,12 @@ export function CycleDrawer({
     <SymptomsList symptoms={row.original.symptoms} />
   );
 
-  const handleAdd = () => {
-    // TODO: Implement add cycle form
-    console.log("Add cycle clicked");
-    onAdd?.();
-  };
-
   return (
     <HistoryDrawer
       title="Cycle History"
       isOpen={isOpen}
       onClose={onClose}
-      onAdd={handleAdd}
+      onAdd={onAdd}
       addButtonLabel="Add Cycle"
     >
       <DataTable

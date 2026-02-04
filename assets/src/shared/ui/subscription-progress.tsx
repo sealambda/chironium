@@ -1,6 +1,18 @@
 import { differenceInDays, format, formatDistanceStrict } from "date-fns";
 import { cn } from "@/shared/utils";
 
+/**
+ * Get progress bar color based on percentage.
+ * Blue (new) -> Green (stable) -> Orange (ending soon) -> Red (urgent) -> Grey (finished).
+ */
+function getProgressColor(percent: number): string {
+  if (percent >= 100) return "bg-muted-foreground";
+  if (percent >= 80) return "bg-red-500";
+  if (percent >= 60) return "bg-orange-500";
+  if (percent >= 25) return "bg-emerald-500";
+  return "bg-sky-500";
+}
+
 export interface SubscriptionProgressData {
   startDate: Date | string;
   endDate: Date | string;
@@ -11,18 +23,6 @@ interface SubscriptionProgressProps {
   subscription: SubscriptionProgressData;
   /** Custom class for the container */
   className?: string;
-}
-
-/**
- * Get progress bar color based on percentage.
- * Blue (new) -> Green (stable) -> Orange (ending soon) -> Red (urgent) -> Grey (finished).
- */
-function getProgressColor(percent: number): string {
-  if (percent >= 100) return "bg-muted-foreground"; // Grey - finished.
-  if (percent >= 80) return "bg-red-500"; // Red - urgent, almost done.
-  if (percent >= 60) return "bg-orange-500"; // Orange - ending soon.
-  if (percent >= 25) return "bg-emerald-500"; // Green - stable.
-  return "bg-sky-500"; // Blue - new.
 }
 
 /**

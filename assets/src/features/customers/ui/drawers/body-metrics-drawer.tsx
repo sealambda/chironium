@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { BodyMetricsRecord } from "@/mocks/types";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
+import { heightMetersToCm } from "@/shared/utils";
 
 interface MeasurementsGridProps {
   record: BodyMetricsRecord;
@@ -78,10 +79,7 @@ export function BodyMetricsDrawer({
       {
         accessorKey: "heightM",
         header: "Height",
-        cell: ({ getValue }) => {
-          const heightM = getValue() as number;
-          return `${Math.round(heightM * 100)} cm`;
-        },
+        cell: ({ getValue }) => `${heightMetersToCm(getValue() as number)} cm`,
       },
       {
         accessorKey: "bmi",
@@ -98,18 +96,12 @@ export function BodyMetricsDrawer({
     <MeasurementsGrid record={row.original} />
   );
 
-  const handleAdd = () => {
-    // TODO: Implement add body metrics form
-    console.log("Add body metrics clicked");
-    onAdd?.();
-  };
-
   return (
     <HistoryDrawer
       title="Body Metrics History"
       isOpen={isOpen}
       onClose={onClose}
-      onAdd={handleAdd}
+      onAdd={onAdd}
       addButtonLabel="Add Record"
     >
       <DataTable

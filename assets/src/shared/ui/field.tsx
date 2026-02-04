@@ -5,37 +5,6 @@ import { Label } from "@/shared/ui/label";
 import { Separator } from "@/shared/ui/separator";
 import { cn } from "@/shared/utils";
 
-function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
-  return (
-    <fieldset
-      data-slot="field-set"
-      className={cn(
-        "flex flex-col gap-6 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-function FieldLegend({
-  className,
-  variant = "legend",
-  ...props
-}: React.ComponentProps<"legend"> & { variant?: "legend" | "label" }) {
-  return (
-    <legend
-      data-slot="field-legend"
-      data-variant={variant}
-      className={cn(
-        "mb-3 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
 function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -105,19 +74,6 @@ function FieldLabel({
       className={cn(
         "group/field-label peer/field-label flex w-fit gap-2 leading-snug has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border has-data-checked:border-primary has-data-checked:bg-primary/5 group-data-[disabled=true]/field:opacity-50 dark:has-data-checked:bg-primary/10 [&>*]:data-[slot=field]:p-3",
         "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="field-label"
-      className={cn(
-        "flex w-fit items-center gap-2 font-medium text-sm leading-snug group-data-[disabled=true]/field:opacity-50",
         className,
       )}
       {...props}
@@ -234,13 +190,10 @@ function FieldError({
 
 export {
   Field,
-  FieldLabel,
+  FieldContent,
   FieldDescription,
   FieldError,
   FieldGroup,
-  FieldLegend,
+  FieldLabel,
   FieldSeparator,
-  FieldSet,
-  FieldContent,
-  FieldTitle,
 };

@@ -1,6 +1,7 @@
-import { requestGraphql } from "@/shared/api/graphql";
-import { type Organization } from "@/gql/graphql";
 import { graphql } from "@/gql";
+import type { Organization } from "@/gql/graphql";
+import { unwrapMutationResult } from "@/shared/api/error-utils";
+import { requestGraphql } from "@/shared/api/graphql";
 
 const ListOrganizationsQuery = graphql(`
   query ListOrganizations($first: Int) {
@@ -52,15 +53,8 @@ export async function createOrganization(data: {
     variables: { input: { name: data.name, slug: data.slug } },
   });
 
-  const payload = result.createOrganization;
-  if (!payload?.result) {
-    const errorMessage =
-      payload?.errors
-        ?.map((error) => error.message)
-        .filter(Boolean)
-        .join(" ") || "Failed to create organization";
-    throw new Error(errorMessage);
-  }
-
-  return payload.result;
+  return unwrapMutationResult(
+    result.createOrganization,
+    "Failed to create organization",
+  );
 }

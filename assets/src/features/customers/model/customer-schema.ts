@@ -1,5 +1,6 @@
 import { addMonths } from "date-fns";
 import { z } from "zod";
+import { getInitials, sanitizePhoneDigits } from "@/shared/utils";
 import type { Customer } from "../ui/customer-card";
 
 // ============================================
@@ -45,8 +46,7 @@ export const phoneSchema = z
   .string()
   .refine((val) => {
     if (!val) return true;
-    const digits = val.replaceAll(/\D/g, "");
-    return digits.length >= 7;
+    return sanitizePhoneDigits(val).length >= 7;
   }, "Phone number must be at least 7 digits")
   .optional()
   .or(z.literal(""));
@@ -78,67 +78,22 @@ export const planIdSchema = z.string().min(1, "Please select a plan");
 
 /**
  * Zod schema for customer form validation.
- * Follows TanStack Form + Zod best practices from basecn.dev docs.
+ * Composed from individual field schemas to avoid duplication.
  */
 export const customerFormSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(120, "Name must be 120 characters or less")
-    .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
-    .refine(
-      (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
-      CONSECUTIVE_SPECIAL_ERROR,
-    ),
+  name: nameSchema,
   contact: z.object({
-    email: z
-      .email("Please enter a valid email address")
-      .optional()
-      .or(z.literal("")),
-    phone: z
-      .string()
-      .refine((val) => {
-        if (!val) return true;
-        const digits = val.replaceAll(/\D/g, "");
-        return digits.length >= 7; // Max is prevented by input mask.
-      }, "Phone number must be at least 7 digits")
-      .optional()
-      .or(z.literal("")),
-    instagram: z
-      .string()
-      .transform((val) => {
-        if (!val) return "";
-        const clean = val
-          .toLowerCase()
-          .replaceAll(/^@/g, "")
-          .replaceAll(/[^a-z0-9_.]/g, "");
-        return clean ? `@${clean}` : "";
-      })
-      .refine(
-        (val) => val === "" || /^@[a-z0-9_.]{1,30}$/.test(val),
-        "Username must be 1-30 characters (letters, numbers, periods, underscores)",
-      )
-      .optional()
-      .or(z.literal("")),
+    email: emailSchema,
+    phone: phoneSchema,
+    instagram: instagramSchema,
   }),
   subscription: z.object({
-    startDate: z.date({
-      message: "Start date is required",
-    }),
-    planId: z.string().min(1, "Please select a plan"),
+    startDate: startDateSchema,
+    planId: planIdSchema,
   }),
 });
 
 export type CustomerFormData = z.infer<typeof customerFormSchema>;
-
-/**
- * Parse ISO 8601 duration string to months.
- * Supports formats like "P3M", "P6M", "P12M".
- */
-export function parsePeriodDurationMonths(periodDuration: string): number {
-  const match = /^P(\d+)M$/i.exec(periodDuration);
-  return match ? Number.parseInt(match[1], 10) : 3;
-}
 
 /**
  * Transform form data to Customer interface for storage.
@@ -154,16 +109,10 @@ export function formDataToCustomer(
   const { startDate } = data.subscription;
   const endDate = addMonths(startDate, planDurationMonths);
 
-  const nameParts = name.trim().split(/\s+/).filter(Boolean);
-  const firstInitial = nameParts.at(0)?.[0] || "";
-  const lastInitial = nameParts.at(-1)?.[0] || "";
-  const initials =
-    `${firstInitial}${lastInitial || firstInitial}`.toUpperCase() || "?";
-
   return {
     id: existingId ?? `local-${crypto.randomUUID()}`,
     name,
-    initials,
+    initials: getInitials(name),
     status: "up-to-date", // New customers start as up-to-date.
     subscription: {
       startDate,

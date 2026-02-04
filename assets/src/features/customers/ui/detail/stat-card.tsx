@@ -3,12 +3,6 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils";
 
 interface StatCardProps {
-  /** @deprecated Icon is no longer displayed */
-  icon?: ReactNode;
-  /** @deprecated Icon is no longer displayed */
-  iconBgColor?: string;
-  /** @deprecated Icon is no longer displayed */
-  iconColor?: string;
   /** Background color for the entire card (e.g., "bg-blue-50/50") */
   cardBgColor?: string;
   /** Label text displayed below the icon */

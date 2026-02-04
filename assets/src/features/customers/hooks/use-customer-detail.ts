@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
   fetchBodyMetrics,
@@ -8,6 +8,14 @@ import {
   fetchSubscriptionHistory,
 } from "../api/customer-detail-api";
 
+/** Combine loading and error states from multiple queries. */
+function combineQueryStates(...queries: UseQueryResult<unknown, Error>[]) {
+  return {
+    isLoading: queries.some((q) => q.isLoading),
+    error: queries.find((q) => q.error)?.error ?? null,
+  };
+}
+
 /**
  * Hook to fetch and manage all customer detail data.
  * Orchestrates multiple queries and provides derived state for the detail page.
@@ -15,41 +23,27 @@ import {
 export function useCustomerDetail(customerId: string) {
   const { selectedOrg } = useOrg();
   const organizationId = selectedOrg?.id ?? "";
+  const enabled = Boolean(customerId && organizationId);
 
-  // Subscription history query
-  const subscriptions = useQuery({
-    queryKey: ["customer", customerId, "subscriptionHistory", organizationId],
-    queryFn: () => fetchSubscriptionHistory(customerId, organizationId),
-    enabled: Boolean(customerId && organizationId),
+  // Query config factory for consistent structure
+  const queryConfig = <T>(
+    key: string,
+    fetchFn: (cId: string, orgId: string) => Promise<T>,
+  ) => ({
+    queryKey: ["customer", customerId, key, organizationId],
+    queryFn: () => fetchFn(customerId, organizationId),
+    enabled,
   });
 
-  // Body metrics query
-  const bodyMetrics = useQuery({
-    queryKey: ["customer", customerId, "bodyMetrics", organizationId],
-    queryFn: () => fetchBodyMetrics(customerId, organizationId),
-    enabled: Boolean(customerId && organizationId),
-  });
-
-  // Nutrition plans query
-  const nutritionPlans = useQuery({
-    queryKey: ["customer", customerId, "nutritionPlans", organizationId],
-    queryFn: () => fetchNutritionPlans(customerId, organizationId),
-    enabled: Boolean(customerId && organizationId),
-  });
-
-  // Cycle history query
-  const cycleHistory = useQuery({
-    queryKey: ["customer", customerId, "cycleHistory", organizationId],
-    queryFn: () => fetchCycleHistory(customerId, organizationId),
-    enabled: Boolean(customerId && organizationId),
-  });
-
-  // Pathologies query
-  const pathologies = useQuery({
-    queryKey: ["customer", customerId, "pathologies", organizationId],
-    queryFn: () => fetchPathologies(customerId, organizationId),
-    enabled: Boolean(customerId && organizationId),
-  });
+  const subscriptions = useQuery(
+    queryConfig("subscriptionHistory", fetchSubscriptionHistory),
+  );
+  const bodyMetrics = useQuery(queryConfig("bodyMetrics", fetchBodyMetrics));
+  const nutritionPlans = useQuery(
+    queryConfig("nutritionPlans", fetchNutritionPlans),
+  );
+  const cycleHistory = useQuery(queryConfig("cycleHistory", fetchCycleHistory));
+  const pathologies = useQuery(queryConfig("pathologies", fetchPathologies));
 
   // Derived state for cards
   // Most recent subscription (data is returned in order from mock handlers)
@@ -73,21 +67,14 @@ export function useCustomerDetail(customerId: string) {
   // Check if user has cycle tracking enabled (has any cycle records)
   const hasCycleTracking = (cycleHistory.data?.length ?? 0) > 0;
 
-  // Combined loading state
-  const isLoading =
-    subscriptions.isLoading ||
-    bodyMetrics.isLoading ||
-    nutritionPlans.isLoading ||
-    cycleHistory.isLoading ||
-    pathologies.isLoading;
-
-  // Combined error state
-  const error =
-    subscriptions.error ||
-    bodyMetrics.error ||
-    nutritionPlans.error ||
-    cycleHistory.error ||
-    pathologies.error;
+  // Combined loading and error state
+  const { isLoading, error } = combineQueryStates(
+    subscriptions,
+    bodyMetrics,
+    nutritionPlans,
+    cycleHistory,
+    pathologies,
+  );
 
   return {
     // Raw query results for drawers
