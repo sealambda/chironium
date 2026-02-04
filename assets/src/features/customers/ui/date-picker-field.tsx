@@ -26,19 +26,21 @@ export function DatePickerField({
 }: DatePickerFieldProps) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "h-9 w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground",
-            className,
-          )}
-          disabled={disabled}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? format(value, "PPP") : placeholder}
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            className={cn(
+              "h-9 w-full justify-start text-left font-normal",
+              !value && "text-muted-foreground",
+              className,
+            )}
+            disabled={disabled}
+          />
+        }
+      >
+        <CalendarIcon className="mr-2 h-4 w-4" />
+        {value ? format(value, "PPP") : placeholder}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar

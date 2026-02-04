@@ -1,26 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { UserPlus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { useNavTrailingActions } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
 import { fetchCustomerList } from "../api/customers-api";
-import { useCustomersStore } from "../store/customers-store";
 import { CustomerSheet } from "../ui/create-customer-sheet";
 import { type Customer, CustomerCard } from "../ui/customer-card";
-
-/** Stable empty array to avoid infinite loops in selectors */
-const EMPTY_CUSTOMERS: Customer[] = [];
 
 /**
  * Customers page displaying a scrollable list of customer cards.
  */
 export function CustomersPage() {
   const { selectedOrg } = useOrg();
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
 
+  // Add create customer button to nav bar trailing slot.
+  useNavTrailingActions(
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-10 w-10"
+      aria-label="Add customer"
+      onClick={() => setIsCreateCustomerOpen(true)}
+    >
+      <UserPlus className="size-5" />
+    </Button>,
+    "create-customer",
+  );
+
   const {
-    data: apiCustomers = [],
+    data: customers = [],
     isLoading,
     error,
   } = useQuery<Customer[]>({
@@ -28,18 +39,6 @@ export function CustomersPage() {
     queryFn: () => fetchCustomerList(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg),
   });
-
-  // Get locally-created customers from the store.
-  // Use stable EMPTY_CUSTOMERS reference to avoid infinite re-render loops.
-  const localCustomers = useCustomersStore((state) =>
-    selectedOrg ? state.getCustomers(selectedOrg.id) : EMPTY_CUSTOMERS,
-  );
-
-  // Merge API customers with local (mock) customers.
-  const customers = useMemo(
-    () => [...apiCustomers, ...localCustomers],
-    [apiCustomers, localCustomers],
-  );
 
   if (!selectedOrg) {
     return (
@@ -86,24 +85,13 @@ export function CustomersPage() {
   return (
     <div className="space-y-4 pt-2">
       {/* Page header. */}
-      <header className="flex items-baseline justify-between">
-        <div className="flex items-baseline gap-3">
-          <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
-            Customers
-          </h1>
-          <span className="text-muted-foreground text-sm">
-            {customers.length} total
-          </span>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10"
-          aria-label="Add customer"
-          onClick={() => setIsCreateCustomerOpen(true)}
-        >
-          <UserPlus className="size-5" />
-        </Button>
+      <header className="flex items-baseline gap-3">
+        <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
+          Customers
+        </h1>
+        <span className="text-muted-foreground text-sm">
+          {customers.length} total
+        </span>
       </header>
 
       {/* Customer cards list. */}
@@ -121,21 +109,19 @@ export function CustomersPage() {
       ) : (
         <div className="space-y-3">
           {customers.map((customer) => (
-            <CustomerCard
+            <Link
               key={customer.id}
-              customer={customer}
-              onClick={() => setEditingCustomer(customer)}
-            />
+              to="/customers/$customerId"
+              params={{ customerId: customer.id }}
+              className="block"
+            >
+              <CustomerCard customer={customer} />
+            </Link>
           ))}
         </div>
       )}
 
-      {/* Edit customer sheet */}
-      <CustomerSheet
-        open={editingCustomer !== null}
-        onOpenChange={(open) => !open && setEditingCustomer(null)}
-        customer={editingCustomer ?? undefined}
-      />
+      {/* Create customer sheet */}
       <CustomerSheet
         open={isCreateCustomerOpen}
         onOpenChange={setIsCreateCustomerOpen}

@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
+import type { SubscriptionPlan } from "@/gql/graphql";
 import { Button } from "@/shared/ui/button";
 import {
   Field,
@@ -23,8 +24,9 @@ import {
   emailSchema,
   instagramSchema,
   nameSchema,
+  parsePeriodDurationMonths,
   phoneSchema,
-  planDurationSchema,
+  planIdSchema,
   startDateSchema,
 } from "../model/customer-schema";
 import { DatePickerField } from "./date-picker-field";
@@ -42,6 +44,8 @@ interface CustomerFormProps {
   initialValues?: CustomerFormData;
   /** Submit button text - defaults to "Create Customer" */
   submitLabel?: string;
+  /** Available subscription plans */
+  plans: SubscriptionPlan[];
 }
 
 /**
@@ -56,6 +60,7 @@ export function CustomerForm({
   hideFooter,
   initialValues,
   submitLabel = "Create Customer",
+  plans,
 }: Readonly<CustomerFormProps>) {
   const form = useForm({
     defaultValues: initialValues ?? defaultCustomerFormValues,
@@ -217,8 +222,8 @@ export function CustomerForm({
         </form.Field>
 
         <form.Field
-          name="subscription.planDurationMonths"
-          validators={{ onBlur: createFieldValidator(planDurationSchema) }}
+          name="subscription.planId"
+          validators={{ onBlur: createFieldValidator(planIdSchema) }}
         >
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
@@ -227,6 +232,7 @@ export function CustomerForm({
               </FieldLabel>
               <FieldContent>
                 <PlanDurationSelect
+                  plans={plans}
                   value={field.state.value}
                   onChange={field.handleChange}
                   className="w-full"
@@ -240,9 +246,15 @@ export function CustomerForm({
         {/* Calculated End Date (read-only) */}
         <form.Subscribe selector={(state) => state.values.subscription}>
           {(subscription) => {
-            const { startDate, planDurationMonths } = subscription;
-            if (!startDate) return null;
+            const { startDate, planId } = subscription;
+            if (!startDate || !planId) return null;
 
+            const selectedPlan = plans.find((p) => p.id === planId);
+            if (!selectedPlan) return null;
+
+            const planDurationMonths = parsePeriodDurationMonths(
+              selectedPlan.periodDuration ?? "",
+            );
             const endDate = new Date(startDate);
             endDate.setMonth(endDate.getMonth() + planDurationMonths);
 

@@ -1,7 +1,7 @@
 import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
-import { differenceInDays, format, formatDistanceStrict } from "date-fns";
 import { Mail } from "lucide-react";
 import { Button } from "@/shared/ui/button";
+import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { cn } from "@/shared/utils";
 
 export interface Customer {
@@ -52,38 +52,6 @@ export function CustomerCard({
   onClick,
 }: Readonly<CustomerCardProps>) {
   const { email, phone, instagram } = customer.contact;
-  const now = new Date();
-  const { startDate, endDate } = customer.subscription;
-
-  const totalDays = differenceInDays(endDate, startDate);
-  const elapsedDays = differenceInDays(now, startDate);
-  const progressPercent = Math.min(
-    100,
-    Math.max(0, Math.round((elapsedDays / totalDays) * 100)),
-  );
-
-  const elapsedLabel = formatDistanceStrict(startDate, now, {
-    roundingMethod: "floor",
-    addSuffix: true,
-  });
-  const remainingLabel = formatDistanceStrict(endDate, now, {
-    roundingMethod: "floor",
-    addSuffix: true,
-  });
-
-  /**
-   * Get progress bar color based on percentage.
-   * Blue (new) -> Green (stable) -> Orange (ending soon) -> Red (urgent) -> Grey (finished).
-   */
-  const getProgressColor = (percent: number): string => {
-    if (percent >= 100) return "bg-muted-foreground"; // Grey - finished.
-    if (percent >= 80) return "bg-red-500"; // Red - urgent, almost done.
-    if (percent >= 60) return "bg-orange-500"; // Orange - ending soon.
-    if (percent >= 25) return "bg-emerald-500"; // Green - stable.
-    return "bg-sky-500"; // Blue - new.
-  };
-
-  const progressColor = getProgressColor(progressPercent);
 
   const content = (
     <>
@@ -137,65 +105,11 @@ export function CustomerCard({
         </div>
       </div>
 
-      {/* Progress bar section. */}
-      <div className="mt-4">
-        <div className="relative">
-          {/* Custom progress bar with dynamic color. */}
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn(
-                "h-full rounded-full transition-all duration-500",
-                progressColor,
-              )}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          {/* Progress percentage badge - clamped to prevent overflow. */}
-          <div
-            className="absolute -top-1 flex items-center justify-center"
-            style={{
-              left: `clamp(0px, calc(${progressPercent}% - 20px), calc(100% - 44px))`,
-            }}
-          >
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 font-semibold text-white text-xs",
-                progressColor,
-              )}
-            >
-              {progressPercent}%
-            </span>
-          </div>
-        </div>
-
-        {/* Subscription duration info - 3-column grid for proper alignment. */}
-        <div className="mt-3 grid grid-cols-3 items-center gap-1 text-xs">
-          {/* Left column - elapsed time. */}
-          <div className="min-w-0 text-left">
-            <div className="font-medium text-muted-foreground">
-              {elapsedLabel}
-            </div>
-            <div className="truncate text-[10px] text-muted-foreground/70">
-              {format(startDate, "MMM d, yy")}
-            </div>
-          </div>
-          {/* Center column - plan duration badge. */}
-          <div className="flex justify-center">
-            <div className="rounded-md bg-muted px-2 py-0.5 font-medium text-[10px] text-foreground">
-              {customer.subscription.planDurationMonths}mo plan
-            </div>
-          </div>
-          {/* Right column - time remaining. */}
-          <div className="min-w-0 text-right">
-            <div className="font-medium text-muted-foreground">
-              {remainingLabel}
-            </div>
-            <div className="truncate text-[10px] text-muted-foreground/70">
-              {format(endDate, "MMM d, yy")}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Subscription progress section. */}
+      <SubscriptionProgress
+        subscription={customer.subscription}
+        className="mt-4"
+      />
     </>
   );
 
