@@ -14,7 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { cn } from "@/shared/utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
+import { useDetailMode } from "./detail-context";
 
 /**
  * Get user initials from name or email.
@@ -53,10 +55,13 @@ function getInitials(user: User | null): string {
  * - Mobile: Full width, positioned at screen top.
  * - Tablet: Offset for navigation rail (72px).
  * - Desktop: Offset for navigation drawer (256px).
+ *
+ * In detail mode, renders custom header content instead of org selector and profile.
  */
 export function TopNav() {
   const { user, isLoading } = useCurrentUser();
   const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
+  const { isDetailMode, headerContent, trailingActions } = useDetailMode();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
   const [createOrgError, setCreateOrgError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -105,20 +110,22 @@ export function TopNav() {
     window.location.href = AUTH_URLS.signOut;
   };
 
+  // Header classes - different positioning based on detail mode.
+  const headerClasses = cn(
+    // Fixed positioning.
+    "fixed top-0 right-0 left-0 z-50",
+    // Responsive left offset for side nav (only when not in detail mode).
+    !isDetailMode && "md:left-18 lg:left-64",
+    // Styling - subtle border, glass effect.
+    "border-border/40 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
+    // Safe area insets for notched devices.
+    "pt-safe",
+  );
+
   // Show minimal header while loading or if no user data yet.
   if (isLoading || !user) {
     return (
-      <header
-        className={[
-          // Fixed positioning with responsive left offset for side nav.
-          "fixed top-0 right-0 left-0 z-50",
-          "md:left-18 lg:left-64",
-          // Styling - subtle border, glass effect.
-          "border-border/40 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
-          // Safe area insets for notched devices.
-          "pt-safe",
-        ].join(" ")}
-      >
+      <header className={headerClasses}>
         <div className="flex h-16 items-center px-4 md:px-6 lg:px-8">
           <AppName className="text-primary text-xl md:hidden" />
         </div>
@@ -126,46 +133,54 @@ export function TopNav() {
     );
   }
 
+  // In detail mode, render custom header content with invisible border.
+  if (isDetailMode) {
+    return (
+      <header
+        className={cn(
+          "fixed top-0 right-0 left-0 z-50",
+          "bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
+          "pt-safe",
+        )}
+      >
+        <div className="flex h-16 items-center px-4 md:px-6 lg:px-8">
+          {headerContent}
+        </div>
+      </header>
+    );
+  }
+
+  // Get user's first name for welcome message.
+  const firstName = user.name?.split(/\s+/)[0] || user.email.split("@")[0];
+
+  // Default: show org selector and profile.
   return (
-    <header
-      className={[
-        // Fixed positioning with responsive left offset for side nav.
-        "fixed top-0 right-0 left-0 z-50",
-        "md:left-18 lg:left-64",
-        // Styling - subtle border, glass effect.
-        "border-border/40 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
-        // Safe area insets for notched devices.
-        "pt-safe",
-      ].join(" ")}
-    >
+    <header className={headerClasses}>
       {/* Container: 64px height per M3 small app bar spec. */}
       <div
-        className={[
+        className={cn(
           "flex h-16 items-center justify-between",
           // M3 margins: 16px compact, 24px medium, 32px expanded.
           "px-4 md:px-6 lg:px-8",
-        ].join(" ")}
+        )}
       >
-        {/* Tenant selector. */}
-        <OrgSelector
-          selectedOrg={selectedOrg}
-          availableOrgs={availableOrgs}
-          onSelectOrg={selectOrg}
-          onCreateClick={() => setIsCreateOrgOpen(true)}
-        />
-
-        {/* Profile. */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={[
-                // Touch target: 40px avatar within 44px minimum hit area.
-                "rounded-full ring-offset-background transition-opacity",
-                "hover:opacity-80",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              ].join(" ")}
-              aria-label="Open profile menu"
+        {/* Leading: Avatar + Welcome + Org Selector */}
+        <div className="flex items-center gap-3">
+          {/* Profile avatar with dropdown. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    // Touch target: 40px avatar within 44px minimum hit area.
+                    "rounded-full ring-offset-background transition-opacity",
+                    "hover:opacity-80",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  )}
+                  aria-label="Open profile menu"
+                />
+              }
             >
               <Avatar className="h-10 w-10 border-2 border-primary/20 cursor-pointer">
                 {user.picture && (
@@ -178,33 +193,51 @@ export function TopNav() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <div className="px-2 py-1.5">
-              {user.name && (
-                <p className="font-semibold text-sm">{user.name}</p>
-              )}
-              <p
-                className={
-                  user.name
-                    ? "text-muted-foreground text-xs"
-                    : "font-semibold text-sm"
-                }
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <div className="px-2 py-1.5">
+                {user.name && (
+                  <p className="font-semibold text-sm">{user.name}</p>
+                )}
+                <p
+                  className={
+                    user.name
+                      ? "text-muted-foreground text-xs"
+                      : "font-semibold text-sm"
+                  }
+                >
+                  {user.email}
+                </p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
+                onClick={handleLogout}
               >
-                {user.email}
-              </p>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Welcome message + Org Selector */}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-muted-foreground text-xs">
+              Welcome back, {firstName}
+            </span>
+            <OrgSelector
+              selectedOrg={selectedOrg}
+              availableOrgs={availableOrgs}
+              onSelectOrg={selectOrg}
+              onCreateClick={() => setIsCreateOrgOpen(true)}
+            />
+          </div>
+        </div>
+
+        {/* Trailing: Actions slot */}
+        {trailingActions && (
+          <div className="flex items-center gap-2">{trailingActions}</div>
+        )}
       </div>
 
       <CreateOrgModal
