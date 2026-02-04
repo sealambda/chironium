@@ -14,13 +14,11 @@ function MeasurementsGrid({ record }: Readonly<MeasurementsGridProps>) {
   const { measurements } = record;
 
   const items = [
-    { label: "Hip", value: measurements.hip },
-    { label: "Waist", value: measurements.waist },
     { label: "Chest", value: measurements.chest },
-    { label: "Biceps L", value: measurements.bicepsLeft },
-    { label: "Biceps R", value: measurements.bicepsRight },
-    { label: "Quads L", value: measurements.quadricepsLeft },
-    { label: "Quads R", value: measurements.quadricepsRight },
+    { label: "Waist", value: measurements.waist },
+    { label: "Hip", value: measurements.hip },
+    { label: "Biceps", value: measurements.biceps },
+    { label: "Quadriceps", value: measurements.quadriceps },
   ].filter((item) => item.value !== undefined);
 
   if (items.length === 0) {

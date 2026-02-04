@@ -10,6 +10,6 @@ export function usePlans() {
     queryKey: ["plans", organizationId],
     queryFn: () => fetchPlans(organizationId),
     enabled: Boolean(organizationId),
-    staleTime: 5 * 60 * 1000, // Plans don't change often, cache for 5 minutes
+    staleTime: 5 * 60 * 1000, // Plans don't change often, cache for 5 minutes.
   });
 }

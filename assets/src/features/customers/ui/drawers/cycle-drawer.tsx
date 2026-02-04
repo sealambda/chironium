@@ -1,7 +1,7 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
-import { getSymptomById } from "@/features/customers/data/catalogs";
+import { getSymptomById } from "@/mocks/data/catalogs";
 import type { CycleRecord } from "@/mocks/types";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
