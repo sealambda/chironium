@@ -10,9 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as AppCustomersRouteImport } from './routes/_app/customers'
-import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppCustomersRouteImport } from './routes/_app/customers'
+import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -33,16 +34,23 @@ const AppCustomersRoute = AppCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
+  id: '/customers_/$customerId',
+  path: '/customers/$customerId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/customers/$customerId': typeof AppCustomersCustomerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/customers/$customerId': typeof AppCustomersCustomerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +58,20 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/customers': typeof AppCustomersRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/customers' | '/dashboard'
+  fullPaths: '/' | '/customers' | '/dashboard' | '/customers/$customerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/customers' | '/dashboard'
-  id: '__root__' | '/' | '/_app' | '/_app/customers' | '/_app/dashboard'
+  to: '/' | '/customers' | '/dashboard' | '/customers/$customerId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/customers'
+    | '/_app/dashboard'
+    | '/_app/customers_/$customerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,17 +109,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/customers_/$customerId': {
+      id: '/_app/customers_/$customerId'
+      path: '/customers/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof AppCustomersCustomerIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
