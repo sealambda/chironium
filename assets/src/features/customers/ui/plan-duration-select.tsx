@@ -1,42 +1,50 @@
+import type { SubscriptionPlan } from "@/gql/graphql";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 
 interface PlanDurationSelectProps {
-  value: number;
-  onChange: (value: number) => void;
+  plans: SubscriptionPlan[];
+  value: string;
+  onChange: (planId: string) => void;
   disabled?: boolean;
   className?: string;
 }
 
-const PLAN_OPTIONS = [
-  { value: 3, label: "3 months" },
-  { value: 6, label: "6 months" },
-  { value: 12, label: "12 months" },
-] as const;
+function parsePlanLabel(plan: SubscriptionPlan): string {
+  if (plan.name) return plan.name;
+  if (plan.periodDuration) {
+    const match = /^P(\d+)M$/i.exec(plan.periodDuration);
+    if (match) return `${match[1]} months`;
+  }
+  return "Unknown";
+}
 
 /**
- * Toggle group for selecting plan duration.
- * Supports 3, 6, and 12 month plans following M3 segmented control pattern.
+ * Toggle group for selecting subscription plan.
+ * Displays plans fetched from the API following M3 segmented control pattern.
  */
 export function PlanDurationSelect({
+  plans,
   value,
   onChange,
   disabled,
   className,
 }: PlanDurationSelectProps) {
+  if (plans.length === 0) {
+    return (
+      <div className="text-muted-foreground text-sm">Loading plans...</div>
+    );
+  }
+
   return (
     <ToggleGroup
-      value={String(value)}
-      onValueChange={(val) => onChange(Number(val))}
+      value={value}
+      onValueChange={onChange}
       disabled={disabled}
       className={className}
     >
-      {PLAN_OPTIONS.map((option) => (
-        <ToggleGroupItem
-          key={option.value}
-          value={String(option.value)}
-          disabled={disabled}
-        >
-          {option.label}
+      {plans.map((plan) => (
+        <ToggleGroupItem key={plan.id} value={plan.id} disabled={disabled}>
+          {parsePlanLabel(plan)}
         </ToggleGroupItem>
       ))}
     </ToggleGroup>

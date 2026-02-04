@@ -1,3 +1,5 @@
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { Button } from "@/shared/ui/button";
 import {
@@ -7,62 +9,53 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/shared/ui/sheet";
-import {
-  type CustomerFormData,
-  customerToFormData,
-  formDataToCustomer,
-} from "../model/customer-schema";
-import { useCustomersStore } from "../store/customers-store";
-import type { Customer } from "./customer-card";
+import { useCreateCustomer } from "../hooks/use-create-customer";
+import { usePlans } from "../hooks/use-plans";
+import type { CustomerFormData } from "../model/customer-schema";
 import { CustomerForm } from "./customer-form";
 
 interface CustomerSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Customer to edit - if provided, sheet opens in edit mode. */
-  customer?: Customer;
 }
 
 /**
- * Sheet component for creating or editing a customer.
+ * Sheet component for creating a customer.
  * Mobile-first design: full width on mobile, max-w-md on larger screens.
  * Uses flex layout with fixed header/footer and scrollable content.
  */
-export function CustomerSheet({
-  open,
-  onOpenChange,
-  customer,
-}: CustomerSheetProps) {
+export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
   const { selectedOrg } = useOrg();
-  const addCustomer = useCustomersStore((state) => state.addCustomer);
-  const updateCustomer = useCustomersStore((state) => state.updateCustomer);
+  const { data: plans = [], isLoading: plansLoading } = usePlans();
+  const createCustomerMutation = useCreateCustomer();
+  const [error, setError] = useState<string | null>(null);
 
-  const isEditMode = Boolean(customer);
-  const title = isEditMode ? "Edit Customer" : "Add Customer";
-  const description = isEditMode
-    ? "Update the customer's information below. Required fields are marked with *."
-    : "Enter the customer's information below. Required fields are marked with *.";
-  const submitLabel = isEditMode ? "Update Customer" : "Create Customer";
-
-  const handleSubmit = (data: CustomerFormData) => {
+  const handleSubmit = async (data: CustomerFormData) => {
     if (!selectedOrg) return;
 
-    if (isEditMode && customer) {
-      const updatedCustomer = formDataToCustomer(data, customer.id);
-      updateCustomer(selectedOrg.id, updatedCustomer);
-    } else {
-      const newCustomer = formDataToCustomer(data);
-      addCustomer(selectedOrg.id, newCustomer);
+    setError(null);
+    try {
+      await createCustomerMutation.mutateAsync({
+        contact: {
+          name: data.name,
+          contactPoints: buildContactPoints(data.contact),
+        },
+        subscription: {
+          planId: data.subscription.planId,
+          startDate: formatDate(data.subscription.startDate),
+        },
+      });
+      onOpenChange(false);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to create customer";
+      setError(message);
     }
-    onOpenChange(false);
   };
 
   const handleCancel = () => {
     onOpenChange(false);
   };
-
-  // Get initial values for edit mode.
-  const initialValues = customer ? customerToFormData(customer) : undefined;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -72,20 +65,28 @@ export function CustomerSheet({
       >
         {/* Fixed header */}
         <SheetHeader className="px-4 pt-4">
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
+          <SheetTitle>Add Customer</SheetTitle>
+          <SheetDescription>
+            Enter the customer's information below. Required fields are marked
+            with *.
+          </SheetDescription>
         </SheetHeader>
 
         {/* Scrollable content area */}
         <div className="flex-1 overflow-y-auto px-4 pb-4">
+          {error && (
+            <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-destructive text-sm">
+              {error}
+            </div>
+          )}
           <CustomerForm
-            key={customer?.id ?? "new"}
+            key="new"
             id="customer-form"
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             hideFooter
-            initialValues={initialValues}
-            submitLabel={submitLabel}
+            submitLabel="Create Customer"
+            plans={plans}
           />
         </div>
 
@@ -103,9 +104,15 @@ export function CustomerSheet({
             <Button
               type="submit"
               form="customer-form"
+              disabled={createCustomerMutation.isPending || plansLoading}
               className="order-1 sm:order-2"
             >
-              {submitLabel}
+              {createCustomerMutation.isPending && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
+              {createCustomerMutation.isPending
+                ? "Creating..."
+                : "Create Customer"}
             </Button>
           </div>
         </div>
@@ -116,3 +123,29 @@ export function CustomerSheet({
 
 /** @deprecated Use CustomerSheet instead */
 export const CreateCustomerSheet = CustomerSheet;
+
+function buildContactPoints(contact: CustomerFormData["contact"]) {
+  const points: Array<{
+    type: "EMAIL" | "PHONE" | "INSTAGRAM";
+    value: string;
+    isPrimary?: boolean;
+  }> = [];
+
+  if (contact.email) {
+    points.push({ type: "EMAIL", value: contact.email, isPrimary: true });
+  }
+  if (contact.phone) {
+    points.push({ type: "PHONE", value: contact.phone });
+  }
+  if (contact.instagram) {
+    // Remove @ prefix if present
+    const handle = contact.instagram.replace(/^@/, "");
+    points.push({ type: "INSTAGRAM", value: handle });
+  }
+
+  return points.length > 0 ? points : undefined;
+}
+
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}

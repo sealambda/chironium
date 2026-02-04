@@ -70,12 +70,7 @@ export const instagramSchema = z
 
 export const startDateSchema = z.date({ message: "Start date is required" });
 
-export const planDurationSchema = z
-  .number()
-  .refine(
-    (val) => [3, 6, 12].includes(val),
-    "Plan duration must be 3, 6, or 12 months",
-  );
+export const planIdSchema = z.string().min(1, "Please select a plan");
 
 // ============================================
 // Full Form Schema (for submit validation)
@@ -130,27 +125,33 @@ export const customerFormSchema = z.object({
     startDate: z.date({
       message: "Start date is required",
     }),
-    planDurationMonths: z
-      .number()
-      .refine(
-        (val) => [3, 6, 12].includes(val),
-        "Plan duration must be 3, 6, or 12 months",
-      ),
+    planId: z.string().min(1, "Please select a plan"),
   }),
 });
 
 export type CustomerFormData = z.infer<typeof customerFormSchema>;
 
 /**
+ * Parse ISO 8601 duration string to months.
+ * Supports formats like "P3M", "P6M", "P12M".
+ */
+export function parsePeriodDurationMonths(periodDuration: string): number {
+  const match = /^P(\d+)M$/i.exec(periodDuration);
+  return match ? Number.parseInt(match[1], 10) : 3;
+}
+
+/**
  * Transform form data to Customer interface for storage.
  * Generates id, name, initials, status, and calculated endDate.
+ * @param planDurationMonths - The plan duration in months (from selected plan).
  */
 export function formDataToCustomer(
   data: CustomerFormData,
+  planDurationMonths: number,
   existingId?: string,
 ): Customer {
   const { name } = data;
-  const { startDate, planDurationMonths } = data.subscription;
+  const { startDate } = data.subscription;
   const endDate = addMonths(startDate, planDurationMonths);
 
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
@@ -179,9 +180,12 @@ export function formDataToCustomer(
 
 /**
  * Transform Customer back to form data for editing.
- * Falls back to parsing name string if nameParts are not available.
+ * Note: planId must be provided separately as Customer doesn't store it.
  */
-export function customerToFormData(customer: Customer): CustomerFormData {
+export function customerToFormData(
+  customer: Customer,
+  planId: string,
+): CustomerFormData {
   return {
     name: customer.name,
     contact: {
@@ -191,7 +195,7 @@ export function customerToFormData(customer: Customer): CustomerFormData {
     },
     subscription: {
       startDate: customer.subscription.startDate,
-      planDurationMonths: customer.subscription.planDurationMonths,
+      planId,
     },
   };
 }
@@ -208,6 +212,6 @@ export const defaultCustomerFormValues: CustomerFormData = {
   },
   subscription: {
     startDate: new Date(),
-    planDurationMonths: 3,
+    planId: "",
   },
 };
