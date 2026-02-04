@@ -63,18 +63,12 @@ export function NutritionDrawer({
     [],
   );
 
-  const handleAdd = () => {
-    // TODO: Implement add nutrition plan form
-    console.log("Add nutrition plan clicked");
-    onAdd?.();
-  };
-
   return (
     <HistoryDrawer
       title="Nutrition Plans"
       isOpen={isOpen}
       onClose={onClose}
-      onAdd={handleAdd}
+      onAdd={onAdd}
       addButtonLabel="Add Plan"
     >
       <DataTable

@@ -1,4 +1,4 @@
-import { Beef, Droplet, Utensils, Wheat } from "lucide-react";
+import { Beef, Droplet, Wheat } from "lucide-react";
 import type { NutritionPlanRecord } from "@/mocks/types";
 import { Badge } from "@/shared/ui/badge";
 import { CircularChartSkeleton } from "@/shared/ui/chart-skeleton";
@@ -56,9 +56,6 @@ export function CompactNutritionCard({
   if (!plan) {
     return (
       <StatCard
-        icon={<Utensils className="size-4" />}
-        iconBgColor="bg-emerald-100"
-        iconColor="text-emerald-600"
         cardBgColor="bg-emerald-50/50"
         label="Nutrition"
         value="--"
@@ -70,9 +67,6 @@ export function CompactNutritionCard({
 
   return (
     <StatCard
-      icon={<Utensils className="size-4" />}
-      iconBgColor="bg-emerald-100"
-      iconColor="text-emerald-600"
       cardBgColor="bg-emerald-50/50"
       label="Daily Target"
       value={plan.kcal.toLocaleString()}

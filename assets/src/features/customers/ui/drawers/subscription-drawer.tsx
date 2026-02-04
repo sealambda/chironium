@@ -5,12 +5,7 @@ import type { SubscriptionHistoryRecord } from "@/mocks/types";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
-
-const statusConfig = {
-  active: { variant: "default" as const },
-  expired: { variant: "secondary" as const },
-  cancelled: { variant: "destructive" as const },
-};
+import { subscriptionStatusConfig } from "../../model/status-config";
 
 interface SubscriptionDrawerProps {
   isOpen: boolean;
@@ -55,10 +50,10 @@ export function SubscriptionDrawer({
         accessorKey: "status",
         header: "Status",
         cell: ({ getValue }) => {
-          const status = getValue() as keyof typeof statusConfig;
+          const status = getValue() as keyof typeof subscriptionStatusConfig;
           return (
             <Badge
-              variant={statusConfig[status].variant}
+              variant={subscriptionStatusConfig[status]?.variant}
               className="capitalize"
             >
               {status}
@@ -70,18 +65,12 @@ export function SubscriptionDrawer({
     [],
   );
 
-  const handleAdd = () => {
-    // TODO: Implement add subscription form
-    console.log("Add subscription clicked");
-    onAdd?.();
-  };
-
   return (
     <HistoryDrawer
       title="Subscription History"
       isOpen={isOpen}
       onClose={onClose}
-      onAdd={handleAdd}
+      onAdd={onAdd}
       addButtonLabel="Add Subscription"
     >
       <DataTable

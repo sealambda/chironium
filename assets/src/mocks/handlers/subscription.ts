@@ -1,9 +1,10 @@
 import { HttpResponse } from "msw";
 import { db } from "../db";
+import type { CreateContactInput, CreateSubscriptionInput } from "../graphql";
 import { extractOrgId, gql } from "./utils";
 
-type ContactPointInput = {
-  id?: string;
+type ContactPointWithId = {
+  id: string;
   type?: "EMAIL" | "PHONE" | "INSTAGRAM" | null;
   label?: string | null;
   value?: string | null;
@@ -13,7 +14,7 @@ type ContactPointInput = {
 type Contact = {
   id: string;
   name?: string | null;
-  contactPoints?: Array<ContactPointInput & { id: string }> | null;
+  contactPoints?: ContactPointWithId[] | null;
 };
 
 export const subscriptionHandlers = [
@@ -43,9 +44,7 @@ export const subscriptionHandlers = [
   }),
 
   gql.mutation("CreateContactWithContactPoints", ({ variables }) => {
-    const input = variables?.input as
-      | { name?: string; contactPoints?: ContactPointInput[] | null }
-      | undefined;
+    const input = variables?.input as CreateContactInput | undefined;
 
     if (!input?.name) {
       return HttpResponse.json({
@@ -61,8 +60,9 @@ export const subscriptionHandlers = [
     const contactId = `contact-${Date.now()}`;
     const contactPoints =
       input.contactPoints?.map((point, index) => ({
-        ...point,
-        id: point.id || `cp-${contactId}-${index + 1}`,
+        id: `cp-${contactId}-${index + 1}`,
+        type: point.type,
+        value: point.value,
         isPrimary: point.isPrimary ?? index === 0,
       })) ?? [];
 
@@ -86,9 +86,7 @@ export const subscriptionHandlers = [
 
   gql.mutation("CreateSubscription", ({ request, variables }) => {
     const orgId = extractOrgId(request);
-    const input = variables?.input as
-      | { subscriberId?: string; planId?: string; startDate?: string }
-      | undefined;
+    const input = variables?.input as CreateSubscriptionInput | undefined;
 
     if (!input?.subscriberId || !input?.planId) {
       return HttpResponse.json({

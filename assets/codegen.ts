@@ -6,7 +6,7 @@ const config: CodegenConfig = {
     "src/**/*.tsx",
     "src/**/*.ts",
     "!src/gql/**/*",
-    "!src/features/customers/api/customer-detail-api.ts", // Uses mock queries not in real schema.
+    "!src/mocks/**/*", // Mock queries not in real schema
   ],
   generates: {
     "./src/gql/": {

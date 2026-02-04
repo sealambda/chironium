@@ -1,7 +1,8 @@
-import { Activity, Ruler, Scale } from "lucide-react";
+import { Activity, Ruler } from "lucide-react";
 import type { BodyMetricsRecord } from "@/mocks/types";
 import { Badge } from "@/shared/ui/badge";
 import { LineChartSkeleton } from "@/shared/ui/chart-skeleton";
+import { heightMetersToCm } from "@/shared/utils";
 import { StatCard, StatCardSkeleton } from "./stat-card";
 
 interface CompactBodyMetricsCardProps {
@@ -26,9 +27,6 @@ export function CompactBodyMetricsCard({
   if (!metrics) {
     return (
       <StatCard
-        icon={<Scale className="size-4" />}
-        iconBgColor="bg-blue-100"
-        iconColor="text-blue-600"
         cardBgColor="bg-blue-50/50"
         label="Body Metrics"
         value="--"
@@ -38,7 +36,7 @@ export function CompactBodyMetricsCard({
     );
   }
 
-  const heightCm = Math.round(metrics.heightM * 100);
+  const heightCm = heightMetersToCm(metrics.heightM);
   const subtitle = (
     <div className="flex items-center gap-1">
       <Badge className="h-4 px-1.5 text-[10px] bg-blue-100 text-blue-700 border-blue-200">
@@ -54,9 +52,6 @@ export function CompactBodyMetricsCard({
 
   return (
     <StatCard
-      icon={<Scale className="size-4" />}
-      iconBgColor="bg-blue-100"
-      iconColor="text-blue-600"
       cardBgColor="bg-blue-50/50"
       label="Weight"
       value={metrics.weight}

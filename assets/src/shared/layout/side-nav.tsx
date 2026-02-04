@@ -1,30 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users } from "lucide-react";
 
 import { AppName } from "@/shared/ui/app-name";
 import { cn } from "@/shared/utils";
-
-interface NavItem {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  disabled?: boolean;
-}
-
-const navItems: NavItem[] = [
-  {
-    to: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    disabled: true, // Dashboard is disabled for now.
-  },
-  {
-    to: "/customers",
-    label: "Customers",
-    icon: Users,
-    disabled: false,
-  },
-];
+import { navItems } from "./nav-config";
 
 /**
  * Side navigation for tablet and desktop layouts.
@@ -41,7 +19,7 @@ export function SideNav() {
 
   return (
     <nav
-      className={[
+      className={cn(
         // Hidden on mobile, visible on tablet+.
         "hidden md:flex",
         // Fixed position on left edge.
@@ -52,17 +30,17 @@ export function SideNav() {
         "flex-col border-border/40 border-r bg-card",
         // Safe area inset for landscape notched devices.
         "pt-safe pb-safe pl-safe",
-      ].join(" ")}
+      )}
       aria-label="Main navigation"
     >
       {/* Logo/brand area. */}
       <div
-        className={[
+        className={cn(
           "flex h-16 items-center",
           // Center on rail, left-align on drawer.
           "justify-center lg:justify-start lg:px-6",
           "border-border/40 border-b",
-        ].join(" ")}
+        )}
       >
         {/* Rail: Icon only. */}
         <span className="font-bold text-primary text-xl lg:hidden">C</span>
@@ -80,14 +58,14 @@ export function SideNav() {
             return (
               <span
                 key={item.to}
-                className={[
+                className={cn(
                   // Touch target: minimum 44px.
                   "flex h-12 min-h-11 items-center gap-3 rounded-lg px-3",
                   // Rail: center icon.
                   "justify-center lg:justify-start",
                   // Disabled styling.
                   "cursor-not-allowed opacity-40",
-                ].join(" ")}
+                )}
                 aria-disabled="true"
               >
                 <Icon className="h-6 w-6 shrink-0 text-muted-foreground" />

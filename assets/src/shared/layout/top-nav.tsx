@@ -14,34 +14,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { cn } from "@/shared/utils";
+import { cn, getInitials, getInitialsFromEmail } from "@/shared/utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { useDetailMode } from "./detail-context";
 
-/**
- * Get user initials from name or email.
- */
-function getInitials(user: User | null): string {
+/** Get user initials from name or email. */
+function getUserInitials(user: User | null): string {
   if (!user) return "?";
-
-  let parts = [];
-
-  if (user.name) {
-    // Try to get initials from name first.
-    parts = user.name.trim().split(/\s+/).filter(Boolean);
-  } else {
-    // Fall back to email.
-    const emailPart = user.email.split("@")[0];
-    parts = emailPart.split(/[._-]/).filter(Boolean);
-  }
-
-  if (parts.length >= 2) {
-    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
-  } else if (parts.length === 1) {
-    return `${parts[0][0] || ""}`.toUpperCase();
-  } else {
-    return "?";
-  }
+  return user.name ? getInitials(user.name) : getInitialsFromEmail(user.email);
 }
 
 /**
@@ -76,7 +56,7 @@ export function TopNav() {
     };
   }, []);
 
-  const initials = getInitials(user);
+  const initials = getUserInitials(user);
 
   const showToast = (message: string) => {
     setToastMessage(message);

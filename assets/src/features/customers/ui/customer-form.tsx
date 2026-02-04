@@ -13,6 +13,7 @@ import {
   FieldSeparator,
 } from "@/shared/ui/field";
 import { PhoneInput } from "@/shared/ui/phone-input";
+import { parsePlanDurationMonths } from "@/shared/utils";
 import {
   createFieldValidator,
   mapFieldErrors,
@@ -24,7 +25,6 @@ import {
   emailSchema,
   instagramSchema,
   nameSchema,
-  parsePeriodDurationMonths,
   phoneSchema,
   planIdSchema,
   startDateSchema,
@@ -252,8 +252,8 @@ export function CustomerForm({
             const selectedPlan = plans.find((p) => p.id === planId);
             if (!selectedPlan) return null;
 
-            const planDurationMonths = parsePeriodDurationMonths(
-              selectedPlan.periodDuration ?? "",
+            const planDurationMonths = parsePlanDurationMonths(
+              selectedPlan.periodDuration,
             );
             const endDate = new Date(startDate);
             endDate.setMonth(endDate.getMonth() + planDurationMonths);

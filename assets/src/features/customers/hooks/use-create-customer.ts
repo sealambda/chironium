@@ -1,10 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrg } from "@/features/org/hooks/use-org";
-import {
-  type CreateContactInput,
-  createContact,
-  createSubscription,
-} from "../api/subscription-api";
+import type { CreateContactInput } from "@/mocks/graphql";
+import { createContact, createSubscription } from "../api/subscription-api";
 
 export type CreateCustomerInput = {
   contact: CreateContactInput;

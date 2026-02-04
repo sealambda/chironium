@@ -113,6 +113,61 @@ export function isPhoneEmpty(phone: string): boolean {
   return !phone.replace(/\D/g, "");
 }
 
+/** Detect country from calling code when libphonenumber can't determine it yet. */
+function detectCountryFromCallingCode(
+  digits: string,
+  formatterCountry: CountryCode | undefined,
+): CountryCode | undefined {
+  if (formatterCountry) return formatterCountry;
+  // Try to match calling codes (1-3 digits after the +).
+  for (let len = Math.min(3, digits.length); len >= 1; len--) {
+    const potentialCode = digits.slice(0, len);
+    if (CALLING_CODE_TO_COUNTRY[potentialCode]) {
+      return CALLING_CODE_TO_COUNTRY[potentialCode];
+    }
+  }
+  return undefined;
+}
+
+/** Check if adding one more digit would exceed max length. */
+function canAcceptMoreDigits(normalized: string): boolean {
+  const withOneMore = `${normalized}0`;
+  return validatePhoneNumberLength(withOneMore) !== "TOO_LONG";
+}
+
+/** Determine validation status and input acceptance based on length validation. */
+function getValidationState(
+  normalized: string,
+  hasCountry: boolean,
+): { status: PhoneValidationStatus; canAddMoreDigits: boolean } {
+  const lengthValidation = validatePhoneNumberLength(normalized);
+
+  if (lengthValidation === "TOO_LONG") {
+    return { status: "invalid", canAddMoreDigits: false };
+  }
+  if (lengthValidation === "TOO_SHORT") {
+    return { status: "incomplete", canAddMoreDigits: true };
+  }
+  if (lengthValidation === "INVALID_LENGTH") {
+    return {
+      status: "invalid",
+      canAddMoreDigits: canAcceptMoreDigits(normalized),
+    };
+  }
+  // lengthValidation === undefined means valid length
+  if (hasCountry) {
+    const parsed = parsePhoneNumberFromString(normalized);
+    return {
+      status: parsed?.isValid() ? "valid" : "incomplete",
+      canAddMoreDigits: canAcceptMoreDigits(normalized),
+    };
+  }
+  return {
+    status: "incomplete",
+    canAddMoreDigits: canAcceptMoreDigits(normalized),
+  };
+}
+
 /**
  * Analyze a phone number string and return detailed information.
  * Uses AsYouType for progressive analysis during input.
@@ -135,85 +190,21 @@ export function analyzePhoneNumber(input: string): PhoneAnalysis {
   const normalized = `+${digits}`;
   const formatter = new AsYouType();
   const formatted = formatter.input(normalized);
-
   const phoneNumber = formatter.getNumber();
-  const nationalNumber = formatter.getNationalNumber() || "";
-  const callingCode = phoneNumber?.countryCallingCode;
 
-  // Try multiple methods for country detection (earlier is better for UX).
-  // 1. formatter.getCountry() - works earlier than getNumber()?.country.
-  // 2. getNumber()?.country - more accurate once number is complete.
-  // 3. Fallback to calling code map for codes like +44 that need full number.
-  let country: CountryCode | undefined =
-    formatter.getCountry() || phoneNumber?.country;
-
-  // If still no country but we have a calling code pattern, use the map.
-  if (!country && digits.length >= 1) {
-    // Try to match calling codes (1-3 digits after the +).
-    for (let len = Math.min(3, digits.length); len >= 1; len--) {
-      const potentialCode = digits.slice(0, len);
-      if (CALLING_CODE_TO_COUNTRY[potentialCode]) {
-        country = CALLING_CODE_TO_COUNTRY[potentialCode];
-        break;
-      }
-    }
-  }
-
-  // Check validation status.
-  let status: PhoneValidationStatus = "incomplete";
-  let canAddMoreDigits = true;
-
-  if (country) {
-    const lengthValidation = validatePhoneNumberLength(normalized);
-
-    if (lengthValidation === undefined) {
-      // Valid length - check if actually valid phone number.
-      const parsed = parsePhoneNumberFromString(normalized);
-      status = parsed?.isValid() ? "valid" : "incomplete";
-
-      // Check if adding one more digit would make it too long.
-      // Only TOO_LONG stops input - INVALID_LENGTH means there might be valid lengths after.
-      const withOneMore = `${normalized}0`;
-      const nextLengthValidation = validatePhoneNumberLength(withOneMore);
-      canAddMoreDigits = nextLengthValidation !== "TOO_LONG";
-    } else if (lengthValidation === "TOO_LONG") {
-      status = "invalid";
-      canAddMoreDigits = false;
-    } else if (lengthValidation === "TOO_SHORT") {
-      status = "incomplete";
-      canAddMoreDigits = true;
-    } else if (lengthValidation === "INVALID_LENGTH") {
-      // Invalid length but not too long - could be between valid lengths (like UK).
-      status = "invalid";
-      // Check if adding one more digit would make it too long.
-      const withOneMore = `${normalized}0`;
-      const nextLengthValidation = validatePhoneNumberLength(withOneMore);
-      canAddMoreDigits = nextLengthValidation !== "TOO_LONG";
-    } else {
-      status = "incomplete";
-      canAddMoreDigits = true;
-    }
-  } else {
-    // No country detected yet - could be still typing country code OR number is too long.
-    // Check length validation to catch TOO_LONG even without country detection.
-    const lengthValidation = validatePhoneNumberLength(normalized);
-
-    if (lengthValidation === "TOO_LONG") {
-      status = "invalid";
-      canAddMoreDigits = false;
-    } else {
-      status = "incomplete";
-      // Also check if adding one more would make it too long.
-      const withOneMore = `${normalized}0`;
-      const nextLengthValidation = validatePhoneNumberLength(withOneMore);
-      canAddMoreDigits = nextLengthValidation !== "TOO_LONG";
-    }
-  }
+  const country = detectCountryFromCallingCode(
+    digits,
+    formatter.getCountry() || phoneNumber?.country,
+  );
+  const { status, canAddMoreDigits } = getValidationState(
+    normalized,
+    !!country,
+  );
 
   return {
     country,
-    callingCode,
-    nationalNumber,
+    callingCode: phoneNumber?.countryCallingCode,
+    nationalNumber: formatter.getNationalNumber() || "",
     e164: phoneNumber?.number || normalized,
     formatted: formatted || normalized,
     status,

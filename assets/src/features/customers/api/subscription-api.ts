@@ -1,5 +1,14 @@
-import { graphql } from "@/gql";
-import type { CreateSubscriptionInput, SubscriptionPlan } from "@/gql/graphql";
+import {
+  type CreateContactInput,
+  CreateContactMutation,
+  type CreateContactResult,
+  type CreateSubscriptionInput,
+  CreateSubscriptionMutation,
+  type CreateSubscriptionResult,
+  ListPlansQuery,
+  type SubscriptionPlan,
+} from "@/mocks/graphql";
+import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
 export type CreatedContact = {
@@ -12,58 +21,6 @@ export type CreatedContact = {
   }>;
 };
 
-const ListPlansQuery = graphql(`
-  query ListPlans {
-    listPlans {
-      results {
-        id
-        name
-        periodDuration
-      }
-    }
-  }
-`);
-
-const CreateContactWithContactPointsMutation = graphql(`
-  mutation CreateContactWithContactPoints(
-    $input: CreateContactWithContactPointsInput!
-  ) {
-    createContactWithContactPoints(input: $input) {
-      result {
-        id
-        name
-        contactPoints {
-          id
-          type
-          value
-        }
-      }
-      errors {
-        message
-        fields
-      }
-    }
-  }
-`);
-
-const CreateSubscriptionMutation = graphql(`
-  mutation CreateSubscription($input: CreateSubscriptionInput!) {
-    createSubscription(input: $input) {
-      result {
-        id
-        startDate
-        state
-        subscriberId
-        planId
-      }
-      errors {
-        message
-        fields
-      }
-    }
-  }
-`);
-
 export async function fetchPlans(
   organizationId: string,
 ): Promise<SubscriptionPlan[]> {
@@ -71,65 +28,49 @@ export async function fetchPlans(
     return [];
   }
 
-  const result = await requestGraphql({
+  const result = await requestGraphql<{
+    listPlans: { results: SubscriptionPlan[] };
+  }>({
     document: ListPlansQuery,
+    variables: {},
     organizationId,
   });
 
   return result.listPlans?.results ?? [];
 }
 
-export type CreateContactInput = {
-  name: string;
-  contactPoints?: Array<{
-    type: "EMAIL" | "PHONE" | "INSTAGRAM";
-    value: string;
-    isPrimary?: boolean;
-  }>;
-};
-
 export async function createContact(
   input: CreateContactInput,
   organizationId: string,
 ): Promise<CreatedContact> {
-  const result = await requestGraphql({
-    document: CreateContactWithContactPointsMutation,
+  const result = await requestGraphql<{
+    createContactWithContactPoints: CreateContactResult;
+  }>({
+    document: CreateContactMutation,
     variables: { input },
     organizationId,
   });
 
-  const payload = result.createContactWithContactPoints;
-  if (!payload?.result) {
-    const errorMessage =
-      payload?.errors
-        ?.map((e) => e.message)
-        .filter(Boolean)
-        .join(" ") || "Failed to create contact";
-    throw new Error(errorMessage);
-  }
-
-  return payload.result;
+  return unwrapMutationResult(
+    result.createContactWithContactPoints,
+    "Failed to create contact",
+  );
 }
 
 export async function createSubscription(
   input: CreateSubscriptionInput,
   organizationId: string,
 ) {
-  const result = await requestGraphql({
+  const result = await requestGraphql<{
+    createSubscription: CreateSubscriptionResult;
+  }>({
     document: CreateSubscriptionMutation,
     variables: { input },
     organizationId,
   });
 
-  const payload = result.createSubscription;
-  if (!payload?.result) {
-    const errorMessage =
-      payload?.errors
-        ?.map((e) => e.message)
-        .filter(Boolean)
-        .join(" ") || "Failed to create subscription";
-    throw new Error(errorMessage);
-  }
-
-  return payload.result;
+  return unwrapMutationResult(
+    result.createSubscription,
+    "Failed to create subscription",
+  );
 }

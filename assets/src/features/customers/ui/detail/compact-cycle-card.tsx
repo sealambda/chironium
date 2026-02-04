@@ -1,5 +1,4 @@
 import { differenceInDays } from "date-fns";
-import { Heart } from "lucide-react";
 import type { CycleRecord } from "@/mocks/types";
 import { LineChartSkeleton } from "@/shared/ui/chart-skeleton";
 import { StatCard, StatCardSkeleton } from "./stat-card";
@@ -41,9 +40,6 @@ export function CompactCycleCard({
   if (!cycle) {
     return (
       <StatCard
-        icon={<Heart className="size-4" />}
-        iconBgColor="bg-pink-100"
-        iconColor="text-pink-600"
         cardBgColor="bg-pink-50/50"
         label="Cycle"
         value="--"
@@ -75,9 +71,6 @@ export function CompactCycleCard({
 
   return (
     <StatCard
-      icon={<Heart className="size-4" />}
-      iconBgColor="bg-pink-100"
-      iconColor="text-pink-600"
       cardBgColor="bg-pink-50/50"
       label={isOngoing ? "Current Cycle" : "Last Cycle"}
       value={value}
