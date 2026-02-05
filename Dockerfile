@@ -69,6 +69,9 @@ COPY assets assets
 # Use --frozen-lockfile for reproducible builds.
 RUN pnpm install --frozen-lockfile
 
+# Generate GraphQL types (not committed to git)
+RUN pnpm --dir assets codegen
+
 # Compile the release
 RUN mix compile
 
