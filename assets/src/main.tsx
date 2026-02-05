@@ -9,7 +9,7 @@ import { AppProviders } from "./app/providers/app-providers";
 import "./styles/index.css";
 
 async function startMsw(): Promise<void> {
-  if (!import.meta.env.DEV || import.meta.env.VITE_ENABLE_MSW !== "true") {
+  if (import.meta.env.VITE_ENABLE_MSW !== "true") {
     return;
   }
 
