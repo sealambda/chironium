@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import type { ContactPointType } from "@/gql/graphql";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { Button } from "@/shared/ui/button";
 import {
@@ -123,7 +124,7 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
 
 function buildContactPoints(contact: CustomerFormData["contact"]) {
   const points: Array<{
-    type: "EMAIL" | "PHONE" | "INSTAGRAM";
+    type: ContactPointType;
     value: string;
     isPrimary?: boolean;
   }> = [];
