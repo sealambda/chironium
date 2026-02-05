@@ -4,6 +4,7 @@ import { Button } from "@/shared/ui/button";
 import { Calendar } from "@/shared/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import { cn } from "@/shared/utils";
+import { getDateLocale } from "@/shared/utils/date-locale";
 
 interface DatePickerFieldProps {
   value: Date | undefined;
@@ -40,7 +41,9 @@ export function DatePickerField({
         }
       >
         <CalendarIcon className="mr-2 h-4 w-4" />
-        {value ? format(value, "PPP") : placeholder}
+        {value
+          ? format(value, "PPP", { locale: getDateLocale() })
+          : placeholder}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar

@@ -1,4 +1,5 @@
 import type { PathologyRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { cn } from "@/shared/utils";
 import { StatCardSkeleton } from "./stat-card";
@@ -55,7 +56,7 @@ export function CompactPathologiesCard({
           </>
         ) : (
           <span className="text-muted-foreground text-xs">
-            No active pathologies
+            {m.stat_no_pathologies()}
           </span>
         )}
       </div>
@@ -63,14 +64,16 @@ export function CompactPathologiesCard({
       {/* Bottom section: Stats summary */}
       <div className="mt-auto shrink-0 pt-2">
         <p className="text-muted-foreground text-[10px] leading-tight">
-          Pathologies
+          {m.stat_pathologies()}
         </p>
         <div className="flex items-baseline gap-0.5">
           <span className="font-bold text-lg text-foreground">
             {activeCount > 0 ? activeCount : "--"}
           </span>
           {activeCount > 0 && (
-            <span className="text-muted-foreground text-xs">active</span>
+            <span className="text-muted-foreground text-xs">
+              {m.stat_active()}
+            </span>
           )}
         </div>
       </div>

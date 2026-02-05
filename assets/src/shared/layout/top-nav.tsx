@@ -5,6 +5,7 @@ import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import type { User } from "@/gql/graphql";
+import * as m from "@/paraglide/messages";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
@@ -14,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { LanguageToggle } from "@/shared/ui/language-toggle";
 import { cn, getInitials, getInitialsFromEmail } from "@/shared/utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { useDetailMode } from "./detail-context";
@@ -74,13 +76,11 @@ export function TopNav() {
     try {
       const newOrg = await createOrg(data);
       await selectOrg(newOrg.id);
-      showToast("Organisation created.");
+      showToast(m.org_created());
     } catch (error) {
       console.error("Failed to create organisation:", error);
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to create organisation. Please try again.";
+        error instanceof Error ? error.message : m.org_create_error();
       setCreateOrgError(errorMessage);
       throw error;
     }
@@ -141,7 +141,7 @@ export function TopNav() {
         {/* Leading: Welcome + Org Selector */}
         <div className="flex flex-col gap-0.5">
           <span className="text-muted-foreground text-xs">
-            Welcome back, {firstName}
+            {m.nav_welcome({ name: firstName })}
           </span>
           <OrgSelector
             selectedOrg={selectedOrg}
@@ -151,7 +151,7 @@ export function TopNav() {
           />
         </div>
 
-        {/* Trailing: Profile (user actions on right per all design systems) */}
+        {/* Trailing: Profile */}
         <div className="flex items-center">
           {/* Profile avatar with dropdown */}
           <DropdownMenu>
@@ -197,12 +197,16 @@ export function TopNav() {
                 </p>
               </div>
               <DropdownMenuSeparator />
+              <div className="px-2 py-1.5">
+                <LanguageToggle />
+              </div>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign out
+                {m.nav_sign_out()}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

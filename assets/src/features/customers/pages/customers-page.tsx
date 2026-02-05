@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
+import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { fetchCustomerList } from "../api/customers-api";
 import { CustomerSheet } from "../ui/create-customer-sheet";
@@ -30,10 +31,10 @@ export function CustomersPage() {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <div className="mb-2 font-medium text-muted-foreground">
-            No organisation selected
+            {m.customers_no_org()}
           </div>
           <div className="text-muted-foreground text-sm">
-            Please select an organisation to view customers.
+            {m.customers_no_org_desc()}
           </div>
         </div>
       </div>
@@ -45,7 +46,7 @@ export function CustomersPage() {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <div className="mb-2 font-medium text-muted-foreground">
-            Loading customers...
+            {m.common_loading()}
           </div>
         </div>
       </div>
@@ -59,7 +60,7 @@ export function CustomersPage() {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <div className="mb-2 font-medium text-destructive">
-            Error loading customers
+            {m.customers_error()}
           </div>
           <div className="text-muted-foreground text-sm">{message}</div>
         </div>
@@ -72,18 +73,18 @@ export function CustomersPage() {
       {/* Page header with action button. */}
       <header className="flex items-center justify-between">
         <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
-          Customers
+          {m.customers_title()}
         </h1>
         <div className="flex items-center gap-3">
           <span className="text-muted-foreground text-sm">
-            {customers.length} total
+            {customers.length} {m.customers_total()}
           </span>
           {/* Add button - icon only on mobile (44px touch target), icon + text on md+ */}
           <Button
             variant="ghost"
             onClick={() => setIsCreateCustomerOpen(true)}
             className="size-11 md:hidden"
-            aria-label="Add customer"
+            aria-label={m.customers_add()}
           >
             <UserPlus className="size-5" />
           </Button>
@@ -93,7 +94,7 @@ export function CustomersPage() {
             className="hidden md:flex"
           >
             <UserPlus className="h-4 w-4" />
-            Add Customer
+            {m.customers_add()}
           </Button>
         </div>
       </header>
@@ -103,10 +104,10 @@ export function CustomersPage() {
         <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-border/50 border-dashed bg-card/50">
           <div className="text-center">
             <div className="mb-2 font-medium text-muted-foreground">
-              No customers yet
+              {m.customers_empty()}
             </div>
             <div className="text-muted-foreground text-sm">
-              Customers will appear here once they are added.
+              {m.customers_empty_desc()}
             </div>
           </div>
         </div>

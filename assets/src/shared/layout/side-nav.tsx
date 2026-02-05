@@ -71,7 +71,7 @@ export function SideNav() {
                 <Icon className="h-6 w-6 shrink-0 text-muted-foreground" />
                 {/* Label visible only on drawer. */}
                 <span className="sr-only font-medium text-muted-foreground text-sm lg:not-sr-only lg:block">
-                  {item.label}
+                  {item.label()}
                 </span>
               </span>
             );
@@ -109,7 +109,7 @@ export function SideNav() {
                   isActive ? "font-semibold" : "font-medium",
                 )}
               >
-                {item.label}
+                {item.label()}
               </span>
             </Link>
           );

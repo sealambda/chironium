@@ -1,7 +1,8 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import type { ContactPointType } from "@/gql/graphql";
 import { useOrg } from "@/features/org/hooks/use-org";
+import type { ContactPointType } from "@/gql/graphql";
+import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
   Sheet,
@@ -66,11 +67,8 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
       >
         {/* Fixed header */}
         <SheetHeader className="px-4 pt-4">
-          <SheetTitle>Add Customer</SheetTitle>
-          <SheetDescription>
-            Enter the customer's information below. Required fields are marked
-            with *.
-          </SheetDescription>
+          <SheetTitle>{m.create_customer_title()}</SheetTitle>
+          <SheetDescription>{m.create_customer_desc()}</SheetDescription>
         </SheetHeader>
 
         {/* Scrollable content area */}
@@ -86,7 +84,7 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             hideFooter
-            submitLabel="Create Customer"
+            submitLabel={m.create_customer_submit()}
             plans={plans}
           />
         </div>
@@ -100,7 +98,7 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
               onClick={handleCancel}
               className="order-2 sm:order-1"
             >
-              Cancel
+              {m.common_cancel()}
             </Button>
             <Button
               type="submit"
@@ -112,8 +110,8 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
                 <Loader2 className="size-4 animate-spin" />
               )}
               {createCustomerMutation.isPending
-                ? "Creating..."
-                : "Create Customer"}
+                ? m.common_creating()
+                : m.create_customer_submit()}
             </Button>
           </div>
         </div>

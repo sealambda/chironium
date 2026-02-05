@@ -1,6 +1,7 @@
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 
+import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
   Drawer,
@@ -37,7 +38,7 @@ export function HistoryDrawer({
   isOpen,
   onClose,
   onAdd,
-  addButtonLabel = "Add",
+  addButtonLabel,
   children,
   className,
 }: Readonly<HistoryDrawerProps>) {
@@ -58,13 +59,13 @@ export function HistoryDrawer({
           <div className="flex items-center gap-2">
             {onAdd && (
               <Button size="sm" onClick={onAdd}>
-                {addButtonLabel}
+                {addButtonLabel ?? m.common_add()}
               </Button>
             )}
             <DrawerClose asChild>
               <Button variant="ghost" size="icon" className="size-8">
                 <XIcon className="size-4" />
-                <span className="sr-only">Close</span>
+                <span className="sr-only">{m.common_close()}</span>
               </Button>
             </DrawerClose>
           </div>

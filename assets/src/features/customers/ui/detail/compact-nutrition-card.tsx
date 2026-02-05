@@ -1,5 +1,6 @@
 import { Beef, Droplet, Wheat } from "lucide-react";
 import type { NutritionPlanRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { CircularChartSkeleton } from "@/shared/ui/chart-skeleton";
 import { StatCard, StatCardSkeleton } from "./stat-card";
@@ -57,9 +58,9 @@ export function CompactNutritionCard({
     return (
       <StatCard
         cardBgColor="bg-emerald-50/50"
-        label="Nutrition"
+        label={m.stat_nutrition()}
         value="--"
-        subtitle="No active plan"
+        subtitle={m.stat_no_plan()}
         onClick={onClick}
       />
     );
@@ -68,7 +69,7 @@ export function CompactNutritionCard({
   return (
     <StatCard
       cardBgColor="bg-emerald-50/50"
-      label="Daily Target"
+      label={m.stat_daily_target()}
       value={plan.kcal.toLocaleString()}
       unit="kcal"
       subtitle={

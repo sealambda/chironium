@@ -1,4 +1,5 @@
 import type { SubscriptionHistoryRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 
 interface CompactSubscriptionCardProps {
@@ -45,9 +46,13 @@ export function CompactSubscriptionCard({
       <button type="button" onClick={onClick} className="w-full text-left">
         <div className="rounded-2xl border border-border/30 bg-violet-50/50 p-4 shadow-sm transition-all hover:shadow-md">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-foreground">Subscription</h3>
+            <h3 className="font-semibold text-foreground">
+              {m.stat_subscription()}
+            </h3>
           </div>
-          <p className="mt-2 text-muted-foreground text-sm">No active plan</p>
+          <p className="mt-2 text-muted-foreground text-sm">
+            {m.stat_no_plan()}
+          </p>
         </div>
       </button>
     );
@@ -56,7 +61,9 @@ export function CompactSubscriptionCard({
   return (
     <button type="button" onClick={onClick} className="w-full text-left">
       <div className="rounded-2xl border border-border/30 bg-violet-50/50 p-4 shadow-sm transition-all hover:shadow-md">
-        <h3 className="mb-3 font-semibold text-foreground">Subscription</h3>
+        <h3 className="mb-3 font-semibold text-foreground">
+          {m.stat_subscription()}
+        </h3>
         <SubscriptionProgress subscription={subscription} />
       </div>
     </button>

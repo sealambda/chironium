@@ -1,9 +1,10 @@
 import { LayoutDashboard, Users } from "lucide-react";
 import type { ComponentType } from "react";
+import * as m from "@/paraglide/messages";
 
 export interface NavItem {
   to: string;
-  label: string;
+  label: () => string;
   icon: ComponentType<{ className?: string }>;
   disabled?: boolean;
 }
@@ -11,13 +12,13 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   {
     to: "/dashboard",
-    label: "Dashboard",
+    label: m.nav_dashboard,
     icon: LayoutDashboard,
     disabled: true,
   },
   {
     to: "/customers",
-    label: "Customers",
+    label: m.nav_customers,
     icon: Users,
     disabled: false,
   },

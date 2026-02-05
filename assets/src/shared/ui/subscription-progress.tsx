@@ -1,5 +1,6 @@
 import { differenceInDays, format, formatDistanceStrict } from "date-fns";
 import { cn } from "@/shared/utils";
+import { getDateLocale } from "@/shared/utils/date-locale";
 
 /**
  * Get progress bar color based on percentage.
@@ -48,17 +49,20 @@ export function calculateSubscriptionProgress(
     Math.max(0, Math.round((elapsedDays / totalDays) * 100)),
   );
 
+  const locale = getDateLocale();
   const elapsedLabel = formatDistanceStrict(startDate, now, {
     roundingMethod: "floor",
     addSuffix: true,
+    locale,
   });
   const remainingLabel = formatDistanceStrict(endDate, now, {
     roundingMethod: "floor",
     addSuffix: true,
+    locale,
   });
 
-  const startDateFormatted = format(startDate, "MMM d, yy");
-  const endDateFormatted = format(endDate, "MMM d, yy");
+  const startDateFormatted = format(startDate, "MMM d, yy", { locale });
+  const endDateFormatted = format(endDate, "MMM d, yy", { locale });
 
   const progressColor = getProgressColor(progressPercent);
 

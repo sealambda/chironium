@@ -6,6 +6,7 @@ import type { CountryCode } from "libphonenumber-js";
 import { Globe, Mail } from "lucide-react";
 import { type FC, type SVGProps, useMemo, useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
+import * as m from "@/paraglide/messages";
 import { Route } from "@/routes/_app/customers_.$customerId";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
@@ -171,7 +172,7 @@ export function CustomerDetailPage() {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <div className="mb-2 font-medium text-muted-foreground">
-            Loading customer details...
+            {m.common_loading()}
           </div>
         </div>
       </div>
@@ -184,14 +185,14 @@ export function CustomerDetailPage() {
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
         <div className="text-center">
           <div className="mb-2 font-medium text-destructive">
-            Customer not found
+            {m.customer_not_found()}
           </div>
           <div className="text-muted-foreground text-sm">
-            The customer you're looking for doesn't exist or has been removed.
+            {m.customer_not_found_desc()}
           </div>
         </div>
         <Link to="/customers">
-          <Button variant="outline">Back to Customers</Button>
+          <Button variant="outline">{m.customer_back()}</Button>
         </Link>
       </div>
     );

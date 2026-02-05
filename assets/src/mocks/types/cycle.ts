@@ -5,7 +5,7 @@ export interface CycleRecord {
   customerId: string;
   startDate: string; // ISO date
   endDate?: string; // ISO date, undefined = ongoing
-  cycleLength?: number; // days, calculated if endDate exists
+  cycleLength?: number; // period duration in days (bleeding days)
   symptoms: string[]; // symptom IDs from CycleSymptomCatalog
 }
 

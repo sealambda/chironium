@@ -20,6 +20,7 @@ import {
 import * as React from "react";
 import { useState } from "react";
 
+import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
   Table,
@@ -101,10 +102,10 @@ function DefaultEmptyState() {
     >
       <div className="text-center">
         <div className="text-muted-foreground font-medium">
-          No data available
+          {m.data_table_empty()}
         </div>
         <div className="text-muted-foreground mt-1 text-sm">
-          Data will appear here once available.
+          {m.data_table_empty_desc()}
         </div>
       </div>
     </div>
@@ -211,7 +212,9 @@ function DataTable<TData>({
                         className="size-8 p-0"
                         onClick={() => row.toggleExpanded()}
                         aria-label={
-                          row.getIsExpanded() ? "Collapse row" : "Expand row"
+                          row.getIsExpanded()
+                            ? m.data_table_collapse()
+                            : m.data_table_expand()
                         }
                         aria-expanded={row.getIsExpanded()}
                       >

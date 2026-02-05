@@ -1,6 +1,7 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
+import * as m from "@/paraglide/messages";
 import type { RouterContext } from "@/shared/types/router-context";
 
 /**
@@ -21,12 +22,12 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-svh items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <h1 className="font-semibold text-2xl">Page not found</h1>
+        <h1 className="font-semibold text-2xl">{m.error_not_found()}</h1>
         <p className="text-muted-foreground text-sm">
-          The page you're looking for doesn't exist.
+          {m.error_not_found_desc()}
         </p>
         <a href="/" className="text-primary text-sm hover:underline">
-          Go to home
+          {m.go_home()}
         </a>
       </div>
     </div>

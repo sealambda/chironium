@@ -2,8 +2,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import type { NutritionPlanRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
+import { getDateLocale } from "@/shared/utils/date-locale";
 
 interface NutritionDrawerProps {
   isOpen: boolean;
@@ -27,36 +29,39 @@ export function NutritionDrawer({
         id: "period",
         accessorKey: "startDate",
         header: ({ column }) => (
-          <SortableHeader column={column}>Period</SortableHeader>
+          <SortableHeader column={column}>{m.table_period()}</SortableHeader>
         ),
         cell: ({ row }) => {
-          const start = format(new Date(row.original.startDate), "MMM d, yy");
+          const locale = getDateLocale();
+          const start = format(new Date(row.original.startDate), "MMM d, yy", {
+            locale,
+          });
           const end = row.original.endDate
-            ? format(new Date(row.original.endDate), "MMM d, yy")
-            : "Open";
+            ? format(new Date(row.original.endDate), "MMM d, yy", { locale })
+            : m.common_open();
           return `${start} — ${end}`;
         },
       },
       {
         accessorKey: "kcal",
         header: ({ column }) => (
-          <SortableHeader column={column}>Kcal</SortableHeader>
+          <SortableHeader column={column}>{m.table_kcal()}</SortableHeader>
         ),
         cell: ({ getValue }) => (getValue() as number).toLocaleString(),
       },
       {
         accessorKey: "protein",
-        header: "P",
+        header: m.table_protein,
         cell: ({ getValue }) => `${getValue()}g`,
       },
       {
         accessorKey: "carbs",
-        header: "C",
+        header: m.table_carbs,
         cell: ({ getValue }) => `${getValue()}g`,
       },
       {
         accessorKey: "fat",
-        header: "F",
+        header: m.table_fat,
         cell: ({ getValue }) => `${getValue()}g`,
       },
     ],
@@ -65,11 +70,11 @@ export function NutritionDrawer({
 
   return (
     <HistoryDrawer
-      title="Nutrition Plans"
+      title={m.drawer_nutrition()}
       isOpen={isOpen}
       onClose={onClose}
       onAdd={onAdd}
-      addButtonLabel="Add Plan"
+      addButtonLabel={m.drawer_add_plan()}
     >
       <DataTable
         columns={columns}
@@ -77,7 +82,7 @@ export function NutritionDrawer({
         getRowId={(row) => row.id}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">
-            No nutrition plans found
+            {m.empty_no_history()}
           </div>
         }
       />
