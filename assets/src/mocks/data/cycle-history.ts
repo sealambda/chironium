@@ -14,7 +14,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-sara",
     startDate: "2025-12-08",
     endDate: "2025-12-13",
-    cycleLength: 28,
+    cycleLength: 5,
     symptoms: ["cramps", "headache", "mood-swings"],
   },
   {
@@ -22,7 +22,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-sara",
     startDate: "2025-11-10",
     endDate: "2025-11-15",
-    cycleLength: 28,
+    cycleLength: 5,
     symptoms: ["bloating", "fatigue", "breast-tenderness"],
   },
   {
@@ -30,7 +30,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-sara",
     startDate: "2025-10-13",
     endDate: "2025-10-18",
-    cycleLength: 28,
+    cycleLength: 5,
     symptoms: ["cramps", "bloating"],
   },
   {
@@ -38,7 +38,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-sara",
     startDate: "2025-09-15",
     endDate: "2025-09-20",
-    cycleLength: 28,
+    cycleLength: 5,
     symptoms: ["cramps", "headache", "fatigue", "acne"],
   },
   {
@@ -46,7 +46,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-sara",
     startDate: "2025-08-18",
     endDate: "2025-08-23",
-    cycleLength: 28,
+    cycleLength: 5,
     symptoms: ["bloating", "mood-swings"],
   },
   {
@@ -54,7 +54,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-sara",
     startDate: "2025-07-21",
     endDate: "2025-07-26",
-    cycleLength: 28,
+    cycleLength: 5,
     symptoms: ["cramps", "fatigue", "nausea"],
   },
   {
@@ -62,7 +62,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-sara",
     startDate: "2025-06-23",
     endDate: "2025-06-28",
-    cycleLength: 28,
+    cycleLength: 5,
     symptoms: ["cramps", "bloating", "back-pain"],
   },
   // Berta Guasch - 6 cycles
@@ -77,7 +77,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-berta",
     startDate: "2025-12-03",
     endDate: "2025-12-07",
-    cycleLength: 30,
+    cycleLength: 4,
     symptoms: ["bloating", "headache"],
   },
   {
@@ -85,7 +85,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-berta",
     startDate: "2025-11-03",
     endDate: "2025-11-08",
-    cycleLength: 30,
+    cycleLength: 5,
     symptoms: ["cramps", "mood-swings", "insomnia"],
   },
   {
@@ -93,7 +93,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-berta",
     startDate: "2025-10-04",
     endDate: "2025-10-09",
-    cycleLength: 30,
+    cycleLength: 5,
     symptoms: ["fatigue", "breast-tenderness"],
   },
   {
@@ -101,7 +101,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-berta",
     startDate: "2025-09-04",
     endDate: "2025-09-09",
-    cycleLength: 30,
+    cycleLength: 5,
     symptoms: ["cramps", "bloating", "acne"],
   },
   {
@@ -109,7 +109,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-berta",
     startDate: "2025-08-05",
     endDate: "2025-08-10",
-    cycleLength: 30,
+    cycleLength: 5,
     symptoms: ["headache", "fatigue"],
   },
   // Lorena Alfonso - 7 cycles
@@ -124,7 +124,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-lorena",
     startDate: "2025-12-15",
     endDate: "2025-12-20",
-    cycleLength: 26,
+    cycleLength: 5,
     symptoms: ["cramps", "fatigue"],
   },
   {
@@ -132,7 +132,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-lorena",
     startDate: "2025-11-19",
     endDate: "2025-11-24",
-    cycleLength: 26,
+    cycleLength: 5,
     symptoms: ["bloating", "headache", "back-pain"],
   },
   {
@@ -140,7 +140,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-lorena",
     startDate: "2025-10-24",
     endDate: "2025-10-29",
-    cycleLength: 26,
+    cycleLength: 5,
     symptoms: ["cramps", "nausea"],
   },
   {
@@ -148,7 +148,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-lorena",
     startDate: "2025-09-28",
     endDate: "2025-10-03",
-    cycleLength: 26,
+    cycleLength: 5,
     symptoms: ["fatigue", "mood-swings", "insomnia"],
   },
   {
@@ -156,7 +156,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-lorena",
     startDate: "2025-09-02",
     endDate: "2025-09-07",
-    cycleLength: 26,
+    cycleLength: 5,
     symptoms: ["cramps", "bloating"],
   },
   {
@@ -164,7 +164,7 @@ export const cycleHistory: CycleRecord[] = [
     customerId: "contact-lorena",
     startDate: "2025-08-07",
     endDate: "2025-08-12",
-    cycleLength: 26,
+    cycleLength: 5,
     symptoms: ["headache", "fatigue", "acne"],
   },
 ];

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as m from "@/paraglide/messages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +24,12 @@ interface CreateOrgModalProps {
  * Modal for creating a new organisation.
  * Handles form state and slug auto-generation.
  */
-export function CreateOrgModal({ open, onOpenChange, onSubmit, error }: CreateOrgModalProps) {
+export function CreateOrgModal({
+  open,
+  onOpenChange,
+  onSubmit,
+  error,
+}: CreateOrgModalProps) {
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -55,18 +61,15 @@ export function CreateOrgModal({ open, onOpenChange, onSubmit, error }: CreateOr
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent size="default">
         <AlertDialogHeader>
-          <AlertDialogTitle>Create New Organisation</AlertDialogTitle>
-          <AlertDialogDescription>
-            Enter the details for the new organisation. The slug will be used in URLs and must be
-            unique.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{m.org_create()}</AlertDialogTitle>
+          <AlertDialogDescription>{m.org_create_desc()}</AlertDialogDescription>
         </AlertDialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="org-name">Organisation Name</Label>
+            <Label htmlFor="org-name">{m.org_name()}</Label>
             <Input
               id="org-name"
-              placeholder="Acme Corporation"
+              placeholder={m.org_name_placeholder()}
               value={orgName}
               onChange={(e) => {
                 setOrgName(e.target.value);
@@ -81,10 +84,10 @@ export function CreateOrgModal({ open, onOpenChange, onSubmit, error }: CreateOr
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="org-slug">Slug (URL identifier)</Label>
+            <Label htmlFor="org-slug">{m.org_slug()}</Label>
             <Input
               id="org-slug"
-              placeholder="acme-corporation"
+              placeholder={m.org_slug_placeholder()}
               value={orgSlug}
               onChange={(e) => setOrgSlug(e.target.value)}
               disabled={isCreating}
@@ -98,13 +101,13 @@ export function CreateOrgModal({ open, onOpenChange, onSubmit, error }: CreateOr
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleCancel} disabled={isCreating}>
-            Cancel
+            {m.common_cancel()}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleSubmit}
             disabled={isCreating || !orgName.trim() || !orgSlug.trim()}
           >
-            {isCreating ? "Creating..." : "Create Organisation"}
+            {isCreating ? m.common_creating() : m.org_create_submit()}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

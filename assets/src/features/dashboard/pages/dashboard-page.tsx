@@ -1,3 +1,5 @@
+import * as m from "@/paraglide/messages";
+
 /**
  * Dashboard page placeholder.
  * Currently disabled in navigation.
@@ -21,9 +23,11 @@ export function DashboardPage() {
           />
         </svg>
       </div>
-      <h1 className="mb-2 font-bold text-foreground text-xl">Dashboard Coming Soon</h1>
+      <h1 className="mb-2 font-bold text-foreground text-xl">
+        {m.dashboard_coming_soon()}
+      </h1>
       <p className="max-w-xs text-muted-foreground text-sm">
-        The dashboard is currently under development. Check back later for analytics and insights.
+        {m.dashboard_coming_soon_desc()}
       </p>
     </div>
   );

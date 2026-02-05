@@ -1,5 +1,6 @@
 import { ChevronDown, Plus } from "lucide-react";
 import type { Organization } from "@/gql/graphql";
+import * as m from "@/paraglide/messages";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +40,7 @@ export function OrgSelector({
           />
         }
       >
-        {selectedOrg ? selectedOrg.name : "No Organisations"}
+        {selectedOrg ? selectedOrg.name : m.org_none()}
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48 p-0">
@@ -66,7 +67,7 @@ export function OrgSelector({
             ].join(" ")}
           >
             <Plus className="h-3.5 w-3.5" />
-            Create New Organisation
+            {m.org_create()}
           </button>
         </div>
       </DropdownMenuContent>

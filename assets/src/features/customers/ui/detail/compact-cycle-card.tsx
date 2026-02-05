@@ -1,5 +1,6 @@
 import { differenceInDays } from "date-fns";
 import type { CycleRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { LineChartSkeleton } from "@/shared/ui/chart-skeleton";
 import { StatCard, StatCardSkeleton } from "./stat-card";
 
@@ -12,10 +13,10 @@ import { StatCard, StatCardSkeleton } from "./stat-card";
  * - Luteal: Days 17-28
  */
 function getCyclePhase(dayOfCycle: number): string {
-  if (dayOfCycle <= 5) return "Menstruation";
-  if (dayOfCycle <= 13) return "Follicular";
-  if (dayOfCycle <= 16) return "Ovulation";
-  return "Luteal";
+  if (dayOfCycle <= 5) return m.cycle_menstruation();
+  if (dayOfCycle <= 13) return m.cycle_follicular();
+  if (dayOfCycle <= 16) return m.cycle_ovulation();
+  return m.cycle_luteal();
 }
 
 interface CompactCycleCardProps {
@@ -41,9 +42,9 @@ export function CompactCycleCard({
     return (
       <StatCard
         cardBgColor="bg-pink-50/50"
-        label="Cycle"
+        label={m.stat_cycle()}
         value="--"
-        subtitle="No data recorded"
+        subtitle={m.stat_no_data()}
         onClick={onClick}
       />
     );
@@ -62,17 +63,19 @@ export function CompactCycleCard({
   }
 
   const value =
-    dayOfCycle !== null ? `Day ${dayOfCycle}` : `${cycle.cycleLength}d`;
+    dayOfCycle !== null
+      ? `${m.stat_day()} ${dayOfCycle}`
+      : `${cycle.cycleLength}d`;
   const subtitle =
     phase ??
     (cycle.symptoms.length > 0
-      ? `${cycle.symptoms.length} symptoms tracked`
-      : "Cycle completed");
+      ? `${cycle.symptoms.length} ${m.stat_symptoms_tracked()}`
+      : m.stat_cycle_completed());
 
   return (
     <StatCard
       cardBgColor="bg-pink-50/50"
-      label={isOngoing ? "Current Cycle" : "Last Cycle"}
+      label={isOngoing ? m.stat_current_cycle() : m.stat_last_cycle()}
       value={value}
       subtitle={subtitle}
       chartPlaceholder={<LineChartSkeleton className="w-full" />}

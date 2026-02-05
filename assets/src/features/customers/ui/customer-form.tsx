@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import type { SubscriptionPlan } from "@/gql/graphql";
+import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
   Field,
@@ -14,6 +15,7 @@ import {
 } from "@/shared/ui/field";
 import { PhoneInput } from "@/shared/ui/phone-input";
 import { parsePlanDurationMonths } from "@/shared/utils";
+import { getDateLocale } from "@/shared/utils/date-locale";
 import {
   createFieldValidator,
   mapFieldErrors,
@@ -86,7 +88,7 @@ export function CustomerForm({
       {/* Personal Information */}
       <FieldGroup>
         <h3 className="text-base font-semibold text-foreground">
-          Personal Information
+          {m.form_personal_info()}
         </h3>
 
         <form.Field
@@ -96,7 +98,7 @@ export function CustomerForm({
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>
-                Full Name <span className="text-destructive">*</span>
+                {m.form_name()} <span className="text-destructive">*</span>
               </FieldLabel>
               <FieldContent>
                 <NameInput
@@ -106,7 +108,7 @@ export function CustomerForm({
                   onChange={field.handleChange}
                   onBlur={field.handleBlur}
                   aria-invalid={field.state.meta.errors.length > 0}
-                  placeholder="Enter full name"
+                  placeholder={m.form_name_placeholder()}
                   autoComplete="name"
                 />
                 <FieldError errors={mapFieldErrors(field.state.meta.errors)} />
@@ -121,7 +123,7 @@ export function CustomerForm({
       {/* Contact Information */}
       <FieldGroup>
         <h3 className="text-base font-semibold text-foreground">
-          Contact Information
+          {m.form_contact_info()}
         </h3>
 
         <form.Field
@@ -130,7 +132,7 @@ export function CustomerForm({
         >
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{m.form_email()}</FieldLabel>
               <FieldContent>
                 <EmailInput
                   id={field.name}
@@ -154,7 +156,7 @@ export function CustomerForm({
         >
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor={field.name}>Phone</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{m.form_phone()}</FieldLabel>
               <FieldContent>
                 <PhoneInput
                   id={field.name}
@@ -176,7 +178,7 @@ export function CustomerForm({
         >
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor={field.name}>Instagram</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{m.form_instagram()}</FieldLabel>
               <FieldContent>
                 <InstagramInput
                   id={field.name}
@@ -198,7 +200,7 @@ export function CustomerForm({
       {/* Subscription */}
       <FieldGroup>
         <h3 className="text-base font-semibold text-foreground">
-          Subscription
+          {m.form_subscription()}
         </h3>
 
         <form.Field
@@ -208,7 +210,8 @@ export function CustomerForm({
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel>
-                Start Date <span className="text-destructive">*</span>
+                {m.form_start_date()}{" "}
+                <span className="text-destructive">*</span>
               </FieldLabel>
               <FieldContent>
                 <DatePickerField
@@ -228,7 +231,8 @@ export function CustomerForm({
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel>
-                Plan Duration <span className="text-destructive">*</span>
+                {m.form_plan_duration()}{" "}
+                <span className="text-destructive">*</span>
               </FieldLabel>
               <FieldContent>
                 <PlanDurationSelect
@@ -260,14 +264,12 @@ export function CustomerForm({
 
             return (
               <Field>
-                <FieldLabel>End Date</FieldLabel>
+                <FieldLabel>{m.form_end_date()}</FieldLabel>
                 <FieldContent>
                   <div className="flex h-9 items-center rounded-md border border-input bg-muted/50 px-2.5 text-muted-foreground text-sm">
-                    {format(endDate, "PPP")}
+                    {format(endDate, "PPP", { locale: getDateLocale() })}
                   </div>
-                  <FieldDescription>
-                    Automatically calculated from start date and duration
-                  </FieldDescription>
+                  <FieldDescription>{m.form_end_date_auto()}</FieldDescription>
                 </FieldContent>
               </Field>
             );
@@ -285,7 +287,7 @@ export function CustomerForm({
             onClick={onCancel}
             className="order-2 sm:order-1"
           >
-            Cancel
+            {m.common_cancel()}
           </Button>
 
           {/* Create button - primary action */}
@@ -299,7 +301,7 @@ export function CustomerForm({
                 className="order-1 sm:order-2"
               >
                 {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-                {isSubmitting ? "Saving..." : submitLabel}
+                {isSubmitting ? m.common_saving() : submitLabel}
               </Button>
             )}
           </form.Subscribe>

@@ -2,6 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { StrictMode } from "react";
 import { UserStoreSync } from "@/features/user/store/user-store-sync";
+import { LocaleProvider } from "@/shared/i18n/locale-provider";
 import { InnerApp } from "../inner-app";
 import { router } from "../router";
 import { queryClient } from "./query-client";
@@ -21,7 +22,9 @@ export function AppProviders() {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <UserStoreSync />
-        <InnerApp router={router} />
+        <LocaleProvider>
+          <InnerApp router={router} />
+        </LocaleProvider>
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </StrictMode>

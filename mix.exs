@@ -113,6 +113,7 @@ defmodule Chironium.MixProject do
       test: ["ash.setup --quiet", "test"],
       "assets.setup": ["phoenix_vite.npm assets install"],
       "assets.build": ["phoenix_vite.npm vite build"],
+      "assets.codegen": ["cmd sh -c 'cd assets && pnpm codegen'"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
 
       # Clean rebuild for branch switching - preserves migrations,
@@ -128,8 +129,8 @@ defmodule Chironium.MixProject do
       "rebuild.finalize": [
         # Uses ash.reset (not ecto.reset) to handle all Ash extensions: Oban, paper_trail, events, etc.
         "ash.reset",
-        "run priv/repo/seeds.exs",
         "assets.setup",
+        "assets.codegen",
         "assets.build"
       ],
 

@@ -1,4 +1,5 @@
 import type { SubscriptionPlan } from "@/gql/graphql";
+import * as m from "@/paraglide/messages";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 
 interface PlanDurationSelectProps {
@@ -13,9 +14,9 @@ function parsePlanLabel(plan: SubscriptionPlan): string {
   if (plan.name) return plan.name;
   if (plan.periodDuration) {
     const match = /^P(\d+)M$/i.exec(plan.periodDuration);
-    if (match) return `${match[1]} months`;
+    if (match) return m.plan_months({ count: Number(match[1]) });
   }
-  return "Unknown";
+  return m.plan_unknown();
 }
 
 /**
@@ -31,7 +32,7 @@ export function PlanDurationSelect({
 }: PlanDurationSelectProps) {
   if (plans.length === 0) {
     return (
-      <div className="text-muted-foreground text-sm">Loading plans...</div>
+      <div className="text-muted-foreground text-sm">{m.plan_loading()}</div>
     );
   }
 

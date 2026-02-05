@@ -1,5 +1,6 @@
 import { Activity, Ruler } from "lucide-react";
 import type { BodyMetricsRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { LineChartSkeleton } from "@/shared/ui/chart-skeleton";
 import { heightMetersToCm } from "@/shared/utils";
@@ -28,9 +29,9 @@ export function CompactBodyMetricsCard({
     return (
       <StatCard
         cardBgColor="bg-blue-50/50"
-        label="Body Metrics"
+        label={m.stat_body_metrics()}
         value="--"
-        subtitle="No data recorded"
+        subtitle={m.stat_no_data()}
         onClick={onClick}
       />
     );
@@ -53,7 +54,7 @@ export function CompactBodyMetricsCard({
   return (
     <StatCard
       cardBgColor="bg-blue-50/50"
-      label="Weight"
+      label={m.stat_weight()}
       value={metrics.weight}
       unit="kg"
       subtitle={subtitle}

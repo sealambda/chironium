@@ -3,9 +3,11 @@ import { format } from "date-fns";
 import { useMemo } from "react";
 import { getSymptomById } from "@/mocks/data/catalogs";
 import type { CycleRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
+import { getDateLocale } from "@/shared/utils/date-locale";
 
 interface SymptomsListProps {
   symptoms: string[];
@@ -14,7 +16,7 @@ interface SymptomsListProps {
 function SymptomsList({ symptoms }: Readonly<SymptomsListProps>) {
   if (symptoms.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">No symptoms recorded</p>
+      <p className="text-muted-foreground text-sm">{m.empty_no_symptoms()}</p>
     );
   }
 
@@ -53,22 +55,28 @@ export function CycleDrawer({
       {
         accessorKey: "startDate",
         header: ({ column }) => (
-          <SortableHeader column={column}>Start</SortableHeader>
+          <SortableHeader column={column}>{m.table_start()}</SortableHeader>
         ),
         cell: ({ getValue }) =>
-          format(new Date(getValue() as string), "MMM d, yyyy"),
+          format(new Date(getValue() as string), "MMM d, yyyy", {
+            locale: getDateLocale(),
+          }),
       },
       {
         accessorKey: "endDate",
-        header: "End",
+        header: m.table_end,
         cell: ({ getValue }) => {
           const endDate = getValue() as string | undefined;
-          return endDate ? format(new Date(endDate), "MMM d, yyyy") : "Ongoing";
+          return endDate
+            ? format(new Date(endDate), "MMM d, yyyy", {
+                locale: getDateLocale(),
+              })
+            : m.common_ongoing();
         },
       },
       {
         accessorKey: "cycleLength",
-        header: "Length",
+        header: m.table_length,
         cell: ({ getValue }) => {
           const length = getValue() as number | undefined;
           return length ? `${length}d` : "—";
@@ -77,7 +85,7 @@ export function CycleDrawer({
       {
         id: "symptomsCount",
         accessorFn: (row) => row.symptoms.length,
-        header: "Symptoms",
+        header: m.table_symptoms,
         cell: ({ getValue }) => getValue(),
       },
     ],
@@ -90,11 +98,11 @@ export function CycleDrawer({
 
   return (
     <HistoryDrawer
-      title="Cycle History"
+      title={m.drawer_cycle()}
       isOpen={isOpen}
       onClose={onClose}
       onAdd={onAdd}
-      addButtonLabel="Add Cycle"
+      addButtonLabel={m.drawer_add_cycle()}
     >
       <DataTable
         columns={columns}
@@ -103,7 +111,7 @@ export function CycleDrawer({
         renderExpandedRow={renderExpandedRow}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">
-            No cycle history found
+            {m.empty_no_history()}
           </div>
         }
       />

@@ -54,11 +54,11 @@ export function BottomNav() {
                   "flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 px-3 py-2",
                   "cursor-not-allowed opacity-40",
                 )}
-                aria-label={`${item.label} (disabled)`}
+                aria-label={`${item.label()} (disabled)`}
               >
                 <Icon className="h-6 w-6 text-muted-foreground" />
                 <span className="font-medium text-muted-foreground text-xs">
-                  {item.label}
+                  {item.label()}
                 </span>
               </button>
             );
@@ -91,7 +91,7 @@ export function BottomNav() {
                   isActive && "font-semibold",
                 )}
               >
-                {item.label}
+                {item.label()}
               </span>
             </Link>
           );

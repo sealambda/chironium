@@ -2,9 +2,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import type { PathologyRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
+import { getDateLocale } from "@/shared/utils/date-locale";
 import { pathologyStatusConfig } from "../../model/status-config";
 
 interface PathologiesDrawerProps {
@@ -28,12 +30,12 @@ export function PathologiesDrawer({
       {
         accessorKey: "pathologyName",
         header: ({ column }) => (
-          <SortableHeader column={column}>Name</SortableHeader>
+          <SortableHeader column={column}>{m.table_name()}</SortableHeader>
         ),
       },
       {
         accessorKey: "category",
-        header: "Category",
+        header: m.table_category,
         cell: ({ getValue }) => (
           <span className="capitalize text-muted-foreground">
             {getValue() as string}
@@ -43,7 +45,7 @@ export function PathologiesDrawer({
       {
         accessorKey: "status",
         header: ({ column }) => (
-          <SortableHeader column={column}>Status</SortableHeader>
+          <SortableHeader column={column}>{m.table_status()}</SortableHeader>
         ),
         cell: ({ getValue }) => {
           const status = getValue() as keyof typeof pathologyStatusConfig;
@@ -60,10 +62,12 @@ export function PathologiesDrawer({
       {
         accessorKey: "diagnosedDate",
         header: ({ column }) => (
-          <SortableHeader column={column}>Diagnosed</SortableHeader>
+          <SortableHeader column={column}>{m.table_diagnosed()}</SortableHeader>
         ),
         cell: ({ getValue }) =>
-          format(new Date(getValue() as string), "MMM yyyy"),
+          format(new Date(getValue() as string), "MMM yyyy", {
+            locale: getDateLocale(),
+          }),
       },
     ],
     [],
@@ -71,11 +75,11 @@ export function PathologiesDrawer({
 
   return (
     <HistoryDrawer
-      title="Pathologies"
+      title={m.drawer_pathologies()}
       isOpen={isOpen}
       onClose={onClose}
       onAdd={onAdd}
-      addButtonLabel="Add Pathology"
+      addButtonLabel={m.drawer_add_pathology()}
     >
       <DataTable
         columns={columns}
@@ -83,7 +87,7 @@ export function PathologiesDrawer({
         getRowId={(row) => row.id}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">
-            No pathologies recorded
+            {m.empty_no_data()}
           </div>
         }
       />

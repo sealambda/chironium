@@ -2,9 +2,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import type { SubscriptionHistoryRecord } from "@/mocks/types";
+import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
+import { getDateLocale } from "@/shared/utils/date-locale";
 import { subscriptionStatusConfig } from "../../model/status-config";
 
 interface SubscriptionDrawerProps {
@@ -28,27 +30,31 @@ export function SubscriptionDrawer({
       {
         accessorKey: "startDate",
         header: ({ column }) => (
-          <SortableHeader column={column}>Start</SortableHeader>
+          <SortableHeader column={column}>{m.table_start()}</SortableHeader>
         ),
         cell: ({ getValue }) =>
-          format(new Date(getValue() as string), "MMM d, yyyy"),
+          format(new Date(getValue() as string), "MMM d, yyyy", {
+            locale: getDateLocale(),
+          }),
       },
       {
         accessorKey: "endDate",
         header: ({ column }) => (
-          <SortableHeader column={column}>End</SortableHeader>
+          <SortableHeader column={column}>{m.table_end()}</SortableHeader>
         ),
         cell: ({ getValue }) =>
-          format(new Date(getValue() as string), "MMM d, yyyy"),
+          format(new Date(getValue() as string), "MMM d, yyyy", {
+            locale: getDateLocale(),
+          }),
       },
       {
         accessorKey: "planDurationMonths",
-        header: "Duration",
+        header: m.table_duration,
         cell: ({ getValue }) => `${getValue()}mo`,
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: m.table_status,
         cell: ({ getValue }) => {
           const status = getValue() as keyof typeof subscriptionStatusConfig;
           return (
@@ -67,11 +73,11 @@ export function SubscriptionDrawer({
 
   return (
     <HistoryDrawer
-      title="Subscription History"
+      title={m.drawer_subscription()}
       isOpen={isOpen}
       onClose={onClose}
       onAdd={onAdd}
-      addButtonLabel="Add Subscription"
+      addButtonLabel={m.drawer_add_subscription()}
     >
       <DataTable
         columns={columns}
@@ -79,7 +85,7 @@ export function SubscriptionDrawer({
         getRowId={(row) => row.id}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">
-            No subscription history found
+            {m.empty_no_history()}
           </div>
         }
       />
