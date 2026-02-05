@@ -1,5 +1,8 @@
-import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
-import { Mail } from "lucide-react";
+import {
+  SiGmail,
+  SiInstagram,
+  SiWhatsapp,
+} from "@icons-pack/react-simple-icons";
 import { Button } from "@/shared/ui/button";
 import { getEmailUrl, getInstagramUrl, getWhatsAppUrl } from "@/shared/utils";
 
@@ -33,17 +36,17 @@ export function ContactButtonGroup({
       <Button
         variant="ghost"
         size="icon"
-        className="size-10 text-muted-foreground hover:text-foreground disabled:opacity-30"
+        className="size-11 text-muted-foreground hover:text-red-500 disabled:opacity-30"
         disabled={!email}
         onClick={email ? handleClick(getEmailUrl(email)) : undefined}
         aria-label={`Email ${customerName}`}
       >
-        <Mail className="size-5" />
+        <SiGmail size={20} />
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        className="size-10 text-muted-foreground hover:text-emerald-500 disabled:opacity-30"
+        className="size-11 text-muted-foreground hover:text-emerald-500 disabled:opacity-30"
         disabled={!phone}
         onClick={phone ? handleClick(getWhatsAppUrl(phone)) : undefined}
         aria-label={`WhatsApp ${customerName}`}
@@ -53,7 +56,7 @@ export function ContactButtonGroup({
       <Button
         variant="ghost"
         size="icon"
-        className="size-10 text-muted-foreground hover:text-pink-500 disabled:opacity-30"
+        className="size-11 text-muted-foreground hover:text-pink-500 disabled:opacity-30"
         disabled={!instagram}
         onClick={
           instagram ? handleClick(getInstagramUrl(instagram)) : undefined

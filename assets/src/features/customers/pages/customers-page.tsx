@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
-import { useNavTrailingActions } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
 import { fetchCustomerList } from "../api/customers-api";
 import { CustomerSheet } from "../ui/create-customer-sheet";
@@ -15,20 +14,6 @@ import { type Customer, CustomerCard } from "../ui/customer-card";
 export function CustomersPage() {
   const { selectedOrg } = useOrg();
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
-
-  // Add create customer button to nav bar trailing slot.
-  useNavTrailingActions(
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-10 w-10"
-      aria-label="Add customer"
-      onClick={() => setIsCreateCustomerOpen(true)}
-    >
-      <UserPlus className="size-5" />
-    </Button>,
-    "create-customer",
-  );
 
   const {
     data: customers = [],
@@ -84,14 +69,33 @@ export function CustomersPage() {
 
   return (
     <div className="space-y-4 pt-2">
-      {/* Page header. */}
-      <header className="flex items-baseline gap-3">
+      {/* Page header with action button. */}
+      <header className="flex items-center justify-between">
         <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
           Customers
         </h1>
-        <span className="text-muted-foreground text-sm">
-          {customers.length} total
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-muted-foreground text-sm">
+            {customers.length} total
+          </span>
+          {/* Add button - icon only on mobile (44px touch target), icon + text on md+ */}
+          <Button
+            variant="ghost"
+            onClick={() => setIsCreateCustomerOpen(true)}
+            className="size-11 md:hidden"
+            aria-label="Add customer"
+          >
+            <UserPlus className="size-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setIsCreateCustomerOpen(true)}
+            className="hidden md:flex"
+          >
+            <UserPlus className="h-4 w-4" />
+            Add Customer
+          </Button>
+        </div>
       </header>
 
       {/* Customer cards list. */}
