@@ -41,7 +41,7 @@ function getUserInitials(user: User | null): string {
 export function TopNav() {
   const { user, isLoading } = useCurrentUser();
   const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
-  const { isDetailMode, headerContent, trailingActions } = useDetailMode();
+  const { isDetailMode, headerContent } = useDetailMode();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
   const [createOrgError, setCreateOrgError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -113,16 +113,10 @@ export function TopNav() {
     );
   }
 
-  // In detail mode, render custom header content with invisible border.
+  // In detail mode, render custom header content.
   if (isDetailMode) {
     return (
-      <header
-        className={cn(
-          "fixed top-0 right-0 left-0 z-50",
-          "bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
-          "pt-safe",
-        )}
-      >
+      <header className={headerClasses}>
         <div className="flex h-16 items-center px-4 md:px-6 lg:px-8">
           {headerContent}
         </div>
@@ -144,9 +138,22 @@ export function TopNav() {
           "px-4 md:px-6 lg:px-8",
         )}
       >
-        {/* Leading: Avatar + Welcome + Org Selector */}
-        <div className="flex items-center gap-3">
-          {/* Profile avatar with dropdown. */}
+        {/* Leading: Welcome + Org Selector */}
+        <div className="flex flex-col gap-0.5">
+          <span className="text-muted-foreground text-xs">
+            Welcome back, {firstName}
+          </span>
+          <OrgSelector
+            selectedOrg={selectedOrg}
+            availableOrgs={availableOrgs}
+            onSelectOrg={selectOrg}
+            onCreateClick={() => setIsCreateOrgOpen(true)}
+          />
+        </div>
+
+        {/* Trailing: Profile (user actions on right per all design systems) */}
+        <div className="flex items-center">
+          {/* Profile avatar with dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -174,7 +181,7 @@ export function TopNav() {
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
                 {user.name && (
                   <p className="font-semibold text-sm">{user.name}</p>
@@ -199,25 +206,7 @@ export function TopNav() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Welcome message + Org Selector */}
-          <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground text-xs">
-              Welcome back, {firstName}
-            </span>
-            <OrgSelector
-              selectedOrg={selectedOrg}
-              availableOrgs={availableOrgs}
-              onSelectOrg={selectOrg}
-              onCreateClick={() => setIsCreateOrgOpen(true)}
-            />
-          </div>
         </div>
-
-        {/* Trailing: Actions slot */}
-        {trailingActions && (
-          <div className="flex items-center gap-2">{trailingActions}</div>
-        )}
       </div>
 
       <CreateOrgModal
