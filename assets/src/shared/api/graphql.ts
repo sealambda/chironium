@@ -1,10 +1,7 @@
-import {
-  ClientError,
-  GraphQLClient,
-  type RequestOptions,
-  type Variables,
-} from "graphql-request";
+import { ClientError, GraphQLClient, type RequestOptions, type Variables } from "graphql-request";
+
 import { API_PATHS, AUTH_URLS } from "@/shared/utils/url-utils";
+
 import { getAuthHeaders } from "./request";
 
 /**
@@ -43,13 +40,12 @@ export async function requestGraphql<TResult>({
   const client = new GraphQLClient(endpoint, {
     credentials: "include",
     headers: getAuthHeaders({
-      ...(organizationId
-        ? { "x-chironium-organizationid": `org_${organizationId}` }
-        : {}),
+      ...(organizationId ? { "x-chironium-organizationid": `org_${organizationId}` } : {}),
     }),
   });
 
   try {
+    // biome-ignore lint/nursery/useAwaitThenable: client.request returns Promise.
     return await client.request({
       document,
       variables,
@@ -60,14 +56,14 @@ export async function requestGraphql<TResult>({
       // Phoenix will handle the redirect back after re-authentication.
       if (isAuthError(error)) {
         window.location.href = AUTH_URLS.signIn;
-        throw new Error("Session expired - redirecting to sign-in");
+        throw new Error("Session expired - redirecting to sign-in", { cause: error });
       }
 
       const message = error.response.errors
         ?.map((err) => err.message)
         .filter(Boolean)
         .join(" ");
-      throw new Error(message || "GraphQL error");
+      throw new Error(message || "GraphQL error", { cause: error });
     }
 
     throw error;

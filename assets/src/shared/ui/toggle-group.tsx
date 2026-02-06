@@ -4,7 +4,8 @@ import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { cn } from "@/shared/utils";
+
+import { cn } from "@/shared/utils/utils";
 
 const toggleGroupVariants = cva(
   "flex w-full items-center rounded-lg bg-muted p-1 text-muted-foreground",

@@ -1,10 +1,7 @@
-import {
-  SiGmail,
-  SiInstagram,
-  SiWhatsapp,
-} from "@icons-pack/react-simple-icons";
+import { SiGmail, SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
+
 import { Button } from "@/shared/ui/button";
-import { getEmailUrl, getInstagramUrl, getWhatsAppUrl } from "@/shared/utils";
+import { getEmailUrl, getInstagramUrl, getWhatsAppUrl } from "@/shared/utils/contact-utils";
 
 interface ContactButtonGroupProps {
   email?: string;
@@ -27,7 +24,10 @@ export function ContactButtonGroup({
   stopPropagation = false,
 }: Readonly<ContactButtonGroupProps>) {
   const handleClick = (url: string) => (e: React.MouseEvent) => {
-    if (stopPropagation) e.stopPropagation();
+    if (stopPropagation) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     window.open(url, "_blank");
   };
 
@@ -58,9 +58,7 @@ export function ContactButtonGroup({
         size="icon"
         className="size-11 text-muted-foreground hover:text-pink-500 disabled:opacity-30"
         disabled={!instagram}
-        onClick={
-          instagram ? handleClick(getInstagramUrl(instagram)) : undefined
-        }
+        onClick={instagram ? handleClick(getInstagramUrl(instagram)) : undefined}
         aria-label={`Instagram ${customerName}`}
       >
         <SiInstagram size={20} />

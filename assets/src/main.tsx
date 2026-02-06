@@ -4,6 +4,7 @@
 import "vite/modulepreload-polyfill";
 
 import { createRoot } from "react-dom/client";
+
 import { AppProviders } from "./app/providers/app-providers";
 
 import "./styles/index.css";
@@ -14,6 +15,7 @@ async function startMsw(): Promise<void> {
   }
 
   const { worker } = await import("./mocks/browser");
+  // biome-ignore lint/nursery/useAwaitThenable: worker.start returns Promise.
   await worker.start({
     onUnhandledRequest: "bypass",
   });

@@ -23,12 +23,8 @@ export function DashboardPage() {
           />
         </svg>
       </div>
-      <h1 className="mb-2 font-bold text-foreground text-xl">
-        {m.dashboard_coming_soon()}
-      </h1>
-      <p className="max-w-xs text-muted-foreground text-sm">
-        {m.dashboard_coming_soon_desc()}
-      </p>
+      <h1 className="mb-2 font-bold text-foreground text-xl">{m.dashboard_coming_soon()}</h1>
+      <p className="max-w-xs text-muted-foreground text-sm">{m.dashboard_coming_soon_desc()}</p>
     </div>
   );
 }

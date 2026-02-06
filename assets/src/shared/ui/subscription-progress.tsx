@@ -1,16 +1,25 @@
 import { differenceInDays, format, formatDistanceStrict } from "date-fns";
-import { cn } from "@/shared/utils";
+
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { cn } from "@/shared/utils/utils";
 
 /**
  * Get progress bar color based on percentage.
  * Blue (new) -> Green (stable) -> Orange (ending soon) -> Red (urgent) -> Grey (finished).
  */
 function getProgressColor(percent: number): string {
-  if (percent >= 100) return "bg-muted-foreground";
-  if (percent >= 80) return "bg-red-500";
-  if (percent >= 60) return "bg-orange-500";
-  if (percent >= 25) return "bg-emerald-500";
+  if (percent >= 100) {
+    return "bg-muted-foreground";
+  }
+  if (percent >= 80) {
+    return "bg-red-500";
+  }
+  if (percent >= 60) {
+    return "bg-orange-500";
+  }
+  if (percent >= 25) {
+    return "bg-emerald-500";
+  }
   return "bg-sky-500";
 }
 
@@ -29,9 +38,7 @@ interface SubscriptionProgressProps {
 /**
  * Calculates subscription progress details.
  */
-export function calculateSubscriptionProgress(
-  subscription: SubscriptionProgressData,
-) {
+export function calculateSubscriptionProgress(subscription: SubscriptionProgressData) {
   const startDate =
     typeof subscription.startDate === "string"
       ? new Date(subscription.startDate)
@@ -44,10 +51,7 @@ export function calculateSubscriptionProgress(
 
   const totalDays = differenceInDays(endDate, startDate);
   const elapsedDays = differenceInDays(now, startDate);
-  const progressPercent = Math.min(
-    100,
-    Math.max(0, Math.round((elapsedDays / totalDays) * 100)),
-  );
+  const progressPercent = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
 
   const locale = getDateLocale();
   const elapsedLabel = formatDistanceStrict(startDate, now, {
@@ -101,10 +105,7 @@ export function SubscriptionProgress({
         {/* Custom progress bar with dynamic color. */}
         <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className={cn(
-              "h-full rounded-full transition-all duration-500",
-              progressColor,
-            )}
+            className={cn("h-full rounded-full transition-all duration-500", progressColor)}
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -130,12 +131,8 @@ export function SubscriptionProgress({
       <div className="mt-3 grid grid-cols-3 items-center gap-1 text-xs">
         {/* Left column - elapsed time. */}
         <div className="min-w-0 text-left">
-          <div className="font-medium text-muted-foreground">
-            {elapsedLabel}
-          </div>
-          <div className="truncate text-[10px] text-muted-foreground/70">
-            {startDateFormatted}
-          </div>
+          <div className="font-medium text-muted-foreground">{elapsedLabel}</div>
+          <div className="truncate text-[10px] text-muted-foreground/70">{startDateFormatted}</div>
         </div>
         {/* Center column - plan duration badge. */}
         <div className="flex justify-center">
@@ -145,12 +142,8 @@ export function SubscriptionProgress({
         </div>
         {/* Right column - time remaining. */}
         <div className="min-w-0 text-right">
-          <div className="font-medium text-muted-foreground">
-            {remainingLabel}
-          </div>
-          <div className="truncate text-[10px] text-muted-foreground/70">
-            {endDateFormatted}
-          </div>
+          <div className="font-medium text-muted-foreground">{remainingLabel}</div>
+          <div className="truncate text-[10px] text-muted-foreground/70">{endDateFormatted}</div>
         </div>
       </div>
     </div>

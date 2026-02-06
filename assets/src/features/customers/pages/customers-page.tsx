@@ -2,9 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
+
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
+
 import { fetchCustomerList } from "../api/customers-api";
 import { CustomerSheet } from "../ui/create-customer-sheet";
 import { type Customer, CustomerCard } from "../ui/customer-card";
@@ -30,12 +32,8 @@ export function CustomersPage() {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">
-            {m.customers_no_org()}
-          </div>
-          <div className="text-muted-foreground text-sm">
-            {m.customers_no_org_desc()}
-          </div>
+          <div className="mb-2 font-medium text-muted-foreground">{m.customers_no_org()}</div>
+          <div className="text-muted-foreground text-sm">{m.customers_no_org_desc()}</div>
         </div>
       </div>
     );
@@ -45,23 +43,18 @@ export function CustomersPage() {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">
-            {m.common_loading()}
-          </div>
+          <div className="mb-2 font-medium text-muted-foreground">{m.common_loading()}</div>
         </div>
       </div>
     );
   }
 
   if (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to fetch customers";
+    const message = error instanceof Error ? error.message : "Failed to fetch customers";
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <div className="mb-2 font-medium text-destructive">
-            {m.customers_error()}
-          </div>
+          <div className="mb-2 font-medium text-destructive">{m.customers_error()}</div>
           <div className="text-muted-foreground text-sm">{message}</div>
         </div>
       </div>
@@ -103,12 +96,8 @@ export function CustomersPage() {
       {customers.length === 0 ? (
         <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-border/50 border-dashed bg-card/50">
           <div className="text-center">
-            <div className="mb-2 font-medium text-muted-foreground">
-              {m.customers_empty()}
-            </div>
-            <div className="text-muted-foreground text-sm">
-              {m.customers_empty_desc()}
-            </div>
+            <div className="mb-2 font-medium text-muted-foreground">{m.customers_empty()}</div>
+            <div className="text-muted-foreground text-sm">{m.customers_empty_desc()}</div>
           </div>
         </div>
       ) : (
@@ -127,10 +116,7 @@ export function CustomersPage() {
       )}
 
       {/* Create customer sheet */}
-      <CustomerSheet
-        open={isCreateCustomerOpen}
-        onOpenChange={setIsCreateCustomerOpen}
-      />
+      <CustomerSheet open={isCreateCustomerOpen} onOpenChange={setIsCreateCustomerOpen} />
     </div>
   );
 }

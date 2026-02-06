@@ -1,12 +1,14 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
+
 import type { SubscriptionHistoryRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
 import { getDateLocale } from "@/shared/utils/date-locale";
+
 import { subscriptionStatusConfig } from "../../model/status-config";
 
 interface SubscriptionDrawerProps {
@@ -29,9 +31,7 @@ export function SubscriptionDrawer({
     () => [
       {
         accessorKey: "startDate",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_start()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_start()}</SortableHeader>,
         cell: ({ getValue }) =>
           format(new Date(getValue() as string), "MMM d, yyyy", {
             locale: getDateLocale(),
@@ -39,9 +39,7 @@ export function SubscriptionDrawer({
       },
       {
         accessorKey: "endDate",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_end()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_end()}</SortableHeader>,
         cell: ({ getValue }) =>
           format(new Date(getValue() as string), "MMM d, yyyy", {
             locale: getDateLocale(),
@@ -58,10 +56,7 @@ export function SubscriptionDrawer({
         cell: ({ getValue }) => {
           const status = getValue() as keyof typeof subscriptionStatusConfig;
           return (
-            <Badge
-              variant={subscriptionStatusConfig[status]?.variant}
-              className="capitalize"
-            >
+            <Badge variant={subscriptionStatusConfig[status]?.variant} className="capitalize">
               {status}
             </Badge>
           );

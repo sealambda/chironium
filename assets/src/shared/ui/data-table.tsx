@@ -22,15 +22,8 @@ import { useState } from "react";
 
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
-import { cn } from "@/shared/utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { cn } from "@/shared/utils/utils";
 
 // ============= Types =============
 
@@ -64,15 +57,21 @@ interface SortableHeaderProps<TData, TValue> {
 
 // ============= Helper Components =============
 
-function SortableHeader<TData, TValue>({
-  column,
-  children,
-}: SortableHeaderProps<TData, TValue>) {
+function SortableHeader<TData, TValue>({ column, children }: SortableHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
     return <span>{children}</span>;
   }
 
   const sortDirection = column.getIsSorted();
+
+  let sortIcon: React.ReactNode;
+  if (sortDirection === "asc") {
+    sortIcon = <ArrowUpIcon className="ml-1 size-3" />;
+  } else if (sortDirection === "desc") {
+    sortIcon = <ArrowDownIcon className="ml-1 size-3" />;
+  } else {
+    sortIcon = <ArrowUpDownIcon className="ml-1 size-3 opacity-50" />;
+  }
 
   return (
     <Button
@@ -83,30 +82,17 @@ function SortableHeader<TData, TValue>({
       onClick={() => column.toggleSorting()}
     >
       {children}
-      {sortDirection === "asc" ? (
-        <ArrowUpIcon className="ml-1 size-3" />
-      ) : sortDirection === "desc" ? (
-        <ArrowDownIcon className="ml-1 size-3" />
-      ) : (
-        <ArrowUpDownIcon className="ml-1 size-3 opacity-50" />
-      )}
+      {sortIcon}
     </Button>
   );
 }
 
 function DefaultEmptyState() {
   return (
-    <div
-      data-slot="data-table-empty"
-      className="flex min-h-[200px] items-center justify-center"
-    >
+    <div data-slot="data-table-empty" className="flex min-h-[200px] items-center justify-center">
       <div className="text-center">
-        <div className="text-muted-foreground font-medium">
-          {m.data_table_empty()}
-        </div>
-        <div className="text-muted-foreground mt-1 text-sm">
-          {m.data_table_empty_desc()}
-        </div>
+        <div className="font-medium text-muted-foreground">{m.data_table_empty()}</div>
+        <div className="mt-1 text-muted-foreground text-sm">{m.data_table_empty_desc()}</div>
       </div>
     </div>
   );
@@ -146,14 +132,12 @@ function DataTable<TData>({
       ...(isExpandable && { expanded }),
     },
     onSortingChange: (updater) => {
-      const newSorting =
-        typeof updater === "function" ? updater(sorting) : updater;
+      const newSorting = typeof updater === "function" ? updater(sorting) : updater;
       setSorting(newSorting);
     },
     ...(isExpandable && {
       onExpandedChange: (updater) => {
-        const newExpanded =
-          typeof updater === "function" ? updater(expanded) : updater;
+        const newExpanded = typeof updater === "function" ? updater(expanded) : updater;
         setExpanded(newExpanded);
       },
     }),
@@ -179,10 +163,7 @@ function DataTable<TData>({
                 <TableHead key={header.id}>
                   {header.isPlaceholder
                     ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                    : flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
               ))}
             </TableRow>
@@ -201,9 +182,7 @@ function DataTable<TData>({
           ) : (
             table.getRowModel().rows.map((row) => (
               <React.Fragment key={row.id}>
-                <TableRow
-                  data-state={row.getIsExpanded() ? "expanded" : undefined}
-                >
+                <TableRow data-state={row.getIsExpanded() ? "expanded" : undefined}>
                   {isExpandable && (
                     <TableCell className="w-10 p-0 pl-2">
                       <Button
@@ -212,9 +191,7 @@ function DataTable<TData>({
                         className="size-8 p-0"
                         onClick={() => row.toggleExpanded()}
                         aria-label={
-                          row.getIsExpanded()
-                            ? m.data_table_collapse()
-                            : m.data_table_expand()
+                          row.getIsExpanded() ? m.data_table_collapse() : m.data_table_expand()
                         }
                         aria-expanded={row.getIsExpanded()}
                       >
@@ -228,19 +205,13 @@ function DataTable<TData>({
                   )}
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
                 {isExpandable && row.getIsExpanded() && renderExpandedRow && (
                   <TableRow data-slot="expanded-row">
-                    <TableCell
-                      colSpan={columns.length + 1}
-                      className="bg-muted/30 p-4"
-                    >
+                    <TableCell colSpan={columns.length + 1} className="bg-muted/30 p-4">
                       {renderExpandedRow(row)}
                     </TableCell>
                   </TableRow>

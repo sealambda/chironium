@@ -1,7 +1,8 @@
 import type { PathologyRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
+
 import { StatCardSkeleton } from "./stat-card";
 
 interface CompactPathologiesCardProps {
@@ -43,37 +44,31 @@ export function CompactPathologiesCard({
             {displayedPathologies.map((pathology) => (
               <Badge
                 key={pathology.id}
-                className="h-4 px-1.5 text-[10px] bg-red-100 text-red-700 border-red-200"
+                className="h-4 border-red-200 bg-red-100 px-1.5 text-[10px] text-red-700"
               >
                 {pathology.pathologyName}
               </Badge>
             ))}
             {hasMore && (
-              <Badge className="h-4 px-1.5 text-[10px] bg-muted text-muted-foreground border-border">
+              <Badge className="h-4 border-border bg-muted px-1.5 text-[10px] text-muted-foreground">
                 +{activePathologies.length - 3}
               </Badge>
             )}
           </>
         ) : (
-          <span className="text-muted-foreground text-xs">
-            {m.stat_no_pathologies()}
-          </span>
+          <span className="text-muted-foreground text-xs">{m.stat_no_pathologies()}</span>
         )}
       </div>
 
       {/* Bottom section: Stats summary */}
       <div className="mt-auto shrink-0 pt-2">
-        <p className="text-muted-foreground text-[10px] leading-tight">
-          {m.stat_pathologies()}
-        </p>
+        <p className="text-[10px] text-muted-foreground leading-tight">{m.stat_pathologies()}</p>
         <div className="flex items-baseline gap-0.5">
-          <span className="font-bold text-lg text-foreground">
+          <span className="font-bold text-foreground text-lg">
             {activeCount > 0 ? activeCount : "--"}
           </span>
           {activeCount > 0 && (
-            <span className="text-muted-foreground text-xs">
-              {m.stat_active()}
-            </span>
+            <span className="text-muted-foreground text-xs">{m.stat_active()}</span>
           )}
         </div>
       </div>

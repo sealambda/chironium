@@ -1,12 +1,13 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
+
 import type { BodyMetricsRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
-import { heightMetersToCm } from "@/shared/utils";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { heightMetersToCm } from "@/shared/utils/measurement-utils";
 
 interface MeasurementsGridProps {
   record: BodyMetricsRecord;
@@ -24,11 +25,7 @@ function MeasurementsGrid({ record }: Readonly<MeasurementsGridProps>) {
   ].filter((item) => item.value !== undefined);
 
   if (items.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        {m.empty_no_measurements()}
-      </p>
-    );
+    return <p className="text-muted-foreground text-sm">{m.empty_no_measurements()}</p>;
   }
 
   return (
@@ -63,9 +60,7 @@ export function BodyMetricsDrawer({
     () => [
       {
         accessorKey: "date",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_date()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_date()}</SortableHeader>,
         cell: ({ getValue }) =>
           format(new Date(getValue() as string), "MMM d, yyyy", {
             locale: getDateLocale(),
@@ -73,9 +68,7 @@ export function BodyMetricsDrawer({
       },
       {
         accessorKey: "weight",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_weight()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_weight()}</SortableHeader>,
         cell: ({ getValue }) => `${getValue()} kg`,
       },
       {
@@ -85,9 +78,7 @@ export function BodyMetricsDrawer({
       },
       {
         accessorKey: "bmi",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_bmi()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_bmi()}</SortableHeader>,
         cell: ({ getValue }) => (getValue() as number).toFixed(1),
       },
     ],
@@ -112,9 +103,7 @@ export function BodyMetricsDrawer({
         getRowId={(row) => row.id}
         renderExpandedRow={renderExpandedRow}
         emptyState={
-          <div className="py-8 text-center text-muted-foreground text-sm">
-            {m.empty_no_data()}
-          </div>
+          <div className="py-8 text-center text-muted-foreground text-sm">{m.empty_no_data()}</div>
         }
       />
     </HistoryDrawer>

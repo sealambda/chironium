@@ -11,10 +11,14 @@ interface PlanDurationSelectProps {
 }
 
 function parsePlanLabel(plan: SubscriptionPlan): string {
-  if (plan.name) return plan.name;
+  if (plan.name) {
+    return plan.name;
+  }
   if (plan.periodDuration) {
     const match = /^P(\d+)M$/i.exec(plan.periodDuration);
-    if (match) return m.plan_months({ count: Number(match[1]) });
+    if (match) {
+      return m.plan_months({ count: Number(match[1]) });
+    }
   }
   return m.plan_unknown();
 }
@@ -31,18 +35,11 @@ export function PlanDurationSelect({
   className,
 }: PlanDurationSelectProps) {
   if (plans.length === 0) {
-    return (
-      <div className="text-muted-foreground text-sm">{m.plan_loading()}</div>
-    );
+    return <div className="text-muted-foreground text-sm">{m.plan_loading()}</div>;
   }
 
   return (
-    <ToggleGroup
-      value={value}
-      onValueChange={onChange}
-      disabled={disabled}
-      className={className}
-    >
+    <ToggleGroup value={value} onValueChange={onChange} disabled={disabled} className={className}>
       {plans.map((plan) => (
         <ToggleGroupItem key={plan.id} value={plan.id} disabled={disabled}>
           {parsePlanLabel(plan)}

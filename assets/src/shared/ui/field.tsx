@@ -1,9 +1,10 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { AlertCircle } from "lucide-react";
 import { useMemo } from "react";
+
 import { Label } from "@/shared/ui/label";
 import { Separator } from "@/shared/ui/separator";
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
 
 function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -55,19 +56,13 @@ function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="field-content"
-      className={cn(
-        "group/field-content flex flex-1 flex-col gap-1 leading-snug",
-        className,
-      )}
+      className={cn("group/field-content flex flex-1 flex-col gap-1 leading-snug", className)}
       {...props}
     />
   );
 }
 
-function FieldLabel({
-  className,
-  ...props
-}: React.ComponentProps<typeof Label>) {
+function FieldLabel({ className, ...props }: React.ComponentProps<typeof Label>) {
   return (
     <Label
       data-slot="field-label"
@@ -106,7 +101,7 @@ function FieldSeparator({
   return (
     <div
       data-slot="field-separator"
-      data-content={!!children}
+      data-content={Boolean(children)}
       className={cn(
         "relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
         className,
@@ -114,14 +109,14 @@ function FieldSeparator({
       {...props}
     >
       <Separator className="absolute inset-0 top-1/2" />
-      {children && (
+      {children ? (
         <span
           className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
           data-slot="field-separator-content"
         >
           {children}
         </span>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -143,12 +138,10 @@ function FieldError({
       return null;
     }
 
-    const uniqueErrors = [
-      ...new Map(errors.map((error) => [error?.message, error])).values(),
-    ];
+    const uniqueErrors = [...new Map(errors.map((error) => [error?.message, error])).values()];
     const errorMessages = uniqueErrors
       .map((error) => error?.message)
-      .filter((message): message is string => !!message);
+      .filter((message): message is string => Boolean(message));
 
     if (errorMessages.length === 0) {
       return null;
@@ -177,7 +170,7 @@ function FieldError({
       data-slot="field-error"
       className={cn(
         "flex items-start gap-1.5 font-normal text-destructive text-sm",
-        "animate-in fade-in-0 slide-in-from-top-1 duration-200",
+        "fade-in-0 slide-in-from-top-1 animate-in duration-200",
         className,
       )}
       {...props}

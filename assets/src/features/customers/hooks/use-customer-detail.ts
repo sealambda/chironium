@@ -1,4 +1,5 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
+
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
   fetchBodyMetrics,
@@ -26,22 +27,15 @@ export function useCustomerDetail(customerId: string) {
   const enabled = Boolean(customerId && organizationId);
 
   // Query config factory for consistent structure
-  const queryConfig = <T>(
-    key: string,
-    fetchFn: (cId: string, orgId: string) => Promise<T>,
-  ) => ({
+  const queryConfig = <T>(key: string, fetchFn: (cId: string, orgId: string) => Promise<T>) => ({
     queryKey: ["customer", customerId, key, organizationId],
     queryFn: () => fetchFn(customerId, organizationId),
     enabled,
   });
 
-  const subscriptions = useQuery(
-    queryConfig("subscriptionHistory", fetchSubscriptionHistory),
-  );
+  const subscriptions = useQuery(queryConfig("subscriptionHistory", fetchSubscriptionHistory));
   const bodyMetrics = useQuery(queryConfig("bodyMetrics", fetchBodyMetrics));
-  const nutritionPlans = useQuery(
-    queryConfig("nutritionPlans", fetchNutritionPlans),
-  );
+  const nutritionPlans = useQuery(queryConfig("nutritionPlans", fetchNutritionPlans));
   const cycleHistory = useQuery(queryConfig("cycleHistory", fetchCycleHistory));
   const pathologies = useQuery(queryConfig("pathologies", fetchPathologies));
 
@@ -61,8 +55,7 @@ export function useCustomerDetail(customerId: string) {
   const lastCycle = cycleHistory.data?.[0];
 
   // Active pathologies (status = 'active')
-  const activePathologies =
-    pathologies.data?.filter((p) => p.status === "active") ?? [];
+  const activePathologies = pathologies.data?.filter((p) => p.status === "active") ?? [];
 
   // Check if user has cycle tracking enabled (has any cycle records)
   const hasCycleTracking = (cycleHistory.data?.length ?? 0) > 0;

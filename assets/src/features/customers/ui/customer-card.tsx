@@ -1,6 +1,6 @@
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
 
 export interface Customer {
   id: string;
@@ -29,28 +29,16 @@ interface CustomerCardProps {
  * Customer card displaying subscription progress, contact actions, and status.
  * Designed following the reference screenshot with dark theme styling.
  */
-export function CustomerCard({
-  customer,
-  onClick,
-}: Readonly<CustomerCardProps>) {
+export function CustomerCard({ customer, onClick }: Readonly<CustomerCardProps>) {
   const content = (
     <>
       <div className="flex items-center justify-between gap-2">
-        <h3 className="min-w-0 flex-1 truncate font-semibold text-foreground">
-          {customer.name}
-        </h3>
+        <h3 className="min-w-0 flex-1 truncate font-semibold text-foreground">{customer.name}</h3>
 
-        <ContactButtonGroup
-          {...customer.contact}
-          customerName={customer.name}
-          stopPropagation
-        />
+        <ContactButtonGroup {...customer.contact} customerName={customer.name} stopPropagation />
       </div>
 
-      <SubscriptionProgress
-        subscription={customer.subscription}
-        className="mt-4"
-      />
+      <SubscriptionProgress subscription={customer.subscription} className="mt-4" />
     </>
   );
 

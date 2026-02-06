@@ -1,27 +1,278 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
-  // Ignore unknown file types to avoid unnecessary warnings.
+  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
   "files": {
-    "ignoreUnknown": true
+    "ignoreUnknown": true,
+    // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
+    "includes": ["src/**", "js/**", "*.config.*", "codegen.ts", "*.jsonc"]
   },
-  // Enable Git integration for VCS-aware features.
-  // Set root to parent directory for monorepo structure.
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "root": ".."
   },
-  // Use spaces (2) instead of tabs for consistency across editors.
+
+  // Default indentWidth (2), lineEnding ("lf"), quoteStyle ("double"), semicolons ("always"),
+  // trailingCommas ("all"), arrowParentheses ("always") are kept as-is — all industry standard.
   "formatter": {
-    "indentStyle": "space"
+    // https://google.github.io/styleguide/tsguide.html#whitespace-characters
+    "indentStyle": "space",
+
+    // Better for TypeScript generics and JSX; modern TS standard.
+    "lineWidth": 100,
+
+    // Sync with the project .editorconfig for cross-tool consistency. Disabled temporarily since our .editorconfig isn't validated.
+    "useEditorconfig": false
   },
+  "linter": {
+    // ~230 recommended rules are enabled implicitly (recommended: true is the default).
+    // Only non-default rules and severity overrides are listed below.
+    "rules": {
+      "complexity": {
+        // Force decomposition of complex functions (default threshold: 15).
+        // https://www.sonarsource.com/docs/CognitiveComplexity.pdf
+        "noExcessiveCognitiveComplexity": "warn",
+
+        // Ban shorthand coercions (+str, !!val); require explicit String(), Boolean().
+        // https://google.github.io/styleguide/tsguide.html#type-coercion
+        "noImplicitCoercions": "warn",
+
+        // Prefer for...of — supports break/continue/await, better debugging.
+        // https://github.com/airbnb/javascript#iterators--nope
+        "noForEach": "warn"
+      },
+      "correctness": {
+        // Dead code removal.
+        // https://github.com/airbnb/javascript#variables--no-unused-vars
+        "noUnusedImports": "warn",
+        "noUnusedVariables": "warn",
+
+        // https://www.typescriptlang.org/tsconfig/#noUnusedParameters
+        "noUnusedFunctionParameters": "warn"
+      },
+      "performance": {
+        // Barrel files and re-export-all hurt Vite/Rollup tree-shaking.
+        // https://vitejs.dev/guide/performance#reduce-resolve-operations
+        // https://marvinh.dev/blog/speeding-up-javascript-ecosystem-part-7/
+        "noBarrelFile": "warn",
+        "noReExportAll": "warn",
+
+        // delete deoptimizes V8 hidden classes; use destructuring or undefined assignment.
+        // https://v8.dev/blog/fast-properties
+        "noDelete": "warn"
+      },
+      "security": {
+        // Detect hardcoded API keys/tokens. Set to warn because long Tailwind class
+        // strings trigger false positives (high entropy detection).
+        "noSecrets": "warn"
+      },
+      "style": {
+        // Named exports only — better refactoring, IDE support, and tree-shaking.
+        // https://google.github.io/styleguide/tsguide.html#exports
+        // https://basarat.gitbook.io/typescript/main-1/defaultisbad
+        "noDefaultExport": "error",
+
+        // ESM only; never require()/module.exports.
+        // https://google.github.io/styleguide/tsguide.html#imports
+        "noCommonJs": "error",
+
+        // Use ES modules, not TS namespaces.
+        // https://google.github.io/styleguide/tsguide.html#namespaces-vs-modules
+        "noNamespace": "error",
+
+        // Prevent mutation of function parameters.
+        // https://github.com/airbnb/javascript#functions--mutate-params
+        "noParameterAssign": "error",
+
+        // Nested ternaries are unreadable.
+        // https://github.com/airbnb/javascript#comparison--nested-ternaries
+        "noNestedTernary": "warn",
+
+        // .substr() is deprecated; use .slice().
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
+        "noSubstr": "warn",
+
+        // Natural reading order: color === "red", not "red" === color.
+        "noYodaExpression": "warn",
+
+        // Enforce T[] over Array<T> for consistency.
+        // https://google.github.io/styleguide/tsguide.html#array-type
+        "useConsistentArrayType": {
+          "level": "warn",
+          "options": {
+            "syntax": "shorthand"
+          }
+        },
+
+        // Always use {} braces on if/else/for/while.
+        // https://google.github.io/styleguide/tsguide.html#control-flow-statements-blocks
+        "useBlockStatements": "warn",
+
+        // Prefer <> over <React.Fragment>.
+        // https://react.dev/reference/react/Fragment#returning-multiple-elements
+        "useFragmentSyntax": "warn",
+
+        // kebab-case files — prevents case-sensitivity issues across OSes.
+        // https://biomejs.dev/linter/rules/use-filenaming-convention/
+        "useFilenamingConvention": {
+          "level": "warn",
+          "options": {
+            "requireAscii": true,
+            "filenameCases": ["kebab-case"]
+          }
+        },
+
+        // PascalCase types, camelCase/PascalCase functions, camelCase/PascalCase/CONSTANT_CASE variables.
+        // https://google.github.io/styleguide/tsguide.html#naming-style
+        "useNamingConvention": {
+          "level": "warn",
+          "options": {
+            "strictCase": false,
+            "requireAscii": true,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "typeLike"
+                },
+                "formats": ["PascalCase"]
+              },
+              {
+                "selector": {
+                  "kind": "function"
+                },
+                "formats": ["camelCase", "PascalCase"]
+              },
+              {
+                "selector": {
+                  "kind": "variable"
+                },
+                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
+              }
+            ]
+          }
+        },
+
+        // throw new Error(), not throw Error().
+        // https://google.github.io/styleguide/tsguide.html#exceptions
+        "useThrowNewError": "warn",
+
+        // Only throw Error objects, not strings or literals.
+        // https://github.com/airbnb/javascript#exceptions
+        "useThrowOnlyError": "warn"
+      },
+      "suspicious": {
+        // No stray console.log in production; allow warn/error for legitimate logging.
+        "noConsole": {
+          "level": "warn",
+          "options": {
+            "allow": ["warn", "error"]
+          }
+        },
+
+        // No alert()/confirm()/prompt() in production.
+        "noAlert": "error",
+
+        // Catch variables that TS infers as evolving to any.
+        // https://www.typescriptlang.org/tsconfig/#strict
+        "noEvolvingTypes": "error",
+
+        // Require new Error("message") — all errors must be debuggable.
+        // https://mkosir.github.io/typescript-style-guide/#error-handling
+        "useErrorMessage": "error"
+      },
+      "nursery": {
+        // Catch unhandled Promises — the leading cause of silent async failures.
+        // https://typescript-eslint.io/rules/no-floating-promises/
+        "noFloatingPromises": "error",
+
+        // Prevent Promises in wrong places (event handlers, conditionals).
+        // https://typescript-eslint.io/rules/no-misused-promises/
+        "noMisusedPromises": "error",
+
+        // {count && <X/>} renders "0" to the DOM when count is 0.
+        // https://github.com/jsx-eslint/eslint-plugin-react/blob/master/docs/rules/jsx-no-leaked-render.md
+        "noLeakedRender": "error",
+
+        // Variable shadowing causes hard-to-trace bugs.
+        // https://google.github.io/styleguide/tsguide.html#naming-style
+        // https://github.com/airbnb/javascript#variables--no-shadow
+        "noShadow": "warn",
+
+        // Assignment in return is almost always a mistake.
+        // https://github.com/airbnb/javascript#arrow-functions--implicit-return
+        "noReturnAssign": "error",
+
+        // Catch side-effect-free statements (usually a missing call or assignment).
+        // https://github.com/airbnb/javascript#variables--no-unused-expressions
+        "noUnusedExpressions": "warn",
+
+        // .sort() without comparator uses lexicographic order — known JS trap.
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+        "useArraySortCompare": "error",
+
+        // Only await Promises, not plain values.
+        // https://typescript-eslint.io/rules/await-thenable/
+        "useAwaitThenable": "error",
+
+        // Exhaustive switch on union types — catch missing cases at compile time.
+        // https://typescript-eslint.io/rules/switch-exhaustiveness-check/
+        "useExhaustiveSwitchCases": "warn",
+
+        // Preserve error chains when re-throwing: new Error("msg", { cause }).
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+        "useErrorCause": "warn",
+
+        // .find() over .filter()[0] — clearer intent and short-circuits.
+        "useFind": "warn",
+
+        // forwardRef is legacy in React 19; ref is a regular prop.
+        // https://react.dev/blog/2024/12/05/react-19#ref-as-a-prop
+        "noReactForwardRef": "warn",
+
+        // Sort Tailwind utility classes for consistency.
+        // https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
+        "useSortedClasses": "warn"
+      }
+    }
+  },
+
+  // Import ordering: external packages > @/ aliases > relative paths, separated by blank lines.
+  // https://google.github.io/styleguide/tsguide.html#imports
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [":PACKAGE:", ":BLANK_LINE:", ":ALIAS:", ":BLANK_LINE:", ":PATH:"]
+          }
+        }
+      }
+    }
+  },
+
+  // CSS formatter is disabled by Biome default — enable it.
   "css": {
+    "formatter": {
+      "enabled": true
+    },
     "parser": {
       "tailwindDirectives": true
     }
   },
-  // Disable linting/formatting for generated and vendored code.
   "overrides": [
+    // Build tools (Vite, codegen) require default exports.
+    {
+      "includes": ["*.config.{js,ts,mjs,mts}", "codegen.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+
+    // Generated and vendored code — skip entirely.
     {
       "includes": [
         "**/node_modules/**",
@@ -29,13 +280,56 @@
         "**/public/**",
         "**/vendor/**",
         "**/routeTree.gen.ts",
-        "**/src/gql/**"
+        "**/src/gql/**",
+        "**/paraglide/**",
+        "**/paraglide.d.ts",
+        "**/mocks/**"
       ],
       "formatter": {
         "enabled": false
       },
       "linter": {
         "enabled": false
+      }
+    },
+
+    // TanStack Router uses special file-naming conventions (_prefix, $params, dots).
+    {
+      "includes": ["src/routes/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+
+    // react-day-picker API mandates snake_case classNames keys and component
+    // render-prop signatures that shadow outer destructured props.
+    {
+      "includes": ["**/calendar.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": "off"
+          },
+          "nursery": {
+            "noShadow": "off"
+          }
+        }
+      }
+    },
+
+    // Long Tailwind utility class strings trigger high-entropy false positives.
+    {
+      "includes": ["src/shared/ui/**", "src/shared/layout/**"],
+      "linter": {
+        "rules": {
+          "security": {
+            "noSecrets": "off"
+          }
+        }
       }
     }
   ]

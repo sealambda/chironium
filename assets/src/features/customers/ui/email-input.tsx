@@ -1,4 +1,5 @@
 import { type ComponentProps, useCallback } from "react";
+
 import { Input } from "@/shared/ui/input";
 
 /**
@@ -16,8 +17,7 @@ import { Input } from "@/shared/ui/input";
  */
 const INVALID_EMAIL_CHARS = /[^a-zA-Z0-9@._+-]/g;
 
-interface EmailInputProps
-  extends Omit<ComponentProps<"input">, "onChange" | "value"> {
+interface EmailInputProps extends Omit<ComponentProps<"input">, "onChange" | "value"> {
   value: string;
   onChange: (value: string) => void;
 }

@@ -1,5 +1,7 @@
 import { LogOut } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
@@ -16,13 +18,17 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { LanguageToggle } from "@/shared/ui/language-toggle";
-import { cn, getInitials, getInitialsFromEmail } from "@/shared/utils";
+import { getInitials, getInitialsFromEmail } from "@/shared/utils/name-utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
+import { cn } from "@/shared/utils/utils";
+
 import { useDetailMode } from "./detail-context";
 
 /** Get user initials from name or email. */
 function getUserInitials(user: User | null): string {
-  if (!user) return "?";
+  if (!user) {
+    return "?";
+  }
   return user.name ? getInitials(user.name) : getInitialsFromEmail(user.email);
 }
 
@@ -46,41 +52,19 @@ export function TopNav() {
   const { isDetailMode, headerContent } = useDetailMode();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
   const [createOrgError, setCreateOrgError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Cleanup timeout on unmount.
-  useEffect(() => {
-    return () => {
-      if (toastTimeoutRef.current) {
-        globalThis.clearTimeout(toastTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const initials = getUserInitials(user);
-
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    if (toastTimeoutRef.current) {
-      globalThis.clearTimeout(toastTimeoutRef.current);
-    }
-    toastTimeoutRef.current = globalThis.setTimeout(() => {
-      setToastMessage(null);
-      toastTimeoutRef.current = null;
-    }, 3000);
-  };
 
   const handleCreateOrg = async (data: { name: string; slug: string }) => {
     setCreateOrgError(null);
     try {
+      // biome-ignore lint/nursery/useAwaitThenable: createOrg returns Promise.
       const newOrg = await createOrg(data);
+      // biome-ignore lint/nursery/useAwaitThenable: selectOrg returns Promise.
       await selectOrg(newOrg.id);
-      showToast(m.org_created());
+      toast.success(m.org_created());
     } catch (error) {
       console.error("Failed to create organisation:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : m.org_create_error();
+      const errorMessage = error instanceof Error ? error.message : m.org_create_error();
       setCreateOrgError(errorMessage);
       throw error;
     }
@@ -117,9 +101,7 @@ export function TopNav() {
   if (isDetailMode) {
     return (
       <header className={headerClasses}>
-        <div className="flex h-16 items-center px-4 md:px-6 lg:px-8">
-          {headerContent}
-        </div>
+        <div className="flex h-16 items-center px-4 md:px-6 lg:px-8">{headerContent}</div>
       </header>
     );
   }
@@ -169,13 +151,10 @@ export function TopNav() {
                 />
               }
             >
-              <Avatar className="h-10 w-10 border-2 border-primary/20 cursor-pointer">
-                {user.picture && (
-                  <AvatarImage
-                    src={user.picture}
-                    alt={user.name || user.email}
-                  />
-                )}
+              <Avatar className="h-10 w-10 cursor-pointer border-2 border-primary/20">
+                {user.picture ? (
+                  <AvatarImage src={user.picture} alt={user.name || user.email} />
+                ) : null}
                 <AvatarFallback className="bg-primary/10 font-medium text-primary text-sm">
                   {initials}
                 </AvatarFallback>
@@ -183,15 +162,9 @@ export function TopNav() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
-                {user.name && (
-                  <p className="font-semibold text-sm">{user.name}</p>
-                )}
+                {user.name ? <p className="font-semibold text-sm">{user.name}</p> : null}
                 <p
-                  className={
-                    user.name
-                      ? "text-muted-foreground text-xs"
-                      : "font-semibold text-sm"
-                  }
+                  className={user.name ? "text-muted-foreground text-xs" : "font-semibold text-sm"}
                 >
                   {user.email}
                 </p>
@@ -219,11 +192,6 @@ export function TopNav() {
         onSubmit={handleCreateOrg}
         error={createOrgError}
       />
-      {toastMessage && (
-        <div className="pointer-events-none fixed top-20 right-4 z-50 w-[260px] rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-700 text-sm shadow-lg">
-          {toastMessage}
-        </div>
-      )}
     </header>
   );
 }

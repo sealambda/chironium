@@ -23,9 +23,7 @@ function NotFoundComponent() {
     <div className="flex min-h-svh items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <h1 className="font-semibold text-2xl">{m.error_not_found()}</h1>
-        <p className="text-muted-foreground text-sm">
-          {m.error_not_found_desc()}
-        </p>
+        <p className="text-muted-foreground text-sm">{m.error_not_found_desc()}</p>
         <a href="/" className="text-primary text-sm hover:underline">
           {m.go_home()}
         </a>
@@ -38,7 +36,7 @@ function RootComponent() {
   return (
     <>
       <Outlet />
-      {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-left" />}
+      {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-left" /> : null}
     </>
   );
 }

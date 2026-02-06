@@ -1,7 +1,8 @@
 import * as Flags from "country-flag-icons/react/3x2";
+
 import { locales } from "@/paraglide/runtime";
 import { useLocale } from "@/shared/i18n/locale-provider";
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
 
 interface LanguageToggleProps {
   className?: string;
@@ -16,10 +17,7 @@ export function LanguageToggle({ className }: LanguageToggleProps) {
 
   return (
     <fieldset
-      className={cn(
-        "flex w-full items-center rounded-lg bg-muted p-1",
-        className,
-      )}
+      className={cn("flex w-full items-center rounded-lg bg-muted p-1", className)}
       aria-label="Select language"
     >
       {locales.map((locale) => {
@@ -32,7 +30,7 @@ export function LanguageToggle({ className }: LanguageToggleProps) {
             key={locale}
             className={cn(
               "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md px-3 py-1.5",
-              "text-sm font-medium transition-all",
+              "font-medium text-sm transition-all",
               "has-[:focus-visible]:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2",
               isSelected
                 ? "bg-background text-foreground shadow-sm"
@@ -47,10 +45,7 @@ export function LanguageToggle({ className }: LanguageToggleProps) {
               onChange={() => setLocale(locale)}
               className="sr-only"
             />
-            <FlagComponent
-              className="h-4 w-6 overflow-hidden rounded-sm"
-              aria-hidden="true"
-            />
+            <FlagComponent className="h-4 w-6 overflow-hidden rounded-sm" aria-hidden="true" />
             <span>{label}</span>
           </label>
         );

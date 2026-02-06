@@ -1,4 +1,5 @@
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
+
 import { BottomNav } from "./bottom-nav";
 import { DetailProvider, useDetailMode } from "./detail-context";
 import { SideNav } from "./side-nav";
@@ -40,9 +41,7 @@ function AppShellInner({ children }: AppShellProps) {
             // Mobile: padding for fixed bottom nav (only when not in detail mode).
             // Formula: nav height (64px) + breathing room (16px) + safe area.
             // Per M3/HIG: content needs margin from nav bar edge for visual separation.
-            isDetailMode
-              ? "pb-4"
-              : "pb-[calc(64px+16px+env(safe-area-inset-bottom))]",
+            isDetailMode ? "pb-4" : "pb-[calc(64px+16px+env(safe-area-inset-bottom))]",
             // Tablet+: standard bottom padding (no fixed bottom nav).
             "md:pb-8",
             // Horizontal padding following M3 margins: 16px compact, 24px medium, 32px expanded.

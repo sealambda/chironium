@@ -1,4 +1,5 @@
 import { type ComponentProps, useCallback } from "react";
+
 import { Input } from "@/shared/ui/input";
 
 /**
@@ -18,8 +19,7 @@ const INVALID_NAME_CHARS = /[^\p{L}\s'.-]/gu;
  */
 const CONSECUTIVE_SPECIAL_CHARS = /([.''-])[.''-]+/g;
 
-interface NameInputProps
-  extends Omit<ComponentProps<"input">, "onChange" | "value"> {
+interface NameInputProps extends Omit<ComponentProps<"input">, "onChange" | "value"> {
   value: string;
   onChange: (value: string) => void;
 }

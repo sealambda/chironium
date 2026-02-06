@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
+
 import type { NutritionPlanRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
@@ -17,20 +18,13 @@ interface NutritionDrawerProps {
 /**
  * Drawer displaying nutrition plans history with sortable table.
  */
-export function NutritionDrawer({
-  isOpen,
-  onClose,
-  data,
-  onAdd,
-}: Readonly<NutritionDrawerProps>) {
+export function NutritionDrawer({ isOpen, onClose, data, onAdd }: Readonly<NutritionDrawerProps>) {
   const columns: ColumnDef<NutritionPlanRecord, unknown>[] = useMemo(
     () => [
       {
         id: "period",
         accessorKey: "startDate",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_period()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_period()}</SortableHeader>,
         cell: ({ row }) => {
           const locale = getDateLocale();
           const start = format(new Date(row.original.startDate), "MMM d, yy", {
@@ -44,9 +38,7 @@ export function NutritionDrawer({
       },
       {
         accessorKey: "kcal",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_kcal()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_kcal()}</SortableHeader>,
         cell: ({ getValue }) => (getValue() as number).toLocaleString(),
       },
       {

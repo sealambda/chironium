@@ -1,9 +1,10 @@
-import { resolve } from "node:path";
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
+
+import { resolve } from "node:path";
 
 /**
  * Vite plugin for integration with the Phoenix ecosystem.
@@ -24,10 +25,14 @@ function phoenixVitePlugin(opts: { pattern?: RegExp } = {}): Plugin {
   return {
     name: "phoenix-vite",
     handleHotUpdate({ file, modules }) {
-      if (!opts.pattern || !file.match(opts.pattern)) return;
+      if (!opts.pattern || !file.match(opts.pattern)) {
+        return;
+      }
       // Replace current file module with importers, keep the rest.
       return [...modules].flatMap((mod) => {
-        if (mod.file === file) return [...mod.importers];
+        if (mod.file === file) {
+          return [...mod.importers];
+        }
         return [mod];
       });
     },
@@ -39,8 +44,7 @@ function phoenixVitePlugin(opts: { pattern?: RegExp } = {}): Plugin {
 }
 
 const mixEnv = process.env.MIX_ENV ?? "dev";
-const mixBuildPath =
-  process.env.MIX_BUILD_PATH ?? resolve(__dirname, "../_build", mixEnv);
+const mixBuildPath = process.env.MIX_BUILD_PATH ?? resolve(__dirname, "../_build", mixEnv);
 const isDev = mixEnv === "dev";
 
 export default defineConfig({

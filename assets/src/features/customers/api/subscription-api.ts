@@ -21,9 +21,7 @@ export type CreatedContact = {
   }>;
 };
 
-export async function fetchPlans(
-  organizationId: string,
-): Promise<SubscriptionPlan[]> {
+export async function fetchPlans(organizationId: string): Promise<SubscriptionPlan[]> {
   if (!organizationId) {
     return [];
   }
@@ -51,16 +49,10 @@ export async function createContact(
     organizationId,
   });
 
-  return unwrapMutationResult(
-    result.createContactWithContactPoints,
-    "Failed to create contact",
-  );
+  return unwrapMutationResult(result.createContactWithContactPoints, "Failed to create contact");
 }
 
-export async function createSubscription(
-  input: CreateSubscriptionInput,
-  organizationId: string,
-) {
+export async function createSubscription(input: CreateSubscriptionInput, organizationId: string) {
   const result = await requestGraphql<{
     createSubscription: CreateSubscriptionResult;
   }>({
@@ -69,8 +61,5 @@ export async function createSubscription(
     organizationId,
   });
 
-  return unwrapMutationResult(
-    result.createSubscription,
-    "Failed to create subscription",
-  );
+  return unwrapMutationResult(result.createSubscription, "Failed to create subscription");
 }

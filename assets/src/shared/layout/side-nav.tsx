@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
 import { AppName } from "@/shared/ui/app-name";
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
+
 import { navItems } from "./nav-config";
 
 /**

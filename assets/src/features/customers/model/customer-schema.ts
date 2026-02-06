@@ -1,6 +1,9 @@
 import { addMonths } from "date-fns";
 import { z } from "zod";
-import { getInitials, sanitizePhoneDigits } from "@/shared/utils";
+
+import { sanitizePhoneDigits } from "@/shared/utils/contact-utils";
+import { getInitials } from "@/shared/utils/name-utils";
+
 import type { Customer } from "../ui/customer-card";
 
 // ============================================
@@ -16,26 +19,21 @@ import type { Customer } from "../ui/customer-card";
  * - Periods - for "Jr.", "Sr.".
  */
 const NAME_PATTERN = /^[\p{L}\s'.-]*$/u;
-const NAME_PATTERN_ERROR =
-  "Only letters, spaces, hyphens, apostrophes, and periods are allowed";
+const NAME_PATTERN_ERROR = "Only letters, spaces, hyphens, apostrophes, and periods are allowed";
 
 /**
  * Detects any consecutive special characters like "..", ".-", "'-", etc.
  * These are not valid in names (e.g., "Jr......" or "O'-Sullivan")
  */
 const CONSECUTIVE_SPECIAL_PATTERN = /[.'-]{2,}/;
-const CONSECUTIVE_SPECIAL_ERROR =
-  "Consecutive special characters are not allowed";
+const CONSECUTIVE_SPECIAL_ERROR = "Consecutive special characters are not allowed";
 
 export const nameSchema = z
   .string()
   .min(1, "Name is required")
   .max(120, "Name must be 120 characters or less")
   .regex(NAME_PATTERN, NAME_PATTERN_ERROR)
-  .refine(
-    (val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val),
-    CONSECUTIVE_SPECIAL_ERROR,
-  );
+  .refine((val) => !CONSECUTIVE_SPECIAL_PATTERN.test(val), CONSECUTIVE_SPECIAL_ERROR);
 
 export const emailSchema = z
   .email("Please enter a valid email address")
@@ -45,7 +43,9 @@ export const emailSchema = z
 export const phoneSchema = z
   .string()
   .refine((val) => {
-    if (!val) return true;
+    if (!val) {
+      return true;
+    }
     return sanitizePhoneDigits(val).length >= 7;
   }, "Phone number must be at least 7 digits")
   .optional()
@@ -54,7 +54,9 @@ export const phoneSchema = z
 export const instagramSchema = z
   .string()
   .transform((val) => {
-    if (!val) return "";
+    if (!val) {
+      return "";
+    }
     const clean = val
       .toLowerCase()
       .replaceAll(/^@/g, "")
@@ -131,10 +133,7 @@ export function formDataToCustomer(
  * Transform Customer back to form data for editing.
  * Note: planId must be provided separately as Customer doesn't store it.
  */
-export function customerToFormData(
-  customer: Customer,
-  planId: string,
-): CustomerFormData {
+export function customerToFormData(customer: Customer, planId: string): CustomerFormData {
   return {
     name: customer.name,
     contact: {

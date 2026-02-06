@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
+
 import type { SubscriptionPlan } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -14,12 +15,10 @@ import {
   FieldSeparator,
 } from "@/shared/ui/field";
 import { PhoneInput } from "@/shared/ui/phone-input";
-import { parsePlanDurationMonths } from "@/shared/utils";
 import { getDateLocale } from "@/shared/utils/date-locale";
-import {
-  createFieldValidator,
-  mapFieldErrors,
-} from "@/shared/utils/form-utils";
+import { parsePlanDurationMonths } from "@/shared/utils/duration-utils";
+import { createFieldValidator, mapFieldErrors } from "@/shared/utils/form-utils";
+
 import {
   type CustomerFormData,
   customerFormSchema,
@@ -70,7 +69,9 @@ export function CustomerForm({
     onSubmit: async ({ value }) => {
       // Validate full schema on submit.
       const result = customerFormSchema.safeParse(value);
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       onSubmit(value);
     },
   });
@@ -87,14 +88,9 @@ export function CustomerForm({
     >
       {/* Personal Information */}
       <FieldGroup>
-        <h3 className="text-base font-semibold text-foreground">
-          {m.form_personal_info()}
-        </h3>
+        <h3 className="font-semibold text-base text-foreground">{m.form_personal_info()}</h3>
 
-        <form.Field
-          name="name"
-          validators={{ onBlur: createFieldValidator(nameSchema) }}
-        >
+        <form.Field name="name" validators={{ onBlur: createFieldValidator(nameSchema) }}>
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>
@@ -122,14 +118,9 @@ export function CustomerForm({
 
       {/* Contact Information */}
       <FieldGroup>
-        <h3 className="text-base font-semibold text-foreground">
-          {m.form_contact_info()}
-        </h3>
+        <h3 className="font-semibold text-base text-foreground">{m.form_contact_info()}</h3>
 
-        <form.Field
-          name="contact.email"
-          validators={{ onBlur: createFieldValidator(emailSchema) }}
-        >
+        <form.Field name="contact.email" validators={{ onBlur: createFieldValidator(emailSchema) }}>
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>{m.form_email()}</FieldLabel>
@@ -150,10 +141,7 @@ export function CustomerForm({
           )}
         </form.Field>
 
-        <form.Field
-          name="contact.phone"
-          validators={{ onBlur: createFieldValidator(phoneSchema) }}
-        >
+        <form.Field name="contact.phone" validators={{ onBlur: createFieldValidator(phoneSchema) }}>
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>{m.form_phone()}</FieldLabel>
@@ -199,9 +187,7 @@ export function CustomerForm({
 
       {/* Subscription */}
       <FieldGroup>
-        <h3 className="text-base font-semibold text-foreground">
-          {m.form_subscription()}
-        </h3>
+        <h3 className="font-semibold text-base text-foreground">{m.form_subscription()}</h3>
 
         <form.Field
           name="subscription.startDate"
@@ -210,8 +196,7 @@ export function CustomerForm({
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel>
-                {m.form_start_date()}{" "}
-                <span className="text-destructive">*</span>
+                {m.form_start_date()} <span className="text-destructive">*</span>
               </FieldLabel>
               <FieldContent>
                 <DatePickerField
@@ -231,8 +216,7 @@ export function CustomerForm({
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel>
-                {m.form_plan_duration()}{" "}
-                <span className="text-destructive">*</span>
+                {m.form_plan_duration()} <span className="text-destructive">*</span>
               </FieldLabel>
               <FieldContent>
                 <PlanDurationSelect
@@ -251,14 +235,16 @@ export function CustomerForm({
         <form.Subscribe selector={(state) => state.values.subscription}>
           {(subscription) => {
             const { startDate, planId } = subscription;
-            if (!startDate || !planId) return null;
+            if (!startDate || !planId) {
+              return null;
+            }
 
             const selectedPlan = plans.find((p) => p.id === planId);
-            if (!selectedPlan) return null;
+            if (!selectedPlan) {
+              return null;
+            }
 
-            const planDurationMonths = parsePlanDurationMonths(
-              selectedPlan.periodDuration,
-            );
+            const planDurationMonths = parsePlanDurationMonths(selectedPlan.periodDuration);
             const endDate = new Date(startDate);
             endDate.setMonth(endDate.getMonth() + planDurationMonths);
 
@@ -281,26 +267,20 @@ export function CustomerForm({
       {!hideFooter && (
         <div className="sticky bottom-0 flex flex-col gap-3 border-t bg-background pt-4 pb-safe sm:flex-row sm:justify-end sm:gap-3">
           {/* Cancel button - secondary action, less prominent */}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancel}
-            className="order-2 sm:order-1"
-          >
+          <Button type="button" variant="ghost" onClick={onCancel} className="order-2 sm:order-1">
             {m.common_cancel()}
           </Button>
 
           {/* Create button - primary action */}
-          <form.Subscribe
-            selector={(state) => [state.canSubmit, state.isSubmitting]}
-          >
+          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
             {([canSubmit, isSubmitting]) => (
               <Button
                 type="submit"
                 disabled={!canSubmit || isSubmitting}
                 className="order-1 sm:order-2"
               >
-                {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+                {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                {/* biome-ignore lint/nursery/noLeakedRender: ternary with safe string values. */}
                 {isSubmitting ? m.common_saving() : submitLabel}
               </Button>
             )}

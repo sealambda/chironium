@@ -1,5 +1,7 @@
 import { useShallow } from "zustand/react/shallow";
+
 import type { User } from "@/gql/graphql";
+
 import { useUserStore } from "../store/user-store";
 
 export interface CurrentUserState {

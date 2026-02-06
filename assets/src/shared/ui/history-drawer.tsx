@@ -3,14 +3,8 @@ import type * as React from "react";
 
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/shared/ui/drawer";
-import { cn } from "@/shared/utils";
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@/shared/ui/drawer";
+import { cn } from "@/shared/utils/utils";
 
 export interface HistoryDrawerProps {
   /** Title displayed in the drawer header */
@@ -50,18 +44,16 @@ export function HistoryDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange} direction="bottom">
-      <DrawerContent
-        className={cn("flex max-h-[85vh] w-full flex-col", className)}
-      >
+      <DrawerContent className={cn("flex max-h-[85vh] w-full flex-col", className)}>
         {/* Fixed header */}
         <DrawerHeader className="flex flex-row items-center justify-between border-b">
           <DrawerTitle>{title}</DrawerTitle>
           <div className="flex items-center gap-2">
-            {onAdd && (
+            {onAdd ? (
               <Button size="sm" onClick={onAdd}>
                 {addButtonLabel ?? m.common_add()}
               </Button>
-            )}
+            ) : null}
             <DrawerClose asChild>
               <Button variant="ghost" size="icon" className="size-8">
                 <XIcon className="size-4" />
