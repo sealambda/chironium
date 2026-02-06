@@ -3,8 +3,9 @@
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import * as React from "react";
 import { type DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
+
 import { Button, buttonVariants } from "@/shared/ui/button";
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
 
 function Calendar({
   className,
@@ -154,7 +155,9 @@ function CalendarDayButton({
 
   const ref = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
-    if (modifiers.focused) ref.current?.focus();
+    if (modifiers.focused) {
+      ref.current?.focus();
+    }
   }, [modifiers.focused]);
 
   return (

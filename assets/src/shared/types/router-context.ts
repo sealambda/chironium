@@ -16,5 +16,5 @@
  * });
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type RouterContext = {};
+
+export type RouterContext = Record<string, never>;

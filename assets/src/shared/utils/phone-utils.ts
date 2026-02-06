@@ -37,11 +37,7 @@ const CALLING_CODE_TO_COUNTRY: Record<string, CountryCode> = (() => {
 /**
  * Validation status for real-time phone input feedback.
  */
-export type PhoneValidationStatus =
-  | "valid"
-  | "invalid"
-  | "incomplete"
-  | "empty";
+export type PhoneValidationStatus = "valid" | "invalid" | "incomplete" | "empty";
 
 /**
  * Result of phone number analysis during input.
@@ -68,12 +64,16 @@ export interface PhoneAnalysis {
  * Uses libphonenumber-js AsYouType for proper country code detection.
  */
 export function formatPhoneDisplay(phone: string): string {
-  if (!phone) return "";
+  if (!phone) {
+    return "";
+  }
 
   const hasPlus = phone.startsWith("+");
   const digits = phone.replace(/\D/g, "");
 
-  if (!digits) return hasPlus ? "+" : "";
+  if (!digits) {
+    return hasPlus ? "+" : "";
+  }
 
   // Use AsYouType for progressive formatting with proper country code detection.
   const formatter = new AsYouType();
@@ -118,7 +118,9 @@ function detectCountryFromCallingCode(
   digits: string,
   formatterCountry: CountryCode | undefined,
 ): CountryCode | undefined {
-  if (formatterCountry) return formatterCountry;
+  if (formatterCountry) {
+    return formatterCountry;
+  }
   // Try to match calling codes (1-3 digits after the +).
   for (let len = Math.min(3, digits.length); len >= 1; len--) {
     const potentialCode = digits.slice(0, len);
@@ -196,10 +198,7 @@ export function analyzePhoneNumber(input: string): PhoneAnalysis {
     digits,
     formatter.getCountry() || phoneNumber?.country,
   );
-  const { status, canAddMoreDigits } = getValidationState(
-    normalized,
-    !!country,
-  );
+  const { status, canAddMoreDigits } = getValidationState(normalized, Boolean(country));
 
   return {
     country,
@@ -218,7 +217,9 @@ export function analyzePhoneNumber(input: string): PhoneAnalysis {
  */
 export function truncateToValidLength(input: string): string {
   const digits = input.replace(/\D/g, "");
-  if (!digits) return input.startsWith("+") ? "+" : "";
+  if (!digits) {
+    return input.startsWith("+") ? "+" : "";
+  }
 
   const normalized = `+${digits}`;
   const analysis = analyzePhoneNumber(normalized);
@@ -233,10 +234,7 @@ export function truncateToValidLength(input: string): string {
     const candidate = `+${digits.slice(0, len)}`;
     const candidateAnalysis = analyzePhoneNumber(candidate);
 
-    if (
-      candidateAnalysis.status !== "invalid" ||
-      candidateAnalysis.canAddMoreDigits
-    ) {
+    if (candidateAnalysis.status !== "invalid" || candidateAnalysis.canAddMoreDigits) {
       return candidate;
     }
   }

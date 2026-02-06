@@ -12,11 +12,7 @@ import {
   useState,
 } from "react";
 
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/shared/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import {
   analyzePhoneNumber,
   formatPhoneDisplay,
@@ -61,10 +57,7 @@ export interface PhoneInputProps
    * Optional callback for validation status changes.
    * Useful for showing real-time validation feedback.
    */
-  onValidationChange?: (
-    status: PhoneValidationStatus,
-    analysis: PhoneAnalysis,
-  ) => void;
+  onValidationChange?: (status: PhoneValidationStatus, analysis: PhoneAnalysis) => void;
 
   /**
    * Whether the input is in an invalid state (from form validation).
@@ -76,10 +69,10 @@ export interface PhoneInputProps
  * Get the flag component for a country code.
  * Returns undefined if no flag is available.
  */
-function getFlag(
-  countryCode: CountryCode | undefined,
-): FC<SVGProps<SVGSVGElement>> | undefined {
-  if (!countryCode) return undefined;
+function getFlag(countryCode: CountryCode | undefined): FC<SVGProps<SVGSVGElement>> | undefined {
+  if (!countryCode) {
+    return undefined;
+  }
   return (Flags as Record<string, FC<SVGProps<SVGSVGElement>>>)[countryCode];
 }
 
@@ -111,14 +104,12 @@ export function PhoneInput({
   ...props
 }: PhoneInputProps) {
   // Display value in INTERNATIONAL format.
-  const [displayValue, setDisplayValue] = useState(() =>
-    formatPhoneDisplay(value),
-  );
+  const [displayValue, setDisplayValue] = useState(() => formatPhoneDisplay(value));
 
   // Track detected country for flag display.
-  const [detectedCountry, setDetectedCountry] = useState<
-    CountryCode | undefined
-  >(() => analyzePhoneNumber(value).country);
+  const [detectedCountry, setDetectedCountry] = useState<CountryCode | undefined>(
+    () => analyzePhoneNumber(value).country,
+  );
 
   // Track previous value for comparison.
   const previousValueRef = useRef(value);
@@ -137,10 +128,7 @@ export function PhoneInput({
       const raw = e.target.value;
 
       // Sanitize and check digit limits (truncates if too long for country).
-      const { value: sanitized } = sanitizePhoneInput(
-        raw,
-        previousValueRef.current,
-      );
+      const { value: sanitized } = sanitizePhoneInput(raw, previousValueRef.current);
 
       // Analyze for validation and formatting.
       const analysis = analyzePhoneNumber(sanitized);
@@ -172,10 +160,7 @@ export function PhoneInput({
   const defaultPlaceholder = placeholder ?? "+34 600 000 000";
 
   // Get the flag component for the detected country.
-  const FlagComponent = useMemo(
-    () => getFlag(detectedCountry),
-    [detectedCountry],
-  );
+  const FlagComponent = useMemo(() => getFlag(detectedCountry), [detectedCountry]);
 
   return (
     <InputGroup data-disabled={disabled}>
@@ -186,10 +171,7 @@ export function PhoneInput({
             aria-label={`Flag of ${detectedCountry}`}
           />
         ) : (
-          <Globe
-            className="size-5 text-muted-foreground/50"
-            aria-label="No country detected"
-          />
+          <Globe className="size-5 text-muted-foreground/50" aria-label="No country detected" />
         )}
       </InputGroupAddon>
       <InputGroupInput

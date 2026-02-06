@@ -172,8 +172,5 @@ declare module "@/paraglide/runtime" {
   export type Locale = (typeof locales)[number];
 
   export function getLocale(): Locale;
-  export function setLocale(
-    locale: Locale,
-    options?: { reload?: boolean },
-  ): void;
+  export function setLocale(locale: Locale, options?: { reload?: boolean }): void;
 }

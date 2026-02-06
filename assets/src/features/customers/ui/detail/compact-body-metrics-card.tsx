@@ -1,9 +1,11 @@
 import { Activity, Ruler } from "lucide-react";
+
 import type { BodyMetricsRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { LineChartSkeleton } from "@/shared/ui/chart-skeleton";
-import { heightMetersToCm } from "@/shared/utils";
+import { heightMetersToCm } from "@/shared/utils/measurement-utils";
+
 import { StatCard, StatCardSkeleton } from "./stat-card";
 
 interface CompactBodyMetricsCardProps {
@@ -40,11 +42,11 @@ export function CompactBodyMetricsCard({
   const heightCm = heightMetersToCm(metrics.heightM);
   const subtitle = (
     <div className="flex items-center gap-1">
-      <Badge className="h-4 px-1.5 text-[10px] bg-blue-100 text-blue-700 border-blue-200">
+      <Badge className="h-4 border-blue-200 bg-blue-100 px-1.5 text-[10px] text-blue-700">
         <Ruler className="size-2.5" />
         {heightCm}cm
       </Badge>
-      <Badge className="h-4 px-1.5 text-[10px] bg-blue-100 text-blue-700 border-blue-200">
+      <Badge className="h-4 border-blue-200 bg-blue-100 px-1.5 text-[10px] text-blue-700">
         <Activity className="size-2.5" />
         BMI {metrics.bmi.toFixed(1)}
       </Badge>

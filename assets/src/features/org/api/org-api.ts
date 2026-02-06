@@ -53,8 +53,5 @@ export async function createOrganization(data: {
     variables: { input: { name: data.name, slug: data.slug } },
   });
 
-  return unwrapMutationResult(
-    result.createOrganization,
-    "Failed to create organization",
-  );
+  return unwrapMutationResult(result.createOrganization, "Failed to create organization");
 }

@@ -1,4 +1,5 @@
 import { graphql } from "msw";
+
 import { API_PATHS } from "@/shared/utils/url-utils";
 
 // GraphQL link for the endpoint

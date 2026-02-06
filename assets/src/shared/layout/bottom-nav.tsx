@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
+
 import { navItems } from "./nav-config";
 
 /**
@@ -57,9 +58,7 @@ export function BottomNav() {
                 aria-label={`${item.label()} (disabled)`}
               >
                 <Icon className="h-6 w-6 text-muted-foreground" />
-                <span className="font-medium text-muted-foreground text-xs">
-                  {item.label()}
-                </span>
+                <span className="font-medium text-muted-foreground text-xs">{item.label()}</span>
               </button>
             );
           }
@@ -80,16 +79,10 @@ export function BottomNav() {
               aria-current={isActive ? "page" : undefined}
             >
               <Icon
-                className={cn(
-                  "h-6 w-6 transition-transform duration-200",
-                  isActive && "scale-110",
-                )}
+                className={cn("h-6 w-6 transition-transform duration-200", isActive && "scale-110")}
               />
               <span
-                className={cn(
-                  "font-medium text-xs transition-all",
-                  isActive && "font-semibold",
-                )}
+                className={cn("font-medium text-xs transition-all", isActive && "font-semibold")}
               >
                 {item.label()}
               </span>

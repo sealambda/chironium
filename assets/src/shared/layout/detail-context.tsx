@@ -39,9 +39,7 @@ interface DetailProviderProps {
 export function DetailProvider({ children }: Readonly<DetailProviderProps>) {
   const [isDetailMode, setIsDetailMode] = useState(false);
   const [headerContent, setHeaderContent] = useState<ReactNode | null>(null);
-  const [trailingActions, setTrailingActions] = useState<ReactNode | null>(
-    null,
-  );
+  const [trailingActions, setTrailingActions] = useState<ReactNode | null>(null);
 
   const enterDetailMode = useCallback(() => {
     setIsDetailMode(true);
@@ -62,18 +60,10 @@ export function DetailProvider({ children }: Readonly<DetailProviderProps>) {
       trailingActions,
       setTrailingActions,
     }),
-    [
-      isDetailMode,
-      enterDetailMode,
-      exitDetailMode,
-      headerContent,
-      trailingActions,
-    ],
+    [isDetailMode, enterDetailMode, exitDetailMode, headerContent, trailingActions],
   );
 
-  return (
-    <DetailContext.Provider value={value}>{children}</DetailContext.Provider>
-  );
+  return <DetailContext.Provider value={value}>{children}</DetailContext.Provider>;
 }
 
 /**
@@ -96,10 +86,7 @@ export function useDetailMode() {
  * @param contentKey - Key to identify when content should update.
  *                     When the key changes, header content will be updated.
  */
-export function useDetailModeEffect(
-  headerContent: ReactNode,
-  contentKey: string,
-) {
+export function useDetailModeEffect(headerContent: ReactNode, contentKey: string) {
   const { enterDetailMode, exitDetailMode, setHeaderContent } = useDetailMode();
 
   // Enter detail mode on mount, exit on unmount
@@ -114,7 +101,7 @@ export function useDetailModeEffect(
   // We intentionally exclude headerContent from deps to avoid infinite loops
   // caused by JSX elements creating new references on each render.
   // The contentKey serves as a stable identifier for when content should update.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: contentKey is intentionally used as the trigger instead of headerContent to avoid infinite loops from JSX reference changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: contentKey is intentionally used as the trigger instead of headerContent to avoid infinite loops from JSX reference changes.
   useEffect(() => {
     setHeaderContent(headerContent);
   }, [contentKey, setHeaderContent]);
@@ -130,7 +117,7 @@ export function useDetailModeEffect(
 export function useNavTrailingActions(actions: ReactNode, actionsKey: string) {
   const { setTrailingActions } = useDetailMode();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: actionsKey is intentionally used as the trigger instead of actions to avoid infinite loops from JSX reference changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: actionsKey is intentionally used as the trigger instead of actions to avoid infinite loops from JSX reference changes.
   useEffect(() => {
     setTrailingActions(actions);
     return () => {

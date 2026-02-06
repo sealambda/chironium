@@ -1,16 +1,12 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+
 import { useOrg } from "@/features/org/hooks/use-org";
 import type { ContactPointType } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/shared/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/shared/ui/sheet";
+
 import { useCreateCustomer } from "../hooks/use-create-customer";
 import { usePlans } from "../hooks/use-plans";
 import type { CustomerFormData } from "../model/customer-schema";
@@ -33,10 +29,13 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (data: CustomerFormData) => {
-    if (!selectedOrg) return;
+    if (!selectedOrg) {
+      return;
+    }
 
     setError(null);
     try {
+      // biome-ignore lint/nursery/useAwaitThenable: mutateAsync returns Promise.
       await createCustomerMutation.mutateAsync({
         contact: {
           name: data.name,
@@ -49,8 +48,7 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
       });
       onOpenChange(false);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to create customer";
+      const message = err instanceof Error ? err.message : "Failed to create customer";
       setError(message);
     }
   };
@@ -61,10 +59,7 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="flex w-full flex-col p-0 sm:max-w-md"
-      >
+      <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
         {/* Fixed header */}
         <SheetHeader className="px-4 pt-4">
           <SheetTitle>{m.create_customer_title()}</SheetTitle>
@@ -73,11 +68,11 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
 
         {/* Scrollable content area */}
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-          {error && (
+          {error ? (
             <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-destructive text-sm">
               {error}
             </div>
-          )}
+          ) : null}
           <CustomerForm
             key="new"
             id="customer-form"
@@ -106,12 +101,10 @@ export function CustomerSheet({ open, onOpenChange }: CustomerSheetProps) {
               disabled={createCustomerMutation.isPending || plansLoading}
               className="order-1 sm:order-2"
             >
-              {createCustomerMutation.isPending && (
+              {createCustomerMutation.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
-              )}
-              {createCustomerMutation.isPending
-                ? m.common_creating()
-                : m.create_customer_submit()}
+              ) : null}
+              {createCustomerMutation.isPending ? m.common_creating() : m.create_customer_submit()}
             </Button>
           </div>
         </div>

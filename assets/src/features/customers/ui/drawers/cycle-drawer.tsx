@@ -1,6 +1,7 @@
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
+
 import { getSymptomById } from "@/mocks/data/catalogs";
 import type { CycleRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
@@ -15,9 +16,7 @@ interface SymptomsListProps {
 
 function SymptomsList({ symptoms }: Readonly<SymptomsListProps>) {
   if (symptoms.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">{m.empty_no_symptoms()}</p>
-    );
+    return <p className="text-muted-foreground text-sm">{m.empty_no_symptoms()}</p>;
   }
 
   return (
@@ -44,19 +43,12 @@ interface CycleDrawerProps {
 /**
  * Drawer displaying cycle history with expandable rows for symptoms.
  */
-export function CycleDrawer({
-  isOpen,
-  onClose,
-  data,
-  onAdd,
-}: Readonly<CycleDrawerProps>) {
+export function CycleDrawer({ isOpen, onClose, data, onAdd }: Readonly<CycleDrawerProps>) {
   const columns: ColumnDef<CycleRecord, unknown>[] = useMemo(
     () => [
       {
         accessorKey: "startDate",
-        header: ({ column }) => (
-          <SortableHeader column={column}>{m.table_start()}</SortableHeader>
-        ),
+        header: ({ column }) => <SortableHeader column={column}>{m.table_start()}</SortableHeader>,
         cell: ({ getValue }) =>
           format(new Date(getValue() as string), "MMM d, yyyy", {
             locale: getDateLocale(),

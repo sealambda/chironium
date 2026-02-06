@@ -1,8 +1,10 @@
 import { Beef, Droplet, Wheat } from "lucide-react";
+
 import type { NutritionPlanRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { CircularChartSkeleton } from "@/shared/ui/chart-skeleton";
+
 import { StatCard, StatCardSkeleton } from "./stat-card";
 
 interface CompactNutritionCardProps {
@@ -14,26 +16,18 @@ interface CompactNutritionCardProps {
 /**
  * Macro badges for protein, carbs, and fat.
  */
-function MacroBadges({
-  protein,
-  carbs,
-  fat,
-}: {
-  protein: number;
-  carbs: number;
-  fat: number;
-}) {
+function MacroBadges({ protein, carbs, fat }: { protein: number; carbs: number; fat: number }) {
   return (
     <div className="flex items-center gap-1">
-      <Badge className="h-4 px-1.5 text-[10px] bg-red-100 text-red-700 border-red-200">
+      <Badge className="h-4 border-red-200 bg-red-100 px-1.5 text-[10px] text-red-700">
         <Beef className="size-2.5" />
         {protein}g
       </Badge>
-      <Badge className="h-4 px-1.5 text-[10px] bg-amber-100 text-amber-700 border-amber-200">
+      <Badge className="h-4 border-amber-200 bg-amber-100 px-1.5 text-[10px] text-amber-700">
         <Wheat className="size-2.5" />
         {carbs}g
       </Badge>
-      <Badge className="h-4 px-1.5 text-[10px] bg-yellow-100 text-yellow-700 border-yellow-200">
+      <Badge className="h-4 border-yellow-200 bg-yellow-100 px-1.5 text-[10px] text-yellow-700">
         <Droplet className="size-2.5" />
         {fat}g
       </Badge>
@@ -72,9 +66,7 @@ export function CompactNutritionCard({
       label={m.stat_daily_target()}
       value={plan.kcal.toLocaleString()}
       unit="kcal"
-      subtitle={
-        <MacroBadges protein={plan.protein} carbs={plan.carbs} fat={plan.fat} />
-      }
+      subtitle={<MacroBadges protein={plan.protein} carbs={plan.carbs} fat={plan.fat} />}
       chartPlaceholder={<CircularChartSkeleton />}
       onClick={onClick}
     />

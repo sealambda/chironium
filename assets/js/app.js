@@ -26,6 +26,7 @@ function getCsrfToken() {
 const csrfToken = getCsrfToken();
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
+  // biome-ignore lint/style/useNamingConvention: Phoenix LiveView convention.
   params: { _csrf_token: csrfToken },
   hooks: { ...colocatedHooks },
 });

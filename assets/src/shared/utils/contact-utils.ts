@@ -20,7 +20,9 @@ export function normalizeInstagramHandle(handle: string): string {
  * Format Instagram handle with @ prefix for display.
  */
 export function formatInstagramDisplay(handle: string): string {
-  if (!handle) return "";
+  if (!handle) {
+    return "";
+  }
   return handle.startsWith("@") ? handle : `@${handle}`;
 }
 
@@ -58,15 +60,12 @@ interface ContactPoint {
 /**
  * Extract all contact values (email, phone, instagram) from contact points.
  */
-export function extractContactInfo(
-  contactPoints: ContactPoint[] | undefined | null,
-): {
+export function extractContactInfo(contactPoints: ContactPoint[] | undefined | null): {
   email?: string;
   phone?: string;
   instagram?: string;
 } {
-  const find = (type: string) =>
-    contactPoints?.find((p) => p.type === type)?.value ?? undefined;
+  const find = (type: string) => contactPoints?.find((p) => p.type === type)?.value ?? undefined;
   return {
     email: find("EMAIL"),
     phone: find("PHONE"),

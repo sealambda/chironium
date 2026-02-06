@@ -1,7 +1,9 @@
 import { differenceInDays } from "date-fns";
+
 import type { CycleRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
 import { LineChartSkeleton } from "@/shared/ui/chart-skeleton";
+
 import { StatCard, StatCardSkeleton } from "./stat-card";
 
 /**
@@ -13,9 +15,15 @@ import { StatCard, StatCardSkeleton } from "./stat-card";
  * - Luteal: Days 17-28
  */
 function getCyclePhase(dayOfCycle: number): string {
-  if (dayOfCycle <= 5) return m.cycle_menstruation();
-  if (dayOfCycle <= 13) return m.cycle_follicular();
-  if (dayOfCycle <= 16) return m.cycle_ovulation();
+  if (dayOfCycle <= 5) {
+    return m.cycle_menstruation();
+  }
+  if (dayOfCycle <= 13) {
+    return m.cycle_follicular();
+  }
+  if (dayOfCycle <= 16) {
+    return m.cycle_ovulation();
+  }
   return m.cycle_luteal();
 }
 
@@ -29,11 +37,7 @@ interface CompactCycleCardProps {
  * Compact cycle card showing current day of cycle and phase.
  * Includes a line chart placeholder for cycle history.
  */
-export function CompactCycleCard({
-  cycle,
-  onClick,
-  isLoading,
-}: Readonly<CompactCycleCardProps>) {
+export function CompactCycleCard({ cycle, onClick, isLoading }: Readonly<CompactCycleCardProps>) {
   if (isLoading) {
     return <StatCardSkeleton cardBgColor="bg-pink-50/50" />;
   }
@@ -62,10 +66,7 @@ export function CompactCycleCard({
     phase = getCyclePhase(dayOfCycle);
   }
 
-  const value =
-    dayOfCycle !== null
-      ? `${m.stat_day()} ${dayOfCycle}`
-      : `${cycle.cycleLength}d`;
+  const value = dayOfCycle !== null ? `${m.stat_day()} ${dayOfCycle}` : `${cycle.cycleLength}d`;
   const subtitle =
     phase ??
     (cycle.symptoms.length > 0

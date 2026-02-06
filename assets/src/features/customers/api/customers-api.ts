@@ -1,11 +1,11 @@
 import { addMonths } from "date-fns";
+
 import { type Subscription, SubscriptionListQuery } from "@/mocks/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
-import {
-  extractContactInfo,
-  getInitials,
-  parsePlanDurationMonths,
-} from "@/shared/utils";
+import { extractContactInfo } from "@/shared/utils/contact-utils";
+import { parsePlanDurationMonths } from "@/shared/utils/duration-utils";
+import { getInitials } from "@/shared/utils/name-utils";
+
 import type { Customer } from "../ui/customer-card";
 
 function mapSubscriptionState(state?: string | null): Customer["status"] {
@@ -45,9 +45,7 @@ function toCustomer(item: Subscription): Customer {
 /**
  * Fetch and transform customer list for a given organisation.
  */
-export async function fetchCustomerList(
-  organizationId: string,
-): Promise<Customer[]> {
+export async function fetchCustomerList(organizationId: string): Promise<Customer[]> {
   if (!organizationId) {
     return [];
   }

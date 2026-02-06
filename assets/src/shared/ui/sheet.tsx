@@ -2,7 +2,7 @@ import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 
-import { cn } from "@/shared/utils/index";
+import { cn } from "@/shared/utils/utils";
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -25,7 +25,7 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
     <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
       className={cn(
-        "data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[closed]:animation-duration-[300ms] data-[open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        "data-[closed]:fade-out-0 data-[closed]:animation-duration-[300ms] data-[open]:fade-in-0 fixed inset-0 z-50 bg-black/50 data-[closed]:animate-out data-[open]:animate-in",
         className,
       )}
       {...props}
@@ -47,7 +47,7 @@ function SheetContent({
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         className={cn(
-          "bg-background data-[open]:animate-in data-[closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[closed]:duration-300 data-[open]:duration-500 overflow-hidden",
+          "fixed z-50 flex flex-col gap-4 overflow-hidden bg-background shadow-lg transition ease-in-out data-[closed]:animate-out data-[open]:animate-in data-[closed]:duration-300 data-[open]:duration-500",
           side === "right" &&
             "data-[closed]:slide-out-to-right data-[open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm sm:rounded-l-2xl",
           side === "left" &&
@@ -61,7 +61,7 @@ function SheetContent({
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
+        <SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[open]:bg-secondary">
           <XIcon className="size-4" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
@@ -94,19 +94,13 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn(
-        "text-foreground text-xl font-bold tracking-tight",
-        className,
-      )}
+      className={cn("font-bold text-foreground text-xl tracking-tight", className)}
       {...props}
     />
   );
 }
 
-function SheetDescription({
-  className,
-  ...props
-}: SheetPrimitive.Description.Props) {
+function SheetDescription({ className, ...props }: SheetPrimitive.Description.Props) {
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"

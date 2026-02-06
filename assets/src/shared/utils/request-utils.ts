@@ -19,6 +19,7 @@ function getCsrfToken(): string | null {
  */
 export function buildHeaders(): HeadersInit {
   const headers: HeadersInit = {
+    // biome-ignore lint/style/useNamingConvention: HTTP header name.
     Accept: "application/json",
     "Content-Type": "application/json",
   };

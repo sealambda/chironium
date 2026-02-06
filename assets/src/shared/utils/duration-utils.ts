@@ -5,10 +5,10 @@
  * - Text format: "3 months", "6mo"
  * @returns Number of months, defaults to 3 if unparseable
  */
-export function parsePlanDurationMonths(
-  periodDuration?: string | null,
-): number {
-  if (!periodDuration) return 3;
+export function parsePlanDurationMonths(periodDuration?: string | null): number {
+  if (!periodDuration) {
+    return 3;
+  }
   const normalized = periodDuration.trim().toLowerCase();
 
   // ISO 8601 format: P3M, P6M, etc.

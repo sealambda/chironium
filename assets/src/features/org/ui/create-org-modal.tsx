@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import * as m from "@/paraglide/messages";
 import {
   AlertDialog,
@@ -24,12 +25,7 @@ interface CreateOrgModalProps {
  * Modal for creating a new organisation.
  * Handles form state and slug auto-generation.
  */
-export function CreateOrgModal({
-  open,
-  onOpenChange,
-  onSubmit,
-  error,
-}: CreateOrgModalProps) {
+export function CreateOrgModal({ open, onOpenChange, onSubmit, error }: CreateOrgModalProps) {
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -93,11 +89,11 @@ export function CreateOrgModal({
               disabled={isCreating}
             />
           </div>
-          {error && (
+          {error ? (
             <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
               {error}
             </div>
-          )}
+          ) : null}
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleCancel} disabled={isCreating}>

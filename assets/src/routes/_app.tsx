@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Suspense } from "react";
+
 import { OrgStoreSync } from "@/features/org/store/org-store-sync";
 import { AppShell } from "@/shared/layout/app-shell";
 import { AuthLoading } from "@/shared/ui/auth-loading";

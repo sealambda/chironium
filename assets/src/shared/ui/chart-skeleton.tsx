@@ -1,4 +1,4 @@
-import { cn } from "@/shared/utils";
+import { cn } from "@/shared/utils/utils";
 
 interface ChartSkeletonProps {
   className?: string;
@@ -11,12 +11,7 @@ interface ChartSkeletonProps {
  */
 export function LineChartSkeleton({ className }: Readonly<ChartSkeletonProps>) {
   return (
-    <div
-      className={cn(
-        "relative h-24 w-full overflow-hidden rounded-lg",
-        className,
-      )}
-    >
+    <div className={cn("relative h-24 w-full overflow-hidden rounded-lg", className)}>
       {/* Background */}
       <div className="absolute inset-0 bg-muted/20" />
 
@@ -47,23 +42,11 @@ export function LineChartSkeleton({ className }: Readonly<ChartSkeletonProps>) {
  * Displays a ring shape to indicate where a pie/donut chart will be.
  * Standard height: 96px (h-24) for square cards.
  */
-export function CircularChartSkeleton({
-  className,
-}: Readonly<ChartSkeletonProps>) {
+export function CircularChartSkeleton({ className }: Readonly<ChartSkeletonProps>) {
   return (
-    <div
-      className={cn(
-        "relative flex items-center justify-center",
-        "h-24 w-24",
-        className,
-      )}
-    >
+    <div className={cn("relative flex items-center justify-center", "h-24 w-24", className)}>
       {/* Ring using SVG */}
-      <svg
-        aria-hidden="true"
-        className="h-full w-full animate-pulse"
-        viewBox="0 0 36 36"
-      >
+      <svg aria-hidden="true" className="h-full w-full animate-pulse" viewBox="0 0 36 36">
         {/* Background ring */}
         <circle
           cx="18"
@@ -122,17 +105,9 @@ export function BarChartSkeleton({ className }: Readonly<ChartSkeletonProps>) {
  * Skeleton placeholder for a progress ring with percentage.
  * Larger version suitable for featured cards.
  */
-export function ProgressRingSkeleton({
-  className,
-}: Readonly<ChartSkeletonProps>) {
+export function ProgressRingSkeleton({ className }: Readonly<ChartSkeletonProps>) {
   return (
-    <div
-      className={cn(
-        "relative flex items-center justify-center",
-        "h-24 w-24",
-        className,
-      )}
-    >
+    <div className={cn("relative flex items-center justify-center", "h-24 w-24", className)}>
       {/* Ring using SVG */}
       <svg aria-hidden="true" className="h-full w-full" viewBox="0 0 36 36">
         {/* Background ring */}

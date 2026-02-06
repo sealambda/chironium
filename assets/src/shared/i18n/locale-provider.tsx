@@ -1,15 +1,6 @@
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useState,
-} from "react";
-import {
-  getLocale,
-  type Locale,
-  setLocale as setParaglideLocale,
-} from "@/paraglide/runtime";
+import { createContext, type ReactNode, useCallback, useContext, useState } from "react";
+
+import { getLocale, type Locale, setLocale as setParaglideLocale } from "@/paraglide/runtime";
 
 interface LocaleContextValue {
   locale: Locale;
