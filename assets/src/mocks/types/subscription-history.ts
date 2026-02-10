@@ -1,6 +1,6 @@
 // TEMPORARY: Remove when backend implements subscription history
 
-export type SubscriptionStatus = "active" | "expired" | "cancelled";
+export type SubscriptionStatus = "active" | "paused" | "expired" | "cancelled";
 
 export interface SubscriptionHistoryRecord {
   id: string;

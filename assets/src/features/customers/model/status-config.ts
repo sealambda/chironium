@@ -11,13 +11,14 @@ interface StatusConfig {
 
 export const subscriptionStatusConfig: Record<string, StatusConfig> = {
   active: { label: "Active", variant: "default" },
+  paused: { label: "Paused", variant: "outline" },
   expired: { label: "Expired", variant: "secondary" },
   cancelled: { label: "Cancelled", variant: "destructive" },
 };
 
 export const pathologyStatusConfig: Record<string, StatusConfig> = {
   active: { variant: "destructive" },
-  managed: { variant: "outline" },
+  chronic: { variant: "outline" },
   resolved: { variant: "secondary" },
 };
 

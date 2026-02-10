@@ -1,29 +1,23 @@
 // TEMPORARY: Remove when backend implements pathologies
 
-export type PathologyStatus = "active" | "managed" | "resolved";
-
-export type PathologyCategory =
-  | "cardiovascular"
-  | "metabolic"
-  | "musculoskeletal"
-  | "respiratory"
-  | "digestive"
-  | "hormonal"
-  | "other";
+export type PathologyStatus = "active" | "chronic" | "resolved";
 
 export interface PathologyRecord {
   id: string;
   customerId: string;
   pathologyId: string; // from PathologyCatalog
   pathologyName: string; // from PathologyCatalog
-  category: PathologyCategory;
   status: PathologyStatus;
-  diagnosedDate: string; // ISO date
+  diagnosedDate?: string; // ISO date — undefined if unknown
+  resolvedDate?: string; // ISO date — undefined if unknown or ongoing
+  diagnosedDateUnknown?: boolean;
+  resolvedDateUnknown?: boolean;
   notes?: string;
 }
 
-export interface Pathology {
+export interface PathologyCatalogEntry {
   id: string;
   name: string;
-  category: PathologyCategory;
+  isChronic: boolean;
+  genderScope: "BOTH" | "FEMALE_ONLY" | "MALE_ONLY";
 }

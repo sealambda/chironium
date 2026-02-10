@@ -95,6 +95,7 @@ const PathologiesListQuery = gql`
         category
         status
         diagnosedDate
+        resolvedDate
         notes
       }
     }

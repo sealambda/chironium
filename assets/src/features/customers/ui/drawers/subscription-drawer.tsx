@@ -1,15 +1,9 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { useMemo } from "react";
-
 import type { SubscriptionHistoryRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
-import { Badge } from "@/shared/ui/badge";
-import { DataTable, SortableHeader } from "@/shared/ui/data-table";
+import { DataTable } from "@/shared/ui/data-table";
 import { HistoryDrawer } from "@/shared/ui/history-drawer";
-import { getDateLocale } from "@/shared/utils/date-locale";
 
-import { subscriptionStatusConfig } from "../../model/status-config";
+import { useSubscriptionColumns } from "../../hooks/use-detail-columns";
 
 interface SubscriptionDrawerProps {
   isOpen: boolean;
@@ -27,44 +21,7 @@ export function SubscriptionDrawer({
   data,
   onAdd,
 }: Readonly<SubscriptionDrawerProps>) {
-  const columns: ColumnDef<SubscriptionHistoryRecord, unknown>[] = useMemo(
-    () => [
-      {
-        accessorKey: "startDate",
-        header: ({ column }) => <SortableHeader column={column}>{m.table_start()}</SortableHeader>,
-        cell: ({ getValue }) =>
-          format(new Date(getValue() as string), "MMM d, yyyy", {
-            locale: getDateLocale(),
-          }),
-      },
-      {
-        accessorKey: "endDate",
-        header: ({ column }) => <SortableHeader column={column}>{m.table_end()}</SortableHeader>,
-        cell: ({ getValue }) =>
-          format(new Date(getValue() as string), "MMM d, yyyy", {
-            locale: getDateLocale(),
-          }),
-      },
-      {
-        accessorKey: "planDurationMonths",
-        header: m.table_duration,
-        cell: ({ getValue }) => `${getValue()}mo`,
-      },
-      {
-        accessorKey: "status",
-        header: m.table_status,
-        cell: ({ getValue }) => {
-          const status = getValue() as keyof typeof subscriptionStatusConfig;
-          return (
-            <Badge variant={subscriptionStatusConfig[status]?.variant} className="capitalize">
-              {status}
-            </Badge>
-          );
-        },
-      },
-    ],
-    [],
-  );
+  const columns = useSubscriptionColumns();
 
   return (
     <HistoryDrawer
