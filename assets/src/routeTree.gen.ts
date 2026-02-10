@@ -10,10 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as IndexRouteImport } from './routes/index'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
