@@ -52,3 +52,5 @@ node_modules/
 
 .elixir_ls/
 .DS_Store
+
+package-lock.json
