@@ -1,8 +1,6 @@
 import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
-import * as Flags from "country-flag-icons/react/3x2";
-import type { CountryCode } from "libphonenumber-js";
 import { Globe, Mail } from "lucide-react";
-import { type FC, type SVGProps, useMemo } from "react";
+import { useMemo } from "react";
 
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import {
@@ -11,31 +9,24 @@ import {
   getInstagramUrl,
   getWhatsAppUrl,
 } from "@/shared/utils/contact-utils";
-import { analyzePhoneNumber, formatPhoneDisplay } from "@/shared/utils/phone-utils";
+import { analyzePhoneNumber, formatPhoneDisplay, getCountryFlag } from "@/shared/utils/phone-utils";
 
 import type { Customer } from "../customer-card";
-
-function getFlag(countryCode: CountryCode | undefined): FC<SVGProps<SVGSVGElement>> | undefined {
-  if (!countryCode) {
-    return undefined;
-  }
-  return (Flags as Record<string, FC<SVGProps<SVGSVGElement>>>)[countryCode];
-}
 
 interface CustomerProfileCardProps {
   customer: Customer;
 }
 
-/**
- * Desktop left-sidebar profile card.
- * Displays avatar, name, and contact buttons with icon + value.
- */
+/** Desktop profile card — horizontal contact buttons variant. */
 export function CustomerProfileCard({ customer }: Readonly<CustomerProfileCardProps>) {
   const { email, phone, instagram } = customer.contact;
 
   const phoneAnalysis = useMemo(() => (phone ? analyzePhoneNumber(phone) : null), [phone]);
   const formattedPhone = phone ? formatPhoneDisplay(phone) : null;
-  const FlagComponent = useMemo(() => getFlag(phoneAnalysis?.country), [phoneAnalysis?.country]);
+  const FlagComponent = useMemo(
+    () => getCountryFlag(phoneAnalysis?.country),
+    [phoneAnalysis?.country],
+  );
   const instagramHandle = instagram ? formatInstagramDisplay(instagram) : null;
 
   return (
