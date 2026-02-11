@@ -1,0 +1,10 @@
+docker run -d \
+  -p 4000:4000 \
+  -e GOOGLE_CLIENT_ID=987217901935-c5thrqpmsm7p87j0igtm7602g9gs4605.apps.googleusercontent.com \
+  -e GOOGLE_CLIENT_SECRET=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 \
+  -e SECRET_KEY_BASE=RkcGGH6y93DRseVSB0K1+Y/obXrKmaXIuylNnfcnaHToUt50YLFNIB+EZPFhWVVf \
+  -e TOKEN_SIGNING_SECRET=20557bda9f0b4fbc25b6ba19b6eded7e7e054a061f78def88e885303e9c4e82f \
+  -e PHX_HOST=ivans-macbook-air.tail195923.ts.net \
+  -e VITE_ENABLE_MSW='true' \
+  -e PHX_SERVER='true' \
+  sha256:c696c3e9aac06e43516c292c173d932e7e404c71bf69111dc4c26271998cf6b1
