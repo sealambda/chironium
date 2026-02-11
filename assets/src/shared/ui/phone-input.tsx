@@ -1,21 +1,12 @@
-import * as Flags from "country-flag-icons/react/3x2";
 import type { CountryCode } from "libphonenumber-js";
 import { Globe } from "lucide-react";
-import {
-  type ComponentProps,
-  type FC,
-  type SVGProps,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import {
   analyzePhoneNumber,
   formatPhoneDisplay,
+  getCountryFlag,
   type PhoneAnalysis,
   type PhoneValidationStatus,
   sanitizePhoneInput,
@@ -30,15 +21,9 @@ export interface PhoneInputProps
    */
   value: string;
 
-  /**
-   * Called when the phone value changes.
-   * Receives the value in E.164 format (digits only with + prefix).
-   */
+  /** Receives the value in E.164 format. */
   onChange: (value: string) => void;
 
-  /**
-   * Called on blur event.
-   */
   onBlur?: () => void;
 
   /**
@@ -59,32 +44,11 @@ export interface PhoneInputProps
    */
   onValidationChange?: (status: PhoneValidationStatus, analysis: PhoneAnalysis) => void;
 
-  /**
-   * Whether the input is in an invalid state (from form validation).
-   */
   "aria-invalid"?: boolean;
 }
 
 /**
- * Get the flag component for a country code.
- * Returns undefined if no flag is available.
- */
-function getFlag(countryCode: CountryCode | undefined): FC<SVGProps<SVGSVGElement>> | undefined {
-  if (!countryCode) {
-    return undefined;
-  }
-  return (Flags as Record<string, FC<SVGProps<SVGSVGElement>>>)[countryCode];
-}
-
-/**
- * International phone input with real-time validation and formatting.
- *
- * Features:
- * - Shows country flag when country is detected
- * - Auto-formats in INTERNATIONAL format as you type
- * - Detects country from prefix and limits digits accordingly
- * - Stores value in E.164 format
- * - Provides real-time validation feedback
+ * International phone input with country detection, flag display, and E.164 storage.
  *
  * @example
  * <PhoneInput
@@ -103,15 +67,10 @@ export function PhoneInput({
   disabled,
   ...props
 }: PhoneInputProps) {
-  // Display value in INTERNATIONAL format.
   const [displayValue, setDisplayValue] = useState(() => formatPhoneDisplay(value));
-
-  // Track detected country for flag display.
   const [detectedCountry, setDetectedCountry] = useState<CountryCode | undefined>(
     () => analyzePhoneNumber(value).country,
   );
-
-  // Track previous value for comparison.
   const previousValueRef = useRef(value);
 
   // Sync display when external value changes.
@@ -126,25 +85,16 @@ export function PhoneInput({
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value;
-
-      // Sanitize and check digit limits (truncates if too long for country).
       const { value: sanitized } = sanitizePhoneInput(raw, previousValueRef.current);
-
-      // Analyze for validation and formatting.
       const analysis = analyzePhoneNumber(sanitized);
 
-      // Update display with INTERNATIONAL format.
       setDisplayValue(analysis.formatted);
-
-      // Update detected country for flag.
       setDetectedCountry(analysis.country);
 
-      // Store E.164 format.
       const e164Value = toE164(sanitized);
       previousValueRef.current = e164Value;
       onChange(e164Value);
 
-      // Notify validation status.
       onValidationChange?.(analysis.status, analysis);
     },
     [onChange, onValidationChange],
@@ -156,11 +106,8 @@ export function PhoneInput({
     onBlur?.();
   }, [value, onBlur]);
 
-  // Generate placeholder based on default country.
   const defaultPlaceholder = placeholder ?? "+34 600 000 000";
-
-  // Get the flag component for the detected country.
-  const FlagComponent = useMemo(() => getFlag(detectedCountry), [detectedCountry]);
+  const FlagComponent = useMemo(() => getCountryFlag(detectedCountry), [detectedCountry]);
 
   return (
     <InputGroup data-disabled={disabled}>
