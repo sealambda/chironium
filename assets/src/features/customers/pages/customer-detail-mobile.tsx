@@ -13,7 +13,7 @@ import { CycleDrawer } from "../ui/drawers/cycle-drawer";
 import { NutritionDrawer } from "../ui/drawers/nutrition-drawer";
 import { PathologiesDrawer } from "../ui/drawers/pathologies-drawer";
 import { SubscriptionDrawer } from "../ui/drawers/subscription-drawer";
-import type { EntryType } from "./types";
+import type { EditingRecord, EntryType } from "./types";
 
 type DrawerType = EntryType | null;
 
@@ -21,14 +21,22 @@ interface CustomerDetailMobileProps {
   customer: Customer;
   detail: ReturnType<typeof useCustomerDetail>;
   onOpenSheet: (type: EntryType) => void;
+  onEditRecord: (editing: EditingRecord) => void;
 }
 
 export function CustomerDetailMobile({
   customer,
   detail,
   onOpenSheet,
+  onEditRecord,
 }: Readonly<CustomerDetailMobileProps>) {
   const [activeDrawer, setActiveDrawer] = useState<DrawerType>(null);
+
+  const handleEditFromDrawer = (editing: EditingRecord) => {
+    // TODO: the drawer overlaps the sheet when opened. We need a better solution.
+    setActiveDrawer(null);
+    onEditRecord(editing);
+  };
 
   const {
     currentSubscription,
@@ -91,24 +99,28 @@ export function CustomerDetailMobile({
         onClose={() => setActiveDrawer(null)}
         data={bodyMetrics.data ?? []}
         onAdd={() => onOpenSheet("bodyMetrics")}
+        onRowClick={(record) => handleEditFromDrawer({ type: "bodyMetrics", record })}
       />
       <NutritionDrawer
         isOpen={activeDrawer === "nutrition"}
         onClose={() => setActiveDrawer(null)}
         data={nutritionPlans.data ?? []}
         onAdd={() => onOpenSheet("nutrition")}
+        onRowClick={(record) => handleEditFromDrawer({ type: "nutrition", record })}
       />
       <CycleDrawer
         isOpen={activeDrawer === "cycle"}
         onClose={() => setActiveDrawer(null)}
         data={cycleHistory.data ?? []}
         onAdd={() => onOpenSheet("cycle")}
+        onRowClick={(record) => handleEditFromDrawer({ type: "cycle", record })}
       />
       <PathologiesDrawer
         isOpen={activeDrawer === "pathologies"}
         onClose={() => setActiveDrawer(null)}
         data={pathologies.data ?? []}
         onAdd={() => onOpenSheet("pathologies")}
+        onRowClick={(record) => handleEditFromDrawer({ type: "pathologies", record })}
       />
     </div>
   );

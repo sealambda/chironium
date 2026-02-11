@@ -13,6 +13,7 @@ interface BodyMetricsDrawerProps {
   onClose: () => void;
   data: BodyMetricsRecord[];
   onAdd?: () => void;
+  onRowClick?: (record: BodyMetricsRecord) => void;
 }
 
 /**
@@ -23,6 +24,7 @@ export function BodyMetricsDrawer({
   onClose,
   data,
   onAdd,
+  onRowClick,
 }: Readonly<BodyMetricsDrawerProps>) {
   const columns = useBodyMetricsColumns();
 
@@ -39,6 +41,7 @@ export function BodyMetricsDrawer({
         data={data}
         getRowId={(row) => row.id}
         renderExpandedRow={renderBodyMetricsExpandedRow}
+        onRowClick={onRowClick}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">{m.empty_no_data()}</div>
         }

@@ -26,12 +26,13 @@ import { DatePickerField } from "../date-picker-field";
 interface PathologyFormProps {
   id: string;
   onSubmit: (data: PathologyFormData) => void;
+  initialValues?: PathologyFormData;
 }
 
-export function PathologyForm({ id, onSubmit }: Readonly<PathologyFormProps>) {
+export function PathologyForm({ id, onSubmit, initialValues }: Readonly<PathologyFormProps>) {
   const [showResolution, setShowResolution] = useState(false);
   const form = useForm({
-    defaultValues: defaultPathologyValues,
+    defaultValues: initialValues ?? defaultPathologyValues,
     onSubmit: async ({ value }) => {
       const result = pathologyFormSchema.safeParse(value);
       if (!result.success) {

@@ -65,6 +65,44 @@ export function useCreateBodyMetrics(customerId: string) {
   });
 }
 
+export function useUpdateBodyMetrics(customerId: string) {
+  const { selectedOrg } = useOrg();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: BodyMetricsFormData }) => {
+      const index = db.bodyMetrics.findIndex((r) => r.id === id);
+      if (index === -1) {
+        throw new Error(`Body metrics record "${id}" not found.`);
+      }
+
+      const updated: BodyMetricsRecord = {
+        ...db.bodyMetrics[index],
+        date: formatIso(data.date),
+        weight: data.weight,
+        heightM: data.heightCm / 100,
+        bmi: data.weight / (data.heightCm / 100) ** 2,
+        measurements: {
+          chest: data.chest,
+          waist: data.waist,
+          hip: data.hip,
+          biceps: data.biceps,
+          quadriceps: data.quadriceps,
+        },
+      };
+
+      db.bodyMetrics[index] = updated;
+      return updated;
+    },
+    onSuccess: () => {
+      toast.success(m.toast_record_updated());
+      queryClient.invalidateQueries({
+        queryKey: ["customer", customerId, "bodyMetrics", selectedOrg?.id],
+      });
+    },
+  });
+}
+
 export function useCreateNutritionPlan(customerId: string) {
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
@@ -86,6 +124,38 @@ export function useCreateNutritionPlan(customerId: string) {
     },
     onSuccess: () => {
       toast.success(m.toast_record_created());
+      queryClient.invalidateQueries({
+        queryKey: ["customer", customerId, "nutritionPlans", selectedOrg?.id],
+      });
+    },
+  });
+}
+
+export function useUpdateNutritionPlan(customerId: string) {
+  const { selectedOrg } = useOrg();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: NutritionPlanFormData }) => {
+      const index = db.nutritionPlans.findIndex((r) => r.id === id);
+      if (index === -1) {
+        throw new Error(`Nutrition plan "${id}" not found.`);
+      }
+      // Replace at index so the array proxy triggers localStorage persistence.
+      const updated: NutritionPlanRecord = {
+        ...db.nutritionPlans[index],
+        startDate: formatIso(data.startDate),
+        endDate: data.endDate ? formatIso(data.endDate) : undefined,
+        kcal: data.kcal,
+        protein: data.protein,
+        carbs: data.carbs,
+        fat: data.fat,
+      };
+      db.nutritionPlans[index] = updated;
+      return updated;
+    },
+    onSuccess: () => {
+      toast.success(m.toast_record_updated());
       queryClient.invalidateQueries({
         queryKey: ["customer", customerId, "nutritionPlans", selectedOrg?.id],
       });
@@ -150,6 +220,44 @@ export function useCreatePathology(customerId: string) {
     },
     onSuccess: () => {
       toast.success(m.toast_record_created());
+      queryClient.invalidateQueries({
+        queryKey: ["customer", customerId, "pathologies", selectedOrg?.id],
+      });
+    },
+  });
+}
+
+export function useUpdatePathology(customerId: string) {
+  const { selectedOrg } = useOrg();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: PathologyFormData }) => {
+      const index = db.pathologies.findIndex((r) => r.id === id);
+      if (index === -1) {
+        throw new Error(`Pathology record "${id}" not found.`);
+      }
+      const isResolved = Boolean(data.resolvedDate || data.resolvedDateUnknown);
+      let status: PathologyRecord["status"] = "active";
+      if (isResolved) status = "resolved";
+      else if (data.isChronic) status = "chronic";
+
+      const updated: PathologyRecord = {
+        ...db.pathologies[index],
+        pathologyId: data.pathologyId,
+        pathologyName: data.pathologyName,
+        status,
+        diagnosedDate: data.diagnosedDate ? formatIso(data.diagnosedDate) : undefined,
+        resolvedDate: data.resolvedDate ? formatIso(data.resolvedDate) : undefined,
+        diagnosedDateUnknown: data.diagnosedDateUnknown || undefined,
+        resolvedDateUnknown: data.resolvedDateUnknown || undefined,
+        notes: data.notes || undefined,
+      };
+      db.pathologies[index] = updated;
+      return updated;
+    },
+    onSuccess: () => {
+      toast.success(m.toast_record_updated());
       queryClient.invalidateQueries({
         queryKey: ["customer", customerId, "pathologies", selectedOrg?.id],
       });
@@ -222,6 +330,35 @@ export function useCreateCycle(customerId: string) {
     },
     onSuccess: () => {
       toast.success(m.toast_record_created());
+      queryClient.invalidateQueries({
+        queryKey: ["customer", customerId, "cycleHistory", selectedOrg?.id],
+      });
+    },
+  });
+}
+
+export function useUpdateCycle(customerId: string) {
+  const { selectedOrg } = useOrg();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: CycleFormData }) => {
+      const index = db.cycleHistory.findIndex((r) => r.id === id);
+      if (index === -1) {
+        throw new Error(`Cycle record "${id}" not found.`);
+      }
+      const updated: CycleRecord = {
+        ...db.cycleHistory[index],
+        startDate: formatIso(data.startDate),
+        endDate: data.endDate ? formatIso(data.endDate) : undefined,
+        cycleLength: data.cycleLength,
+        symptoms: data.symptoms,
+      };
+      db.cycleHistory[index] = updated;
+      return updated;
+    },
+    onSuccess: () => {
+      toast.success(m.toast_record_updated());
       queryClient.invalidateQueries({
         queryKey: ["customer", customerId, "cycleHistory", selectedOrg?.id],
       });

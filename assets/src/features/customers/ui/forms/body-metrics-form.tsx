@@ -31,12 +31,13 @@ const measurementLabels: Record<string, () => string> = {
 interface BodyMetricsFormProps {
   id: string;
   onSubmit: (data: BodyMetricsFormData) => void;
+  initialValues?: BodyMetricsFormData;
 }
 
-export function BodyMetricsForm({ id, onSubmit }: Readonly<BodyMetricsFormProps>) {
+export function BodyMetricsForm({ id, onSubmit, initialValues }: Readonly<BodyMetricsFormProps>) {
   const [showMeasurements, setShowMeasurements] = useState(false);
   const form = useForm({
-    defaultValues: defaultBodyMetricsValues,
+    defaultValues: initialValues ?? defaultBodyMetricsValues,
     onSubmit: async ({ value }) => {
       const result = bodyMetricsSchema.safeParse(value);
       if (!result.success) {

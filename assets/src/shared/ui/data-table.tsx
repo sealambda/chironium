@@ -48,6 +48,8 @@ export interface DataTableProps<TData> {
   emptyState?: React.ReactNode;
   /** Optional: Get row ID for stable keys */
   getRowId?: (originalRow: TData, index: number) => string;
+  /** Optional: Callback when a row is clicked (receives the row's original data) */
+  onRowClick?: (data: TData) => void;
 }
 
 interface SortableHeaderProps<TData, TValue> {
@@ -111,6 +113,7 @@ function DataTable<TData>({
   onExpandedChange,
   emptyState,
   getRowId,
+  onRowClick,
 }: DataTableProps<TData>) {
   // Internal state fallback for uncontrolled mode
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
@@ -182,14 +185,21 @@ function DataTable<TData>({
           ) : (
             table.getRowModel().rows.map((row) => (
               <React.Fragment key={row.id}>
-                <TableRow data-state={row.getIsExpanded() ? "expanded" : undefined}>
+                <TableRow
+                  data-state={row.getIsExpanded() ? "expanded" : undefined}
+                  className={onRowClick ? "cursor-pointer" : undefined}
+                  onClick={() => onRowClick?.(row.original)}
+                >
                   {isExpandable && (
                     <TableCell className="w-10 p-0 pl-2">
                       <Button
                         variant="ghost"
                         size="sm"
                         className="size-8 p-0"
-                        onClick={() => row.toggleExpanded()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          row.toggleExpanded();
+                        }}
                         aria-label={
                           row.getIsExpanded() ? m.data_table_collapse() : m.data_table_expand()
                         }
