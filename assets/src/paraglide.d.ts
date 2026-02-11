@@ -163,6 +163,99 @@ declare module "@/paraglide/messages" {
   export function data_table_collapse(): LocalizedString;
   export function data_table_expand(): LocalizedString;
 
+  // Table (resolved)
+  export function table_resolved(): LocalizedString;
+
+  // Sections
+  export function section_subscription(): LocalizedString;
+  export function section_subscription_history(params: { count: number }): LocalizedString;
+  export function section_subscription_hide(): LocalizedString;
+  export function section_body_metrics(): LocalizedString;
+  export function section_nutrition(): LocalizedString;
+  export function section_pathologies(): LocalizedString;
+  export function section_cycle(): LocalizedString;
+
+  // Sheets
+  export function sheet_add_body_metrics_title(): LocalizedString;
+  export function sheet_add_body_metrics_desc(): LocalizedString;
+  export function sheet_edit_body_metrics_title(): LocalizedString;
+  export function sheet_edit_body_metrics_desc(): LocalizedString;
+  export function sheet_add_nutrition_title(): LocalizedString;
+  export function sheet_add_nutrition_desc(): LocalizedString;
+  export function sheet_edit_nutrition_title(): LocalizedString;
+  export function sheet_edit_nutrition_desc(): LocalizedString;
+  export function sheet_add_subscription_title(): LocalizedString;
+  export function sheet_add_subscription_desc(): LocalizedString;
+  export function sheet_add_pathology_title(): LocalizedString;
+  export function sheet_add_pathology_desc(): LocalizedString;
+  export function sheet_edit_pathology_title(): LocalizedString;
+  export function sheet_edit_pathology_desc(): LocalizedString;
+  export function sheet_add_cycle_title(): LocalizedString;
+  export function sheet_add_cycle_desc(): LocalizedString;
+  export function sheet_edit_cycle_title(): LocalizedString;
+  export function sheet_edit_cycle_desc(): LocalizedString;
+
+  // Detail form fields
+  export function form_weight(): LocalizedString;
+  export function form_weight_placeholder(): LocalizedString;
+  export function form_height(): LocalizedString;
+  export function form_height_placeholder(): LocalizedString;
+  export function form_date(): LocalizedString;
+  export function form_measurements(): LocalizedString;
+  export function form_chest(): LocalizedString;
+  export function form_waist(): LocalizedString;
+  export function form_hip(): LocalizedString;
+  export function form_biceps(): LocalizedString;
+  export function form_quadriceps(): LocalizedString;
+  export function form_kcal(): LocalizedString;
+  export function form_kcal_placeholder(): LocalizedString;
+  export function form_protein(): LocalizedString;
+  export function form_protein_placeholder(): LocalizedString;
+  export function form_carbs(): LocalizedString;
+  export function form_carbs_placeholder(): LocalizedString;
+  export function form_fat(): LocalizedString;
+  export function form_fat_placeholder(): LocalizedString;
+  export function form_macro_pct(params: { pct: string }): LocalizedString;
+  export function form_select_pathology(): LocalizedString;
+  export function form_search_pathology(): LocalizedString;
+  export function form_no_results(): LocalizedString;
+  export function form_diagnosed_date(): LocalizedString;
+  export function form_resolved_date(): LocalizedString;
+  export function form_unknown_date(): LocalizedString;
+  export function form_resolution(): LocalizedString;
+  export function form_notes(): LocalizedString;
+  export function form_notes_placeholder(): LocalizedString;
+  export function form_cycle_length(): LocalizedString;
+  export function form_cycle_length_placeholder(): LocalizedString;
+  export function form_symptoms(): LocalizedString;
+  export function form_submit(): LocalizedString;
+
+  // Statuses
+  export function status_active(): LocalizedString;
+  export function status_chronic(): LocalizedString;
+  export function status_resolved(): LocalizedString;
+
+  // Toast messages
+  export function toast_record_created(): LocalizedString;
+  export function toast_record_updated(): LocalizedString;
+  export function toast_subscription_paused(): LocalizedString;
+  export function toast_subscription_resumed(): LocalizedString;
+  export function toast_subscription_cancelled(): LocalizedString;
+
+  // Subscription actions
+  export function sub_pause(): LocalizedString;
+  export function sub_resume(): LocalizedString;
+  export function sub_cancel(): LocalizedString;
+  export function sub_no_active(): LocalizedString;
+
+  // Validation
+  export function validation_required(): LocalizedString;
+  export function validation_positive(): LocalizedString;
+  export function validation_min_date(): LocalizedString;
+
+  // Unknown
+  export function common_unknown(): LocalizedString;
+
   export * as m from "@/paraglide/messages";
 }
 

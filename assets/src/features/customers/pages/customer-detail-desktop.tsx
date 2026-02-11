@@ -20,7 +20,7 @@ import type { Customer } from "../ui/customer-card";
 import { CustomerProfileCard } from "../ui/detail/customer-profile-card";
 import { DesktopSubscriptionCard } from "../ui/detail/desktop-subscription-card";
 import { DetailSection } from "../ui/detail/detail-section";
-import type { EntryType } from "./types";
+import type { EditingRecord, EntryType } from "./types";
 
 interface CustomerDetailDesktopProps {
   customer: Customer;
@@ -30,6 +30,7 @@ interface CustomerDetailDesktopProps {
   pathologyColumns: ColumnDef<PathologyRecord, unknown>[];
   cycleColumns: ColumnDef<CycleRecord, unknown>[];
   onOpenSheet: (type: EntryType) => void;
+  onEditRecord: (editing: EditingRecord) => void;
   onPauseSubscription: () => void;
   onCancelSubscription: () => void;
   isPauseToggling: boolean;
@@ -44,6 +45,7 @@ export function CustomerDetailDesktop({
   pathologyColumns,
   cycleColumns,
   onOpenSheet,
+  onEditRecord,
   onPauseSubscription,
   onCancelSubscription,
   isPauseToggling,
@@ -91,6 +93,7 @@ export function CustomerDetailDesktop({
             data={bodyMetrics.data ?? []}
             getRowId={(row) => row.id}
             renderExpandedRow={renderBodyMetricsExpandedRow}
+            onRowClick={(record) => onEditRecord({ type: "bodyMetrics", record })}
             emptyState={emptyState}
           />
         </DetailSection>
@@ -108,6 +111,7 @@ export function CustomerDetailDesktop({
             columns={nutritionColumns}
             data={nutritionPlans.data ?? []}
             getRowId={(row) => row.id}
+            onRowClick={(record) => onEditRecord({ type: "nutrition", record })}
             emptyState={emptyState}
           />
         </DetailSection>
@@ -127,6 +131,7 @@ export function CustomerDetailDesktop({
             columns={pathologyColumns}
             data={pathologies.data ?? []}
             getRowId={(row) => row.id}
+            onRowClick={(record) => onEditRecord({ type: "pathologies", record })}
             emptyState={emptyState}
           />
         </DetailSection>
@@ -146,6 +151,7 @@ export function CustomerDetailDesktop({
               data={cycleHistory.data ?? []}
               getRowId={(row) => row.id}
               renderExpandedRow={renderCycleExpandedRow}
+              onRowClick={(record) => onEditRecord({ type: "cycle", record })}
               emptyState={emptyState}
             />
           </DetailSection>

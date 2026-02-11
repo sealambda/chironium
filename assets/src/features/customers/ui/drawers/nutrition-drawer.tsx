@@ -10,12 +10,19 @@ interface NutritionDrawerProps {
   onClose: () => void;
   data: NutritionPlanRecord[];
   onAdd?: () => void;
+  onRowClick?: (record: NutritionPlanRecord) => void;
 }
 
 /**
  * Drawer displaying nutrition plans history with sortable table.
  */
-export function NutritionDrawer({ isOpen, onClose, data, onAdd }: Readonly<NutritionDrawerProps>) {
+export function NutritionDrawer({
+  isOpen,
+  onClose,
+  data,
+  onAdd,
+  onRowClick,
+}: Readonly<NutritionDrawerProps>) {
   const columns = useNutritionColumns();
 
   return (
@@ -30,6 +37,7 @@ export function NutritionDrawer({ isOpen, onClose, data, onAdd }: Readonly<Nutri
         columns={columns}
         data={data}
         getRowId={(row) => row.id}
+        onRowClick={onRowClick}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">
             {m.empty_no_history()}

@@ -21,11 +21,12 @@ const positiveInt = z.number().int().positive("validation_positive");
 interface CycleFormProps {
   id: string;
   onSubmit: (data: CycleFormData) => void;
+  initialValues?: CycleFormData;
 }
 
-export function CycleForm({ id, onSubmit }: Readonly<CycleFormProps>) {
+export function CycleForm({ id, onSubmit, initialValues }: Readonly<CycleFormProps>) {
   const form = useForm({
-    defaultValues: defaultCycleValues,
+    defaultValues: initialValues ?? defaultCycleValues,
     onSubmit: async ({ value }) => {
       const result = cycleFormSchema.safeParse(value);
       if (!result.success) {

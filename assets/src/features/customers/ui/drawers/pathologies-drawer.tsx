@@ -10,6 +10,7 @@ interface PathologiesDrawerProps {
   onClose: () => void;
   data: PathologyRecord[];
   onAdd?: () => void;
+  onRowClick?: (record: PathologyRecord) => void;
 }
 
 /**
@@ -20,6 +21,7 @@ export function PathologiesDrawer({
   onClose,
   data,
   onAdd,
+  onRowClick,
 }: Readonly<PathologiesDrawerProps>) {
   const columns = usePathologyColumns();
 
@@ -35,6 +37,7 @@ export function PathologiesDrawer({
         columns={columns}
         data={data}
         getRowId={(row) => row.id}
+        onRowClick={onRowClick}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">{m.empty_no_data()}</div>
         }

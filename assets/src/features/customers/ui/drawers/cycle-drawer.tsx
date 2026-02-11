@@ -10,12 +10,19 @@ interface CycleDrawerProps {
   onClose: () => void;
   data: CycleRecord[];
   onAdd?: () => void;
+  onRowClick?: (record: CycleRecord) => void;
 }
 
 /**
  * Drawer displaying cycle history with expandable rows for symptoms.
  */
-export function CycleDrawer({ isOpen, onClose, data, onAdd }: Readonly<CycleDrawerProps>) {
+export function CycleDrawer({
+  isOpen,
+  onClose,
+  data,
+  onAdd,
+  onRowClick,
+}: Readonly<CycleDrawerProps>) {
   const columns = useCycleColumns();
 
   return (
@@ -31,6 +38,7 @@ export function CycleDrawer({ isOpen, onClose, data, onAdd }: Readonly<CycleDraw
         data={data}
         getRowId={(row) => row.id}
         renderExpandedRow={renderCycleExpandedRow}
+        onRowClick={onRowClick}
         emptyState={
           <div className="py-8 text-center text-muted-foreground text-sm">
             {m.empty_no_history()}

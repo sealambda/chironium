@@ -20,6 +20,7 @@ const requiredPositive = z
 interface NutritionFormProps {
   id: string;
   onSubmit: (data: NutritionPlanFormData) => void;
+  initialValues?: NutritionPlanFormData;
 }
 
 function macroPct(grams: number, kcalPerGram: number, totalKcal: number): string {
@@ -29,9 +30,9 @@ function macroPct(grams: number, kcalPerGram: number, totalKcal: number): string
   return String(Math.round((grams * kcalPerGram * 100) / totalKcal));
 }
 
-export function NutritionForm({ id, onSubmit }: Readonly<NutritionFormProps>) {
+export function NutritionForm({ id, onSubmit, initialValues }: Readonly<NutritionFormProps>) {
   const form = useForm({
-    defaultValues: defaultNutritionPlanValues,
+    defaultValues: initialValues ?? defaultNutritionPlanValues,
     onSubmit: async ({ value }) => {
       const result = nutritionPlanSchema.safeParse(value);
       if (!result.success) {

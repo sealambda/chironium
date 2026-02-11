@@ -156,14 +156,22 @@
 
   "sheet_add_body_metrics_title": "Añadir Métricas Corporales",
   "sheet_add_body_metrics_desc": "Registrar una nueva entrada de métricas corporales.",
+  "sheet_edit_body_metrics_title": "Editar Métricas Corporales",
+  "sheet_edit_body_metrics_desc": "Actualizar la entrada de métricas corporales.",
   "sheet_add_nutrition_title": "Añadir Plan Nutricional",
   "sheet_add_nutrition_desc": "Crear un nuevo plan nutricional.",
+  "sheet_edit_nutrition_title": "Editar Plan Nutricional",
+  "sheet_edit_nutrition_desc": "Actualizar el plan nutricional.",
   "sheet_add_subscription_title": "Añadir Suscripción",
   "sheet_add_subscription_desc": "Crear una nueva suscripción.",
   "sheet_add_pathology_title": "Añadir Patología",
   "sheet_add_pathology_desc": "Registrar una nueva patología.",
+  "sheet_edit_pathology_title": "Editar Patología",
+  "sheet_edit_pathology_desc": "Actualizar el registro de patología.",
   "sheet_add_cycle_title": "Añadir Ciclo",
   "sheet_add_cycle_desc": "Registrar una nueva entrada de ciclo.",
+  "sheet_edit_cycle_title": "Editar Ciclo",
+  "sheet_edit_cycle_desc": "Actualizar la entrada de ciclo.",
 
   "form_weight": "Peso (kg)",
   "form_weight_placeholder": "75",
@@ -205,6 +213,7 @@
 
 
   "toast_record_created": "Registro creado correctamente",
+  "toast_record_updated": "Registro actualizado correctamente",
   "toast_subscription_paused": "Suscripción pausada",
   "toast_subscription_resumed": "Suscripción reanudada",
   "toast_subscription_cancelled": "Suscripción cancelada",
