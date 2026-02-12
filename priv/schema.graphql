@@ -4,6 +4,269 @@ schema {
   subscription: Subscription
 }
 
+input ConditionNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input ConditionCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input MedicationStatementNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input MedicationStatementCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input AllergyIntoleranceNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input AllergyIntoleranceCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input PractitionerNameInput {
+  family: String
+  period: HumanNamePeriodInput
+  prefix: [String!]
+  text: String
+  suffix: [String!]
+  use: NameUse
+  given: [String!]
+}
+
+input ObservationNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+type Annotation {
+  authorReference: String
+  authorString: String
+  time: DateTime
+  text: String
+}
+
+input ObservationValueCodeableConceptInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input ObservationValueQuantityInput {
+  code: String
+  system: String
+  unit: String
+  value: Decimal
+}
+
+type Quantity {
+  value: Decimal
+  unit: String
+  system: String
+  code: String
+}
+
+input CodeableConceptCodingInput {
+  code: String
+  system: String
+  version: String
+  display: String
+  userSelected: Boolean
+}
+
+input ObservationCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+type CodeableConcept {
+  coding: [Coding!]
+  text: String
+}
+
+type Coding {
+  system: String!
+  version: String
+  code: String!
+  display: String
+  userSelected: Boolean
+}
+
+input HumanNamePeriodInput {
+  start: Date
+  end: Date
+}
+
+input PatientNameInput {
+  family: String
+  period: HumanNamePeriodInput
+  prefix: [String!]
+  text: String
+  suffix: [String!]
+  use: NameUse
+  given: [String!]
+}
+
+type HumanName {
+  use: NameUse
+  text: String
+  family: String
+  given: [String!]
+  prefix: [String!]
+  suffix: [String!]
+  period: Period
+}
+
+type Period {
+  start: Date
+  end: Date
+}
+
+enum ConditionVerificationStatus {
+  "There is sufficient diagnostic and\/or clinical evidence to treat this as a confirmed condition."
+  CONFIRMED
+
+  "One of a set of potential (and typically mutually exclusive) diagnoses asserted to further guide the diagnostic process and preliminary treatment."
+  DIFFERENTIAL
+
+  "The statement was entered in error and is not valid."
+  ENTERED_IN_ERROR
+
+  "This is a tentative diagnosis - still a candidate that is under consideration."
+  PROVISIONAL
+
+  "This condition has been ruled out by subsequent diagnostic and clinical evidence."
+  REFUTED
+
+  "There is not sufficient diagnostic and\/or clinical evidence to treat this as a confirmed condition."
+  UNCONFIRMED
+}
+
+enum ConditionClinicalStatus {
+  "The subject is currently experiencing the condition or situation, there is evidence of the condition or situation, or considered to be a significant risk."
+  ACTIVE
+
+  "The subject is no longer experiencing the condition or situation and there is no longer evidence or appreciable risk of the condition or situation."
+  INACTIVE
+
+  "The subject is experiencing a reoccurence or repeating of a previously resolved condition or situation, e.g. urinary tract infection, food insecurity."
+  RECURRENCE
+
+  "The subject is experiencing a return of a condition or situation after a period of improvement or remission, e.g. relapse of cancer, alcoholism."
+  RELAPSE
+
+  "The subject is not presently experiencing the condition or situation, but there is a risk of the condition or situation returning."
+  REMISSION
+
+  "The subject is not presently experiencing the condition or situation and there is a negligible perceived risk of the condition or situation returning."
+  RESOLVED
+
+  "The authoring\/source system does not know which of the status values currently applies for this condition. Note: This concept is not to be used for 'other' - one of the listed statuses is presumed to apply, but the authoring\/source system does not know which."
+  UNKNOWN
+}
+
+enum AllergyIntoleranceType {
+  "A propensity for hypersensitive reaction(s) to a substance. These reactions are most typically type I hypersensitivity, plus other 'allergy-like' reactions, including pseudoallergy."
+  ALLERGY
+
+  "A propensity for adverse reactions to a substance that is judged to be not allergic or 'allergy-like'. These reactions are typically (but not necessarily) non-immune. They are to some degree idiosyncratic and\/or patient-specific (i.e. are not a reaction that is expected to occur with most or all patients given similar circumstances)."
+  INTOLERANCE
+}
+
+enum AllergyIntoleranceVerificationStatus {
+  "The propensity for a reaction to the identified substance has been objectively verified (which may include clinical evidence by testing, rechallenge, or observation)."
+  CONFIRMED
+
+  "The statement was entered in error and is not valid."
+  ENTERED_IN_ERROR
+
+  "The available clinical information supports a high liklihood of the propensity for a reaction to the identified substance."
+  PRESUMED
+
+  "A propensity for a reaction to the identified substance has been disputed or disproven with a sufficient level of clinical certainty to justify invalidating the assertion. This might or might not include testing or rechallenge."
+  REFUTED
+
+  "The propensity for a reaction to the identified substance has not been objectively verified."
+  UNCONFIRMED
+}
+
+enum AllergyIntoleranceClinicalStatus {
+  "The subject is currently experiencing, or is at risk of, a reaction to the identified substance."
+  ACTIVE
+
+  "The subject is no longer at risk of a reaction to the identified substance."
+  INACTIVE
+
+  "A reaction to the identified substance has been clinically reassessed by testing or re-exposure and is considered no longer to be present. Re-exposure could be accidental, unplanned, or outside of any clinical setting."
+  RESOLVED
+}
+
+enum ObservationStatus {
+  "Subsequent to being Final, the observation has been modified subsequent. This includes updates\/new information and corrections."
+  AMENDED
+
+  "The observation is unavailable because the measurement was not started or not completed (also sometimes called 'aborted')."
+  CANCELLED
+
+  "Subsequent to being Final, the observation has been modified to correct an error in the test result."
+  CORRECTED
+
+  "The observation has been withdrawn following previous final release. This electronic record should never have existed, though it is possible that real-world decisions were based on it. (If real-world activity has occurred, the status should be 'cancelled' rather than 'entered-in-error')."
+  ENTERED_IN_ERROR
+
+  "The observation is complete and there are no further actions needed. Additional information such as 'released', 'signed', etc. would be represented using Provenance which provides not only the act but also the actors and dates and other related data. These act states would be associated with an observation status of preliminary until they are all completed and then a status of final would be applied."
+  FINAL
+
+  "This is an initial or interim observation: data may be incomplete or unverified."
+  PRELIMINARY
+
+  "The existence of the observation is registered, but there is no result yet available."
+  REGISTERED
+
+  "The authoring\/source system does not know which of the status values currently applies for this observation. Note: This concept is not to be used for 'other' - one of the listed statuses is presumed to apply, but the authoring\/source system does not know which."
+  UNKNOWN
+}
+
+enum NameUse {
+  "Anonymous assigned name, alias, or pseudonym (used to protect a person's identity for privacy reasons)."
+  ANONYMOUS
+
+  "A name used prior to changing name because of marriage. This name use is for use by applications that collect and store names that were used prior to a marriage. Marriage naming customs vary greatly around the world, and are constantly changing. This term is not gender specific. The use of this term does not imply any particular history for a person's name."
+  MAIDEN
+
+  "A name that is used to address the person in an informal manner, but is not part of their formal or usual name."
+  NICKNAME
+
+  "The formal name as registered in an official (government) registry, but which name might not be commonly used. May be called 'legal name'."
+  OFFICIAL
+
+  "This name is no longer in use (or was never correct, but retained for records)."
+  OLD
+
+  "A temporary name. Name.period can provide more detailed information. This may also be used for temporary names assigned at birth or in emergency situations."
+  TEMP
+
+  "Known as\/conventional\/the one you normally use."
+  USUAL
+}
+
 enum ContactPointType {
   "Email address"
   EMAIL
@@ -451,6 +714,26 @@ input CreateContactInput {
   name: String
 }
 
+enum ContactSortField {
+  ID
+  NAME
+}
+
+"A keyset page of :contact"
+type KeysetPageOfContact {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Contact!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
 input ContactFilterName {
   isNil: Boolean
   eq: String
@@ -482,6 +765,11 @@ input ContactFilterInput {
   id: ContactFilterId
   name: ContactFilterName
   contactPoints: ContactPointFilterInput
+}
+
+input ContactSortInput {
+  order: SortOrder
+  field: ContactSortField!
 }
 
 type Contact {
@@ -525,6 +813,21 @@ type ContactPointVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: ContactPoint!
+}
+
+"The result of the :create_subscription mutation"
+type CreateSubscriptionResult {
+  "The successful result of the mutation"
+  result: Subscription
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateSubscriptionInput {
+  startDate: Date
+  subscriberId: ID!
+  planId: ID!
 }
 
 enum SubscriptionSortField {
@@ -640,6 +943,43 @@ type Subscription {
   plan: SubscriptionPlan!
 }
 
+"The result of the :create_subscription_plan mutation"
+type CreateSubscriptionPlanResult {
+  "The successful result of the mutation"
+  result: SubscriptionPlan
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateSubscriptionPlanInput {
+  name: String
+  periodDuration: String
+  priceAmount: MoneyInput
+}
+
+enum SubscriptionPlanSortField {
+  ID
+  NAME
+  PERIOD_DURATION
+  PRICE_AMOUNT
+}
+
+"A keyset page of :subscription_plan"
+type KeysetPageOfSubscriptionPlan {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [SubscriptionPlan!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
 input SubscriptionPlanFilterPriceAmount {
   isNil: Boolean
   eq: MoneyInput
@@ -698,6 +1038,11 @@ input SubscriptionPlanFilterInput {
   priceAmount: SubscriptionPlanFilterPriceAmount
 }
 
+input SubscriptionPlanSortInput {
+  order: SortOrder
+  field: SubscriptionPlanSortField!
+}
+
 type SubscriptionPlan {
   id: ID!
   name: String
@@ -730,9 +1075,945 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
+"The result of the :create_condition mutation"
+type CreateConditionResult {
+  "The successful result of the mutation"
+  result: Condition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateConditionInput {
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: ConditionCodeInput
+
+  "Additional information about the Condition"
+  note: [ConditionNoteInput!]
+
+  subjectId: ID!
+}
+
+enum ConditionSortField {
+  ID
+  CLINICAL_STATUS
+  VERIFICATION_STATUS
+  SUBJECT_ID
+}
+
+input ConditionFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ConditionFilterVerificationStatus {
+  isNil: Boolean
+  eq: ConditionVerificationStatus
+  notEq: ConditionVerificationStatus
+  in: [ConditionVerificationStatus]
+  lessThan: ConditionVerificationStatus
+  greaterThan: ConditionVerificationStatus
+  lessThanOrEqual: ConditionVerificationStatus
+  greaterThanOrEqual: ConditionVerificationStatus
+}
+
+input ConditionFilterClinicalStatus {
+  isNil: Boolean
+  eq: ConditionClinicalStatus
+  notEq: ConditionClinicalStatus
+  in: [ConditionClinicalStatus]
+  lessThan: ConditionClinicalStatus
+  greaterThan: ConditionClinicalStatus
+  lessThanOrEqual: ConditionClinicalStatus
+  greaterThanOrEqual: ConditionClinicalStatus
+}
+
+input ConditionFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ConditionFilterInput {
+  and: [ConditionFilterInput!]
+  or: [ConditionFilterInput!]
+  not: [ConditionFilterInput!]
+  id: ConditionFilterId
+  clinicalStatus: ConditionFilterClinicalStatus
+  verificationStatus: ConditionFilterVerificationStatus
+  subjectId: ConditionFilterSubjectId
+  subject: PatientFilterInput
+}
+
+input ConditionSortInput {
+  order: SortOrder
+  field: ConditionSortField!
+}
+
+type Condition {
+  id: ID!
+
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: CodeableConcept
+
+  "Additional information about the Condition"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ConditionVersion!]!
+
+  subject: Patient!
+}
+
+"The result of the :create_medication_statement mutation"
+type CreateMedicationStatementResult {
+  "The successful result of the mutation"
+  result: MedicationStatement
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateMedicationStatementInput {
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: MedicationStatementCodeInput
+
+  "Further information about the usage"
+  note: [MedicationStatementNoteInput!]
+
+  subjectId: ID!
+}
+
+enum MedicationStatementSortField {
+  ID
+  CLINICAL_STATUS
+  VERIFICATION_STATUS
+  SUBJECT_ID
+}
+
+input MedicationStatementFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input MedicationStatementFilterVerificationStatus {
+  isNil: Boolean
+  eq: ConditionVerificationStatus
+  notEq: ConditionVerificationStatus
+  in: [ConditionVerificationStatus]
+  lessThan: ConditionVerificationStatus
+  greaterThan: ConditionVerificationStatus
+  lessThanOrEqual: ConditionVerificationStatus
+  greaterThanOrEqual: ConditionVerificationStatus
+}
+
+input MedicationStatementFilterClinicalStatus {
+  isNil: Boolean
+  eq: ConditionClinicalStatus
+  notEq: ConditionClinicalStatus
+  in: [ConditionClinicalStatus]
+  lessThan: ConditionClinicalStatus
+  greaterThan: ConditionClinicalStatus
+  lessThanOrEqual: ConditionClinicalStatus
+  greaterThanOrEqual: ConditionClinicalStatus
+}
+
+input MedicationStatementFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input MedicationStatementFilterInput {
+  and: [MedicationStatementFilterInput!]
+  or: [MedicationStatementFilterInput!]
+  not: [MedicationStatementFilterInput!]
+  id: MedicationStatementFilterId
+  clinicalStatus: MedicationStatementFilterClinicalStatus
+  verificationStatus: MedicationStatementFilterVerificationStatus
+  subjectId: MedicationStatementFilterSubjectId
+  subject: PatientFilterInput
+}
+
+input MedicationStatementSortInput {
+  order: SortOrder
+  field: MedicationStatementSortField!
+}
+
+type MedicationStatement {
+  id: ID!
+
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: CodeableConcept
+
+  "Further information about the usage"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [MedicationStatementVersion!]!
+
+  subject: Patient!
+}
+
+"The result of the :create_allergy_intolerance mutation"
+type CreateAllergyIntoleranceResult {
+  "The successful result of the mutation"
+  result: AllergyIntolerance
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateAllergyIntoleranceInput {
+  clinicalStatus: AllergyIntoleranceClinicalStatus
+
+  verificationStatus: AllergyIntoleranceVerificationStatus
+
+  type: AllergyIntoleranceType
+
+  code: AllergyIntoleranceCodeInput
+
+  "Additional text not captured in other fields"
+  note: [AllergyIntoleranceNoteInput!]
+
+  patientId: ID!
+}
+
+enum AllergyIntoleranceSortField {
+  ID
+  CLINICAL_STATUS
+  VERIFICATION_STATUS
+  TYPE
+  PATIENT_ID
+}
+
+input AllergyIntoleranceFilterPatientId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input AllergyIntoleranceFilterType {
+  isNil: Boolean
+  eq: AllergyIntoleranceType
+  notEq: AllergyIntoleranceType
+  in: [AllergyIntoleranceType]
+  lessThan: AllergyIntoleranceType
+  greaterThan: AllergyIntoleranceType
+  lessThanOrEqual: AllergyIntoleranceType
+  greaterThanOrEqual: AllergyIntoleranceType
+}
+
+input AllergyIntoleranceFilterVerificationStatus {
+  isNil: Boolean
+  eq: AllergyIntoleranceVerificationStatus
+  notEq: AllergyIntoleranceVerificationStatus
+  in: [AllergyIntoleranceVerificationStatus]
+  lessThan: AllergyIntoleranceVerificationStatus
+  greaterThan: AllergyIntoleranceVerificationStatus
+  lessThanOrEqual: AllergyIntoleranceVerificationStatus
+  greaterThanOrEqual: AllergyIntoleranceVerificationStatus
+}
+
+input AllergyIntoleranceFilterClinicalStatus {
+  isNil: Boolean
+  eq: AllergyIntoleranceClinicalStatus
+  notEq: AllergyIntoleranceClinicalStatus
+  in: [AllergyIntoleranceClinicalStatus]
+  lessThan: AllergyIntoleranceClinicalStatus
+  greaterThan: AllergyIntoleranceClinicalStatus
+  lessThanOrEqual: AllergyIntoleranceClinicalStatus
+  greaterThanOrEqual: AllergyIntoleranceClinicalStatus
+}
+
+input AllergyIntoleranceFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input AllergyIntoleranceFilterInput {
+  and: [AllergyIntoleranceFilterInput!]
+  or: [AllergyIntoleranceFilterInput!]
+  not: [AllergyIntoleranceFilterInput!]
+  id: AllergyIntoleranceFilterId
+  clinicalStatus: AllergyIntoleranceFilterClinicalStatus
+  verificationStatus: AllergyIntoleranceFilterVerificationStatus
+  type: AllergyIntoleranceFilterType
+  patientId: AllergyIntoleranceFilterPatientId
+  patient: PatientFilterInput
+}
+
+input AllergyIntoleranceSortInput {
+  order: SortOrder
+  field: AllergyIntoleranceSortField!
+}
+
+type AllergyIntolerance {
+  id: ID!
+
+  clinicalStatus: AllergyIntoleranceClinicalStatus
+
+  verificationStatus: AllergyIntoleranceVerificationStatus
+
+  type: AllergyIntoleranceType
+
+  code: CodeableConcept
+
+  "Additional text not captured in other fields"
+  note: [Annotation!]
+
+  patientId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [AllergyIntoleranceVersion!]!
+
+  patient: Patient!
+}
+
+"The result of the :create_practitioner mutation"
+type CreatePractitionerResult {
+  "The successful result of the mutation"
+  result: Practitioner
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePractitionerInput {
+  name: [PractitionerNameInput!]!
+
+  "Whether this practitioner's record is in active use"
+  active: Boolean
+
+  birthDate: Date
+}
+
+type Practitioner {
+  id: ID!
+
+  name: [HumanName!]!
+
+  "Whether this practitioner's record is in active use"
+  active: Boolean
+
+  birthDate: Date
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PractitionerVersion!]!
+}
+
+"The result of the :log_body_height mutation"
+type LogBodyHeightResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogBodyHeightInput {
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+
+  "The height in centimeters"
+  heightCm: Float!
+}
+
+"The result of the :log_body_weight mutation"
+type LogBodyWeightResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogBodyWeightInput {
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+
+  "The weight in kilograms"
+  weightKg: Float!
+}
+
+"The result of the :create_observation mutation"
+type CreateObservationResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateObservationInput {
+  status: ObservationStatus!
+
+  code: ObservationCodeInput
+
+  valueQuantity: ObservationValueQuantityInput
+
+  valueCodeableConcept: ObservationValueCodeableConceptInput
+
+  valueString: String
+
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+}
+
+enum ObservationSortField {
+  ID
+  STATUS
+  VALUE_STRING
+  SUBJECT_ID
+}
+
+input ObservationFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ObservationFilterValueString {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ObservationFilterStatus {
+  isNil: Boolean
+  eq: ObservationStatus
+  notEq: ObservationStatus
+  in: [ObservationStatus!]
+  lessThan: ObservationStatus
+  greaterThan: ObservationStatus
+  lessThanOrEqual: ObservationStatus
+  greaterThanOrEqual: ObservationStatus
+}
+
+input ObservationFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ObservationFilterInput {
+  and: [ObservationFilterInput!]
+  or: [ObservationFilterInput!]
+  not: [ObservationFilterInput!]
+  id: ObservationFilterId
+  status: ObservationFilterStatus
+  valueString: ObservationFilterValueString
+  subjectId: ObservationFilterSubjectId
+  subject: PatientFilterInput
+}
+
+input ObservationSortInput {
+  order: SortOrder
+  field: ObservationSortField!
+}
+
+type Observation {
+  id: ID!
+
+  status: ObservationStatus!
+
+  code: CodeableConcept
+
+  valueQuantity: Quantity
+
+  valueCodeableConcept: CodeableConcept
+
+  valueString: String
+
+  "Comments about the observation"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ObservationVersion!]!
+
+  subject: Patient!
+}
+
+"The result of the :create_patient mutation"
+type CreatePatientResult {
+  "The successful result of the mutation"
+  result: Patient
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePatientInput {
+  name: [PatientNameInput!]!
+  birthDate: Date
+}
+
+enum PatientSortField {
+  ID
+  BIRTH_DATE
+}
+
+"A keyset page of :patient"
+type KeysetPageOfPatient {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Patient!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input PatientFilterBirthDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+}
+
+input PatientFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input PatientFilterInput {
+  and: [PatientFilterInput!]
+  or: [PatientFilterInput!]
+  not: [PatientFilterInput!]
+  id: PatientFilterId
+  birthDate: PatientFilterBirthDate
+  allergyIntolerances: AllergyIntoleranceFilterInput
+  conditions: ConditionFilterInput
+  medicationStatements: MedicationStatementFilterInput
+  observations: ObservationFilterInput
+  nutritionPlans: NutritionPlanFilterInput
+}
+
+input PatientSortInput {
+  order: SortOrder
+  field: PatientSortField!
+}
+
+type Patient {
+  id: ID!
+  name: [HumanName!]!
+  birthDate: Date
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PatientVersion!]!
+  allergyIntolerances(
+    "How to sort the records in the response"
+    sort: [AllergyIntoleranceSortInput]
+
+    "A filter to limit the results"
+    filter: AllergyIntoleranceFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [AllergyIntolerance!]!
+  conditions(
+    "How to sort the records in the response"
+    sort: [ConditionSortInput]
+
+    "A filter to limit the results"
+    filter: ConditionFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Condition!]!
+  medicationStatements(
+    "How to sort the records in the response"
+    sort: [MedicationStatementSortInput]
+
+    "A filter to limit the results"
+    filter: MedicationStatementFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [MedicationStatement!]!
+  observations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Observation!]!
+  nutritionPlans(
+    "How to sort the records in the response"
+    sort: [NutritionPlanSortInput]
+
+    "A filter to limit the results"
+    filter: NutritionPlanFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [NutritionPlan!]!
+}
+
+enum NutritionPlanSortField {
+  ID
+  TARGET_KCAL
+  PROTEIN_G
+  CARBS_G
+  FAT_G
+  PATIENT_ID
+}
+
+input NutritionPlanFilterPatientId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input NutritionPlanFilterFatG {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int!]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input NutritionPlanFilterCarbsG {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int!]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input NutritionPlanFilterProteinG {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int!]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input NutritionPlanFilterTargetKcal {
+  isNil: Boolean
+  eq: Int
+  notEq: Int
+  in: [Int!]
+  lessThan: Int
+  greaterThan: Int
+  lessThanOrEqual: Int
+  greaterThanOrEqual: Int
+}
+
+input NutritionPlanFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input NutritionPlanFilterInput {
+  and: [NutritionPlanFilterInput!]
+  or: [NutritionPlanFilterInput!]
+  not: [NutritionPlanFilterInput!]
+  id: NutritionPlanFilterId
+  targetKcal: NutritionPlanFilterTargetKcal
+  proteinG: NutritionPlanFilterProteinG
+  carbsG: NutritionPlanFilterCarbsG
+  fatG: NutritionPlanFilterFatG
+  patientId: NutritionPlanFilterPatientId
+  patient: PatientFilterInput
+}
+
+input NutritionPlanSortInput {
+  order: SortOrder
+  field: NutritionPlanSortField!
+}
+
+type NutritionPlan {
+  id: ID!
+  targetKcal: Int!
+  proteinG: Int!
+  carbsG: Int!
+  fatG: Int!
+  patientId: ID!
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [NutritionPlanVersion!]!
+  patient: Patient!
+}
+
+type NutritionPlanVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  ""
+  targetKcal: Int!
+  ""
+  proteinG: Int!
+  ""
+  carbsG: Int!
+  ""
+  fatG: Int!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: NutritionPlan!
+}
+
+type PatientVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Patient!
+}
+
+type ObservationVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Observation!
+}
+
+type PractitionerVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Practitioner!
+}
+
+type AllergyIntoleranceVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: AllergyIntolerance!
+}
+
+type MedicationStatementVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: MedicationStatement!
+}
+
+type ConditionVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Condition!
+}
+
 type RootQueryType {
   "Retrieve the info for the actor that is currently signed in."
   currentActor: User
+
+  listPatients(
+    "How to sort the records in the response"
+    sort: [PatientSortInput]
+
+    "A filter to limit the results"
+    filter: PatientFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfPatient
+
+  getPatient(
+    "The id of the record"
+    id: ID!
+  ): Patient
+
+  listSubscriptionPlans(
+    "How to sort the records in the response"
+    sort: [SubscriptionPlanSortInput]
+
+    "A filter to limit the results"
+    filter: SubscriptionPlanFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfSubscriptionPlan
 
   listSubscriptions(
     "How to sort the records in the response"
@@ -753,6 +2034,31 @@ type RootQueryType {
     "The number of records to return to the end. Maximum 250"
     last: Int
   ): KeysetPageOfSubscription
+
+  getContact(
+    "A filter to limit the results"
+    filter: ContactFilterInput
+  ): Contact
+
+  listContacts(
+    "How to sort the records in the response"
+    sort: [ContactSortInput]
+
+    "A filter to limit the results"
+    filter: ContactFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfContact
 
   getOrganization: Organization
 
@@ -787,6 +2093,36 @@ input MoneyInput {
 }
 
 type RootMutationType {
+  createPatient(input: CreatePatientInput!): CreatePatientResult!
+
+  createObservation(input: CreateObservationInput!): CreateObservationResult!
+
+  """
+  Log a body weight observation.
+
+  According to https://hl7.org/fhir/R5/bodyweight.html
+  """
+  logBodyWeight(input: LogBodyWeightInput!): LogBodyWeightResult!
+
+  """
+  Log a body height observation.
+
+  According to https://hl7.org/fhir/R5/bodyheight.html
+  """
+  logBodyHeight(input: LogBodyHeightInput!): LogBodyHeightResult!
+
+  createPractitioner(input: CreatePractitionerInput!): CreatePractitionerResult!
+
+  createAllergyIntolerance(input: CreateAllergyIntoleranceInput!): CreateAllergyIntoleranceResult!
+
+  createMedicationStatement(input: CreateMedicationStatementInput!): CreateMedicationStatementResult!
+
+  createCondition(input: CreateConditionInput!): CreateConditionResult!
+
+  createSubscriptionPlan(input: CreateSubscriptionPlanInput): CreateSubscriptionPlanResult!
+
+  createSubscription(input: CreateSubscriptionInput!): CreateSubscriptionResult!
+
   createContact(input: CreateContactInput): CreateContactResult!
 
   "Create a contact with initial contact points (email, phone, ...)"
@@ -814,6 +2150,14 @@ character sequences. The Json type is most often used to represent a free-form
 human-readable json string.
 """
 scalar Json
+
+"""
+The `DateTime` scalar type represents a date and time in the UTC
+timezone. The DateTime appears in a JSON response as an ISO8601 formatted
+string, including UTC timezone ("Z"). The parsed date and time string will
+be converted to UTC if there is an offset.
+"""
+scalar DateTime
 
 """
 The `Date` scalar type represents a date. The Date appears in a JSON
