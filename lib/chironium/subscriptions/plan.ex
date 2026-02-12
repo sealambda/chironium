@@ -6,16 +6,24 @@ defmodule Chironium.Subscriptions.Plan do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
 
+  postgres do
+    table "subscription_plans"
+  end
+
   graphql do
     type :subscription_plan
+
+    queries do
+      list :list_subscription_plans, :read
+    end
+
+    mutations do
+      create :create_subscription_plan, :create
+    end
   end
 
   paper_trail do
     mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:subscription_plan]}
-  end
-
-  postgres do
-    table "subscription_plans"
   end
 
   actions do
