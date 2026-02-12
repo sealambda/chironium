@@ -6,6 +6,26 @@ defmodule Chironium.Subscriptions.Subscription do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshStateMachine]
 
+  postgres do
+    table "subscriptions"
+  end
+
+  graphql do
+    type :subscription
+
+    queries do
+      list :list_subscriptions, :read
+    end
+
+    mutations do
+      create :create_subscription, :create
+    end
+  end
+
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:subscription]}
+  end
+
   state_machine do
     initial_states [:active]
     default_initial_state :active
@@ -15,36 +35,6 @@ defmodule Chironium.Subscriptions.Subscription do
       transition :suspend, from: :active, to: :suspended
       transition :cancel, from: [:active, :suspended], to: :canceled
       transition :resume, from: [:suspended, :expired, :canceled], to: :active
-    end
-  end
-
-  graphql do
-    type :subscription
-
-    queries do
-      list :list_subscriptions, :read
-    end
-  end
-
-  paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:subscription]}
-  end
-
-  postgres do
-    table "subscriptions"
-  end
-
-  policies do
-    policy always() do
-      authorize_if always()
-    end
-  end
-
-  attributes do
-    attribute :start_date, :date do
-      allow_nil? false
-      public? true
-      default &Date.utc_today/0
     end
   end
 
@@ -74,6 +64,21 @@ defmodule Chironium.Subscriptions.Subscription do
 
     update :resume do
       change transition_state(:active)
+    end
+  end
+
+  # TODO: Add policies
+  policies do
+    policy always() do
+      authorize_if always()
+    end
+  end
+
+  attributes do
+    attribute :start_date, :date do
+      allow_nil? false
+      public? true
+      default &Date.utc_today/0
     end
   end
 

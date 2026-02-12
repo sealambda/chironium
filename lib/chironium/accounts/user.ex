@@ -24,18 +24,6 @@ defmodule Chironium.Accounts.User do
       AshAdmin.Resource
     ]
 
-  graphql do
-    type :user
-
-    queries do
-      read_one :get_user, :read
-    end
-  end
-
-  paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:user]}
-  end
-
   admin do
     actor? true
   end
@@ -67,6 +55,18 @@ defmodule Chironium.Accounts.User do
 
   postgres do
     table "users"
+  end
+
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:user]}
+  end
+
+  graphql do
+    type :user
+
+    queries do
+      read_one :get_user, :read
+    end
   end
 
   actions do

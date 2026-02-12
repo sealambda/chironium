@@ -42,32 +42,34 @@ config :ash,
   known_types: [AshPostgres.Timestamptz, AshPostgres.TimestamptzUsec, AshMoney.Types.Money],
   custom_types: [money: AshMoney.Types.Money]
 
+ash_resource_section_order = [
+  :admin,
+  :authentication,
+  :token,
+  :user_identity,
+  :postgres,
+  :graphql,
+  :resource,
+  :code_interface,
+  :actions,
+  :policies,
+  :pub_sub,
+  :preparations,
+  :changes,
+  :validations,
+  :multitenancy,
+  :attributes,
+  :relationships,
+  :calculations,
+  :aggregates,
+  :identities
+]
+
 config :spark,
   formatter: [
     remove_parens?: true,
     "Ash.Resource": [
-      section_order: [
-        :admin,
-        :authentication,
-        :token,
-        :user_identity,
-        :postgres,
-        :graphql,
-        :resource,
-        :code_interface,
-        :actions,
-        :policies,
-        :pub_sub,
-        :preparations,
-        :changes,
-        :validations,
-        :multitenancy,
-        :attributes,
-        :relationships,
-        :calculations,
-        :aggregates,
-        :identities
-      ]
+      section_order: ash_resource_section_order
     ],
     "Ash.Domain": [
       section_order: [
@@ -79,6 +81,14 @@ config :spark,
         :domain,
         :execution
       ]
+    ],
+    "Chironium.BaseResources.Auditable": [
+      type: Ash.Resource,
+      section_order: ash_resource_section_order
+    ],
+    "Chironium.BaseResources.Tenantable": [
+      type: Ash.Resource,
+      section_order: ash_resource_section_order
     ]
   ]
 
@@ -94,6 +104,7 @@ config :chironium,
   ash_domains: [
     Chironium.Accounts,
     Chironium.CRM,
+    Chironium.Health,
     Chironium.Subscriptions
   ],
   base_resources: [

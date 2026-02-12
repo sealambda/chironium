@@ -8,6 +8,10 @@ defmodule Chironium.CRM.ContactPoint do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
 
+  postgres do
+    table "contact_points"
+  end
+
   graphql do
     type :contact_point
 
@@ -21,14 +25,11 @@ defmodule Chironium.CRM.ContactPoint do
     mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:contact_point]}
   end
 
-  postgres do
-    table "contact_points"
-  end
-
   actions do
     defaults [:read, :destroy, create: :*, update: [:label, :value, :is_primary]]
   end
 
+  # TODO: Add policies
   policies do
     policy always() do
       authorize_if always()
