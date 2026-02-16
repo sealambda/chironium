@@ -130,12 +130,57 @@ type Coding {
   userSelected: Boolean
 }
 
+input SubscriptionPlanDurationInput {
+  code: DurationUnit
+  system: String
+  value: Decimal
+}
+
+type Duration {
+  system: String
+  code: DurationUnit
+  value: Decimal
+}
+
+input ContactPointPeriodInput {
+  start: Date
+  end: Date
+}
+
+input PersonTelecomInput {
+  "Details of a Technology mediated contact point (phone, fax, email, etc.)"
+  system: ContactPointSystem
+
+  "The actual contact point details"
+  value: String
+
+  "Time period when the contact point was\/is in use"
+  period: ContactPointPeriodInput
+
+  "Identifies the purpose for the contact point"
+  use: ContactPointUse
+}
+
+type ContactPoint {
+  "Details of a Technology mediated contact point (phone, fax, email, etc.)"
+  system: ContactPointSystem
+
+  "The actual contact point details"
+  value: String
+
+  "Identifies the purpose for the contact point"
+  use: ContactPointUse
+
+  "Time period when the contact point was\/is in use"
+  period: Period
+}
+
 input HumanNamePeriodInput {
   start: Date
   end: Date
 }
 
-input PatientNameInput {
+input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
@@ -307,6 +352,86 @@ enum ObservationStatus {
   UNKNOWN
 }
 
+enum DurationUnit {
+  "years"
+  A
+
+  "days"
+  D
+
+  "hours"
+  H
+
+  "minutes"
+  MIN
+
+  "months"
+  MO
+
+  "milliseconds"
+  MS
+
+  "seconds"
+  S
+
+  "weeks"
+  WK
+}
+
+enum AdministrativeGender {
+  "Female"
+  FEMALE
+
+  "Male"
+  MALE
+
+  "Other"
+  OTHER
+
+  "Unknown"
+  UNKNOWN
+}
+
+enum ContactPointSystem {
+  "The value is an email address."
+  EMAIL
+
+  "The value is a fax machine. Use of full international numbers starting with + is recommended to enable automatic dialing support but not required."
+  FAX
+
+  "A contact that is not a phone, fax, page or email address and is not expressible as a URL. E.g. Internal mail address. This SHOULD NOT be used for contacts that are expressible as a URL (e.g. Skype, Twitter, Facebook, etc.) Extensions may be used to distinguish 'other' contact types."
+  OTHER
+
+  "The value is a pager number. These may be local pager numbers that are only usable on a particular pager system."
+  PAGER
+
+  "The value is a telephone number used for voice calls. Use of full international numbers starting with + is recommended to enable automatic dialing support but not required."
+  PHONE
+
+  "A contact that can be used for sending a sms message (e.g. mobile phones, some landlines)."
+  SMS
+
+  "A contact that is not a phone, fax, pager or email address and is expressed as a URL. This is intended for various institutional or personal contacts including web sites, blogs, Skype, Twitter, Facebook, etc. Do not use for email addresses."
+  URL
+}
+
+enum ContactPointUse {
+  "A communication contact point at a home; attempted contacts for business purposes might intrude privacy and chances are one will contact family or other household members instead of the person one wishes to call. Typically used with urgent cases, or if no other contacts are available."
+  HOME
+
+  "A telecommunication device that moves and stays with its owner. May have characteristics of all other use codes, suitable for urgent matters, not the first choice for routine business."
+  MOBILE
+
+  "This contact point is no longer in use (or was never correct, but retained for records)."
+  OLD
+
+  "A temporary contact point. The period can provide more detailed information."
+  TEMP
+
+  "An office contact point. First choice for business related contacts during business hours."
+  WORK
+}
+
 enum NameUse {
   "Anonymous assigned name, alias, or pseudonym (used to protect a person's identity for privacy reasons)."
   ANONYMOUS
@@ -328,17 +453,6 @@ enum NameUse {
 
   "Known as\/conventional\/the one you normally use."
   USUAL
-}
-
-enum ContactPointType {
-  "Email address"
-  EMAIL
-
-  "Instagram username"
-  INSTAGRAM
-
-  "Phone number"
-  PHONE
 }
 
 input UserFilterGivenName {
@@ -584,211 +698,65 @@ type MutationError {
   fields: [String!]
 }
 
-input ContactCreateWithContactPointsContactPointsInput {
-  label: String
-  type: ContactPointType
-  value: String
-  isPrimary: Boolean
-}
-
-"The result of the :update_contact_point mutation"
-type UpdateContactPointResult {
+"The result of the :update_person mutation"
+type UpdatePersonResult {
   "The successful result of the mutation"
-  result: ContactPoint
+  result: Person
 
   "Any errors generated, if the mutation failed"
   errors: [MutationError!]!
 }
 
-input UpdateContactPointInput {
-  label: String
-  value: String
-  isPrimary: Boolean
+input UpdatePersonInput {
+  "A name associated with the person"
+  name: [PersonNameInput!]
+
+  "A contact detail for the person (e.g. email, phone, etc.)"
+  telecom: [PersonTelecomInput!]
+
+  "The gender of a person used for administrative purposes."
+  gender: AdministrativeGender
+
+  "The date on which the person was born"
+  birthDate: Date
 }
 
-"The result of the :create_contact_point mutation"
-type CreateContactPointResult {
+"The result of the :create_person mutation"
+type CreatePersonResult {
   "The successful result of the mutation"
-  result: ContactPoint
+  result: Person
 
   "Any errors generated, if the mutation failed"
   errors: [MutationError!]!
 }
 
-input CreateContactPointInput {
-  type: ContactPointType
-  label: String
-  value: String
-  isPrimary: Boolean
-  contactId: ID!
+input CreatePersonInput {
+  "A name associated with the person"
+  name: [PersonNameInput!]
+
+  "A contact detail for the person (e.g. email, phone, etc.)"
+  telecom: [PersonTelecomInput!]
+
+  "The gender of a person used for administrative purposes."
+  gender: AdministrativeGender
+
+  "The date on which the person was born"
+  birthDate: Date
 }
 
-enum ContactPointSortField {
+enum PersonSortField {
   ID
-  TYPE
-  LABEL
-  VALUE
-  IS_PRIMARY
-  CONTACT_ID
+  GENDER
+  BIRTH_DATE
 }
 
-input ContactPointFilterContactId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ContactPointFilterIsPrimary {
-  isNil: Boolean
-  eq: Boolean
-  notEq: Boolean
-  in: [Boolean!]
-  lessThan: Boolean
-  greaterThan: Boolean
-  lessThanOrEqual: Boolean
-  greaterThanOrEqual: Boolean
-}
-
-input ContactPointFilterValue {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input ContactPointFilterLabel {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input ContactPointFilterType {
-  isNil: Boolean
-  eq: ContactPointType
-  notEq: ContactPointType
-  in: [ContactPointType]
-  lessThan: ContactPointType
-  greaterThan: ContactPointType
-  lessThanOrEqual: ContactPointType
-  greaterThanOrEqual: ContactPointType
-}
-
-input ContactPointFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ContactPointFilterInput {
-  and: [ContactPointFilterInput!]
-  or: [ContactPointFilterInput!]
-  not: [ContactPointFilterInput!]
-  id: ContactPointFilterId
-  type: ContactPointFilterType
-  label: ContactPointFilterLabel
-  value: ContactPointFilterValue
-  isPrimary: ContactPointFilterIsPrimary
-  contactId: ContactPointFilterContactId
-  contact: ContactFilterInput
-}
-
-input ContactPointSortInput {
-  order: SortOrder
-  field: ContactPointSortField!
-}
-
-type ContactPoint {
-  id: ID!
-  type: ContactPointType
-  label: String
-  value: String
-  isPrimary: Boolean!
-  contactId: ID!
-  paperTrailVersions(
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [ContactPointVersion!]!
-  contact: Contact!
-}
-
-"The result of the :update_contact mutation"
-type UpdateContactResult {
-  "The successful result of the mutation"
-  result: Contact
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input UpdateContactInput {
-  name: String
-}
-
-"The result of the :create_contact_with_contact_points mutation"
-type CreateContactWithContactPointsResult {
-  "The successful result of the mutation"
-  result: Contact
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateContactWithContactPointsInput {
-  name: String
-  contactPoints: [ContactCreateWithContactPointsContactPointsInput!]
-}
-
-"The result of the :create_contact mutation"
-type CreateContactResult {
-  "The successful result of the mutation"
-  result: Contact
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateContactInput {
-  name: String
-}
-
-enum ContactSortField {
-  ID
-  NAME
-}
-
-"A keyset page of :contact"
-type KeysetPageOfContact {
+"A keyset page of :person"
+type KeysetPageOfPerson {
   "Total count on all pages"
   count: Int
 
   "The records contained in the page"
-  results: [Contact!]
+  results: [Person!]
 
   "The first keyset in the results"
   startKeyset: String
@@ -797,20 +765,29 @@ type KeysetPageOfContact {
   endKeyset: String
 }
 
-input ContactFilterName {
+input PersonFilterBirthDate {
   isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
+  eq: Date
+  notEq: Date
+  in: [Date]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
 }
 
-input ContactFilterId {
+input PersonFilterGender {
+  isNil: Boolean
+  eq: AdministrativeGender
+  notEq: AdministrativeGender
+  in: [AdministrativeGender]
+  lessThan: AdministrativeGender
+  greaterThan: AdministrativeGender
+  lessThanOrEqual: AdministrativeGender
+  greaterThanOrEqual: AdministrativeGender
+}
+
+input PersonFilterId {
   isNil: Boolean
   eq: ID
   notEq: ID
@@ -821,61 +798,58 @@ input ContactFilterId {
   greaterThanOrEqual: ID
 }
 
-input ContactFilterInput {
-  and: [ContactFilterInput!]
-  or: [ContactFilterInput!]
-  not: [ContactFilterInput!]
-  id: ContactFilterId
-  name: ContactFilterName
-  contactPoints: ContactPointFilterInput
+input PersonFilterInput {
+  and: [PersonFilterInput!]
+
+  or: [PersonFilterInput!]
+
+  not: [PersonFilterInput!]
+
+  id: PersonFilterId
+
+  "The gender of a person used for administrative purposes."
+  gender: PersonFilterGender
+
+  "The date on which the person was born"
+  birthDate: PersonFilterBirthDate
 }
 
-input ContactSortInput {
+input PersonSortInput {
   order: SortOrder
-  field: ContactSortField!
+  field: PersonSortField!
 }
 
-type Contact {
+type Person {
   id: ID!
-  name: String
+
+  "A name associated with the person"
+  name: [HumanName!]
+
+  "A contact detail for the person (e.g. email, phone, etc.)"
+  telecom: [ContactPoint!]
+
+  "The gender of a person used for administrative purposes."
+  gender: AdministrativeGender
+
+  "The date on which the person was born"
+  birthDate: Date
+
   paperTrailVersions(
     "The number of records to return."
     limit: Int
 
     "The number of records to skip."
     offset: Int
-  ): [ContactVersion!]!
-  contactPoints(
-    "How to sort the records in the response"
-    sort: [ContactPointSortInput]
-
-    "A filter to limit the results"
-    filter: ContactPointFilterInput
-
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [ContactPoint!]!
+  ): [PersonVersion!]!
 }
 
-type ContactVersion {
+type PersonVersion {
   id: ID!
   versionActionType: String!
   versionActionName: String!
   versionSourceId: ID!
   changes: JsonString
-  versionSource: Contact!
-}
-
-type ContactPointVersion {
-  id: ID!
-  versionActionType: String!
-  versionActionName: String!
-  versionSourceId: ID!
-  changes: JsonString
-  versionSource: ContactPoint!
+  versionSource: Person!
 }
 
 "The result of the :create_subscription mutation"
@@ -980,7 +954,7 @@ input SubscriptionFilterInput {
   state: SubscriptionFilterState
   subscriberId: SubscriptionFilterSubscriberId
   planId: SubscriptionFilterPlanId
-  subscriber: ContactFilterInput
+  subscriber: PersonFilterInput
   plan: SubscriptionPlanFilterInput
 }
 
@@ -1002,7 +976,7 @@ type Subscription {
     "The number of records to skip."
     offset: Int
   ): [SubscriptionVersion!]!
-  subscriber: Contact!
+  subscriber: Person!
   plan: SubscriptionPlan!
 }
 
@@ -1017,14 +991,13 @@ type CreateSubscriptionPlanResult {
 
 input CreateSubscriptionPlanInput {
   name: String
-  periodDuration: String
+  duration: SubscriptionPlanDurationInput
   priceAmount: MoneyInput
 }
 
 enum SubscriptionPlanSortField {
   ID
   NAME
-  PERIOD_DURATION
   PRICE_AMOUNT
 }
 
@@ -1052,19 +1025,6 @@ input SubscriptionPlanFilterPriceAmount {
   greaterThan: MoneyInput
   lessThanOrEqual: MoneyInput
   greaterThanOrEqual: MoneyInput
-}
-
-input SubscriptionPlanFilterPeriodDuration {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
 }
 
 input SubscriptionPlanFilterName {
@@ -1097,7 +1057,6 @@ input SubscriptionPlanFilterInput {
   not: [SubscriptionPlanFilterInput!]
   id: SubscriptionPlanFilterId
   name: SubscriptionPlanFilterName
-  periodDuration: SubscriptionPlanFilterPeriodDuration
   priceAmount: SubscriptionPlanFilterPriceAmount
 }
 
@@ -1109,7 +1068,7 @@ input SubscriptionPlanSortInput {
 type SubscriptionPlan {
   id: ID!
   name: String
-  periodDuration: String
+  duration: Duration
   priceAmount: Money
   paperTrailVersions(
     "The number of records to return."
@@ -1136,6 +1095,20 @@ type SubscriptionVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Subscription!
+}
+
+input PatientCreatePatientWithPersonPersonInput {
+  "A name associated with the person"
+  name: [PersonNameInput!]
+
+  "The date on which the person was born"
+  birthDate: Date
+
+  "The gender of a person used for administrative purposes."
+  gender: AdministrativeGender
+
+  "A contact detail for the person (e.g. email, phone, etc.)"
+  telecom: [PersonTelecomInput!]
 }
 
 "The result of the :create_condition mutation"
@@ -1696,6 +1669,19 @@ type Observation {
   subject: Patient!
 }
 
+"The result of the :create_patient_with_person mutation"
+type CreatePatientWithPersonResult {
+  "The successful result of the mutation"
+  result: Patient
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePatientWithPersonInput {
+  person: PatientCreatePatientWithPersonPersonInput
+}
+
 "The result of the :create_patient mutation"
 type CreatePatientResult {
   "The successful result of the mutation"
@@ -1706,13 +1692,12 @@ type CreatePatientResult {
 }
 
 input CreatePatientInput {
-  name: [PatientNameInput!]!
-  birthDate: Date
+  personId: ID
 }
 
 enum PatientSortField {
   ID
-  BIRTH_DATE
+  PERSON_ID
 }
 
 "A keyset page of :patient"
@@ -1730,15 +1715,15 @@ type KeysetPageOfPatient {
   endKeyset: String
 }
 
-input PatientFilterBirthDate {
+input PatientFilterPersonId {
   isNil: Boolean
-  eq: Date
-  notEq: Date
-  in: [Date]
-  lessThan: Date
-  greaterThan: Date
-  lessThanOrEqual: Date
-  greaterThanOrEqual: Date
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
 }
 
 input PatientFilterId {
@@ -1757,7 +1742,8 @@ input PatientFilterInput {
   or: [PatientFilterInput!]
   not: [PatientFilterInput!]
   id: PatientFilterId
-  birthDate: PatientFilterBirthDate
+  personId: PatientFilterPersonId
+  person: PersonFilterInput
   allergyIntolerances: AllergyIntoleranceFilterInput
   conditions: ConditionFilterInput
   medicationStatements: MedicationStatementFilterInput
@@ -1772,8 +1758,7 @@ input PatientSortInput {
 
 type Patient {
   id: ID!
-  name: [HumanName!]!
-  birthDate: Date
+  personId: ID
   paperTrailVersions(
     "The number of records to return."
     limit: Int
@@ -1781,6 +1766,7 @@ type Patient {
     "The number of records to skip."
     offset: Int
   ): [PatientVersion!]!
+  person: Person
   allergyIntolerances(
     "How to sort the records in the response"
     sort: [AllergyIntoleranceSortInput]
@@ -2098,17 +2084,17 @@ type RootQueryType {
     last: Int
   ): KeysetPageOfSubscription
 
-  getContact(
+  getPerson(
     "A filter to limit the results"
-    filter: ContactFilterInput
-  ): Contact
+    filter: PersonFilterInput
+  ): Person
 
-  listContacts(
+  listPersons(
     "How to sort the records in the response"
-    sort: [ContactSortInput]
+    sort: [PersonSortInput]
 
     "A filter to limit the results"
-    filter: ContactFilterInput
+    filter: PersonFilterInput
 
     "The number of records to return from the beginning. Maximum 250"
     first: Int
@@ -2121,7 +2107,7 @@ type RootQueryType {
 
     "The number of records to return to the end. Maximum 250"
     last: Int
-  ): KeysetPageOfContact
+  ): KeysetPageOfPerson
 
   getOrganization: Organization
 
@@ -2156,7 +2142,10 @@ input MoneyInput {
 }
 
 type RootMutationType {
-  createPatient(input: CreatePatientInput!): CreatePatientResult!
+  createPatient(input: CreatePatientInput): CreatePatientResult!
+
+  "Create a patient and a new person"
+  createPatientWithPerson(input: CreatePatientWithPersonInput): CreatePatientWithPersonResult!
 
   createObservation(input: CreateObservationInput!): CreateObservationResult!
 
@@ -2186,16 +2175,9 @@ type RootMutationType {
 
   createSubscription(input: CreateSubscriptionInput!): CreateSubscriptionResult!
 
-  createContact(input: CreateContactInput): CreateContactResult!
+  createPerson(input: CreatePersonInput): CreatePersonResult!
 
-  "Create a contact with initial contact points (email, phone, ...)"
-  createContactWithContactPoints(input: CreateContactWithContactPointsInput): CreateContactWithContactPointsResult!
-
-  updateContact(id: ID!, input: UpdateContactInput): UpdateContactResult!
-
-  createContactPoint(input: CreateContactPointInput!): CreateContactPointResult!
-
-  updateContactPoint(id: ID!, input: UpdateContactPointInput): UpdateContactPointResult!
+  updatePerson(id: ID!, input: UpdatePersonInput): UpdatePersonResult!
 
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 }

@@ -19,6 +19,7 @@ defmodule Chironium.Health.Patient do
 
     mutations do
       create :create_patient, :create
+      create :create_patient_with_person, :create_patient_with_person
     end
 
     queries do
@@ -33,6 +34,16 @@ defmodule Chironium.Health.Patient do
 
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
+
+    create :create_patient_with_person do
+      description "Create a patient and a new person"
+
+      argument :person, :map do
+        allow_nil? false
+      end
+
+      change manage_relationship(:person, type: :create)
+    end
   end
 
   # TODO: Add policies
@@ -43,17 +54,13 @@ defmodule Chironium.Health.Patient do
   end
 
   attributes do
-    attribute :name, {:array, Chironium.Datatypes.HumanName} do
-      allow_nil? false
-      public? true
-    end
-
-    attribute :birth_date, :date do
-      public? true
-    end
   end
 
   relationships do
+    belongs_to :person, Chironium.CRM.Person do
+      public? true
+    end
+
     has_many :allergy_intolerances, Chironium.Health.AllergyIntolerance do
       public? true
 

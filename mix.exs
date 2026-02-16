@@ -136,7 +136,7 @@ defmodule Chironium.MixProject do
 
       # Nuclear rebuild - regenerates all migrations (pre-production only!)
       "rebuild.nuke": [
-        "cmd sh -c \"rm -rf _build deps assets/node_modules priv/repo/migrations priv/resource_snapshots priv/plts mix.lock\"",
+        "cmd sh -c \"rm -rf _build deps assets/node_modules priv/repo/migrations priv/repo/tenant_migrations priv/resource_snapshots priv/plts mix.lock\"",
         "deps.get",
         "compile",
         "deps.unlock --unused",
