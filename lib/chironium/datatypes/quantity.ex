@@ -1,4 +1,4 @@
-defmodule Chironium.Health.Datatypes.Quantity do
+defmodule Chironium.Datatypes.Quantity do
   @moduledoc """
   https://hl7.org/fhir/R5/datatypes.html#Quantity
   """
