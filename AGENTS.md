@@ -103,3 +103,31 @@ throw new Error(`Customer email "${email}" is not a valid email address.`);
 - Be direct and user-friendly.
 - Use sentence case for messages, title case for headings.
 - Avoid technical jargon in user-facing text.
+
+## Design Patterns
+
+Patterns established during the customers feature refactor. Follow these for consistency.
+
+### Single Responsive Component
+
+Prefer one component with Tailwind `lg:` breakpoints over separate mobile/desktop files. Layout and variation must always be pure Tailwind — no JS-based behavioral branching for layout differences.
+
+### Inline over Overlay
+
+Display data inline in cards rather than behind sheets or drawers. Avoid overlay interactions (bottom sheets, side panels, modals) for browsing or viewing data. Keep the UI single-view and scrollable.
+
+### date-fns for Relative Time
+
+Use `formatDistanceToNowStrict` with `getDateLocale()` from `shared/utils/date-locale.ts` for locale-aware relative dates. Never maintain parallel i18n bucket keys for time units — let date-fns handle pluralization and localization.
+
+### No Arbitrary Tailwind Values
+
+Zero `text-[Xpx]` or custom CSS. Use only standard Tailwind typography tokens (`text-xs`, `text-sm`, `text-base`, etc.).
+
+### Dead Code Policy
+
+If a file has zero importers, delete it. Verify with `grep` before deletion to confirm no references exist.
+
+### Read-Only Customer Feature
+
+The customers feature is strictly for viewing and managing existing data. No creation or onboarding flows exist in the codebase.
