@@ -1,6 +1,6 @@
 import { differenceInDays } from "date-fns";
 import type { LucideIcon } from "lucide-react";
-import { DumbbellIcon, ScaleIcon, ShirtIcon } from "lucide-react";
+import { ChevronRight, DumbbellIcon, ScaleIcon, ShirtIcon } from "lucide-react";
 
 import type { BodyMeasurements, BodyMetricsRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
@@ -73,7 +73,7 @@ function HeroSection({
   const daysAgo = differenceInDays(new Date(), new Date(latest.date));
 
   return (
-    <div className="space-y-0.5">
+    <div className="min-h-19 space-y-0.5">
       <div className="flex items-baseline gap-2">
         <span className="font-bold text-3xl text-foreground tabular-nums">{latest.weight}</span>
         <span className="text-foreground/65 text-sm">kg</span>
@@ -236,7 +236,7 @@ export function BiometricSummaryCardSkeleton() {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       {/* Hero: weight, height, date */}
-      <div className="space-y-1.5">
+      <div className="min-h-19 space-y-1.5">
         <div className="flex items-baseline gap-2">
           <Skeleton className="h-9 w-20" />
           <Skeleton className="h-5 w-8" />
@@ -334,6 +334,17 @@ export function BiometricSummaryCard({ history, isLoading }: Readonly<BiometricS
       {/* Layer 3: Grouped Body Measurements — fills remaining space */}
       <div className="mt-4 flex-1">
         <GroupedMeasurements latest={latest.measurements} previous={previous?.measurements} />
+      </div>
+
+      {/* Footer action — pinned to bottom */}
+      <div className="mt-auto border-neutral-200 border-t pt-3">
+        <a
+          href="#biometrics-history"
+          className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
+        >
+          <span>{m.biometric_view_history()}</span>
+          <ChevronRight className="size-4" />
+        </a>
       </div>
     </div>
   );
