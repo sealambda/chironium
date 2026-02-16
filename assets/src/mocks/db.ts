@@ -1,17 +1,13 @@
 import type { Contact, Organization, User } from "@/gql/graphql";
 import type {
   BodyMetricsRecord,
-  CycleRecord,
   NutritionPlanRecord,
-  PathologyRecord,
   SubscriptionHistoryRecord,
 } from "@/mocks/types";
 
 import { bodyMetrics } from "./data/body-metrics";
-import { cycleHistory } from "./data/cycle-history";
 import { nutritionPlans } from "./data/nutrition-plans";
 import { organizations } from "./data/organizations";
-import { pathologies } from "./data/pathologies";
 import { type PlanSeed, plans } from "./data/plans";
 import { subscriptionHistory } from "./data/subscription-history";
 import { type SubscriptionSeed, subscriptions } from "./data/subscriptions";
@@ -29,8 +25,6 @@ type DbShape = {
   subscriptionHistory: SubscriptionHistoryRecord[];
   bodyMetrics: BodyMetricsRecord[];
   nutritionPlans: NutritionPlanRecord[];
-  cycleHistory: CycleRecord[];
-  pathologies: PathologyRecord[];
 };
 
 // Seed data (immutable defaults)
@@ -43,8 +37,6 @@ const seedData: DbShape = {
   subscriptionHistory: [...subscriptionHistory],
   bodyMetrics: [...bodyMetrics],
   nutritionPlans: [...nutritionPlans],
-  cycleHistory: [...cycleHistory],
-  pathologies: [...pathologies],
 };
 
 // Load persisted data, merging with seed data
@@ -125,8 +117,6 @@ function createPersistentDb(): DbShape {
     subscriptionHistory: wrapArray(data.subscriptionHistory),
     bodyMetrics: wrapArray(data.bodyMetrics),
     nutritionPlans: wrapArray(data.nutritionPlans),
-    cycleHistory: wrapArray(data.cycleHistory),
-    pathologies: wrapArray(data.pathologies),
   };
 }
 

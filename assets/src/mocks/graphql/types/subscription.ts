@@ -1,7 +1,5 @@
 // TEMPORARY: Remove when backend implements subscription queries
 
-import type { MutationError } from "./mutation-result";
-
 export type SubscriptionState = "active" | "suspended" | "expired" | "canceled";
 
 export interface SubscriptionPlan {
@@ -27,21 +25,4 @@ export interface Subscription {
   plan: SubscriptionPlan;
   subscriberId?: string;
   planId?: string;
-}
-
-export interface CreateSubscriptionInput {
-  subscriberId: string;
-  planId: string;
-  startDate?: string;
-}
-
-export interface CreateSubscriptionResult {
-  result: {
-    id: string;
-    startDate: string;
-    state: string;
-    subscriberId: string;
-    planId: string;
-  } | null;
-  errors: MutationError[];
 }

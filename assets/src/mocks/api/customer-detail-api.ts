@@ -2,9 +2,7 @@ import { gql } from "graphql-request";
 
 import type {
   BodyMetricsRecord,
-  CycleRecord,
   NutritionPlanRecord,
-  PathologyRecord,
   SubscriptionHistoryRecord,
 } from "@/mocks/types";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -64,39 +62,6 @@ const NutritionPlansHistoryQuery = gql`
         protein
         carbs
         fat
-      }
-    }
-  }
-`;
-
-const CycleHistoryQuery = gql`
-  query CycleHistory($customerId: String!) {
-    cycleHistory(customerId: $customerId) {
-      results {
-        id
-        customerId
-        startDate
-        endDate
-        cycleLength
-        symptoms
-      }
-    }
-  }
-`;
-
-const PathologiesListQuery = gql`
-  query PathologiesList($customerId: String!) {
-    pathologiesList(customerId: $customerId) {
-      results {
-        id
-        customerId
-        pathologyId
-        pathologyName
-        category
-        status
-        diagnosedDate
-        resolvedDate
-        notes
       }
     }
   }
@@ -163,20 +128,3 @@ export const fetchNutritionPlans = (
     "nutritionPlansHistory",
   );
 
-/** Fetch cycle history for a customer. */
-export const fetchCycleHistory = (customerId: string, organizationId: string) =>
-  fetchCustomerData<"cycleHistory", CycleRecord>(
-    customerId,
-    organizationId,
-    CycleHistoryQuery,
-    "cycleHistory",
-  );
-
-/** Fetch pathologies list for a customer. */
-export const fetchPathologies = (customerId: string, organizationId: string) =>
-  fetchCustomerData<"pathologiesList", PathologyRecord>(
-    customerId,
-    organizationId,
-    PathologiesListQuery,
-    "pathologiesList",
-  );

@@ -37,14 +37,4 @@ export const customerDetailHandlers = [
     () => db.nutritionPlans,
     "nutritionPlansHistory",
   ),
-  createCustomerDataHandler(
-    "CycleHistory",
-    () => db.cycleHistory,
-    "cycleHistory",
-  ),
-  createCustomerDataHandler(
-    "PathologiesList",
-    () => db.pathologies,
-    "pathologiesList",
-  ),
 ];
