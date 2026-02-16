@@ -2,6 +2,7 @@ defmodule Chironium.Datatypes.CodeableConcept do
   @moduledoc """
   https://hl7.org/fhir/R5/datatypes.html#CodeableConcept
   """
+
   use Ash.Resource,
     data_layer: :embedded,
     embed_nil_values?: false,

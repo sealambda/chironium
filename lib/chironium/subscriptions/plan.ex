@@ -35,9 +35,7 @@ defmodule Chironium.Subscriptions.Plan do
       public? true
     end
 
-    # TODO ISO8601 duration
-    # attribute :period_duration, :duration do
-    attribute :period_duration, :string do
+    attribute :duration, Chironium.Datatypes.Duration do
       public? true
     end
 
