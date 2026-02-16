@@ -83,7 +83,7 @@ defmodule Chironium.Subscriptions.Subscription do
   end
 
   relationships do
-    belongs_to :subscriber, Chironium.CRM.Contact do
+    belongs_to :subscriber, Chironium.CRM.Person do
       public? true
       allow_nil? false
     end

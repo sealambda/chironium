@@ -11,8 +11,7 @@ defmodule Chironium.CRM do
     show? true
 
     show_resources [
-      Chironium.CRM.Contact,
-      Chironium.CRM.ContactPoint
+      Chironium.CRM.Person
     ]
   end
 
@@ -21,7 +20,6 @@ defmodule Chironium.CRM do
   end
 
   resources do
-    resource Chironium.CRM.Contact
-    resource Chironium.CRM.ContactPoint
+    resource Chironium.CRM.Person
   end
 end
