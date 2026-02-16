@@ -69,6 +69,10 @@
   "sub_no_active": "No active plan",
   "sub_today": "Ends today",
   "sub_expired": "Expired",
+  "sub_days_remaining": "{count} day to go",
+  "sub_months_remaining": "{count} month to go",
+  "sub_years_remaining": "{count} year to go",
+  "subscription_label": "Subscription",
 
   "biometric_recorded_days_ago": "Recorded {count} days ago",
   "biometric_recorded_today": "Recorded today",
@@ -78,6 +82,7 @@
 
   "biometric_group_torso": "Torso",
   "biometric_group_limbs": "Limbs",
+  "biometric_view_history": "View historical data",
 
   "nutrition_no_plan": "No nutrition plan",
   "nutrition_no_plan_desc": "Tap to create the first plan",
@@ -89,5 +94,6 @@
   "nutrition_macro_carbs": "Carbs",
   "nutrition_macro_fat": "Fats",
   "nutrition_started_today": "Started today",
-  "nutrition_started_days_ago": "Started {count} days ago"
+  "nutrition_started_days_ago": "Started {count} days ago",
+  "nutrition_view_history": "View plan details"
 }
