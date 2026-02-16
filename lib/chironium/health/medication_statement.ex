@@ -46,11 +46,11 @@ defmodule Chironium.Health.MedicationStatement do
       public? true
     end
 
-    attribute :code, Chironium.Health.Datatypes.CodeableConcept do
+    attribute :code, Chironium.Datatypes.CodeableConcept do
       public? true
     end
 
-    attribute :note, {:array, Chironium.Health.Datatypes.Annotation} do
+    attribute :note, {:array, Chironium.Datatypes.Annotation} do
       description "Further information about the usage"
       public? true
     end

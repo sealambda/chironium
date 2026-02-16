@@ -41,12 +41,33 @@ input AllergyIntoleranceCodeInput {
 }
 
 input PractitionerNameInput {
+  "Family name (often called 'Surname')"
   family: String
+
+  "Time period when name was\/is in use"
   period: HumanNamePeriodInput
+
+  """
+  Parts that come before the name
+  This repeating element order: Prefix elements appear in order before the name
+  """
   prefix: [String!]
+
+  "Text representation of the full name"
   text: String
+
+  """
+  Parts that come after the name
+  This repeating element order: Suffixes appear in the correct order for presenting the name
+  """
   suffix: [String!]
+
   use: NameUse
+
+  """
+  Given names (not always 'first'). Includes middle names
+  This repeating element order: Given Names appear in the correct order for presenting the name
+  """
   given: [String!]
 }
 
@@ -115,22 +136,64 @@ input HumanNamePeriodInput {
 }
 
 input PatientNameInput {
+  "Family name (often called 'Surname')"
   family: String
+
+  "Time period when name was\/is in use"
   period: HumanNamePeriodInput
+
+  """
+  Parts that come before the name
+  This repeating element order: Prefix elements appear in order before the name
+  """
   prefix: [String!]
+
+  "Text representation of the full name"
   text: String
+
+  """
+  Parts that come after the name
+  This repeating element order: Suffixes appear in the correct order for presenting the name
+  """
   suffix: [String!]
+
   use: NameUse
+
+  """
+  Given names (not always 'first'). Includes middle names
+  This repeating element order: Given Names appear in the correct order for presenting the name
+  """
   given: [String!]
 }
 
 type HumanName {
   use: NameUse
+
+  "Text representation of the full name"
   text: String
+
+  "Family name (often called 'Surname')"
   family: String
+
+  """
+  Given names (not always 'first'). Includes middle names
+  This repeating element order: Given Names appear in the correct order for presenting the name
+  """
   given: [String!]
+
+  """
+  Parts that come before the name
+  This repeating element order: Prefix elements appear in order before the name
+  """
   prefix: [String!]
+
+  """
+  Parts that come after the name
+  This repeating element order: Suffixes appear in the correct order for presenting the name
+  """
   suffix: [String!]
+
+  "Time period when name was\/is in use"
   period: Period
 }
 
