@@ -1,4 +1,4 @@
-defmodule Chironium.Health.Datatypes.CodeableConcept do
+defmodule Chironium.Datatypes.CodeableConcept do
   @moduledoc """
   https://hl7.org/fhir/R5/datatypes.html#CodeableConcept
   """
@@ -12,7 +12,7 @@ defmodule Chironium.Health.Datatypes.CodeableConcept do
   end
 
   attributes do
-    attribute :coding, {:array, Chironium.Health.Datatypes.Coding} do
+    attribute :coding, {:array, Chironium.Datatypes.Coding} do
       public? true
     end
 
