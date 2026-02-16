@@ -50,8 +50,8 @@ mocks/
 
 | Directory            | Contains                        | Used By               | Example                                    |
 | -------------------- | ------------------------------- | --------------------- | ------------------------------------------ |
-| `types/`             | Entity/record types             | API layer, handlers   | `BodyMetricsRecord`, `CycleRecord`         |
-| `graphql/types/`     | GraphQL input/output types      | API layer, handlers   | `CreateSubscriptionInput`, `Subscription`  |
+| `types/`             | Entity/record types             | API layer, handlers   | `BodyMetricsRecord`, `NutritionPlanRecord` |
+| `graphql/types/`     | GraphQL input/output types      | API layer, handlers   | `Subscription`, `SubscriptionPlan`         |
 | `graphql/documents/` | Reusable query/mutation strings | API layer             | `SubscriptionListQuery`                    |
 
 ## Adding a New Mocked Feature
