@@ -1,5 +1,5 @@
 import { differenceInDays } from "date-fns";
-import { Beef, Droplet, LeafIcon, Wheat } from "lucide-react";
+import { Beef, ChevronRight, Droplet, LeafIcon, Wheat } from "lucide-react";
 
 import type { NutritionPlanRecord } from "@/mocks/types";
 import * as m from "@/paraglide/messages";
@@ -31,7 +31,7 @@ function HeroSection({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
   const daysAgo = differenceInDays(new Date(), new Date(plan.startDate));
 
   return (
-    <div className="space-y-0.5">
+    <div className="min-h-19 space-y-0.5">
       {/* Primary metric */}
       <div className="flex items-baseline gap-2">
         <span className="font-bold text-3xl text-foreground tabular-nums">
@@ -109,9 +109,9 @@ function MacroIndicatorsRow({
 
 export function NutritionPlanSummaryCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+    <div className="flex h-fit flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
       {/* Hero: kcal, recency */}
-      <div className="space-y-1.5">
+      <div className="min-h-19 space-y-1.5">
         <div className="flex items-baseline gap-2">
           <Skeleton className="h-9 w-20" />
           <Skeleton className="h-5 w-10" />
@@ -167,11 +167,11 @@ export function NutritionPlanSummaryCard({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+    <div className="flex h-fit flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
       {/* Section A: Hero — kcal, recency */}
       <HeroSection plan={plan} />
 
-      <div className="my-4 h-px bg-neutral-300" />
+      <div className="my-4 h-px bg-neutral-200" />
 
       {/* Section B: Macro Indicators — fills remaining space */}
       <div className="flex flex-1 items-center pb-4">
@@ -181,6 +181,17 @@ export function NutritionPlanSummaryCard({
           fat={plan.fat}
           totalKcal={plan.kcal}
         />
+      </div>
+
+      {/* Footer action — pinned to bottom */}
+      <div className="mt-auto border-neutral-200 border-t pt-3">
+        <a
+          href="#nutrition-history"
+          className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
+        >
+          <span>{m.nutrition_view_history()}</span>
+          <ChevronRight className="size-4" />
+        </a>
       </div>
     </div>
   );

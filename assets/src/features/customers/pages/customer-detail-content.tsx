@@ -20,7 +20,7 @@ export function CustomerDetailContent({ customer, detail }: Readonly<CustomerDet
 
       <SubscriptionCard subscription={currentSubscription} isLoading={subscriptions.isLoading} />
 
-      <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
+      <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
         <BiometricSummaryCard history={bodyMetrics.data ?? []} isLoading={bodyMetrics.isLoading} />
         <NutritionPlanSummaryCard plan={activeNutritionPlan} isLoading={nutritionPlans.isLoading} />
       </div>
