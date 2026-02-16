@@ -1,4 +1,4 @@
-defmodule Chironium.Health.Datatypes.HumanName do
+defmodule Chironium.Datatypes.HumanName do
   @moduledoc """
   https://hl7.org/fhir/R5/datatypes.html#HumanName
   """
@@ -12,10 +12,8 @@ defmodule Chironium.Health.Datatypes.HumanName do
     type :human_name
   end
 
-  alias Chironium.Health.Datatypes
-
   attributes do
-    attribute :use, Datatypes.HumanName.NameUse do
+    attribute :use, Chironium.Datatypes.HumanName.NameUse do
       default :usual
       public? true
     end
@@ -57,7 +55,7 @@ defmodule Chironium.Health.Datatypes.HumanName do
       public? true
     end
 
-    attribute :period, Datatypes.Period do
+    attribute :period, Chironium.Datatypes.Period do
       description "Time period when name was/is in use"
       public? true
     end

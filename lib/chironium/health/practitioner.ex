@@ -31,7 +31,7 @@ defmodule Chironium.Health.Practitioner do
   end
 
   attributes do
-    attribute :name, {:array, Chironium.Health.Datatypes.HumanName} do
+    attribute :name, {:array, Chironium.Datatypes.HumanName} do
       allow_nil? false
       public? true
     end

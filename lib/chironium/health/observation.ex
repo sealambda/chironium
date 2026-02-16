@@ -114,15 +114,15 @@ defmodule Chironium.Health.Observation do
       public? true
     end
 
-    attribute :code, Chironium.Health.Datatypes.CodeableConcept do
+    attribute :code, Chironium.Datatypes.CodeableConcept do
       public? true
     end
 
-    attribute :value_quantity, Chironium.Health.Datatypes.Quantity do
+    attribute :value_quantity, Chironium.Datatypes.Quantity do
       public? true
     end
 
-    attribute :value_codeable_concept, Chironium.Health.Datatypes.CodeableConcept do
+    attribute :value_codeable_concept, Chironium.Datatypes.CodeableConcept do
       public? true
     end
 
@@ -130,7 +130,7 @@ defmodule Chironium.Health.Observation do
       public? true
     end
 
-    attribute :note, {:array, Chironium.Health.Datatypes.Annotation} do
+    attribute :note, {:array, Chironium.Datatypes.Annotation} do
       description "Comments about the observation"
       public? true
     end

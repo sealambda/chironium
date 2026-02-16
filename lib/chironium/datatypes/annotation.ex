@@ -1,4 +1,4 @@
-defmodule Chironium.Health.Datatypes.Annotation do
+defmodule Chironium.Datatypes.Annotation do
   @moduledoc """
   https://hl7.org/fhir/R5/datatypes.html#Annotation
   """

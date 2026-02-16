@@ -1,4 +1,4 @@
-defmodule Chironium.Health.Datatypes.Coding do
+defmodule Chironium.Datatypes.Coding do
   @moduledoc """
   https://hl7.org/fhir/R5/datatypes.html#Coding
 

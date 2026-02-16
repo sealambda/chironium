@@ -1,4 +1,4 @@
-defmodule Chironium.Health.Datatypes.HumanName.NameUse do
+defmodule Chironium.Datatypes.HumanName.NameUse do
   @moduledoc """
   https://hl7.org/fhir/R5/valueset-name-use.html
   """

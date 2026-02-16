@@ -1,4 +1,4 @@
-defmodule Chironium.Health.Datatypes.Period do
+defmodule Chironium.Datatypes.Period do
   @moduledoc """
   https://hl7.org/fhir/R5/datatypes.html#Period
   """
