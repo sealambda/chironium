@@ -1555,7 +1555,7 @@ type CreateObservationResult {
 }
 
 input CreateObservationInput {
-  status: ObservationStatus!
+  status: ObservationStatus
 
   code: ObservationCodeInput
 
@@ -1576,6 +1576,21 @@ enum ObservationSortField {
   STATUS
   VALUE_STRING
   SUBJECT_ID
+}
+
+"A keyset page of :observation"
+type KeysetPageOfObservation {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Observation!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
 }
 
 input ObservationFilterSubjectId {
@@ -2043,6 +2058,73 @@ type RootQueryType {
     "The id of the record"
     id: ID!
   ): Patient
+
+  listObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  getObservation(
+    "The id of the record"
+    id: ID!
+  ): Observation
+
+  "Read all body weight observations."
+  listBodyWeightObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  "Read all body height observations."
+  listBodyHeightObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
 
   listSubscriptionPlans(
     "How to sort the records in the response"
