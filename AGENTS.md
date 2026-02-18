@@ -131,3 +131,49 @@ If a file has zero importers, delete it. Verify with `grep` before deletion to c
 ### Read-Only Customer Feature
 
 The customers feature is strictly for viewing and managing existing data. No creation or onboarding flows exist in the codebase.
+
+## TypeScript Import Conventions
+
+### Three-Tier Rule
+
+All TypeScript/TSX imports must follow this order, separated by blank lines:
+
+1. **External packages** — npm dependencies (e.g., `react`, `@tanstack/react-query`).
+2. **`@/` absolute alias** — any import that crosses a directory boundary, resolved from `src/`.
+3. **`./` relative** — same-directory files only.
+
+`../` parent-relative imports are **never** allowed. Convert all `../` imports to `@/`.
+
+**`./` is only valid when the target file is in the same directory as the importing file.**
+Imports that descend into subdirectories (e.g., `"./handlers/customer-detail"`) must use `@/`.
+
+```typescript
+// Correct.
+import { useQuery } from "@tanstack/react-query";
+
+import { useOrg } from "@/features/org/hooks/use-org";
+import { fetchCustomerList } from "@/features/customers/api/customers-api";
+
+import { CustomerCard } from "./customer-card";
+```
+
+```typescript
+// Wrong — never use ../ paths.
+import { CustomerCard } from "../ui/customer-card";
+
+// Wrong — ./handlers/ is a subdirectory, not a sibling file.
+import { customerDetailHandlers } from "./handlers/customer-detail";
+```
+
+### Tooling
+
+Biome's `organizeImports` (configured in `biome.jsonc`) enforces import group ordering
+automatically. Run `pnpm check:fix` after edits to auto-sort imports.
+
+### Auto-Generated Files (Do Not Touch)
+
+Never manually edit imports in these generated files:
+
+- `src/routeTree.gen.ts` — TanStack Router
+- `src/gql/fragment-masking.ts`, `src/gql/gql.ts`, `src/gql/graphql.ts`, `src/gql/index.ts` — GraphQL Codegen
+- `src/paraglide/` — Paraglide i18n
