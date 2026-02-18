@@ -18,10 +18,22 @@ defmodule Chironium.Health.Observation do
   @unit_of_measure_code_kg "kg"
   @unit_of_measure_code_cm "cm"
   @unit_of_measure_code_bmi "kg/m2"
+
   @loinc_system "http://loinc.org"
   @loinc_code_body_weight "29463-7"
   @loinc_code_body_height "8302-2"
   @loinc_code_bmi "39156-5"
+
+  @loinc_code_chest_circumference "8279-2"
+  @loinc_code_hip_circumference "56063-1"
+
+  # According to LOINC hip is "Circumference.at maximal protrusion of gluteus muscles Pelvis"
+  @loinc_code_waist_circumference "8280-0"
+
+  @loinc_code_arm_right_circumference "56072-2"
+  @loinc_code_thigh_right_circumference "8286-7"
+
+  # @loinc_code_thigh_left_circumference "8285-9" - not sure why left is available for thigh but not for arm... just for reference
 
   postgres do
     table "observations"
@@ -36,16 +48,28 @@ defmodule Chironium.Health.Observation do
 
     mutations do
       create :create_observation, :create
+
       create :log_body_weight, :log_body_weight
       create :log_body_height, :log_body_height
+      create :log_chest_circumference, :log_chest_circumference
+      create :log_hip_circumference, :log_hip_circumference
+      create :log_waist_circumference, :log_waist_circumference
+      create :log_arm_circumference, :log_arm_circumference
+      create :log_thigh_circumference, :log_thigh_circumference
     end
 
     queries do
       list :list_observations, :read
       get :get_observation, :read
+
       list :list_body_weight_observations, :read_body_weight
       list :list_body_height_observations, :read_body_height
       list :list_bmi_observations, :read_bmi
+      list :list_chest_circumference_observations, :read_chest_circumference
+      list :list_hip_circumference_observations, :read_hip_circumference
+      list :list_waist_circumference_observations, :read_waist_circumference
+      list :list_arm_circumference_observations, :read_arm_circumference
+      list :list_thigh_circumference_observations, :read_thigh_circumference
     end
   end
 
@@ -56,6 +80,7 @@ defmodule Chironium.Health.Observation do
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
 
+    ### Body Weight
     create :log_body_weight do
       description """
       Log a body weight observation.
@@ -114,6 +139,20 @@ defmodule Chironium.Health.Observation do
              end)
     end
 
+    read :read_body_weight do
+      description "Read all body weight observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_body_weight}]}
+               )
+             )
+    end
+
+    ### Body Height
     create :log_body_height do
       description """
       Log a body height observation.
@@ -172,6 +211,20 @@ defmodule Chironium.Health.Observation do
              end)
     end
 
+    read :read_body_height do
+      description "Read all body height observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_body_height}]}
+               )
+             )
+    end
+
+    ### BMI
     create :compute_bmi do
       description "Auto-generate a BMI observation from the latest weight and height."
       accept [:subject_id]
@@ -227,32 +280,6 @@ defmodule Chironium.Health.Observation do
       end
     end
 
-    read :read_body_weight do
-      description "Read all body weight observations."
-      pagination default_limit: 1, keyset?: true
-
-      filter expr(
-               fragment(
-                 "? @> ?::jsonb",
-                 code,
-                 %{coding: [%{system: @loinc_system, code: @loinc_code_body_weight}]}
-               )
-             )
-    end
-
-    read :read_body_height do
-      description "Read all body height observations."
-      pagination default_limit: 1, keyset?: true
-
-      filter expr(
-               fragment(
-                 "? @> ?::jsonb",
-                 code,
-                 %{coding: [%{system: @loinc_system, code: @loinc_code_body_height}]}
-               )
-             )
-    end
-
     read :read_bmi do
       description "Read all BMI observations."
       pagination default_limit: 1, keyset?: true
@@ -262,6 +289,207 @@ defmodule Chironium.Health.Observation do
                  "? @> ?::jsonb",
                  code,
                  %{coding: [%{system: @loinc_system, code: @loinc_code_bmi}]}
+               )
+             )
+    end
+
+    ### Chest Circumference
+    create :log_chest_circumference do
+      description "Log a chest circumference observation."
+      accept [:subject_id, :note]
+
+      argument :chest_circumference_cm, :float do
+        description "The chest circumference in centimeters"
+        constraints greater_than: 0
+        allow_nil? false
+      end
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_chest_circumference,
+                   display: "Chest Circumference at nipple line"
+                 }
+               ]
+             })
+
+      change set_attribute(:value_quantity, %{
+               system: @unit_of_measure_system,
+               code: @unit_of_measure_code_cm,
+               value: arg(:chest_circumference_cm)
+             })
+    end
+
+    read :read_chest_circumference do
+      description "Read all chest circumference observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_chest_circumference}]}
+               )
+             )
+    end
+
+    ### Hip Circumference
+    create :log_hip_circumference do
+      description "Log a hip circumference observation."
+      accept [:subject_id, :note]
+
+      argument :hip_circumference_cm, :float do
+        description "The hip circumference in centimeters"
+        constraints greater_than: 0
+        allow_nil? false
+      end
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_hip_circumference,
+                   display: "Circumference.at maximal protrusion of gluteus muscles Pelvis"
+                 }
+               ]
+             })
+
+      change set_attribute(:value_quantity, %{
+               system: @unit_of_measure_system,
+               code: @unit_of_measure_code_cm,
+               value: arg(:hip_circumference_cm)
+             })
+    end
+
+    read :read_hip_circumference do
+      description "Read all hip circumference observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_hip_circumference}]}
+               )
+             )
+    end
+
+    ### Waist Circumference
+    create :log_waist_circumference do
+      description "Log a waist circumference observation."
+      accept [:subject_id, :note]
+
+      argument :waist_circumference_cm, :float do
+        description "The waist circumference in centimeters"
+        constraints greater_than: 0
+        allow_nil? false
+      end
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_waist_circumference,
+                   display: "Waist Circumference"
+                 }
+               ]
+             })
+
+      change set_attribute(:value_quantity, %{
+               system: @unit_of_measure_system,
+               code: @unit_of_measure_code_cm,
+               value: arg(:waist_circumference_cm)
+             })
+    end
+
+    read :read_waist_circumference do
+      description "Read all waist circumference observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_waist_circumference}]}
+               )
+             )
+    end
+
+    ### Arm Circumference
+    create :log_arm_circumference do
+      description "Log a arm circumference observation."
+      accept [:subject_id, :note]
+
+      argument :arm_circumference_cm, :float do
+        description "The arm circumference in centimeters"
+        constraints greater_than: 0
+        allow_nil? false
+      end
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_arm_right_circumference,
+                   display: "Circumference Mid upper arm - right"
+                 }
+               ]
+             })
+    end
+
+    read :read_arm_circumference do
+      description "Read all arm circumference observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_arm_right_circumference}]}
+               )
+             )
+    end
+
+    ### Thigh Circumference
+    create :log_thigh_circumference do
+      description "Log a thigh circumference observation."
+      accept [:subject_id, :note]
+
+      argument :thigh_circumference_cm, :float do
+        description "The thigh circumference in centimeters"
+        constraints greater_than: 0
+        allow_nil? false
+      end
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_thigh_right_circumference,
+                   display: "Thigh - right Maximum circumference"
+                 }
+               ]
+             })
+
+      change set_attribute(:value_quantity, %{
+               system: @unit_of_measure_system,
+               code: @unit_of_measure_code_cm,
+               value: arg(:thigh_circumference_cm)
+             })
+    end
+
+    read :read_thigh_circumference do
+      description "Read all thigh circumference observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{
+                   coding: [%{system: @loinc_system, code: @loinc_code_thigh_right_circumference}]
+                 }
                )
              )
     end
