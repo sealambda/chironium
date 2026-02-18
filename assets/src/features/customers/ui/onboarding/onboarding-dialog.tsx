@@ -2,24 +2,23 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import {
-  type AllergiesFormData,
-  type BodyMeasurementsFormData,
-  type FoodFormData,
-  type MenstrualCycleFormData,
-  type NoteFormData,
-  type OnboardingDraft,
-  type PersonFormData,
-  type SubscriptionFormData,
-  submitOnboarding,
-} from "@/features/customers/api/onboarding-api";
+import type { AllergiesFormData } from "@/features/customers/api/allergy-intolerance-api";
+import type { AnthropometryFormData } from "@/features/customers/api/anthropometry-api";
+import type {
+  FoodFormData,
+  MenstrualCycleFormData,
+  NoteFormData,
+} from "@/features/customers/api/observations-api";
+import { type OnboardingDraft, submitOnboarding } from "@/features/customers/api/onboarding-api";
+import type { PersonFormData } from "@/features/customers/api/patients-api";
+import type { SubscriptionFormData } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { StepIndicator } from "@/shared/ui/step-indicator";
 
 import { AllergiesStep } from "./allergies-step";
-import { BodyMeasurementsStep } from "./body-measurements-step";
+import { AnthropometryStep } from "./anthropometry-step";
 import { FoodStep } from "./food-step";
 import { MenstrualCycleStep } from "./menstrual-cycle-step";
 import { NotesStep } from "./notes-step";
@@ -48,7 +47,7 @@ const EMPTY_DRAFT: OnboardingDraft = {
   subscription: null,
   objective: null,
   menstrualCycle: null,
-  bodyMeasurements: null,
+  anthropometry: null,
   allergies: null,
   food: null,
   notes: null,
@@ -192,9 +191,9 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
       );
     case 4:
       return (
-        <BodyMeasurementsStep
-          initialData={draft.bodyMeasurements ?? undefined}
-          onSubmit={(data: BodyMeasurementsFormData) => advance({ bodyMeasurements: data }, 5)}
+        <AnthropometryStep
+          initialData={draft.anthropometry ?? undefined}
+          onSubmit={(data: AnthropometryFormData) => advance({ anthropometry: data }, 5)}
           onBack={() => goBack(3)}
         />
       );

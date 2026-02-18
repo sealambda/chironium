@@ -1,8 +1,9 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
+import { fetchAnthropometry } from "@/features/customers/api/anthropometry-api";
+import { fetchNutritionPlans } from "@/features/customers/api/nutrition-plans-api";
 import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
-import { fetchBodyMetrics, fetchNutritionPlans } from "@/mocks/api/customer-detail-api";
 
 /** Combine loading states from multiple queries. */
 function combineLoadingState(...queries: UseQueryResult<unknown, Error>[]) {
@@ -26,21 +27,19 @@ export function usePersonDetail(personId: string) {
   });
 
   const subscriptions = useQuery(queryConfig("subscriptions", fetchSubscriptionsByPerson));
-  const bodyMetrics = useQuery(queryConfig("bodyMetrics", fetchBodyMetrics));
+  const anthropometry = useQuery(queryConfig("anthropometry", fetchAnthropometry));
   const nutritionPlans = useQuery(queryConfig("nutritionPlans", fetchNutritionPlans));
 
   // Derived state for cards
   const currentSubscription = subscriptions.data?.[0];
 
-  const activeNutritionPlan = nutritionPlans.data?.find(
-    (plan) => !plan.endDate || new Date(plan.endDate) > new Date(),
-  );
+  const activeNutritionPlan = nutritionPlans.data?.[0];
 
-  const isLoading = combineLoadingState(subscriptions, bodyMetrics, nutritionPlans);
+  const isLoading = combineLoadingState(subscriptions, anthropometry, nutritionPlans);
 
   return {
     subscriptions,
-    bodyMetrics,
+    anthropometry,
     nutritionPlans,
     currentSubscription,
     activeNutritionPlan,

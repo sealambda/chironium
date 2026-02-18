@@ -1,7 +1,6 @@
-import { differenceInDays } from "date-fns";
 import { Beef, ChevronRight, Droplet, LeafIcon, Wheat } from "lucide-react";
 
-import type { NutritionPlanRecord } from "@/mocks/types";
+import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -28,24 +27,18 @@ function macroPct(grams: number, type: keyof typeof KCAL_PER_GRAM, totalKcal: nu
 // ─── Section A: Hero ─────────────────────────────────────────────────
 
 function HeroSection({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
-  const daysAgo = differenceInDays(new Date(), new Date(plan.startDate));
-
   return (
     <div className="min-h-19 space-y-0.5">
       {/* Primary metric */}
       <div className="flex items-baseline gap-2">
         <span className="font-bold text-3xl text-foreground tabular-nums">
-          {plan.kcal.toLocaleString()}
+          {plan.targetKcal.toLocaleString()}
         </span>
         <span className="text-foreground/65 text-sm">Kcal</span>
       </div>
 
-      {/* Recency */}
-      <div className="text-foreground/65 text-xs">
-        {daysAgo === 0
-          ? m.nutrition_started_today()
-          : m.nutrition_started_days_ago({ count: daysAgo })}
-      </div>
+      {/* Status */}
+      <div className="text-foreground/65 text-xs">{m.nutrition_active_plan()}</div>
     </div>
   );
 }
@@ -176,10 +169,10 @@ export function NutritionPlanSummaryCard({
       {/* Section B: Macro Indicators — fills remaining space */}
       <div className="flex flex-1 items-center pb-4">
         <MacroIndicatorsRow
-          protein={plan.protein}
-          carbs={plan.carbs}
-          fat={plan.fat}
-          totalKcal={plan.kcal}
+          protein={plan.proteinG}
+          carbs={plan.carbsG}
+          fat={plan.fatG}
+          totalKcal={plan.targetKcal}
         />
       </div>
 
