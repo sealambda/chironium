@@ -4,7 +4,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build",
+    "build": "paraglide-js compile --emit-ts-declarations && tsc -b && vite build",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "codegen": "graphql-codegen --config codegen.ts",
