@@ -1,32 +1,12 @@
 import { gql } from "graphql-request";
 
-import type {
-  BodyMetricsRecord,
-  NutritionPlanRecord,
-  SubscriptionHistoryRecord,
-} from "@/mocks/types";
+import type { BodyMetricsRecord, NutritionPlanRecord } from "@/mocks/types";
 import { requestGraphql } from "@/shared/api/graphql";
 
 /**
- * GraphQL queries for customer detail data.
- * These match the MSW mock handler operation names.
+ * MSW-intercepted queries for customer detail data not yet in the backend.
+ * Will be removed when biometrics and nutrition plan APIs are implemented.
  */
-
-const SubscriptionHistoryQuery = gql`
-  query SubscriptionHistory($customerId: String!) {
-    subscriptionHistory(customerId: $customerId) {
-      results {
-        id
-        customerId
-        startDate
-        endDate
-        planDurationMonths
-        status
-        notes
-      }
-    }
-  }
-`;
 
 const BodyMetricsHistoryQuery = gql`
   query BodyMetricsHistory($customerId: String!) {
@@ -67,15 +47,10 @@ const NutritionPlansHistoryQuery = gql`
   }
 `;
 
-// Generic response type for customer data queries
 type CustomerDataResponse<K extends string, T> = {
   [key in K]: { results: T[] };
 };
 
-/**
- * Generic fetcher for customer-scoped GraphQL queries.
- * Handles validation and result extraction with consistent error handling.
- */
 async function fetchCustomerData<K extends string, T>(
   customerId: string,
   organizationId: string,
@@ -94,18 +69,6 @@ async function fetchCustomerData<K extends string, T>(
 
   return result[resultKey]?.results ?? [];
 }
-
-/** Fetch subscription history for a customer. */
-export const fetchSubscriptionHistory = (
-  customerId: string,
-  organizationId: string,
-) =>
-  fetchCustomerData<"subscriptionHistory", SubscriptionHistoryRecord>(
-    customerId,
-    organizationId,
-    SubscriptionHistoryQuery,
-    "subscriptionHistory",
-  );
 
 /** Fetch body metrics history for a customer. */
 export const fetchBodyMetrics = (customerId: string, organizationId: string) =>
@@ -127,4 +90,3 @@ export const fetchNutritionPlans = (
     NutritionPlansHistoryQuery,
     "nutritionPlansHistory",
   );
-

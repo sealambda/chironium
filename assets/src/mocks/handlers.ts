@@ -1,11 +1,3 @@
-import { customerDetailHandlers } from "./handlers/customer-detail";
-import { organizationHandlers } from "./handlers/organization";
-import { subscriptionHandlers } from "./handlers/subscription";
-import { userHandlers } from "./handlers/user";
+import { customerDetailHandlers } from "@/mocks/handlers/customer-detail";
 
-export const handlers = [
-  ...userHandlers,
-  ...organizationHandlers,
-  ...subscriptionHandlers,
-  ...customerDetailHandlers,
-];
+export const handlers = [...customerDetailHandlers];
