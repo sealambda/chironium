@@ -124,10 +124,14 @@
   "common_finish": "Finish",
 
   "onboarding_title": "New Customer",
-  "onboarding_desc": "Complete the steps below to onboard a new customer.",
   "onboarding_step_personal": "Personal Info",
   "onboarding_step_subscription": "Subscription",
   "onboarding_step_objective": "Objective",
+  "onboarding_step_cycle": "Cycle",
+  "onboarding_step_body": "Body",
+  "onboarding_step_allergies": "Allergies",
+  "onboarding_step_food": "Food",
+  "onboarding_step_notes": "Notes",
   "onboarding_success": "Customer created successfully.",
   "onboarding_error": "Something went wrong. Please try again.",
 
@@ -152,5 +156,52 @@
   "plan_placeholder": "Select a plan",
   "plan_no_plans": "No plans available",
 
-  "validation_required": "This field is required."
+  "step_personal_title": "Personal Information",
+  "step_personal_desc": "Enter the customer's personal details.",
+  "step_subscription_title": "Subscription Plan",
+  "step_subscription_desc": "Select a subscription plan and start date.",
+  "step_objective_title": "Customer Objective",
+  "step_objective_desc": "Describe the customer's main health or fitness goal.",
+  "step_cycle_title": "Last Menstrual Cycle",
+  "step_cycle_desc": "Record the dates and any notes about the last menstrual cycle.",
+  "step_body_title": "Body Measurements",
+  "step_body_desc": "Record the customer's current height and weight.",
+  "step_allergies_title": "Allergies & Intolerances",
+  "step_allergies_desc": "List any known allergies and food intolerances.",
+  "step_food_title": "Dietary Preferences",
+  "step_food_desc": "Specify foods that should or should not be part of the diet.",
+  "step_notes_title": "Important Notes",
+  "step_notes_desc": "Add any additional notes relevant to the customer's care.",
+
+  "field_cycle_start_date": "Start Date",
+  "field_cycle_end_date": "End Date",
+  "field_cycle_notes": "Additional Notes",
+  "field_cycle_notes_placeholder": "Any additional information about the menstrual cycle...",
+
+  "field_height_cm": "Height (cm)",
+  "field_weight_kg": "Weight (kg)",
+  "field_height_placeholder": "e.g. 165",
+  "field_weight_placeholder": "e.g. 62",
+
+  "field_allergies": "Allergies",
+  "field_allergies_placeholder": "List known allergies...",
+  "field_intolerances": "Intolerances",
+  "field_intolerances_placeholder": "List known food intolerances...",
+
+  "field_food_included": "Food to Include",
+  "field_food_included_placeholder": "Food that must be included in the diet...",
+  "field_food_excluded": "Food to Exclude",
+  "field_food_excluded_placeholder": "Food that must not be included in the diet...",
+
+  "field_note_title": "Title",
+  "field_note_title_placeholder": "Note title...",
+  "field_note_body": "Body",
+  "field_note_body_placeholder": "Write the note content...",
+  "note_add": "Add Note",
+  "note_remove": "Remove",
+  "note_added": "{count} note(s) added",
+  "note_empty_hint": "Add notes using the form above.",
+
+  "validation_required": "This field is required.",
+  "validation_positive_number": "Must be a positive number."
 }

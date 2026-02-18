@@ -7,8 +7,6 @@ import {
   type SubscriptionPlan,
 } from "@/features/customers/api/onboarding-api";
 import * as m from "@/paraglide/messages";
-import { Button } from "@/shared/ui/button";
-import { DialogFooter } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import {
@@ -20,6 +18,8 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Skeleton } from "@/shared/ui/skeleton";
+
+import { StepLayout } from "./step-layout";
 
 interface SubscriptionStepProps {
   readonly organizationId: string;
@@ -124,7 +124,15 @@ export function SubscriptionStep({ organizationId, onSubmit, onBack }: Subscript
   };
 
   return (
-    <>
+    <StepLayout
+      title={m.step_subscription_title()}
+      description={m.step_subscription_desc()}
+      isSubmitting={isSubmitting}
+      submitDisabled={plans.length === 0 && !plansLoading}
+      submittingLabel={m.common_creating()}
+      onSubmit={handleSubmit}
+      onBack={onBack}
+    >
       <FieldGroup>
         <Field data-invalid={Boolean(errors.planId)}>
           <FieldLabel>{m.field_plan()}</FieldLabel>
@@ -153,18 +161,6 @@ export function SubscriptionStep({ organizationId, onSubmit, onBack }: Subscript
           />
         </Field>
       </FieldGroup>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
-          {m.common_back()}
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || (plans.length === 0 && !plansLoading)}
-        >
-          {isSubmitting ? m.common_creating() : m.common_next()}
-        </Button>
-      </DialogFooter>
-    </>
+    </StepLayout>
   );
 }

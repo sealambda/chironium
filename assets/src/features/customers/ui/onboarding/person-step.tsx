@@ -3,8 +3,6 @@ import { useState } from "react";
 import type { PersonFormData } from "@/features/customers/api/onboarding-api";
 import type { AdministrativeGender } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
-import { Button } from "@/shared/ui/button";
-import { DialogFooter } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import {
@@ -22,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+
+import { StepLayout } from "./step-layout";
 
 interface PersonStepProps {
   readonly onSubmit: (data: PersonFormData) => Promise<void>;
@@ -85,7 +85,14 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
   };
 
   return (
-    <>
+    <StepLayout
+      title={m.step_personal_title()}
+      description={m.step_personal_desc()}
+      isSubmitting={isSubmitting}
+      submittingLabel={m.common_creating()}
+      onSubmit={handleSubmit}
+      onCancel={onCancel}
+    >
       <FieldGroup>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field data-invalid={Boolean(errors.givenName)}>
@@ -186,15 +193,6 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
           </InputGroup>
         </Field>
       </FieldGroup>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
-          {m.common_cancel()}
-        </Button>
-        <Button onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? m.common_creating() : m.common_next()}
-        </Button>
-      </DialogFooter>
-    </>
+    </StepLayout>
   );
 }
