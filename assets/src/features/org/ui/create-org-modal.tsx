@@ -1,7 +1,14 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  type OrgCreationDraft,
+  type PlanFormData,
+  submitOrgCreation,
+} from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { ORG_QUERY_KEY } from "@/features/org/store/org-store";
 import * as m from "@/paraglide/messages";
 import {
   Dialog,
@@ -22,19 +29,28 @@ interface CreateOrgModalProps {
 
 const STEPS = [{ label: () => m.org_step_details() }, { label: () => m.org_step_plans() }];
 
+const EMPTY_DRAFT: OrgCreationDraft = {
+  orgDetails: null,
+  plans: [],
+};
+
 /**
  * Multi-step dialog for creating a new organisation.
- * Step 1: Name and slug. Step 2: Define subscription plans.
+ * All form data is accumulated locally in a draft. Mutations only fire
+ * when the user clicks "Finish" on the last step.
  */
 export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
-  const { createOrg, selectOrg } = useOrg();
+  const { selectOrg } = useOrg();
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(0);
-  const [organizationId, setOrganizationId] = useState("");
+  const [draft, setDraft] = useState<OrgCreationDraft>(EMPTY_DRAFT);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const resetState = useCallback(() => {
     setCurrentStep(0);
-    setOrganizationId("");
+    setDraft(EMPTY_DRAFT);
+    setIsSubmitting(false);
     setError(null);
   }, []);
 
@@ -43,32 +59,32 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
     setTimeout(resetState, 200);
   }, [onOpenChange, resetState]);
 
-  const handleOrgSubmit = useCallback(
-    async (data: { name: string; slug: string }) => {
+  const handleOrgDetailsNext = useCallback((data: { name: string; slug: string }) => {
+    setDraft((prev) => ({ ...prev, orgDetails: data }));
+    setCurrentStep(1);
+  }, []);
+
+  const handleFinish = useCallback(
+    async (plans: PlanFormData[]) => {
+      const finalDraft: OrgCreationDraft = { ...draft, plans };
       setError(null);
+      setIsSubmitting(true);
       try {
-        const newOrg = await createOrg(data);
-        setOrganizationId(newOrg.id);
-        setCurrentStep(1);
+        const orgId = await submitOrgCreation(finalDraft);
+        // Invalidate the cached org list so selectOrg finds the new org.
+        await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
+        await selectOrg(orgId);
+        toast.success(m.org_created());
+        handleClose();
       } catch (err) {
         const message = err instanceof Error ? err.message : m.org_create_error();
         setError(message);
-        throw err;
+      } finally {
+        setIsSubmitting(false);
       }
     },
-    [createOrg],
+    [draft, queryClient, selectOrg, handleClose],
   );
-
-  const handleFinish = useCallback(async () => {
-    try {
-      await selectOrg(organizationId);
-      toast.success(m.org_created());
-      handleClose();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : m.org_create_error();
-      setError(message);
-    }
-  }, [organizationId, selectOrg, handleClose]);
 
   const stepLabels = STEPS.map((s) => ({ label: s.label() }));
 
@@ -88,9 +104,22 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
           </div>
         ) : null}
 
-        {currentStep === 0 && <OrgDetailsStep onSubmit={handleOrgSubmit} onCancel={handleClose} />}
+        {currentStep === 0 && (
+          <OrgDetailsStep
+            initialData={draft.orgDetails ?? undefined}
+            onSubmit={handleOrgDetailsNext}
+            onCancel={handleClose}
+          />
+        )}
 
-        {currentStep === 1 && <PlansStep organizationId={organizationId} onFinish={handleFinish} />}
+        {currentStep === 1 && (
+          <PlansStep
+            initialData={draft.plans.length > 0 ? draft.plans : undefined}
+            isSubmitting={isSubmitting}
+            onFinish={handleFinish}
+            onBack={() => setCurrentStep(0)}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -24,7 +24,8 @@ import {
 import { StepLayout } from "./step-layout";
 
 interface PersonStepProps {
-  readonly onSubmit: (data: PersonFormData) => Promise<void>;
+  readonly initialData?: PersonFormData;
+  readonly onSubmit: (data: PersonFormData) => void;
   readonly onCancel: () => void;
 }
 
@@ -38,15 +39,14 @@ const GENDER_OPTIONS: { value: AdministrativeGender; label: () => string }[] = [
 /**
  * Step 1: Collect personal information to create a patient with a person record.
  */
-export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
-  const [givenName, setGivenName] = useState("");
-  const [familyName, setFamilyName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [gender, setGender] = useState<AdministrativeGender | "">("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function PersonStep({ initialData, onSubmit, onCancel }: PersonStepProps) {
+  const [givenName, setGivenName] = useState(initialData?.givenName ?? "");
+  const [familyName, setFamilyName] = useState(initialData?.familyName ?? "");
+  const [birthDate, setBirthDate] = useState(initialData?.birthDate ?? "");
+  const [gender, setGender] = useState<AdministrativeGender | "">(initialData?.gender ?? "");
+  const [phone, setPhone] = useState(initialData?.phone ?? "");
+  const [email, setEmail] = useState(initialData?.email ?? "");
+  const [instagram, setInstagram] = useState(initialData?.instagram ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
@@ -61,35 +61,26 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validate()) {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await onSubmit({
-        givenName: givenName.trim(),
-        familyName: familyName.trim(),
-        birthDate: birthDate || undefined,
-        gender: (gender as AdministrativeGender) || undefined,
-        phone: phone || undefined,
-        email: email.trim() || undefined,
-        instagram: instagram.trim() || undefined,
-      });
-    } catch {
-      // Error handling is done in the parent dialog.
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSubmit({
+      givenName: givenName.trim(),
+      familyName: familyName.trim(),
+      birthDate: birthDate || undefined,
+      gender: (gender as AdministrativeGender) || undefined,
+      phone: phone || undefined,
+      email: email.trim() || undefined,
+      instagram: instagram.trim() || undefined,
+    });
   };
 
   return (
     <StepLayout
       title={m.step_personal_title()}
       description={m.step_personal_desc()}
-      isSubmitting={isSubmitting}
-      submittingLabel={m.common_creating()}
       onSubmit={handleSubmit}
       onCancel={onCancel}
     >
@@ -105,7 +96,6 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
                   setErrors((prev) => ({ ...prev, givenName: "" }));
                 }
               }}
-              disabled={isSubmitting}
               aria-invalid={Boolean(errors.givenName)}
             />
             {errors.givenName ? <FieldError>{errors.givenName}</FieldError> : null}
@@ -121,7 +111,6 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
                   setErrors((prev) => ({ ...prev, familyName: "" }));
                 }
               }}
-              disabled={isSubmitting}
               aria-invalid={Boolean(errors.familyName)}
             />
             {errors.familyName ? <FieldError>{errors.familyName}</FieldError> : null}
@@ -131,12 +120,7 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel>{m.field_birth_date()}</FieldLabel>
-            <Input
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              disabled={isSubmitting}
-            />
+            <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
           </Field>
 
           <Field>
@@ -144,7 +128,6 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
             <Select
               value={gender}
               onValueChange={(value) => setGender(value as AdministrativeGender)}
-              disabled={isSubmitting}
               items={GENDER_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
             >
               <SelectTrigger className="w-full">
@@ -165,17 +148,12 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
 
         <Field>
           <FieldLabel>{m.field_phone()}</FieldLabel>
-          <PhoneInput value={phone} onChange={setPhone} disabled={isSubmitting} />
+          <PhoneInput value={phone} onChange={setPhone} />
         </Field>
 
         <Field>
           <FieldLabel>{m.field_email()}</FieldLabel>
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isSubmitting}
-          />
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
 
         <Field>
@@ -187,7 +165,6 @@ export function PersonStep({ onSubmit, onCancel }: PersonStepProps) {
             <InputGroupInput
               value={instagram}
               onChange={(e) => setInstagram(e.target.value)}
-              disabled={isSubmitting}
               placeholder="username"
             />
           </InputGroup>

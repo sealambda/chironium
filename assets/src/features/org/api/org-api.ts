@@ -133,3 +133,31 @@ export async function createSubscriptionPlan(
     currency: plan.priceAmount?.currency ?? null,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Batch submission
+// ---------------------------------------------------------------------------
+
+export interface OrgCreationDraft {
+  orgDetails: { name: string; slug: string } | null;
+  plans: PlanFormData[];
+}
+
+/**
+ * Submit the entire org creation draft in one shot.
+ * Creates the organization first, then all subscription plans concurrently.
+ * Returns the new organization's ID.
+ */
+export async function submitOrgCreation(draft: OrgCreationDraft): Promise<string> {
+  if (!draft.orgDetails) {
+    throw new Error("Organization details are required.");
+  }
+
+  const org = await createOrganization(draft.orgDetails);
+
+  if (draft.plans.length > 0) {
+    await Promise.all(draft.plans.map((plan) => createSubscriptionPlan(plan, org.id)));
+  }
+
+  return org.id;
+}

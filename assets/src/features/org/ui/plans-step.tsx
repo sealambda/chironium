@@ -1,11 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import {
-  type CreatedPlan,
-  createSubscriptionPlan,
-  type PlanFormData,
-} from "@/features/org/api/org-api";
+import type { PlanFormData } from "@/features/org/api/org-api";
 import type { DurationUnit } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -22,8 +18,10 @@ import {
 } from "@/shared/ui/select";
 
 interface PlansStepProps {
-  readonly organizationId: string;
-  readonly onFinish: () => void;
+  readonly initialData?: PlanFormData[];
+  readonly isSubmitting?: boolean;
+  readonly onFinish: (plans: PlanFormData[]) => void;
+  readonly onBack: () => void;
 }
 
 const DURATION_UNITS: { value: DurationUnit; label: () => string }[] = [
@@ -33,25 +31,33 @@ const DURATION_UNITS: { value: DurationUnit; label: () => string }[] = [
   { value: "A", label: () => m.duration_years() },
 ];
 
-function formatDurationUnit(code: string | null): string {
+function formatDurationUnit(code: DurationUnit): string {
   const unit = DURATION_UNITS.find((u) => u.value === code);
-  return unit ? unit.label() : (code ?? "");
+  return unit ? unit.label() : code;
+}
+
+let planCounter = 0;
+
+interface LocalPlan extends PlanFormData {
+  localId: string;
 }
 
 /**
  * Step 2: Define subscription plans for the new organisation.
- * Plans are created via API as they are added to the list.
+ * Plans are accumulated locally and submitted in batch on finish.
  */
-export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
+export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: PlansStepProps) {
   const [name, setName] = useState("");
   const [durationValue, setDurationValue] = useState("");
   const [durationUnit, setDurationUnit] = useState<DurationUnit | "">("");
   const [priceAmount, setPriceAmount] = useState("");
   const [currency, setCurrency] = useState("EUR");
-  const [isAdding, setIsAdding] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [createdPlans, setCreatedPlans] = useState<CreatedPlan[]>([]);
+  const [plans, setPlans] = useState<LocalPlan[]>(() =>
+    (initialData ?? []).map((p) => ({ ...p, localId: `plan-${++planCounter}` })),
+  );
+
+  const submitting = isSubmitting ?? false;
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -82,45 +88,50 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
     // Keep currency since it's likely the same for all plans.
   };
 
-  const handleAddPlan = async () => {
+  const handleAddPlan = () => {
     if (!validate()) {
       return;
     }
 
-    setIsAdding(true);
-    setApiError(null);
-    try {
-      const data: PlanFormData = {
+    setPlans((prev) => [
+      ...prev,
+      {
+        localId: `plan-${++planCounter}`,
         name: name.trim(),
         durationValue: Number(durationValue),
         durationUnit: durationUnit as DurationUnit,
         priceAmount: Number(priceAmount),
         currency: currency.trim(),
-      };
-      const plan = await createSubscriptionPlan(data, organizationId);
-      setCreatedPlans((prev) => [...prev, plan]);
-      resetForm();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : m.plan_create_error();
-      setApiError(message);
-    } finally {
-      setIsAdding(false);
-    }
+      },
+    ]);
+    resetForm();
   };
 
-  const handleRemovePlan = (id: string) => {
-    setCreatedPlans((prev) => prev.filter((p) => p.id !== id));
+  const handleRemovePlan = (localId: string) => {
+    setPlans((prev) => prev.filter((p) => p.localId !== localId));
+  };
+
+  const handleFinish = () => {
+    const committed: PlanFormData[] = plans.map(({ localId: _, ...data }) => data);
+
+    // Include unsaved form content if the user forgot to click "Add".
+    const hasInput = name.trim() && durationUnit && durationValue && priceAmount;
+    if (hasInput && validate()) {
+      committed.push({
+        name: name.trim(),
+        durationValue: Number(durationValue),
+        durationUnit: durationUnit as DurationUnit,
+        priceAmount: Number(priceAmount),
+        currency: currency.trim(),
+      });
+    }
+
+    onFinish(committed);
   };
 
   return (
     <>
       <div className="space-y-4">
-        {apiError ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
-            {apiError}
-          </div>
-        ) : null}
-
         <FieldGroup>
           <Field data-invalid={Boolean(errors.name)}>
             <FieldLabel>{m.plan_name()}</FieldLabel>
@@ -133,7 +144,7 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
                 }
               }}
               placeholder={m.plan_name_placeholder()}
-              disabled={isAdding}
+              disabled={submitting}
               aria-invalid={Boolean(errors.name)}
             />
             {errors.name ? <FieldError>{errors.name}</FieldError> : null}
@@ -152,7 +163,7 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
                     setErrors((prev) => ({ ...prev, durationValue: "" }));
                   }
                 }}
-                disabled={isAdding}
+                disabled={submitting}
                 aria-invalid={Boolean(errors.durationValue)}
               />
               {errors.durationValue ? <FieldError>{errors.durationValue}</FieldError> : null}
@@ -168,7 +179,7 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
                     setErrors((prev) => ({ ...prev, durationUnit: "" }));
                   }
                 }}
-                disabled={isAdding}
+                disabled={submitting}
                 items={DURATION_UNITS.map(({ value, label }) => ({ value, label: label() }))}
               >
                 <SelectTrigger className="w-full">
@@ -202,7 +213,7 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
                     setErrors((prev) => ({ ...prev, priceAmount: "" }));
                   }
                 }}
-                disabled={isAdding}
+                disabled={submitting}
                 aria-invalid={Boolean(errors.priceAmount)}
               />
               {errors.priceAmount ? <FieldError>{errors.priceAmount}</FieldError> : null}
@@ -219,7 +230,7 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
                   }
                 }}
                 placeholder={m.plan_currency_placeholder()}
-                disabled={isAdding}
+                disabled={submitting}
                 aria-invalid={Boolean(errors.currency)}
               />
               {errors.currency ? <FieldError>{errors.currency}</FieldError> : null}
@@ -232,18 +243,21 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
           size="sm"
           className="w-full"
           onClick={handleAddPlan}
-          disabled={isAdding}
+          disabled={submitting}
         >
           <Plus className="size-4" data-icon="inline-start" />
-          {isAdding ? m.common_creating() : m.plan_add()}
+          {m.plan_add()}
         </Button>
 
-        <PlanList plans={createdPlans} onRemove={handleRemovePlan} />
+        <PlanList plans={plans} onRemove={handleRemovePlan} />
       </div>
 
       <DialogFooter>
-        <Button onClick={onFinish} disabled={isAdding}>
-          {m.common_finish()}
+        <Button variant="outline" onClick={onBack} disabled={submitting}>
+          {m.common_back()}
+        </Button>
+        <Button onClick={handleFinish} disabled={submitting}>
+          {submitting ? m.common_creating() : m.common_finish()}
         </Button>
       </DialogFooter>
     </>
@@ -251,8 +265,8 @@ export function PlansStep({ organizationId, onFinish }: PlansStepProps) {
 }
 
 interface PlanListProps {
-  readonly plans: CreatedPlan[];
-  readonly onRemove: (id: string) => void;
+  readonly plans: LocalPlan[];
+  readonly onRemove: (localId: string) => void;
 }
 
 function PlanList({ plans, onRemove }: PlanListProps) {
@@ -265,7 +279,7 @@ function PlanList({ plans, onRemove }: PlanListProps) {
       <p className="text-muted-foreground text-xs">{m.plan_added({ count: plans.length })}</p>
       {plans.map((plan) => (
         <div
-          key={plan.id}
+          key={plan.localId}
           className="flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2"
         >
           <div className="min-w-0 flex-1">
@@ -278,7 +292,7 @@ function PlanList({ plans, onRemove }: PlanListProps) {
           <Button
             variant="ghost"
             size="icon-xs"
-            onClick={() => onRemove(plan.id)}
+            onClick={() => onRemove(plan.localId)}
             aria-label={m.plan_remove()}
           >
             <Trash2 className="size-3.5 text-muted-foreground" />

@@ -9,7 +9,8 @@ import { Textarea } from "@/shared/ui/textarea";
 import { StepLayout } from "./step-layout";
 
 interface MenstrualCycleStepProps {
-  readonly onSubmit: (data: MenstrualCycleFormData) => Promise<void>;
+  readonly initialData?: MenstrualCycleFormData;
+  readonly onSubmit: (data: MenstrualCycleFormData) => void;
   readonly onBack: () => void;
 }
 
@@ -17,28 +18,19 @@ interface MenstrualCycleStepProps {
  * Step 4: Capture last menstrual cycle dates and notes.
  * All fields are optional — the user can skip this step.
  */
-export function MenstrualCycleStep({ onSubmit, onBack }: MenstrualCycleStepProps) {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function MenstrualCycleStep({ initialData, onSubmit, onBack }: MenstrualCycleStepProps) {
+  const [startDate, setStartDate] = useState(initialData?.startDate ?? "");
+  const [endDate, setEndDate] = useState(initialData?.endDate ?? "");
+  const [notes, setNotes] = useState(initialData?.notes ?? "");
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit({ startDate, endDate, notes });
-    } catch {
-      // Error handling is done in the parent dialog.
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmit = () => {
+    onSubmit({ startDate, endDate, notes });
   };
 
   return (
     <StepLayout
       title={m.step_cycle_title()}
       description={m.step_cycle_desc()}
-      isSubmitting={isSubmitting}
       onSubmit={handleSubmit}
       onBack={onBack}
     >
@@ -46,22 +38,12 @@ export function MenstrualCycleStep({ onSubmit, onBack }: MenstrualCycleStepProps
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel>{m.field_cycle_start_date()}</FieldLabel>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              disabled={isSubmitting}
-            />
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </Field>
 
           <Field>
             <FieldLabel>{m.field_cycle_end_date()}</FieldLabel>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              disabled={isSubmitting}
-            />
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </Field>
         </div>
 
@@ -72,7 +54,6 @@ export function MenstrualCycleStep({ onSubmit, onBack }: MenstrualCycleStepProps
             onChange={(e) => setNotes(e.target.value)}
             placeholder={m.field_cycle_notes_placeholder()}
             rows={3}
-            disabled={isSubmitting}
           />
         </Field>
       </FieldGroup>

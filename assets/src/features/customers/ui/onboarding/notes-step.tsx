@@ -11,7 +11,9 @@ import { Textarea } from "@/shared/ui/textarea";
 import { StepLayout } from "./step-layout";
 
 interface NotesStepProps {
-  readonly onSubmit: (notes: NoteFormData[]) => Promise<void>;
+  readonly initialData?: NoteFormData[];
+  readonly isSubmitting?: boolean;
+  readonly onSubmit: (notes: NoteFormData[]) => void;
   readonly onBack: () => void;
 }
 
@@ -26,12 +28,14 @@ let noteCounter = 0;
  * Uses the same add-to-list pattern as the org plans step: a single form
  * at the top, an "Add" button, and a compact summary list below.
  */
-export function NotesStep({ onSubmit, onBack }: NotesStepProps) {
+export function NotesStep({ initialData, isSubmitting, onSubmit, onBack }: NotesStepProps) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [addedNotes, setAddedNotes] = useState<NoteEntry[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addedNotes, setAddedNotes] = useState<NoteEntry[]>(() =>
+    (initialData ?? []).map((n) => ({ ...n, id: `note-${++noteCounter}` })),
+  );
 
+  const submitting = isSubmitting ?? false;
   const hasInput = title.trim() || body.trim();
 
   const handleAdd = () => {
@@ -50,24 +54,17 @@ export function NotesStep({ onSubmit, onBack }: NotesStepProps) {
     setAddedNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      // Include the current form contents if the user forgot to click Add.
-      const pending: NoteFormData[] = hasInput ? [{ title: title.trim(), body: body.trim() }] : [];
-      await onSubmit([...addedNotes, ...pending]);
-    } catch {
-      // Error handling is done in the parent dialog.
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmit = () => {
+    // Include the current form contents if the user forgot to click Add.
+    const pending: NoteFormData[] = hasInput ? [{ title: title.trim(), body: body.trim() }] : [];
+    onSubmit([...addedNotes, ...pending]);
   };
 
   return (
     <StepLayout
       title={m.step_notes_title()}
       description={m.step_notes_desc()}
-      isSubmitting={isSubmitting}
+      isSubmitting={submitting}
       isLastStep
       onSubmit={handleSubmit}
       onBack={onBack}
@@ -80,7 +77,7 @@ export function NotesStep({ onSubmit, onBack }: NotesStepProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={m.field_note_title_placeholder()}
-              disabled={isSubmitting}
+              disabled={submitting}
             />
           </Field>
 
@@ -91,7 +88,7 @@ export function NotesStep({ onSubmit, onBack }: NotesStepProps) {
               onChange={(e) => setBody(e.target.value)}
               placeholder={m.field_note_body_placeholder()}
               rows={3}
-              disabled={isSubmitting}
+              disabled={submitting}
             />
           </Field>
         </FieldGroup>
@@ -101,7 +98,7 @@ export function NotesStep({ onSubmit, onBack }: NotesStepProps) {
           size="sm"
           className="w-full"
           onClick={handleAdd}
-          disabled={isSubmitting || !hasInput}
+          disabled={submitting || !hasInput}
         >
           <Plus className="size-4" data-icon="inline-start" />
           {m.note_add()}

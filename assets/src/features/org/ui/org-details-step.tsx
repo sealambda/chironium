@@ -7,7 +7,8 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/s
 import { Input } from "@/shared/ui/input";
 
 interface OrgDetailsStepProps {
-  readonly onSubmit: (data: { name: string; slug: string }) => Promise<void>;
+  readonly initialData?: { name: string; slug: string };
+  readonly onSubmit: (data: { name: string; slug: string }) => void;
   readonly onCancel: () => void;
 }
 
@@ -15,10 +16,9 @@ interface OrgDetailsStepProps {
  * Step 1: Collect organisation name and slug.
  * Auto-generates the slug from the name input.
  */
-export function OrgDetailsStep({ onSubmit, onCancel }: OrgDetailsStepProps) {
-  const [orgName, setOrgName] = useState("");
-  const [orgSlug, setOrgSlug] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function OrgDetailsStep({ initialData, onSubmit, onCancel }: OrgDetailsStepProps) {
+  const [orgName, setOrgName] = useState(initialData?.name ?? "");
+  const [orgSlug, setOrgSlug] = useState(initialData?.slug ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
@@ -33,19 +33,12 @@ export function OrgDetailsStep({ onSubmit, onCancel }: OrgDetailsStepProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validate()) {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await onSubmit({ name: orgName.trim(), slug: orgSlug.trim() });
-    } catch {
-      // Error handling is done in the parent dialog.
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSubmit({ name: orgName.trim(), slug: orgSlug.trim() });
   };
 
   return (
@@ -67,7 +60,6 @@ export function OrgDetailsStep({ onSubmit, onCancel }: OrgDetailsStepProps) {
               setOrgSlug(slug);
             }}
             placeholder={m.org_name_placeholder()}
-            disabled={isSubmitting}
             aria-invalid={Boolean(errors.orgName)}
           />
           {errors.orgName ? <FieldError>{errors.orgName}</FieldError> : null}
@@ -84,7 +76,6 @@ export function OrgDetailsStep({ onSubmit, onCancel }: OrgDetailsStepProps) {
               }
             }}
             placeholder={m.org_slug_placeholder()}
-            disabled={isSubmitting}
             aria-invalid={Boolean(errors.orgSlug)}
           />
           <FieldDescription>{m.org_slug_desc()}</FieldDescription>
@@ -93,12 +84,10 @@ export function OrgDetailsStep({ onSubmit, onCancel }: OrgDetailsStepProps) {
       </FieldGroup>
 
       <DialogFooter>
-        <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
+        <Button variant="outline" onClick={onCancel}>
           {m.common_cancel()}
         </Button>
-        <Button onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? m.common_creating() : m.common_next()}
-        </Button>
+        <Button onClick={handleSubmit}>{m.common_next()}</Button>
       </DialogFooter>
     </>
   );

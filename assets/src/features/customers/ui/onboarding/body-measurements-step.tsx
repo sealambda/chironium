@@ -8,7 +8,8 @@ import { Input } from "@/shared/ui/input";
 import { StepLayout } from "./step-layout";
 
 interface BodyMeasurementsStepProps {
-  readonly onSubmit: (data: BodyMeasurementsFormData) => Promise<void>;
+  readonly initialData?: BodyMeasurementsFormData;
+  readonly onSubmit: (data: BodyMeasurementsFormData) => void;
   readonly onBack: () => void;
 }
 
@@ -16,10 +17,9 @@ interface BodyMeasurementsStepProps {
  * Step 5: Capture height and weight.
  * Both fields are optional — the user can skip this step.
  */
-export function BodyMeasurementsStep({ onSubmit, onBack }: BodyMeasurementsStepProps) {
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function BodyMeasurementsStep({ initialData, onSubmit, onBack }: BodyMeasurementsStepProps) {
+  const [height, setHeight] = useState(initialData?.heightCm?.toString() ?? "");
+  const [weight, setWeight] = useState(initialData?.weightKg?.toString() ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
@@ -34,29 +34,21 @@ export function BodyMeasurementsStep({ onSubmit, onBack }: BodyMeasurementsStepP
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validate()) {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await onSubmit({
-        heightCm: height ? Number(height) : null,
-        weightKg: weight ? Number(weight) : null,
-      });
-    } catch {
-      // Error handling is done in the parent dialog.
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSubmit({
+      heightCm: height ? Number(height) : null,
+      weightKg: weight ? Number(weight) : null,
+    });
   };
 
   return (
     <StepLayout
       title={m.step_body_title()}
       description={m.step_body_desc()}
-      isSubmitting={isSubmitting}
       onSubmit={handleSubmit}
       onBack={onBack}
     >
@@ -77,7 +69,6 @@ export function BodyMeasurementsStep({ onSubmit, onBack }: BodyMeasurementsStepP
                 }
               }}
               placeholder={m.field_height_placeholder()}
-              disabled={isSubmitting}
               aria-invalid={Boolean(errors.height)}
             />
             {errors.height ? <FieldError>{errors.height}</FieldError> : null}
@@ -98,7 +89,6 @@ export function BodyMeasurementsStep({ onSubmit, onBack }: BodyMeasurementsStepP
                 }
               }}
               placeholder={m.field_weight_placeholder()}
-              disabled={isSubmitting}
               aria-invalid={Boolean(errors.weight)}
             />
             {errors.weight ? <FieldError>{errors.weight}</FieldError> : null}
