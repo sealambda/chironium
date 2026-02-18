@@ -1,4 +1,5 @@
-import type { Organization } from "@/gql/graphql";
+/** Fields selected by the ListOrganizations / CreateOrganization queries. */
+export type OrgRecord = { id: string; name: string; slug: string };
 
 /**
  * Organisation context state.
@@ -7,12 +8,12 @@ export interface OrgContextState {
   /**
    * Currently selected organization, if any.
    */
-  selectedOrg: Organization | null;
+  selectedOrg: OrgRecord | null;
 
   /**
    * List of accessible organizations for the current user.
    */
-  availableOrgs: Organization[];
+  availableOrgs: OrgRecord[];
 
   /**
    * Loading state for organizations.
@@ -32,10 +33,10 @@ export interface OrgContextState {
   /**
    * Refresh accessible organizations.
    */
-  refreshOrgs: () => Promise<Organization[]>;
+  refreshOrgs: () => Promise<OrgRecord[]>;
 
   /**
    * Create a new organization.
    */
-  createOrg: (data: { name: string; slug: string }) => Promise<Organization>;
+  createOrg: (data: { name: string; slug: string }) => Promise<OrgRecord>;
 }
