@@ -52,20 +52,6 @@ export function TopNav() {
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
   const initials = getUserInitials(user);
 
-  const handleCreateOrg = async (data: { name: string; slug: string }) => {
-    setCreateOrgError(null);
-    try {
-      const newOrg = await createOrg(data);
-      await selectOrg(newOrg.id);
-      toast.success(m.org_created());
-    } catch (error) {
-      console.error("Failed to create organisation:", error);
-      const errorMessage = error instanceof Error ? error.message : m.org_create_error();
-      setCreateOrgError(errorMessage);
-      throw error;
-    }
-  };
-
   const handleLogout = () => {
     window.location.href = AUTH_URLS.signOut;
   };

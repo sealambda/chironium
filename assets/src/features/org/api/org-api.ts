@@ -1,6 +1,6 @@
 import type { OrgRecord } from "@/features/org/types";
 import { graphql } from "@/gql";
-import type { DurationUnit, Organization } from "@/gql/graphql";
+import type { DurationUnit } from "@/gql/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 

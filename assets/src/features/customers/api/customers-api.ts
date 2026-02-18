@@ -1,14 +1,13 @@
-import { addMonths } from "date-fns";
 import type { ResultOf } from "@graphql-typed-document-node/core";
+import { addMonths } from "date-fns";
 
+import type { Customer } from "@/features/customers/ui/customer-card";
 import { graphql } from "@/gql";
 import type { HumanName } from "@/gql/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
 import { durationToMonths } from "@/shared/utils/duration-utils";
 import { getInitials } from "@/shared/utils/name-utils";
-
-import type { Customer } from "../ui/customer-card";
 
 const SubscriptionListQuery = graphql(`
   query SubscriptionList($first: Int) {
@@ -50,7 +49,9 @@ type SubscriptionListItem = NonNullable<
  */
 function buildDisplayName(names?: HumanName[] | null): string {
   const primary = names?.[0];
-  if (!primary) return "Unknown";
+  if (!primary) {
+    return "Unknown";
+  }
 
   const given = primary.given?.join(" ") ?? "";
   const family = primary.family ?? "";
@@ -75,7 +76,7 @@ function mapSubscriptionState(state?: string | null): Customer["status"] {
 
 function toCustomer(item: SubscriptionListItem): Customer {
   const name = buildDisplayName(item.subscriber.name);
-  const planDurationMonths = parsePlanDurationMonths(item.plan.duration);
+  const planDurationMonths = durationToMonths(item.plan.duration);
   const startDate = new Date(item.startDate);
   const endDate = addMonths(startDate, planDurationMonths);
 

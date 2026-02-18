@@ -24,7 +24,7 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(getLocale());
 
   const setLocale = useCallback((newLocale: Locale) => {
-    setParaglideLocale(newLocale, { reload: false });
+    void setParaglideLocale(newLocale, { reload: false });
     setLocaleState(newLocale);
   }, []);
 

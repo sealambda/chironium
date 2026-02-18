@@ -1,5 +1,7 @@
+import type { ResultOf } from "@graphql-typed-document-node/core";
+
 import { graphql } from "@/gql";
-import type { AdministrativeGender, ListSubscriptionPlansQuery } from "@/gql/graphql";
+import type { AdministrativeGender } from "@/gql/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
@@ -172,7 +174,7 @@ export async function createObjective(
 }
 
 export type SubscriptionPlan = NonNullable<
-  NonNullable<ListSubscriptionPlansQuery["listSubscriptionPlans"]>["results"]
+  NonNullable<ResultOf<typeof ListSubscriptionPlansQuery>["listSubscriptionPlans"]>["results"]
 >[number];
 
 /**
