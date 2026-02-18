@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { OrgSelector } from "@/features/org/ui/org-selector";
+import type { UserProfile } from "@/features/user/api/user-api";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
-import type { User } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { AppName } from "@/shared/ui/app-name";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
@@ -24,7 +24,7 @@ import { cn } from "@/shared/utils/utils";
 import { useDetailMode } from "./detail-context";
 
 /** Get user initials from name or email. */
-function getUserInitials(user: User | null): string {
+function getUserInitials(user: UserProfile | null): string {
   if (!user) {
     return "?";
   }
@@ -51,6 +51,20 @@ export function TopNav() {
   const { isDetailMode, headerContent } = useDetailMode();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
   const initials = getUserInitials(user);
+
+  const handleCreateOrg = async (data: { name: string; slug: string }) => {
+    setCreateOrgError(null);
+    try {
+      const newOrg = await createOrg(data);
+      await selectOrg(newOrg.id);
+      toast.success(m.org_created());
+    } catch (error) {
+      console.error("Failed to create organisation:", error);
+      const errorMessage = error instanceof Error ? error.message : m.org_create_error();
+      setCreateOrgError(errorMessage);
+      throw error;
+    }
+  };
 
   const handleLogout = () => {
     window.location.href = AUTH_URLS.signOut;

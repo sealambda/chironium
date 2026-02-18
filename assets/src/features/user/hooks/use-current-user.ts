@@ -1,14 +1,13 @@
 import { useShallow } from "zustand/react/shallow";
 
-import type { User } from "@/gql/graphql";
-
-import { useUserStore } from "../store/user-store";
+import type { UserProfile } from "@/features/user/api/user-api";
+import { useUserStore } from "@/features/user/store/user-store";
 
 export interface CurrentUserState {
-  user: User | null;
+  user: UserProfile | null;
   isLoading: boolean;
   error: Error | null;
-  refreshUser: () => Promise<User>;
+  refreshUser: () => Promise<UserProfile>;
 }
 
 /**

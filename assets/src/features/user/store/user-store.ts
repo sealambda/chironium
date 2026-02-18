@@ -2,18 +2,20 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 import { queryClient } from "@/app/providers/query-client";
-import type { User } from "@/gql/graphql";
-
-import { fetchCurrentUser } from "../api/user-api";
+import { fetchCurrentUser, type UserProfile } from "@/features/user/api/user-api";
 
 export const USER_QUERY_KEY = ["user", "current"] as const;
 
 type UserStoreState = {
-  user: User | null;
+  user: UserProfile | null;
   isLoading: boolean;
   error: Error | null;
-  setFromQuery: (payload: { user: User | null; isLoading: boolean; error: Error | null }) => void;
-  refreshUser: () => Promise<User>;
+  setFromQuery: (payload: {
+    user: UserProfile | null;
+    isLoading: boolean;
+    error: Error | null;
+  }) => void;
+  refreshUser: () => Promise<UserProfile>;
 };
 
 export const useUserStore = create<UserStoreState>()(
@@ -27,7 +29,6 @@ export const useUserStore = create<UserStoreState>()(
       },
       refreshUser: async () => {
         set({ error: null }, false, "user/refresh:start");
-        // biome-ignore lint/nursery/useAwaitThenable: queryClient.fetchQuery returns Promise.
         const user = await queryClient.fetchQuery({
           queryKey: USER_QUERY_KEY,
           queryFn: fetchCurrentUser,

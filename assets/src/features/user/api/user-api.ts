@@ -1,6 +1,15 @@
 import { graphql } from "@/gql";
-import type { User } from "@/gql/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
+
+/** Fields selected by the CurrentActor query. */
+export type UserProfile = {
+  id: string;
+  email: string;
+  picture?: string | null;
+  name?: string | null;
+  familyName?: string | null;
+  givenName?: string | null;
+};
 
 const CurrentActorQuery = graphql(`
   query CurrentActor {
@@ -24,7 +33,7 @@ const CurrentActorQuery = graphql(`
  *
  * Uses session cookies for authentication.
  */
-export async function fetchCurrentUser(): Promise<User> {
+export async function fetchCurrentUser(): Promise<UserProfile> {
   const result = await requestGraphql({
     document: CurrentActorQuery,
   });

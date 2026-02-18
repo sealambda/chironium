@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { fetchCurrentUser } from "../api/user-api";
+import { fetchCurrentUser } from "@/features/user/api/user-api";
+
 import { USER_QUERY_KEY, useUserStore } from "./user-store";
 
 /**
