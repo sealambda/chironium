@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import type { PersonFormData } from "@/features/customers/api/onboarding-api";
-import type { AdministrativeGender } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";

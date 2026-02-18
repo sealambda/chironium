@@ -1,9 +1,7 @@
-import type { ResultOf } from "@graphql-typed-document-node/core";
-
-import { graphql } from "@/gql";
-import type { AdministrativeGender } from "@/gql/graphql";
+import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import type { AdministrativeGender } from "@/shared/types/schema-enums";
 
 const CreatePatientWithPersonMutation = graphql(`
   mutation CreatePatientWithPerson($input: CreatePatientWithPersonInput) {
