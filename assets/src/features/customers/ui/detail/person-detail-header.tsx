@@ -4,10 +4,10 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 
 /**
- * Minimal customer detail header for the top navigation bar.
- * Contains only the back button - customer info is now in the main content area.
+ * Minimal person detail header for the top navigation bar.
+ * Contains only the back button — person info is in the main content area.
  */
-export function CustomerDetailHeader() {
+export function PersonDetailHeader() {
   return (
     <div className="flex w-full items-center">
       <Link to="/customers">

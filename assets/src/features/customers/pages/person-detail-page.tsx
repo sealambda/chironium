@@ -1,37 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
-import { fetchCustomerList } from "@/features/customers/api/customers-api";
-import { useCustomerDetail } from "@/features/customers/hooks/use-customer-detail";
-import { CustomerDetailHeader } from "@/features/customers/ui/detail/customer-detail-header";
+import { fetchSubscriptionsWithPerson } from "@/features/customers/api/subscriptions-api";
+import { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
+import { PersonDetailHeader } from "@/features/customers/ui/detail/person-detail-header";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Route } from "@/routes/_app/customers_.$customerId";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
 
-import { CustomerDetailContent } from "./customer-detail-content";
+import { PersonDetailContent } from "./person-detail-content";
 
 // ─── Page component ─────────────────────────────────────────────────
 
 /** Uses detail mode to replace standard navigation with a custom header. */
-export function CustomerDetailPage() {
+export function PersonDetailPage() {
   const { customerId } = Route.useParams();
   const { selectedOrg } = useOrg();
 
   // Likely cached from the customers list page.
   const { data: customers = [] } = useQuery({
     queryKey: ["customers", "list", selectedOrg?.id],
-    queryFn: () => fetchCustomerList(selectedOrg?.id ?? ""),
+    queryFn: () => fetchSubscriptionsWithPerson(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg),
   });
 
-  const customer = customers.find((c) => c.id === customerId);
-  const detail = useCustomerDetail(customerId);
+  const item = customers.find((c) => c.subscriber.id === customerId);
+  const detail = usePersonDetail(customerId);
 
-  useDetailModeEffect(<CustomerDetailHeader />, "customer-detail");
+  useDetailModeEffect(<PersonDetailHeader />, "customer-detail");
 
-  if (detail.isLoading && !customer) {
+  if (detail.isLoading && !item) {
     return (
       <div className="flex min-h-96 items-center justify-center">
         <div className="text-center">
@@ -41,7 +41,7 @@ export function CustomerDetailPage() {
     );
   }
 
-  if (!customer) {
+  if (!item) {
     return (
       <div className="flex min-h-96 flex-col items-center justify-center gap-4">
         <div className="text-center">
@@ -57,7 +57,7 @@ export function CustomerDetailPage() {
 
   return (
     <div className="space-y-4 pt-4 lg:pt-6">
-      <CustomerDetailContent customer={customer} detail={detail} />
+      <PersonDetailContent item={item} detail={detail} />
     </div>
   );
 }

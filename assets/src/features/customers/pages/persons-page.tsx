@@ -3,9 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { fetchCustomerList } from "@/features/customers/api/customers-api";
-import { type Customer, CustomerCard } from "@/features/customers/ui/customer-card";
+import {
+  fetchSubscriptionsWithPerson,
+  type SubscriptionWithPerson,
+} from "@/features/customers/api/subscriptions-api";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
+import { PersonCard } from "@/features/customers/ui/person-card";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -21,9 +24,9 @@ export function CustomersPage() {
     data: customers = [],
     isLoading,
     error,
-  } = useQuery<Customer[]>({
+  } = useQuery<SubscriptionWithPerson[]>({
     queryKey: ["customers", "list", selectedOrg?.id],
-    queryFn: () => fetchCustomerList(selectedOrg?.id ?? ""),
+    queryFn: () => fetchSubscriptionsWithPerson(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg),
   });
 
@@ -84,14 +87,14 @@ export function CustomersPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {customers.map((customer) => (
+          {customers.map((item) => (
             <Link
-              key={customer.id}
+              key={item.subscriber.id}
               to="/customers/$customerId"
-              params={{ customerId: customer.id }}
+              params={{ customerId: item.subscriber.id }}
               className="block"
             >
-              <CustomerCard customer={customer} />
+              <PersonCard item={item} />
             </Link>
           ))}
         </div>

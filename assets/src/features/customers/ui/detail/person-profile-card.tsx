@@ -2,22 +2,27 @@ import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
 import { Globe, Mail } from "lucide-react";
 import { useMemo } from "react";
 
-import type { Customer } from "@/features/customers/ui/customer-card";
+import type { SubscriptionWithPerson } from "@/features/customers/api/subscriptions-api";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import {
+  extractContactInfo,
   formatInstagramDisplay,
   getEmailUrl,
   getInstagramUrl,
   getWhatsAppUrl,
 } from "@/shared/utils/contact-utils";
+import { getInitials } from "@/shared/utils/name-utils";
+import { formatPersonName } from "@/shared/utils/person-utils";
 import { analyzePhoneNumber, formatPhoneDisplay, getCountryFlag } from "@/shared/utils/phone-utils";
 
-interface CustomerProfileCardProps {
-  customer: Customer;
+interface PersonProfileCardProps {
+  item: SubscriptionWithPerson;
 }
 
-export function CustomerProfileCard({ customer }: Readonly<CustomerProfileCardProps>) {
-  const { email, phone, instagram } = customer.contact;
+export function PersonProfileCard({ item }: Readonly<PersonProfileCardProps>) {
+  const name = formatPersonName(item.subscriber.name);
+  const initials = getInitials(name);
+  const { email, phone, instagram } = extractContactInfo(item.subscriber.telecom);
 
   const phoneAnalysis = useMemo(() => (phone ? analyzePhoneNumber(phone) : null), [phone]);
   const formattedPhone = phone ? formatPhoneDisplay(phone) : null;
@@ -31,11 +36,11 @@ export function CustomerProfileCard({ customer }: Readonly<CustomerProfileCardPr
     <div className="flex flex-col items-center gap-3 py-4 lg:rounded-2xl lg:p-6 lg:py-0">
       <Avatar className="size-24">
         <AvatarFallback className="bg-primary font-semibold text-2xl text-primary-foreground">
-          {customer.initials}
+          {initials}
         </AvatarFallback>
       </Avatar>
 
-      <h1 className="font-semibold text-foreground text-xl">{customer.name}</h1>
+      <h1 className="font-semibold text-foreground text-xl">{name}</h1>
 
       <div className="flex flex-col items-center gap-1 lg:flex-row lg:gap-1.5">
         {email ? (
