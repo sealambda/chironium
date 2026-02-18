@@ -4,29 +4,29 @@ import { devtools } from "zustand/middleware";
 import { queryClient } from "@/app/providers/query-client";
 import { createOrganization, fetchAccessibleOrganizations } from "@/features/org/api/org-api";
 import { getStoredPreference, storePreference } from "@/features/org/model/org-preferences";
-import type { OrgRecord } from "@/features/org/types";
+import type { OrganizationSummary } from "@/features/org/api/org-api";
 
 export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
 
 type OrgStoreState = {
-  selectedOrg: OrgRecord | null;
-  availableOrgs: OrgRecord[];
+  selectedOrg: OrganizationSummary | null;
+  availableOrgs: OrganizationSummary[];
   loading: boolean;
   error: Error | null;
   setFromQuery: (payload: {
-    availableOrgs: OrgRecord[];
+    availableOrgs: OrganizationSummary[];
     loading: boolean;
     error: Error | null;
   }) => void;
   selectOrg: (orgId: string) => Promise<void>;
-  refreshOrgs: () => Promise<OrgRecord[]>;
-  createOrg: (data: { name: string; slug: string }) => Promise<OrgRecord>;
+  refreshOrgs: () => Promise<OrganizationSummary[]>;
+  createOrg: (data: { name: string; slug: string }) => Promise<OrganizationSummary>;
 };
 
 function resolveSelectedOrg(
-  current: OrgRecord | null,
-  availableOrgs: OrgRecord[],
-): OrgRecord | null {
+  current: OrganizationSummary | null,
+  availableOrgs: OrganizationSummary[],
+): OrganizationSummary | null {
   if (availableOrgs.length === 0) {
     return null;
   }
