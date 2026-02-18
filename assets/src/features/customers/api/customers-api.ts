@@ -1,5 +1,6 @@
 import type { ResultOf } from "@graphql-typed-document-node/core";
 import { addMonths } from "date-fns";
+import type { ResultOf } from "@graphql-typed-document-node/core";
 
 import type { Customer } from "@/features/customers/ui/customer-card";
 import { graphql } from "@/gql";
@@ -52,6 +53,55 @@ function buildDisplayName(names?: HumanName[] | null): string {
   if (!primary) {
     return "Unknown";
   }
+
+  const given = primary.given?.join(" ") ?? "";
+  const family = primary.family ?? "";
+  const full = `${given} ${family}`.trim();
+
+  return full || "Unknown";
+}
+
+const SubscriptionListQuery = graphql(`
+  query SubscriptionList($first: Int) {
+    listSubscriptions(first: $first) {
+      results {
+        id
+        state
+        startDate
+        subscriber {
+          id
+          name {
+            given
+            family
+          }
+          telecom {
+            system
+            value
+          }
+        }
+        plan {
+          id
+          name
+          duration {
+            value
+            code
+          }
+        }
+      }
+    }
+  }
+`);
+
+type SubscriptionListItem = NonNullable<
+  NonNullable<ResultOf<typeof SubscriptionListQuery>["listSubscriptions"]>["results"]
+>[number];
+
+/**
+ * Build a display name from the first HumanName entry.
+ */
+function buildDisplayName(names?: HumanName[] | null): string {
+  const primary = names?.[0];
+  if (!primary) return "Unknown";
 
   const given = primary.given?.join(" ") ?? "";
   const family = primary.family ?? "";
