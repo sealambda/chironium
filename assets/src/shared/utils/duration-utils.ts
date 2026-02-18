@@ -1,27 +1,30 @@
+import type { Duration } from "@/gql/graphql";
+
 /**
- * Parse plan duration string to months.
- * Supports:
- * - ISO 8601 duration: "P3M", "P6M", "P12M"
- * - Text format: "3 months", "6mo"
- * @returns Number of months, defaults to 3 if unparseable
+ * Convert a structured Duration (from the GraphQL schema) to months.
+ * Supports DurationUnit codes: MO (months), A (years), WK (weeks), D (days).
+ * @returns Number of months, defaults to 3 if the duration is missing or unparseable.
  */
-export function parsePlanDurationMonths(periodDuration?: string | null): number {
-  if (!periodDuration) {
+export function parsePlanDurationMonths(duration?: Duration | null): number {
+  if (!duration?.value) {
     return 3;
   }
-  const normalized = periodDuration.trim().toLowerCase();
 
-  // ISO 8601 format: P3M, P6M, etc.
-  const isoMatch = /^p(\d+)m$/.exec(normalized);
-  if (isoMatch) {
-    return Number.parseInt(isoMatch[1] ?? "3", 10);
+  const amount = Number.parseFloat(duration.value);
+  if (Number.isNaN(amount)) {
+    return 3;
   }
 
-  // Text format: "3 months", "6mo"
-  const textMatch = /(\d+)\s*(mo|month)/.exec(normalized);
-  if (textMatch) {
-    return Number.parseInt(textMatch[1] ?? "3", 10);
+  switch (duration.code) {
+    case "MO":
+      return amount;
+    case "A":
+      return amount * 12;
+    case "WK":
+      return Math.round(amount / 4.33);
+    case "D":
+      return Math.round(amount / 30);
+    default:
+      return 3;
   }
-
-  return 3;
 }

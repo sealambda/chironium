@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { Button } from "@/shared/ui/button";
 
 import { fetchCustomerList } from "../api/customers-api";
 import { type Customer, CustomerCard } from "../ui/customer-card";
+import { OnboardingDialog } from "../ui/onboarding/onboarding-dialog";
 
 /**
  * Customers page displaying a scrollable list of customer cards.
  */
 export function CustomersPage() {
   const { selectedOrg } = useOrg();
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
 
   const {
     data: customers = [],
@@ -59,15 +64,18 @@ export function CustomersPage() {
   return (
     <div className="space-y-4 pt-2">
       <header className="flex items-center justify-between">
-        <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
-          {m.customers_title()}
-        </h1>
-        <span className="text-muted-foreground text-sm">
-          {customers.length} {m.customers_total()}
-        </span>
+        <div className="flex items-baseline gap-2">
+          <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
+            {m.customers_title()}
+          </h1>
+          <span className="text-muted-foreground text-sm">({customers.length})</span>
+        </div>
+        <Button size="sm" onClick={() => setOnboardingOpen(true)}>
+          <Plus className="size-4" data-icon="inline-start" />
+          {m.customer_add()}
+        </Button>
       </header>
 
-      {/* Customer cards list. */}
       {customers.length === 0 ? (
         <div className="flex min-h-48 items-center justify-center rounded-2xl border border-border/50 border-dashed bg-card/50">
           <div className="text-center">
@@ -89,6 +97,8 @@ export function CustomersPage() {
           ))}
         </div>
       )}
+
+      <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
     </div>
   );
 }

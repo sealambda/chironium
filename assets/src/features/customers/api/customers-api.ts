@@ -1,12 +1,63 @@
 import { addMonths } from "date-fns";
+import type { ResultOf } from "@graphql-typed-document-node/core";
 
-import { type Subscription, SubscriptionListQuery } from "@/mocks/graphql";
+import { graphql } from "@/gql";
+import type { HumanName } from "@/gql/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
 import { parsePlanDurationMonths } from "@/shared/utils/duration-utils";
 import { getInitials } from "@/shared/utils/name-utils";
 
 import type { Customer } from "../ui/customer-card";
+
+const SubscriptionListQuery = graphql(`
+  query SubscriptionList($first: Int) {
+    listSubscriptions(first: $first) {
+      results {
+        id
+        state
+        startDate
+        subscriber {
+          id
+          name {
+            given
+            family
+          }
+          telecom {
+            system
+            value
+          }
+        }
+        plan {
+          id
+          name
+          duration {
+            value
+            code
+          }
+        }
+      }
+    }
+  }
+`);
+
+type SubscriptionListItem = NonNullable<
+  NonNullable<ResultOf<typeof SubscriptionListQuery>["listSubscriptions"]>["results"]
+>[number];
+
+/**
+ * Build a display name from the first HumanName entry.
+ */
+function buildDisplayName(names?: HumanName[] | null): string {
+  const primary = names?.[0];
+  if (!primary) return "Unknown";
+
+  const given = primary.given?.join(" ") ?? "";
+  const family = primary.family ?? "";
+  const full = `${given} ${family}`.trim();
+
+  return full || "Unknown";
+}
 
 function mapSubscriptionState(state?: string | null): Customer["status"] {
   switch (state) {
@@ -22,9 +73,9 @@ function mapSubscriptionState(state?: string | null): Customer["status"] {
   }
 }
 
-function toCustomer(item: Subscription): Customer {
-  const name = item.subscriber.name?.trim() || "Unknown";
-  const planDurationMonths = parsePlanDurationMonths(item.plan.periodDuration);
+function toCustomer(item: SubscriptionListItem): Customer {
+  const name = buildDisplayName(item.subscriber.name);
+  const planDurationMonths = parsePlanDurationMonths(item.plan.duration);
   const startDate = new Date(item.startDate);
   const endDate = addMonths(startDate, planDurationMonths);
 
@@ -38,7 +89,7 @@ function toCustomer(item: Subscription): Customer {
       planDurationMonths,
       endDate,
     },
-    contact: extractContactInfo(item.subscriber.contactPoints),
+    contact: extractContactInfo(item.subscriber.telecom),
   };
 }
 
@@ -50,9 +101,7 @@ export async function fetchCustomerList(organizationId: string): Promise<Custome
     return [];
   }
 
-  const result = await requestGraphql<{
-    listSubscriptions: { results: Subscription[] };
-  }>({
+  const result = await requestGraphql({
     document: SubscriptionListQuery,
     variables: { first: 250 },
     organizationId,

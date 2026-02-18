@@ -1,5 +1,5 @@
 import { graphql } from "@/gql";
-import type { Organization } from "@/gql/graphql";
+import type { DurationUnit, Organization } from "@/gql/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
@@ -22,6 +22,28 @@ const CreateOrganizationMutation = graphql(`
         id
         name
         slug
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const CreateSubscriptionPlanMutation = graphql(`
+  mutation CreateSubscriptionPlan($input: CreateSubscriptionPlanInput) {
+    createSubscriptionPlan(input: $input) {
+      result {
+        id
+        name
+        duration {
+          value
+          code
+        }
+        priceAmount {
+          amount
+          currency
+        }
       }
       errors {
         message
@@ -53,5 +75,62 @@ export async function createOrganization(data: {
     variables: { input: { name: data.name, slug: data.slug } },
   });
 
-  return unwrapMutationResult(result.createOrganization, "Failed to create organization");
+  return unwrapMutationResult(result.createOrganization, "Failed to create organization.");
+}
+
+export interface PlanFormData {
+  name: string;
+  durationValue: number;
+  durationUnit: DurationUnit;
+  priceAmount: number;
+  currency: string;
+}
+
+export interface CreatedPlan {
+  id: string;
+  name: string | null;
+  durationValue: string | null;
+  durationUnit: string | null;
+  priceAmount: string | null;
+  currency: string | null;
+}
+
+/**
+ * Create a subscription plan for an organization.
+ */
+export async function createSubscriptionPlan(
+  data: PlanFormData,
+  organizationId: string,
+): Promise<CreatedPlan> {
+  const result = await requestGraphql({
+    document: CreateSubscriptionPlanMutation,
+    variables: {
+      input: {
+        name: data.name,
+        duration: {
+          value: String(data.durationValue),
+          code: data.durationUnit,
+        },
+        priceAmount: {
+          amount: String(data.priceAmount),
+          currency: data.currency,
+        },
+      },
+    },
+    organizationId,
+  });
+
+  const plan = unwrapMutationResult(
+    result.createSubscriptionPlan,
+    "Failed to create subscription plan.",
+  );
+
+  return {
+    id: plan.id,
+    name: plan.name ?? null,
+    durationValue: plan.duration?.value ?? null,
+    durationUnit: plan.duration?.code ?? null,
+    priceAmount: plan.priceAmount?.amount ?? null,
+    currency: plan.priceAmount?.currency ?? null,
+  };
 }
