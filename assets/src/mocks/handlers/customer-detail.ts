@@ -1,6 +1,6 @@
 import { HttpResponse } from "msw";
 
-import { db } from "../db";
+import { db } from "@/mocks/db";
 import { gql } from "./utils";
 
 /**
@@ -22,11 +22,6 @@ function createCustomerDataHandler<T extends { customerId: string }>(
 }
 
 export const customerDetailHandlers = [
-  createCustomerDataHandler(
-    "SubscriptionHistory",
-    () => db.subscriptionHistory,
-    "subscriptionHistory",
-  ),
   createCustomerDataHandler(
     "BodyMetricsHistory",
     () => db.bodyMetrics,
