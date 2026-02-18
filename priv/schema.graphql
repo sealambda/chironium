@@ -2281,6 +2281,27 @@ type RootQueryType {
     last: Int
   ): KeysetPageOfObservation
 
+  "Read all waist\/hip ratio observations."
+  listWaistHipRatioObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
   "Read all chest circumference observations."
   listChestCircumferenceObservations(
     "How to sort the records in the response"
