@@ -35,8 +35,7 @@ config :chironium, ChironiumWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "P/uhoGryzby+RxBF3JAVktIHKrN1+pDoN3X4O0YdcRHJ86MmAQ3HAiDz4poVq67B",
   watchers: [
-    vite: {PhoenixVite.Npm, :run, [:vite, ~w(dev)]},
-    pnpm: ["run", "assets:codegen"]
+    vite: {PhoenixVite.Npm, :run, [:vite, ~w(dev)]}
   ],
   static_url: [host: "localhost", port: 5173]
 
