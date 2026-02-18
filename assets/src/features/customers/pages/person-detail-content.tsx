@@ -1,22 +1,22 @@
-import type { useCustomerDetail } from "@/features/customers/hooks/use-customer-detail";
-import type { Customer } from "@/features/customers/ui/customer-card";
+import type { SubscriptionWithPerson } from "@/features/customers/api/subscriptions-api";
+import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
 import { BiometricSummaryCard } from "@/features/customers/ui/detail/biometric-summary-card";
-import { CustomerProfileCard } from "@/features/customers/ui/detail/customer-profile-card";
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
+import { PersonProfileCard } from "@/features/customers/ui/detail/person-profile-card";
 import { SubscriptionCard } from "@/features/customers/ui/detail/subscription-card";
 
-interface CustomerDetailContentProps {
-  customer: Customer;
-  detail: ReturnType<typeof useCustomerDetail>;
+interface PersonDetailContentProps {
+  item: SubscriptionWithPerson;
+  detail: ReturnType<typeof usePersonDetail>;
 }
 
-export function CustomerDetailContent({ customer, detail }: Readonly<CustomerDetailContentProps>) {
+export function PersonDetailContent({ item, detail }: Readonly<PersonDetailContentProps>) {
   const { currentSubscription, activeNutritionPlan, subscriptions, bodyMetrics, nutritionPlans } =
     detail;
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      <CustomerProfileCard customer={customer} />
+      <PersonProfileCard item={item} />
 
       <SubscriptionCard subscription={currentSubscription} isLoading={subscriptions.isLoading} />
 

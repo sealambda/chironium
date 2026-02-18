@@ -1,6 +1,6 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
-import { fetchCustomerSubscriptions } from "@/features/customers/api/customer-detail-api";
+import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { fetchBodyMetrics, fetchNutritionPlans } from "@/mocks/api/customer-detail-api";
 
@@ -10,22 +10,22 @@ function combineLoadingState(...queries: UseQueryResult<unknown, Error>[]) {
 }
 
 /**
- * Hook to fetch and manage all customer detail data.
+ * Hook to fetch and manage all person detail data.
  * Orchestrates multiple queries and provides derived state for the detail page.
  */
-export function useCustomerDetail(customerId: string) {
+export function usePersonDetail(personId: string) {
   const { selectedOrg } = useOrg();
   const organizationId = selectedOrg?.id ?? "";
-  const enabled = Boolean(customerId && organizationId);
+  const enabled = Boolean(personId && organizationId);
 
   // Query config factory for consistent structure
-  const queryConfig = <T>(key: string, fetchFn: (cId: string, orgId: string) => Promise<T>) => ({
-    queryKey: ["customer", customerId, key, organizationId],
-    queryFn: () => fetchFn(customerId, organizationId),
+  const queryConfig = <T>(key: string, fetchFn: (id: string, orgId: string) => Promise<T>) => ({
+    queryKey: ["person", personId, key, organizationId],
+    queryFn: () => fetchFn(personId, organizationId),
     enabled,
   });
 
-  const subscriptions = useQuery(queryConfig("subscriptions", fetchCustomerSubscriptions));
+  const subscriptions = useQuery(queryConfig("subscriptions", fetchSubscriptionsByPerson));
   const bodyMetrics = useQuery(queryConfig("bodyMetrics", fetchBodyMetrics));
   const nutritionPlans = useQuery(queryConfig("nutritionPlans", fetchNutritionPlans));
 
