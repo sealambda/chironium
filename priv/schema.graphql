@@ -4,42 +4,6 @@ schema {
   subscription: Subscription
 }
 
-input ConditionNoteInput {
-  time: DateTime
-  text: String
-  authorReference: String
-  authorString: String
-}
-
-input ConditionCodeInput {
-  text: String
-  coding: [CodeableConceptCodingInput!]
-}
-
-input MedicationStatementNoteInput {
-  time: DateTime
-  text: String
-  authorReference: String
-  authorString: String
-}
-
-input MedicationStatementCodeInput {
-  text: String
-  coding: [CodeableConceptCodingInput!]
-}
-
-input AllergyIntoleranceNoteInput {
-  time: DateTime
-  text: String
-  authorReference: String
-  authorString: String
-}
-
-input AllergyIntoleranceCodeInput {
-  text: String
-  coding: [CodeableConceptCodingInput!]
-}
-
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
@@ -78,13 +42,6 @@ input ObservationNoteInput {
   authorString: String
 }
 
-type Annotation {
-  authorReference: String
-  authorString: String
-  time: DateTime
-  text: String
-}
-
 input ObservationValueCodeableConceptInput {
   text: String
   coding: [CodeableConceptCodingInput!]
@@ -104,6 +61,61 @@ type Quantity {
   code: String
 }
 
+input ObservationCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input MedicationStatementNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input MedicationStatementCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input GoalNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input GoalDescriptionInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input ConditionNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input ConditionCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input AllergyIntoleranceNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+type Annotation {
+  authorReference: String
+  authorString: String
+  time: DateTime
+  text: String
+}
+
 input CodeableConceptCodingInput {
   code: String
   system: String
@@ -112,7 +124,7 @@ input CodeableConceptCodingInput {
   userSelected: Boolean
 }
 
-input ObservationCodeInput {
+input AllergyIntoleranceCodeInput {
   text: String
   coding: [CodeableConceptCodingInput!]
 }
@@ -247,6 +259,118 @@ type Period {
   end: Date
 }
 
+enum ObservationStatus {
+  "Subsequent to being Final, the observation has been modified subsequent. This includes updates\/new information and corrections."
+  AMENDED
+
+  "The observation is unavailable because the measurement was not started or not completed (also sometimes called 'aborted')."
+  CANCELLED
+
+  "Subsequent to being Final, the observation has been modified to correct an error in the test result."
+  CORRECTED
+
+  "The observation has been withdrawn following previous final release. This electronic record should never have existed, though it is possible that real-world decisions were based on it. (If real-world activity has occurred, the status should be 'cancelled' rather than 'entered-in-error')."
+  ENTERED_IN_ERROR
+
+  "The observation is complete and there are no further actions needed. Additional information such as 'released', 'signed', etc. would be represented using Provenance which provides not only the act but also the actors and dates and other related data. These act states would be associated with an observation status of preliminary until they are all completed and then a status of final would be applied."
+  FINAL
+
+  "This is an initial or interim observation: data may be incomplete or unverified."
+  PRELIMINARY
+
+  "The existence of the observation is registered, but there is no result yet available."
+  REGISTERED
+
+  "The authoring\/source system does not know which of the status values currently applies for this observation. Note: This concept is not to be used for 'other' - one of the listed statuses is presumed to apply, but the authoring\/source system does not know which."
+  UNKNOWN
+}
+
+enum GoalPriority {
+  "Indicates that the goal is of considerable importance and should be a primary focus of care delivery."
+  HIGH_PRIORITY
+
+  "The goal is desirable but is not sufficiently important to devote significant resources to. Achievement of the goal may be sought when incidental to achieving other goals."
+  LOW_PRIORITY
+
+  "Indicates that the goal has a reasonable degree of importance and that concrete action should be taken towards the goal. Attainment is not as critical as high-priority goals."
+  MEDIUM_PRIORITY
+}
+
+enum GoalCategory {
+  "Goals related to the manner in which the subject acts."
+  BEHAVIORAL
+
+  "Goals related to the consumption of food and\/or beverages."
+  DIETARY
+
+  "Goals related to the practice of nursing or established by nurses."
+  NURSING
+
+  "Goals related to the mobility and\/or motor capability of the subject."
+  PHYSIOTHERAPY
+
+  "Goals related to the personal protection of the subject."
+  SAFETY
+}
+
+enum GoalAchievementStatus {
+  "The goal has been met."
+  ACHIEVED
+
+  "The goal is being sought, and is progressing."
+  IMPROVING
+
+  "The goal is being sought but has not yet been reached. (Also applies if the goal was reached in the past but there has been regression and the goal is again being sought)."
+  IN_PROGRESS
+
+  "The goal is being sought, but the trend is flat."
+  NO_CHANGE
+
+  "The goal has not been met and little to no progress towards target."
+  NO_PROGRESS
+
+  "The goal has not been met and there might or might not have been progress towards target."
+  NOT_ACHIEVED
+
+  "The goal is not possible to be met."
+  NOT_ATTAINABLE
+
+  "The goal has been met, but ongoing activity is needed to sustain the goal objective."
+  SUSTAINING
+
+  "The goal is being sought, but is regressing."
+  WORSENING
+}
+
+enum GoalLifecycleStatus {
+  "A proposed goal was accepted or acknowledged."
+  ACCEPTED
+
+  "The goal is being sought actively."
+  ACTIVE
+
+  "The goal has been abandoned."
+  CANCELLED
+
+  "The goal is no longer being sought."
+  COMPLETED
+
+  "The goal was entered in error and voided."
+  ENTERED_IN_ERROR
+
+  "The goal remains a long term objective but is no longer being actively pursued for a temporary period of time."
+  ON_HOLD
+
+  "A goal is planned for this patient."
+  PLANNED
+
+  "A goal is proposed for this patient."
+  PROPOSED
+
+  "A proposed goal was rejected."
+  REJECTED
+}
+
 enum ConditionVerificationStatus {
   "There is sufficient diagnostic and\/or clinical evidence to treat this as a confirmed condition."
   CONFIRMED
@@ -324,32 +448,6 @@ enum AllergyIntoleranceClinicalStatus {
 
   "A reaction to the identified substance has been clinically reassessed by testing or re-exposure and is considered no longer to be present. Re-exposure could be accidental, unplanned, or outside of any clinical setting."
   RESOLVED
-}
-
-enum ObservationStatus {
-  "Subsequent to being Final, the observation has been modified subsequent. This includes updates\/new information and corrections."
-  AMENDED
-
-  "The observation is unavailable because the measurement was not started or not completed (also sometimes called 'aborted')."
-  CANCELLED
-
-  "Subsequent to being Final, the observation has been modified to correct an error in the test result."
-  CORRECTED
-
-  "The observation has been withdrawn following previous final release. This electronic record should never have existed, though it is possible that real-world decisions were based on it. (If real-world activity has occurred, the status should be 'cancelled' rather than 'entered-in-error')."
-  ENTERED_IN_ERROR
-
-  "The observation is complete and there are no further actions needed. Additional information such as 'released', 'signed', etc. would be represented using Provenance which provides not only the act but also the actors and dates and other related data. These act states would be associated with an observation status of preliminary until they are all completed and then a status of final would be applied."
-  FINAL
-
-  "This is an initial or interim observation: data may be incomplete or unverified."
-  PRELIMINARY
-
-  "The existence of the observation is registered, but there is no result yet available."
-  REGISTERED
-
-  "The authoring\/source system does not know which of the status values currently applies for this observation. Note: This concept is not to be used for 'other' - one of the listed statuses is presumed to apply, but the authoring\/source system does not know which."
-  UNKNOWN
 }
 
 enum DurationUnit {
@@ -1111,365 +1209,6 @@ input PatientCreatePatientWithPersonPersonInput {
   telecom: [PersonTelecomInput!]
 }
 
-"The result of the :create_condition mutation"
-type CreateConditionResult {
-  "The successful result of the mutation"
-  result: Condition
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateConditionInput {
-  clinicalStatus: ConditionClinicalStatus
-
-  verificationStatus: ConditionVerificationStatus
-
-  code: ConditionCodeInput
-
-  "Additional information about the Condition"
-  note: [ConditionNoteInput!]
-
-  subjectId: ID!
-}
-
-enum ConditionSortField {
-  ID
-  CLINICAL_STATUS
-  VERIFICATION_STATUS
-  SUBJECT_ID
-}
-
-input ConditionFilterSubjectId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ConditionFilterVerificationStatus {
-  isNil: Boolean
-  eq: ConditionVerificationStatus
-  notEq: ConditionVerificationStatus
-  in: [ConditionVerificationStatus]
-  lessThan: ConditionVerificationStatus
-  greaterThan: ConditionVerificationStatus
-  lessThanOrEqual: ConditionVerificationStatus
-  greaterThanOrEqual: ConditionVerificationStatus
-}
-
-input ConditionFilterClinicalStatus {
-  isNil: Boolean
-  eq: ConditionClinicalStatus
-  notEq: ConditionClinicalStatus
-  in: [ConditionClinicalStatus]
-  lessThan: ConditionClinicalStatus
-  greaterThan: ConditionClinicalStatus
-  lessThanOrEqual: ConditionClinicalStatus
-  greaterThanOrEqual: ConditionClinicalStatus
-}
-
-input ConditionFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input ConditionFilterInput {
-  and: [ConditionFilterInput!]
-  or: [ConditionFilterInput!]
-  not: [ConditionFilterInput!]
-  id: ConditionFilterId
-  clinicalStatus: ConditionFilterClinicalStatus
-  verificationStatus: ConditionFilterVerificationStatus
-  subjectId: ConditionFilterSubjectId
-  subject: PatientFilterInput
-}
-
-input ConditionSortInput {
-  order: SortOrder
-  field: ConditionSortField!
-}
-
-type Condition {
-  id: ID!
-
-  clinicalStatus: ConditionClinicalStatus
-
-  verificationStatus: ConditionVerificationStatus
-
-  code: CodeableConcept
-
-  "Additional information about the Condition"
-  note: [Annotation!]
-
-  subjectId: ID!
-
-  paperTrailVersions(
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [ConditionVersion!]!
-
-  subject: Patient!
-}
-
-"The result of the :create_medication_statement mutation"
-type CreateMedicationStatementResult {
-  "The successful result of the mutation"
-  result: MedicationStatement
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateMedicationStatementInput {
-  clinicalStatus: ConditionClinicalStatus
-
-  verificationStatus: ConditionVerificationStatus
-
-  code: MedicationStatementCodeInput
-
-  "Further information about the usage"
-  note: [MedicationStatementNoteInput!]
-
-  subjectId: ID!
-}
-
-enum MedicationStatementSortField {
-  ID
-  CLINICAL_STATUS
-  VERIFICATION_STATUS
-  SUBJECT_ID
-}
-
-input MedicationStatementFilterSubjectId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input MedicationStatementFilterVerificationStatus {
-  isNil: Boolean
-  eq: ConditionVerificationStatus
-  notEq: ConditionVerificationStatus
-  in: [ConditionVerificationStatus]
-  lessThan: ConditionVerificationStatus
-  greaterThan: ConditionVerificationStatus
-  lessThanOrEqual: ConditionVerificationStatus
-  greaterThanOrEqual: ConditionVerificationStatus
-}
-
-input MedicationStatementFilterClinicalStatus {
-  isNil: Boolean
-  eq: ConditionClinicalStatus
-  notEq: ConditionClinicalStatus
-  in: [ConditionClinicalStatus]
-  lessThan: ConditionClinicalStatus
-  greaterThan: ConditionClinicalStatus
-  lessThanOrEqual: ConditionClinicalStatus
-  greaterThanOrEqual: ConditionClinicalStatus
-}
-
-input MedicationStatementFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input MedicationStatementFilterInput {
-  and: [MedicationStatementFilterInput!]
-  or: [MedicationStatementFilterInput!]
-  not: [MedicationStatementFilterInput!]
-  id: MedicationStatementFilterId
-  clinicalStatus: MedicationStatementFilterClinicalStatus
-  verificationStatus: MedicationStatementFilterVerificationStatus
-  subjectId: MedicationStatementFilterSubjectId
-  subject: PatientFilterInput
-}
-
-input MedicationStatementSortInput {
-  order: SortOrder
-  field: MedicationStatementSortField!
-}
-
-type MedicationStatement {
-  id: ID!
-
-  clinicalStatus: ConditionClinicalStatus
-
-  verificationStatus: ConditionVerificationStatus
-
-  code: CodeableConcept
-
-  "Further information about the usage"
-  note: [Annotation!]
-
-  subjectId: ID!
-
-  paperTrailVersions(
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [MedicationStatementVersion!]!
-
-  subject: Patient!
-}
-
-"The result of the :create_allergy_intolerance mutation"
-type CreateAllergyIntoleranceResult {
-  "The successful result of the mutation"
-  result: AllergyIntolerance
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateAllergyIntoleranceInput {
-  clinicalStatus: AllergyIntoleranceClinicalStatus
-
-  verificationStatus: AllergyIntoleranceVerificationStatus
-
-  type: AllergyIntoleranceType
-
-  code: AllergyIntoleranceCodeInput
-
-  "Additional text not captured in other fields"
-  note: [AllergyIntoleranceNoteInput!]
-
-  patientId: ID!
-}
-
-enum AllergyIntoleranceSortField {
-  ID
-  CLINICAL_STATUS
-  VERIFICATION_STATUS
-  TYPE
-  PATIENT_ID
-}
-
-input AllergyIntoleranceFilterPatientId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input AllergyIntoleranceFilterType {
-  isNil: Boolean
-  eq: AllergyIntoleranceType
-  notEq: AllergyIntoleranceType
-  in: [AllergyIntoleranceType]
-  lessThan: AllergyIntoleranceType
-  greaterThan: AllergyIntoleranceType
-  lessThanOrEqual: AllergyIntoleranceType
-  greaterThanOrEqual: AllergyIntoleranceType
-}
-
-input AllergyIntoleranceFilterVerificationStatus {
-  isNil: Boolean
-  eq: AllergyIntoleranceVerificationStatus
-  notEq: AllergyIntoleranceVerificationStatus
-  in: [AllergyIntoleranceVerificationStatus]
-  lessThan: AllergyIntoleranceVerificationStatus
-  greaterThan: AllergyIntoleranceVerificationStatus
-  lessThanOrEqual: AllergyIntoleranceVerificationStatus
-  greaterThanOrEqual: AllergyIntoleranceVerificationStatus
-}
-
-input AllergyIntoleranceFilterClinicalStatus {
-  isNil: Boolean
-  eq: AllergyIntoleranceClinicalStatus
-  notEq: AllergyIntoleranceClinicalStatus
-  in: [AllergyIntoleranceClinicalStatus]
-  lessThan: AllergyIntoleranceClinicalStatus
-  greaterThan: AllergyIntoleranceClinicalStatus
-  lessThanOrEqual: AllergyIntoleranceClinicalStatus
-  greaterThanOrEqual: AllergyIntoleranceClinicalStatus
-}
-
-input AllergyIntoleranceFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input AllergyIntoleranceFilterInput {
-  and: [AllergyIntoleranceFilterInput!]
-  or: [AllergyIntoleranceFilterInput!]
-  not: [AllergyIntoleranceFilterInput!]
-  id: AllergyIntoleranceFilterId
-  clinicalStatus: AllergyIntoleranceFilterClinicalStatus
-  verificationStatus: AllergyIntoleranceFilterVerificationStatus
-  type: AllergyIntoleranceFilterType
-  patientId: AllergyIntoleranceFilterPatientId
-  patient: PatientFilterInput
-}
-
-input AllergyIntoleranceSortInput {
-  order: SortOrder
-  field: AllergyIntoleranceSortField!
-}
-
-type AllergyIntolerance {
-  id: ID!
-
-  clinicalStatus: AllergyIntoleranceClinicalStatus
-
-  verificationStatus: AllergyIntoleranceVerificationStatus
-
-  type: AllergyIntoleranceType
-
-  code: CodeableConcept
-
-  "Additional text not captured in other fields"
-  note: [Annotation!]
-
-  patientId: ID!
-
-  paperTrailVersions(
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [AllergyIntoleranceVersion!]!
-
-  patient: Patient!
-}
-
 "The result of the :create_practitioner mutation"
 type CreatePractitionerResult {
   "The successful result of the mutation"
@@ -1505,6 +1244,217 @@ type Practitioner {
     "The number of records to skip."
     offset: Int
   ): [PractitionerVersion!]!
+}
+
+"The result of the :create_patient_with_person mutation"
+type CreatePatientWithPersonResult {
+  "The successful result of the mutation"
+  result: Patient
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePatientWithPersonInput {
+  person: PatientCreatePatientWithPersonPersonInput
+}
+
+"The result of the :create_patient mutation"
+type CreatePatientResult {
+  "The successful result of the mutation"
+  result: Patient
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePatientInput {
+  personId: ID
+}
+
+enum PatientSortField {
+  ID
+  PERSON_ID
+}
+
+"A keyset page of :patient"
+type KeysetPageOfPatient {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Patient!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input PatientFilterPersonId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input PatientFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input PatientFilterInput {
+  and: [PatientFilterInput!]
+
+  or: [PatientFilterInput!]
+
+  not: [PatientFilterInput!]
+
+  id: PatientFilterId
+
+  personId: PatientFilterPersonId
+
+  person: PersonFilterInput
+
+  "Allergies and intolerances for the patient"
+  allergyIntolerances: AllergyIntoleranceFilterInput
+
+  "Conditions (pathologies\/problems) for the patient"
+  conditions: ConditionFilterInput
+
+  "Health goals for the patient"
+  goals: GoalFilterInput
+
+  "Medication statements (existing or proposed medications) for the patient"
+  medicationStatements: MedicationStatementFilterInput
+
+  "Vital signs, observations, notes, etc. for the patient"
+  observations: ObservationFilterInput
+
+  "Nutrition plans for the patient"
+  nutritionPlans: NutritionPlanFilterInput
+}
+
+input PatientSortInput {
+  order: SortOrder
+  field: PatientSortField!
+}
+
+type Patient {
+  id: ID!
+
+  personId: ID
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PatientVersion!]!
+
+  person: Person
+
+  "Allergies and intolerances for the patient"
+  allergyIntolerances(
+    "How to sort the records in the response"
+    sort: [AllergyIntoleranceSortInput]
+
+    "A filter to limit the results"
+    filter: AllergyIntoleranceFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [AllergyIntolerance!]!
+
+  "Conditions (pathologies\/problems) for the patient"
+  conditions(
+    "How to sort the records in the response"
+    sort: [ConditionSortInput]
+
+    "A filter to limit the results"
+    filter: ConditionFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Condition!]!
+
+  "Health goals for the patient"
+  goals(
+    "How to sort the records in the response"
+    sort: [GoalSortInput]
+
+    "A filter to limit the results"
+    filter: GoalFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Goal!]!
+
+  "Medication statements (existing or proposed medications) for the patient"
+  medicationStatements(
+    "How to sort the records in the response"
+    sort: [MedicationStatementSortInput]
+
+    "A filter to limit the results"
+    filter: MedicationStatementFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [MedicationStatement!]!
+
+  "Vital signs, observations, notes, etc. for the patient"
+  observations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Observation!]!
+
+  "Nutrition plans for the patient"
+  nutritionPlans(
+    "How to sort the records in the response"
+    sort: [NutritionPlanSortInput]
+
+    "A filter to limit the results"
+    filter: NutritionPlanFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [NutritionPlan!]!
 }
 
 "The result of the :log_thigh_circumference mutation"
@@ -1818,171 +1768,6 @@ type Observation {
   subject: Patient!
 }
 
-"The result of the :create_patient_with_person mutation"
-type CreatePatientWithPersonResult {
-  "The successful result of the mutation"
-  result: Patient
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreatePatientWithPersonInput {
-  person: PatientCreatePatientWithPersonPersonInput
-}
-
-"The result of the :create_patient mutation"
-type CreatePatientResult {
-  "The successful result of the mutation"
-  result: Patient
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreatePatientInput {
-  personId: ID
-}
-
-enum PatientSortField {
-  ID
-  PERSON_ID
-}
-
-"A keyset page of :patient"
-type KeysetPageOfPatient {
-  "Total count on all pages"
-  count: Int
-
-  "The records contained in the page"
-  results: [Patient!]
-
-  "The first keyset in the results"
-  startKeyset: String
-
-  "The last keyset in the results"
-  endKeyset: String
-}
-
-input PatientFilterPersonId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input PatientFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input PatientFilterInput {
-  and: [PatientFilterInput!]
-  or: [PatientFilterInput!]
-  not: [PatientFilterInput!]
-  id: PatientFilterId
-  personId: PatientFilterPersonId
-  person: PersonFilterInput
-  allergyIntolerances: AllergyIntoleranceFilterInput
-  conditions: ConditionFilterInput
-  medicationStatements: MedicationStatementFilterInput
-  observations: ObservationFilterInput
-  nutritionPlans: NutritionPlanFilterInput
-}
-
-input PatientSortInput {
-  order: SortOrder
-  field: PatientSortField!
-}
-
-type Patient {
-  id: ID!
-  personId: ID
-  paperTrailVersions(
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [PatientVersion!]!
-  person: Person
-  allergyIntolerances(
-    "How to sort the records in the response"
-    sort: [AllergyIntoleranceSortInput]
-
-    "A filter to limit the results"
-    filter: AllergyIntoleranceFilterInput
-
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [AllergyIntolerance!]!
-  conditions(
-    "How to sort the records in the response"
-    sort: [ConditionSortInput]
-
-    "A filter to limit the results"
-    filter: ConditionFilterInput
-
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [Condition!]!
-  medicationStatements(
-    "How to sort the records in the response"
-    sort: [MedicationStatementSortInput]
-
-    "A filter to limit the results"
-    filter: MedicationStatementFilterInput
-
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [MedicationStatement!]!
-  observations(
-    "How to sort the records in the response"
-    sort: [ObservationSortInput]
-
-    "A filter to limit the results"
-    filter: ObservationFilterInput
-
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [Observation!]!
-  nutritionPlans(
-    "How to sort the records in the response"
-    sort: [NutritionPlanSortInput]
-
-    "A filter to limit the results"
-    filter: NutritionPlanFilterInput
-
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [NutritionPlan!]!
-}
-
 enum NutritionPlanSortField {
   ID
   TARGET_KCAL
@@ -2093,6 +1878,655 @@ type NutritionPlan {
   patient: Patient!
 }
 
+"The result of the :create_medication_statement mutation"
+type CreateMedicationStatementResult {
+  "The successful result of the mutation"
+  result: MedicationStatement
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateMedicationStatementInput {
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: MedicationStatementCodeInput
+
+  "Further information about the usage"
+  note: [MedicationStatementNoteInput!]
+
+  subjectId: ID!
+}
+
+enum MedicationStatementSortField {
+  ID
+  CLINICAL_STATUS
+  VERIFICATION_STATUS
+  SUBJECT_ID
+}
+
+input MedicationStatementFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input MedicationStatementFilterVerificationStatus {
+  isNil: Boolean
+  eq: ConditionVerificationStatus
+  notEq: ConditionVerificationStatus
+  in: [ConditionVerificationStatus]
+  lessThan: ConditionVerificationStatus
+  greaterThan: ConditionVerificationStatus
+  lessThanOrEqual: ConditionVerificationStatus
+  greaterThanOrEqual: ConditionVerificationStatus
+}
+
+input MedicationStatementFilterClinicalStatus {
+  isNil: Boolean
+  eq: ConditionClinicalStatus
+  notEq: ConditionClinicalStatus
+  in: [ConditionClinicalStatus]
+  lessThan: ConditionClinicalStatus
+  greaterThan: ConditionClinicalStatus
+  lessThanOrEqual: ConditionClinicalStatus
+  greaterThanOrEqual: ConditionClinicalStatus
+}
+
+input MedicationStatementFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input MedicationStatementFilterInput {
+  and: [MedicationStatementFilterInput!]
+  or: [MedicationStatementFilterInput!]
+  not: [MedicationStatementFilterInput!]
+  id: MedicationStatementFilterId
+  clinicalStatus: MedicationStatementFilterClinicalStatus
+  verificationStatus: MedicationStatementFilterVerificationStatus
+  subjectId: MedicationStatementFilterSubjectId
+  subject: PatientFilterInput
+}
+
+input MedicationStatementSortInput {
+  order: SortOrder
+  field: MedicationStatementSortField!
+}
+
+type MedicationStatement {
+  id: ID!
+
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: CodeableConcept
+
+  "Further information about the usage"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [MedicationStatementVersion!]!
+
+  subject: Patient!
+}
+
+"The result of the :create_goal mutation"
+type CreateGoalResult {
+  "The successful result of the mutation"
+  result: Goal
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateGoalInput {
+  lifecycleStatus: GoalLifecycleStatus
+
+  achievementStatus: GoalAchievementStatus
+
+  category: [GoalCategory!]
+
+  "After meeting the goal, ongoing activity is needed to sustain the goal objective"
+  continuous: Boolean
+
+  priority: GoalPriority
+
+  "Code or text describing goal"
+  description: GoalDescriptionInput!
+
+  "When goal pursuit begins"
+  startDate: Date
+
+  "Reach goal on or before"
+  dueDate: Date
+
+  "When goal status took effect"
+  statusDate: Date
+
+  "Reason for current status"
+  statusReason: String
+
+  "Comments about the goal"
+  note: [GoalNoteInput!]
+
+  subjectId: ID!
+}
+
+enum GoalSortField {
+  ID
+  LIFECYCLE_STATUS
+  ACHIEVEMENT_STATUS
+  CONTINUOUS
+  PRIORITY
+  START_DATE
+  DUE_DATE
+  STATUS_DATE
+  STATUS_REASON
+  SUBJECT_ID
+}
+
+input GoalFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input GoalFilterStatusReason {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input GoalFilterStatusDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+}
+
+input GoalFilterDueDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+}
+
+input GoalFilterStartDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+}
+
+input GoalFilterPriority {
+  isNil: Boolean
+  eq: GoalPriority
+  notEq: GoalPriority
+  in: [GoalPriority]
+  lessThan: GoalPriority
+  greaterThan: GoalPriority
+  lessThanOrEqual: GoalPriority
+  greaterThanOrEqual: GoalPriority
+}
+
+input GoalFilterContinuous {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input GoalFilterAchievementStatus {
+  isNil: Boolean
+  eq: GoalAchievementStatus
+  notEq: GoalAchievementStatus
+  in: [GoalAchievementStatus]
+  lessThan: GoalAchievementStatus
+  greaterThan: GoalAchievementStatus
+  lessThanOrEqual: GoalAchievementStatus
+  greaterThanOrEqual: GoalAchievementStatus
+}
+
+input GoalFilterLifecycleStatus {
+  isNil: Boolean
+  eq: GoalLifecycleStatus
+  notEq: GoalLifecycleStatus
+  in: [GoalLifecycleStatus!]
+  lessThan: GoalLifecycleStatus
+  greaterThan: GoalLifecycleStatus
+  lessThanOrEqual: GoalLifecycleStatus
+  greaterThanOrEqual: GoalLifecycleStatus
+}
+
+input GoalFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input GoalFilterInput {
+  and: [GoalFilterInput!]
+
+  or: [GoalFilterInput!]
+
+  not: [GoalFilterInput!]
+
+  id: GoalFilterId
+
+  lifecycleStatus: GoalFilterLifecycleStatus
+
+  achievementStatus: GoalFilterAchievementStatus
+
+  "After meeting the goal, ongoing activity is needed to sustain the goal objective"
+  continuous: GoalFilterContinuous
+
+  priority: GoalFilterPriority
+
+  "When goal pursuit begins"
+  startDate: GoalFilterStartDate
+
+  "Reach goal on or before"
+  dueDate: GoalFilterDueDate
+
+  "When goal status took effect"
+  statusDate: GoalFilterStatusDate
+
+  "Reason for current status"
+  statusReason: GoalFilterStatusReason
+
+  subjectId: GoalFilterSubjectId
+
+  "Who this goal is intended for"
+  subject: PatientFilterInput
+}
+
+input GoalSortInput {
+  order: SortOrder
+  field: GoalSortField!
+}
+
+type Goal {
+  id: ID!
+
+  lifecycleStatus: GoalLifecycleStatus!
+
+  achievementStatus: GoalAchievementStatus
+
+  category: [GoalCategory!]
+
+  "After meeting the goal, ongoing activity is needed to sustain the goal objective"
+  continuous: Boolean
+
+  priority: GoalPriority
+
+  "Code or text describing goal"
+  description: CodeableConcept!
+
+  "When goal pursuit begins"
+  startDate: Date
+
+  "Reach goal on or before"
+  dueDate: Date
+
+  "When goal status took effect"
+  statusDate: Date
+
+  "Reason for current status"
+  statusReason: String
+
+  "Comments about the goal"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [GoalVersion!]!
+
+  "Who this goal is intended for"
+  subject: Patient!
+}
+
+"The result of the :create_condition mutation"
+type CreateConditionResult {
+  "The successful result of the mutation"
+  result: Condition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateConditionInput {
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: ConditionCodeInput
+
+  "Additional information about the Condition"
+  note: [ConditionNoteInput!]
+
+  subjectId: ID!
+}
+
+enum ConditionSortField {
+  ID
+  CLINICAL_STATUS
+  VERIFICATION_STATUS
+  SUBJECT_ID
+}
+
+input ConditionFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ConditionFilterVerificationStatus {
+  isNil: Boolean
+  eq: ConditionVerificationStatus
+  notEq: ConditionVerificationStatus
+  in: [ConditionVerificationStatus]
+  lessThan: ConditionVerificationStatus
+  greaterThan: ConditionVerificationStatus
+  lessThanOrEqual: ConditionVerificationStatus
+  greaterThanOrEqual: ConditionVerificationStatus
+}
+
+input ConditionFilterClinicalStatus {
+  isNil: Boolean
+  eq: ConditionClinicalStatus
+  notEq: ConditionClinicalStatus
+  in: [ConditionClinicalStatus]
+  lessThan: ConditionClinicalStatus
+  greaterThan: ConditionClinicalStatus
+  lessThanOrEqual: ConditionClinicalStatus
+  greaterThanOrEqual: ConditionClinicalStatus
+}
+
+input ConditionFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ConditionFilterInput {
+  and: [ConditionFilterInput!]
+  or: [ConditionFilterInput!]
+  not: [ConditionFilterInput!]
+  id: ConditionFilterId
+  clinicalStatus: ConditionFilterClinicalStatus
+  verificationStatus: ConditionFilterVerificationStatus
+  subjectId: ConditionFilterSubjectId
+  subject: PatientFilterInput
+}
+
+input ConditionSortInput {
+  order: SortOrder
+  field: ConditionSortField!
+}
+
+type Condition {
+  id: ID!
+
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: CodeableConcept
+
+  "Additional information about the Condition"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ConditionVersion!]!
+
+  subject: Patient!
+}
+
+"The result of the :create_allergy_intolerance mutation"
+type CreateAllergyIntoleranceResult {
+  "The successful result of the mutation"
+  result: AllergyIntolerance
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateAllergyIntoleranceInput {
+  clinicalStatus: AllergyIntoleranceClinicalStatus
+
+  verificationStatus: AllergyIntoleranceVerificationStatus
+
+  type: AllergyIntoleranceType
+
+  code: AllergyIntoleranceCodeInput
+
+  "Additional text not captured in other fields"
+  note: [AllergyIntoleranceNoteInput!]
+
+  patientId: ID!
+}
+
+enum AllergyIntoleranceSortField {
+  ID
+  CLINICAL_STATUS
+  VERIFICATION_STATUS
+  TYPE
+  PATIENT_ID
+}
+
+input AllergyIntoleranceFilterPatientId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input AllergyIntoleranceFilterType {
+  isNil: Boolean
+  eq: AllergyIntoleranceType
+  notEq: AllergyIntoleranceType
+  in: [AllergyIntoleranceType]
+  lessThan: AllergyIntoleranceType
+  greaterThan: AllergyIntoleranceType
+  lessThanOrEqual: AllergyIntoleranceType
+  greaterThanOrEqual: AllergyIntoleranceType
+}
+
+input AllergyIntoleranceFilterVerificationStatus {
+  isNil: Boolean
+  eq: AllergyIntoleranceVerificationStatus
+  notEq: AllergyIntoleranceVerificationStatus
+  in: [AllergyIntoleranceVerificationStatus]
+  lessThan: AllergyIntoleranceVerificationStatus
+  greaterThan: AllergyIntoleranceVerificationStatus
+  lessThanOrEqual: AllergyIntoleranceVerificationStatus
+  greaterThanOrEqual: AllergyIntoleranceVerificationStatus
+}
+
+input AllergyIntoleranceFilterClinicalStatus {
+  isNil: Boolean
+  eq: AllergyIntoleranceClinicalStatus
+  notEq: AllergyIntoleranceClinicalStatus
+  in: [AllergyIntoleranceClinicalStatus]
+  lessThan: AllergyIntoleranceClinicalStatus
+  greaterThan: AllergyIntoleranceClinicalStatus
+  lessThanOrEqual: AllergyIntoleranceClinicalStatus
+  greaterThanOrEqual: AllergyIntoleranceClinicalStatus
+}
+
+input AllergyIntoleranceFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input AllergyIntoleranceFilterInput {
+  and: [AllergyIntoleranceFilterInput!]
+  or: [AllergyIntoleranceFilterInput!]
+  not: [AllergyIntoleranceFilterInput!]
+  id: AllergyIntoleranceFilterId
+  clinicalStatus: AllergyIntoleranceFilterClinicalStatus
+  verificationStatus: AllergyIntoleranceFilterVerificationStatus
+  type: AllergyIntoleranceFilterType
+  patientId: AllergyIntoleranceFilterPatientId
+  patient: PatientFilterInput
+}
+
+input AllergyIntoleranceSortInput {
+  order: SortOrder
+  field: AllergyIntoleranceSortField!
+}
+
+type AllergyIntolerance {
+  id: ID!
+
+  clinicalStatus: AllergyIntoleranceClinicalStatus
+
+  verificationStatus: AllergyIntoleranceVerificationStatus
+
+  type: AllergyIntoleranceType
+
+  code: CodeableConcept
+
+  "Additional text not captured in other fields"
+  note: [Annotation!]
+
+  patientId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [AllergyIntoleranceVersion!]!
+
+  patient: Patient!
+}
+
+type AllergyIntoleranceVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: AllergyIntolerance!
+}
+
+type ConditionVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Condition!
+}
+
+type GoalVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Goal!
+}
+
+type MedicationStatementVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: MedicationStatement!
+}
+
 type NutritionPlanVersion {
   id: ID!
   versionActionType: String!
@@ -2110,15 +2544,6 @@ type NutritionPlanVersion {
   versionSource: NutritionPlan!
 }
 
-type PatientVersion {
-  id: ID!
-  versionActionType: String!
-  versionActionName: String!
-  versionSourceId: ID!
-  changes: JsonString
-  versionSource: Patient!
-}
-
 type ObservationVersion {
   id: ID!
   versionActionType: String!
@@ -2126,6 +2551,15 @@ type ObservationVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Observation!
+}
+
+type PatientVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Patient!
 }
 
 type PractitionerVersion {
@@ -2137,61 +2571,9 @@ type PractitionerVersion {
   versionSource: Practitioner!
 }
 
-type AllergyIntoleranceVersion {
-  id: ID!
-  versionActionType: String!
-  versionActionName: String!
-  versionSourceId: ID!
-  changes: JsonString
-  versionSource: AllergyIntolerance!
-}
-
-type MedicationStatementVersion {
-  id: ID!
-  versionActionType: String!
-  versionActionName: String!
-  versionSourceId: ID!
-  changes: JsonString
-  versionSource: MedicationStatement!
-}
-
-type ConditionVersion {
-  id: ID!
-  versionActionType: String!
-  versionActionName: String!
-  versionSourceId: ID!
-  changes: JsonString
-  versionSource: Condition!
-}
-
 type RootQueryType {
   "Retrieve the info for the actor that is currently signed in."
   currentActor: User
-
-  listPatients(
-    "How to sort the records in the response"
-    sort: [PatientSortInput]
-
-    "A filter to limit the results"
-    filter: PatientFilterInput
-
-    "The number of records to return from the beginning. Maximum 250"
-    first: Int
-
-    "Show records before the specified keyset."
-    before: String
-
-    "Show records after the specified keyset."
-    after: String
-
-    "The number of records to return to the end. Maximum 250"
-    last: Int
-  ): KeysetPageOfPatient
-
-  getPatient(
-    "The id of the record"
-    id: ID!
-  ): Patient
 
   listObservations(
     "How to sort the records in the response"
@@ -2407,6 +2789,31 @@ type RootQueryType {
     last: Int
   ): KeysetPageOfObservation
 
+  listPatients(
+    "How to sort the records in the response"
+    sort: [PatientSortInput]
+
+    "A filter to limit the results"
+    filter: PatientFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfPatient
+
+  getPatient(
+    "The id of the record"
+    id: ID!
+  ): Patient
+
   listSubscriptionPlans(
     "How to sort the records in the response"
     sort: [SubscriptionPlanSortInput]
@@ -2505,10 +2912,13 @@ input MoneyInput {
 }
 
 type RootMutationType {
-  createPatient(input: CreatePatientInput): CreatePatientResult!
+  createAllergyIntolerance(input: CreateAllergyIntoleranceInput!): CreateAllergyIntoleranceResult!
 
-  "Create a patient and a new person"
-  createPatientWithPerson(input: CreatePatientWithPersonInput): CreatePatientWithPersonResult!
+  createCondition(input: CreateConditionInput!): CreateConditionResult!
+
+  createGoal(input: CreateGoalInput!): CreateGoalResult!
+
+  createMedicationStatement(input: CreateMedicationStatementInput!): CreateMedicationStatementResult!
 
   createObservation(input: CreateObservationInput!): CreateObservationResult!
 
@@ -2541,13 +2951,12 @@ type RootMutationType {
   "Log a thigh circumference observation."
   logThighCircumference(input: LogThighCircumferenceInput!): LogThighCircumferenceResult!
 
+  createPatient(input: CreatePatientInput): CreatePatientResult!
+
+  "Create a patient and a new person"
+  createPatientWithPerson(input: CreatePatientWithPersonInput): CreatePatientWithPersonResult!
+
   createPractitioner(input: CreatePractitionerInput!): CreatePractitionerResult!
-
-  createAllergyIntolerance(input: CreateAllergyIntoleranceInput!): CreateAllergyIntoleranceResult!
-
-  createMedicationStatement(input: CreateMedicationStatementInput!): CreateMedicationStatementResult!
-
-  createCondition(input: CreateConditionInput!): CreateConditionResult!
 
   createSubscriptionPlan(input: CreateSubscriptionPlanInput): CreateSubscriptionPlanResult!
 

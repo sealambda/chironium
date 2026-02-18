@@ -1,5 +1,9 @@
 defmodule Chironium.Health.MedicationStatement do
   @moduledoc """
+  A record of a medication that is being consumed by a patient.
+  A MedicationStatement may indicate that the patient may be taking the medication now
+  or has taken the medication in the past or will be taking the medication in the future.
+
   https://hl7.org/fhir/R5/medicationstatement.html
   """
 

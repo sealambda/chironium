@@ -1,5 +1,7 @@
 defmodule Chironium.Health.Observation do
   @moduledoc """
+  Measurements and simple assertions made about a patient, device or other subject.
+
   https://hl7.org/fhir/R5/observation.html
   """
   require Ash.Resource.Change.Builtins
@@ -34,6 +36,9 @@ defmodule Chironium.Health.Observation do
 
   @loinc_code_arm_right_circumference "56072-2"
   @loinc_code_thigh_right_circumference "8286-7"
+
+  @loinc_code_menstrual_period_start "8665-2"
+  @loinc_code_menstrual_period_duration "3144-3"
 
   # @loinc_code_thigh_left_circumference "8285-9" - not sure why left is available for thigh but not for arm... just for reference
 
