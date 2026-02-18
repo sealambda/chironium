@@ -25,7 +25,7 @@ function NotFoundComponent() {
         <h1 className="font-semibold text-2xl">{m.error_not_found()}</h1>
         <p className="text-muted-foreground text-sm">{m.error_not_found_desc()}</p>
         <a href="/" className="text-primary text-sm hover:underline">
-          {m.go_home()}
+          {m.error_go_home()}
         </a>
       </div>
     </div>
