@@ -1,4 +1,7 @@
-import type { Duration } from "@/gql/graphql";
+interface Duration {
+  value?: string | null;
+  code?: string | null;
+}
 
 const DEFAULT_MONTHS = 3;
 

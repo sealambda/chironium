@@ -1,4 +1,8 @@
-import type { HumanName } from "@/gql/graphql";
+export interface HumanName {
+  given?: string[] | null;
+  family?: string | null;
+  text?: string | null;
+}
 
 /**
  * Format a HumanName array into a display string.

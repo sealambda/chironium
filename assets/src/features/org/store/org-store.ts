@@ -2,31 +2,31 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 import { queryClient } from "@/app/providers/query-client";
+import type { OrganizationRecord } from "@/features/org/api/org-api";
 import { createOrganization, fetchAccessibleOrganizations } from "@/features/org/api/org-api";
 import { getStoredPreference, storePreference } from "@/features/org/model/org-preferences";
-import type { OrganizationSummary } from "@/features/org/api/org-api";
 
 export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
 
 type OrgStoreState = {
-  selectedOrg: OrganizationSummary | null;
-  availableOrgs: OrganizationSummary[];
+  selectedOrg: OrganizationRecord | null;
+  availableOrgs: OrganizationRecord[];
   loading: boolean;
   error: Error | null;
   setFromQuery: (payload: {
-    availableOrgs: OrganizationSummary[];
+    availableOrgs: OrganizationRecord[];
     loading: boolean;
     error: Error | null;
   }) => void;
   selectOrg: (orgId: string) => Promise<void>;
-  refreshOrgs: () => Promise<OrganizationSummary[]>;
-  createOrg: (data: { name: string; slug: string }) => Promise<OrganizationSummary>;
+  refreshOrgs: () => Promise<OrganizationRecord[]>;
+  createOrg: (data: { name: string; slug: string }) => Promise<OrganizationRecord>;
 };
 
 function resolveSelectedOrg(
-  current: OrganizationSummary | null,
-  availableOrgs: OrganizationSummary[],
-): OrganizationSummary | null {
+  current: OrganizationRecord | null,
+  availableOrgs: OrganizationRecord[],
+): OrganizationRecord | null {
   if (availableOrgs.length === 0) {
     return null;
   }
