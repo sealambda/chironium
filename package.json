@@ -20,7 +20,7 @@
     "assets:typecheck": "pnpm --filter chironium-assets typecheck",
     "assets:check": "pnpm --filter chironium-assets check",
     "assets:check:fix": "pnpm --filter chironium-assets check:fix",
-    "assets:codegen": "pnpm --filter chironium-assets codegen"
+    "assets:codegen": "pnpm --filter chironium-assets gql:generate"
   },
   "packageManager": "pnpm@10.30.0"
 }
