@@ -5,6 +5,13 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "plugins": [
+      {
+        "name": "gql.tada/ts-plugin",
+        "schema": "../priv/schema.graphql",
+        "tadaOutputLocation": "src/graphql-env.d.ts"
+      }
+    ]
   }
 }
