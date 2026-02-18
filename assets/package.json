@@ -7,7 +7,6 @@
     "build": "paraglide-js compile --emit-ts-declarations && tsc -b && vite build",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "codegen": "graphql-codegen --config codegen.ts",
     "dev": "vite dev",
     "format": "biome format --write .",
     "format:check": "biome format .",
@@ -16,7 +15,9 @@
     "precommit": "biome check . && tsc --noEmit",
     "preview": "vite preview",
     "quality": "biome check . && tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gql:generate": "gql.tada generate output --tsconfig tsconfig.app.json",
+    "gql:check": "gql.tada check --tsconfig tsconfig.app.json"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -30,6 +31,7 @@
     "clsx": "^2.1.1",
     "country-flag-icons": "^1.6.13",
     "date-fns": "^4.1.0",
+    "gql.tada": "^1.9.0",
     "graphql-request": "^7.4.0",
     "libphonenumber-js": "^1.12.37",
     "lucide-react": "^0.563.0",
@@ -49,9 +51,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.2",
-    "@graphql-codegen/cli": "^6.1.1",
-    "@graphql-codegen/client-preset": "^5.2.2",
-    "@graphql-typed-document-node/core": "^3.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query-devtools": "^5.91.3",
     "@tanstack/react-router": "^1.161.1",
