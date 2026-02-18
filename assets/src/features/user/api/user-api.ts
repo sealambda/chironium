@@ -1,8 +1,5 @@
-import { graphql } from "@/gql";
-import type { User } from "@/gql/graphql";
+import { graphql, type ResultOf } from "@/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
-
-export type UserProfile = Omit<User, "paperTrailVersions">;
 
 const CurrentActorQuery = graphql(`
   query CurrentActor {
@@ -16,6 +13,8 @@ const CurrentActorQuery = graphql(`
     }
   }
 `);
+
+export type UserProfile = NonNullable<ResultOf<typeof CurrentActorQuery>["currentActor"]>;
 
 /**
  * Fetch the current user's profile data from the backend.

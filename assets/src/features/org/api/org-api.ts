@@ -1,7 +1,7 @@
-import { graphql } from "@/gql";
-import type { DurationUnit, Organization } from "@/gql/graphql";
+import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import type { DurationUnit } from "@/shared/types/schema-enums";
 
 const ListOrganizationsQuery = graphql(`
   query ListOrganizations($first: Int) {
@@ -15,7 +15,9 @@ const ListOrganizationsQuery = graphql(`
   }
 `);
 
-export type OrganizationSummary = Omit<Organization, "paperTrailVersions">;
+export type OrganizationRecord = NonNullable<
+  NonNullable<ResultOf<typeof ListOrganizationsQuery>["listOrganizations"]>["results"]
+>[number];
 
 const CreateOrganizationMutation = graphql(`
   mutation CreateOrganization($input: CreateOrganizationInput!) {
@@ -57,7 +59,7 @@ const CreateSubscriptionPlanMutation = graphql(`
 /**
  * Fetch accessible organizations from the API.
  */
-export async function fetchAccessibleOrganizations(): Promise<OrganizationSummary[]> {
+export async function fetchAccessibleOrganizations(): Promise<OrganizationRecord[]> {
   const data = await requestGraphql({
     document: ListOrganizationsQuery,
     variables: { first: 10 },
@@ -68,7 +70,10 @@ export async function fetchAccessibleOrganizations(): Promise<OrganizationSummar
 /**
  * Create a new organization via API.
  */
-export async function createOrganization(data: { name: string; slug: string }): Promise<OrganizationSummary> {
+export async function createOrganization(data: {
+  name: string;
+  slug: string;
+}): Promise<OrganizationRecord> {
   const result = await requestGraphql({
     document: CreateOrganizationMutation,
     variables: { input: { name: data.name, slug: data.slug } },

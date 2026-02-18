@@ -1,9 +1,13 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import type { PlanFormData } from "@/features/org/api/org-api";
-import type { DurationUnit } from "@/gql/graphql";
+import {
+  type CreatedPlan,
+  createSubscriptionPlan,
+  type PlanFormData,
+} from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
+import type { DurationUnit } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import { DialogFooter } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
