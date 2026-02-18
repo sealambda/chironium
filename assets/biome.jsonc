@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
@@ -177,7 +177,15 @@
 
         // Require new Error("message") — all errors must be debuggable.
         // https://mkosir.github.io/typescript-style-guide/#error-handling
-        "useErrorMessage": "error"
+        "useErrorMessage": "error",
+
+        // Catch side-effect-free statements (usually a missing call or assignment).
+        // https://github.com/airbnb/javascript#variables--no-unused-expressions
+        "noUnusedExpressions": "warn",
+
+        // forwardRef is legacy in React 19; ref is a regular prop.
+        // https://react.dev/blog/2024/12/05/react-19#ref-as-a-prop
+        "noReactForwardRef": "warn"
       },
       "nursery": {
         // Catch unhandled Promises — the leading cause of silent async failures.
@@ -201,10 +209,6 @@
         // https://github.com/airbnb/javascript#arrow-functions--implicit-return
         "noReturnAssign": "error",
 
-        // Catch side-effect-free statements (usually a missing call or assignment).
-        // https://github.com/airbnb/javascript#variables--no-unused-expressions
-        "noUnusedExpressions": "warn",
-
         // .sort() without comparator uses lexicographic order — known JS trap.
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
         "useArraySortCompare": "error",
@@ -223,10 +227,6 @@
 
         // .find() over .filter()[0] — clearer intent and short-circuits.
         "useFind": "warn",
-
-        // forwardRef is legacy in React 19; ref is a regular prop.
-        // https://react.dev/blog/2024/12/05/react-19#ref-as-a-prop
-        "noReactForwardRef": "warn",
 
         // Sort Tailwind utility classes for consistency.
         // https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
