@@ -55,29 +55,6 @@ export function SideNav() {
           const isActive = currentPath.startsWith(item.to);
           const Icon = item.icon;
 
-          if (item.disabled) {
-            return (
-              <span
-                key={item.to}
-                className={cn(
-                  // Touch target: minimum 44px.
-                  "flex h-12 min-h-11 items-center gap-3 rounded-lg px-3",
-                  // Rail: center icon.
-                  "justify-center lg:justify-start",
-                  // Disabled styling.
-                  "cursor-not-allowed opacity-40",
-                )}
-                aria-disabled="true"
-              >
-                <Icon className="h-6 w-6 shrink-0 text-muted-foreground" />
-                {/* Label visible only on drawer. */}
-                <span className="sr-only font-medium text-muted-foreground text-sm lg:not-sr-only lg:block">
-                  {item.label()}
-                </span>
-              </span>
-            );
-          }
-
           return (
             <Link
               key={item.to}
