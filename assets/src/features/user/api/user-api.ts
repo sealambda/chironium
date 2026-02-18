@@ -1,15 +1,8 @@
 import { graphql } from "@/gql";
+import type { User } from "@/gql/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
 
-/** Fields selected by the CurrentActor query. */
-export type UserProfile = {
-  id: string;
-  email: string;
-  picture?: string | null;
-  name?: string | null;
-  familyName?: string | null;
-  givenName?: string | null;
-};
+export type UserProfile = Omit<User, "paperTrailVersions">;
 
 const CurrentActorQuery = graphql(`
   query CurrentActor {

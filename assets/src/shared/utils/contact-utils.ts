@@ -2,6 +2,8 @@
  * Shared utilities for building contact URLs (email, WhatsApp, Instagram).
  */
 
+import type { ContactPoint } from "@/gql/graphql";
+
 /**
  * Sanitize phone number to digits only for URL building.
  */
@@ -50,19 +52,10 @@ export function getInstagramUrl(instagram: string): string {
 }
 
 /**
- * Contact point from the FHIR-based GraphQL schema.
- * Uses `system` (FHIR ContactPoint.system) to identify the channel.
- */
-interface TelecomEntry {
-  system?: string | null;
-  value?: string | null;
-}
-
-/**
  * Extract all contact values (email, phone, instagram) from telecom entries.
  * Instagram is stored as a URL-type contact containing "instagram" in the value.
  */
-export function extractContactInfo(telecom: TelecomEntry[] | undefined | null): {
+export function extractContactInfo(telecom: ContactPoint[] | undefined | null): {
   email?: string;
   phone?: string;
   instagram?: string;

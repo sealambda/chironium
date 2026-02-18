@@ -1,6 +1,5 @@
-import type { OrgRecord } from "@/features/org/types";
 import { graphql } from "@/gql";
-import type { DurationUnit } from "@/gql/graphql";
+import type { DurationUnit, Organization } from "@/gql/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
@@ -15,6 +14,8 @@ const ListOrganizationsQuery = graphql(`
     }
   }
 `);
+
+export type OrganizationSummary = Omit<Organization, "paperTrailVersions">;
 
 const CreateOrganizationMutation = graphql(`
   mutation CreateOrganization($input: CreateOrganizationInput!) {
@@ -56,7 +57,7 @@ const CreateSubscriptionPlanMutation = graphql(`
 /**
  * Fetch accessible organizations from the API.
  */
-export async function fetchAccessibleOrganizations(): Promise<OrgRecord[]> {
+export async function fetchAccessibleOrganizations(): Promise<OrganizationSummary[]> {
   const data = await requestGraphql({
     document: ListOrganizationsQuery,
     variables: { first: 10 },
@@ -67,7 +68,7 @@ export async function fetchAccessibleOrganizations(): Promise<OrgRecord[]> {
 /**
  * Create a new organization via API.
  */
-export async function createOrganization(data: { name: string; slug: string }): Promise<OrgRecord> {
+export async function createOrganization(data: { name: string; slug: string }): Promise<OrganizationSummary> {
   const result = await requestGraphql({
     document: CreateOrganizationMutation,
     variables: { input: { name: data.name, slug: data.slug } },
