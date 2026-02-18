@@ -52,18 +52,39 @@ export function getInstagramUrl(instagram: string): string {
 }
 
 /**
- * Extract all contact values (email, phone, instagram) from contact points.
+ * Contact point from the FHIR-based GraphQL schema.
+ * Uses `system` (FHIR ContactPoint.system) to identify the channel.
  */
-export function extractContactInfo(contactPoints: ContactPoint[] | undefined | null): {
+interface TelecomEntry {
+  system?: string | null;
+  value?: string | null;
+}
+
+/**
+ * Extract all contact values (email, phone, instagram) from telecom entries.
+ * Instagram is stored as a URL-type contact containing "instagram" in the value.
+ */
+export function extractContactInfo(telecom: TelecomEntry[] | undefined | null): {
   email?: string;
   phone?: string;
   instagram?: string;
 } {
-  const find = (system: string) =>
-    contactPoints?.find((p) => p.system === system)?.value ?? undefined;
+  if (!telecom) {
+    return {};
+  }
+
+  const findBySystem = (system: string) =>
+    telecom.find((t) => t.system === system)?.value ?? undefined;
+
+  // Instagram is stored as a URL or OTHER contact containing "instagram".
+  const instagram = telecom.find(
+    (t) =>
+      (t.system === "URL" || t.system === "OTHER") && t.value?.toLowerCase().includes("instagram"),
+  )?.value;
+
   return {
-    email: find("EMAIL"),
-    phone: find("PHONE"),
-    instagram: find("URL"),
+    email: findBySystem("EMAIL"),
+    phone: findBySystem("PHONE"),
+    instagram: instagram ?? undefined,
   };
 }
