@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { MenstrualCycleFormData } from "@/features/customers/api/onboarding-api";
+import type { MenstrualCycleFormData } from "@/features/customers/api/observations-api";
 import * as m from "@/paraglide/messages";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
