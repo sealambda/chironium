@@ -1,11 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 
-import {
-  type CreatedPlan,
-  createSubscriptionPlan,
-  type PlanFormData,
-} from "@/features/org/api/org-api";
+import type { PlanFormData } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
 import type { DurationUnit } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
@@ -40,8 +36,6 @@ function formatDurationUnit(code: DurationUnit): string {
   return unit ? unit.label() : code;
 }
 
-let planCounter = 0;
-
 interface LocalPlan extends PlanFormData {
   localId: string;
 }
@@ -51,6 +45,10 @@ interface LocalPlan extends PlanFormData {
  * Plans are accumulated locally and submitted in batch on finish.
  */
 export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: PlansStepProps) {
+  const idPrefix = useId();
+  const counterRef = useRef(0);
+  const nextId = () => `${idPrefix}-${++counterRef.current}`;
+
   const [name, setName] = useState("");
   const [durationValue, setDurationValue] = useState("");
   const [durationUnit, setDurationUnit] = useState<DurationUnit | "">("");
@@ -58,7 +56,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
   const [currency, setCurrency] = useState("EUR");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [plans, setPlans] = useState<LocalPlan[]>(() =>
-    (initialData ?? []).map((p) => ({ ...p, localId: `plan-${++planCounter}` })),
+    (initialData ?? []).map((p) => ({ ...p, localId: nextId() })),
   );
 
   const submitting = isSubmitting ?? false;
@@ -100,7 +98,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
     setPlans((prev) => [
       ...prev,
       {
-        localId: `plan-${++planCounter}`,
+        localId: nextId(),
         name: name.trim(),
         durationValue: Number(durationValue),
         durationUnit: durationUnit as DurationUnit,
