@@ -47,14 +47,14 @@ input PractitionerNameInput {
   "Text representation of the full name"
   text: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -187,14 +187,14 @@ input PersonNameInput {
   "Text representation of the full name"
   text: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -1557,12 +1557,19 @@ type CreateObservationResult {
 input CreateObservationInput {
   status: ObservationStatus
 
+  "Type of observation (code \/ type)"
   code: ObservationCodeInput
 
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
+  "Actual result"
   valueQuantity: ObservationValueQuantityInput
 
+  "Actual result"
   valueCodeableConcept: ObservationValueCodeableConceptInput
 
+  "Actual result"
   valueString: String
 
   "Comments about the observation"
@@ -1574,6 +1581,7 @@ input CreateObservationInput {
 enum ObservationSortField {
   ID
   STATUS
+  EFFECTIVE_DATE_TIME
   VALUE_STRING
   SUBJECT_ID
 }
@@ -1617,6 +1625,17 @@ input ObservationFilterValueString {
   ilike: String
 }
 
+input ObservationFilterEffectiveDateTime {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
 input ObservationFilterStatus {
   isNil: Boolean
   eq: ObservationStatus
@@ -1641,12 +1660,24 @@ input ObservationFilterId {
 
 input ObservationFilterInput {
   and: [ObservationFilterInput!]
+
   or: [ObservationFilterInput!]
+
   not: [ObservationFilterInput!]
+
   id: ObservationFilterId
+
   status: ObservationFilterStatus
+
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: ObservationFilterEffectiveDateTime
+
+  "Actual result"
   valueString: ObservationFilterValueString
+
   subjectId: ObservationFilterSubjectId
+
+  "Who the observation is about"
   subject: PatientFilterInput
 }
 
@@ -1660,12 +1691,19 @@ type Observation {
 
   status: ObservationStatus!
 
+  "Type of observation (code \/ type)"
   code: CodeableConcept
 
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
+  "Actual result"
   valueQuantity: Quantity
 
+  "Actual result"
   valueCodeableConcept: CodeableConcept
 
+  "Actual result"
   valueString: String
 
   "Comments about the observation"
@@ -1681,6 +1719,7 @@ type Observation {
     offset: Int
   ): [ObservationVersion!]!
 
+  "Who the observation is about"
   subject: Patient!
 }
 
@@ -2107,6 +2146,27 @@ type RootQueryType {
 
   "Read all body height observations."
   listBodyHeightObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  "Read all BMI observations."
+  listBmiObservations(
     "How to sort the records in the response"
     sort: [ObservationSortInput]
 
