@@ -1,5 +1,7 @@
 defmodule Chironium.Health.Patient do
   @moduledoc """
+  Demographics and other administrative information about an individual or animal receiving care or other health-related services.
+
   https://hl7.org/fhir/R5/patient.html
   """
 
@@ -8,7 +10,7 @@ defmodule Chironium.Health.Patient do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshAdmin.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
 
   postgres do
     table "patients"
@@ -62,6 +64,7 @@ defmodule Chironium.Health.Patient do
     end
 
     has_many :allergy_intolerances, Chironium.Health.AllergyIntolerance do
+      description "Allergies and intolerances for the patient"
       public? true
 
       # For some reason this is actually patient_id instead of subject_id - according to the FHIR spec
@@ -69,22 +72,33 @@ defmodule Chironium.Health.Patient do
     end
 
     has_many :conditions, Chironium.Health.Condition do
+      description "Conditions (pathologies/problems) for the patient"
+      public? true
+      destination_attribute :subject_id
+    end
+
+    has_many :goals, Chironium.Health.Goal do
+      description "Health goals for the patient"
       public? true
       destination_attribute :subject_id
     end
 
     has_many :medication_statements, Chironium.Health.MedicationStatement do
+      description "Medication statements (existing or proposed medications) for the patient"
       public? true
       destination_attribute :subject_id
     end
 
     has_many :observations, Chironium.Health.Observation do
+      description "Vital signs, observations, notes, etc. for the patient"
       public? true
       destination_attribute :subject_id
+      default_sort effective_date_time: :desc
     end
 
     # TODO Should use the NutritionOrder resource instead: https://hl7.org/fhir/R5/nutritionorder.html
     has_many :nutrition_plans, Chironium.Health.NutritionPlan do
+      description "Nutrition plans for the patient"
       public? true
       destination_attribute :patient_id
     end

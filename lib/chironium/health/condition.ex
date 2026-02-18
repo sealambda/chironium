@@ -1,5 +1,8 @@
 defmodule Chironium.Health.Condition do
   @moduledoc """
+  A clinical condition, problem, diagnosis, or other event, situation,
+  issue, or clinical concept that has risen to a level of concern.
+
   https://hl7.org/fhir/R5/condition.html
   """
 
