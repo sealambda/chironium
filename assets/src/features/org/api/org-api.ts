@@ -3,6 +3,8 @@ import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { DurationUnit } from "@/shared/types/schema-enums";
 
+// ─── Queries ─────────────────────────────────────────────────────────
+
 const ListOrganizationsQuery = graphql(`
   query ListOrganizations($first: Int) {
     listOrganizations(first: $first) {
@@ -15,9 +17,7 @@ const ListOrganizationsQuery = graphql(`
   }
 `);
 
-export type OrganizationRecord = NonNullable<
-  NonNullable<ResultOf<typeof ListOrganizationsQuery>["listOrganizations"]>["results"]
->[number];
+// ─── Mutations ───────────────────────────────────────────────────────
 
 const CreateOrganizationMutation = graphql(`
   mutation CreateOrganization($input: CreateOrganizationInput!) {
@@ -56,9 +56,41 @@ const CreateSubscriptionPlanMutation = graphql(`
   }
 `);
 
-/**
- * Fetch accessible organizations from the API.
- */
+// ─── Types ───────────────────────────────────────────────────────────
+
+/** An organization record with its ID, name, and URL slug. */
+export type OrganizationRecord = NonNullable<
+  NonNullable<ResultOf<typeof ListOrganizationsQuery>["listOrganizations"]>["results"]
+>[number];
+
+/** Form data for creating a new subscription plan. */
+export interface PlanFormData {
+  name: string;
+  durationValue: number;
+  durationUnit: DurationUnit;
+  priceAmount: number;
+  currency: string;
+}
+
+/** The plan record returned after a successful creation, with nullable API fields flattened. */
+export interface CreatedPlan {
+  id: string;
+  name: string | null;
+  durationValue: string | null;
+  durationUnit: string | null;
+  priceAmount: string | null;
+  currency: string | null;
+}
+
+/** Collected form state for org creation, submitted in a single batch. */
+export interface OrgCreationDraft {
+  orgDetails: { name: string; slug: string } | null;
+  plans: PlanFormData[];
+}
+
+// ─── Functions ───────────────────────────────────────────────────────
+
+/** Fetch all organizations the current user has access to. */
 export async function fetchAccessibleOrganizations(): Promise<OrganizationRecord[]> {
   const data = await requestGraphql({
     document: ListOrganizationsQuery,
@@ -67,9 +99,7 @@ export async function fetchAccessibleOrganizations(): Promise<OrganizationRecord
   return data.listOrganizations?.results ?? [];
 }
 
-/**
- * Create a new organization via API.
- */
+/** Create a new organization with the given name and slug. */
 export async function createOrganization(data: {
   name: string;
   slug: string;
@@ -82,26 +112,7 @@ export async function createOrganization(data: {
   return unwrapMutationResult(result.createOrganization, "Failed to create organization.");
 }
 
-export interface PlanFormData {
-  name: string;
-  durationValue: number;
-  durationUnit: DurationUnit;
-  priceAmount: number;
-  currency: string;
-}
-
-export interface CreatedPlan {
-  id: string;
-  name: string | null;
-  durationValue: string | null;
-  durationUnit: string | null;
-  priceAmount: string | null;
-  currency: string | null;
-}
-
-/**
- * Create a subscription plan for an organization.
- */
+/** Create a subscription plan for an organization with duration and pricing. */
 export async function createSubscriptionPlan(
   data: PlanFormData,
   organizationId: string,
@@ -137,15 +148,6 @@ export async function createSubscriptionPlan(
     priceAmount: plan.priceAmount?.amount ?? null,
     currency: plan.priceAmount?.currency ?? null,
   };
-}
-
-// ---------------------------------------------------------------------------
-// Batch submission
-// ---------------------------------------------------------------------------
-
-export interface OrgCreationDraft {
-  orgDetails: { name: string; slug: string } | null;
-  plans: PlanFormData[];
 }
 
 /**
