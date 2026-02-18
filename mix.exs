@@ -113,7 +113,7 @@ defmodule Chironium.MixProject do
       test: ["ash.setup --quiet", "test"],
       "assets.setup": ["phoenix_vite.npm assets install"],
       "assets.build": ["phoenix_vite.npm vite build"],
-      "assets.codegen": ["cmd sh -c 'cd assets && pnpm codegen'"],
+      "assets.codegen": ["cmd sh -c 'cd assets && pnpm gql:generate'"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
 
       # Clean rebuild for branch switching - preserves migrations,
