@@ -2,12 +2,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { StrictMode } from "react";
 
+import { InnerApp } from "@/app/inner-app";
+import { router } from "@/app/router";
 import { UserStoreSync } from "@/features/user/store/user-store-sync";
 import { LocaleProvider } from "@/shared/i18n/locale-provider";
 import { Toaster } from "@/shared/ui/sonner";
 
-import { InnerApp } from "../inner-app";
-import { router } from "../router";
 import { queryClient } from "./query-client";
 
 /**
