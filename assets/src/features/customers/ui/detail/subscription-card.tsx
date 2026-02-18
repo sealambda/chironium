@@ -1,11 +1,10 @@
-import type { SubscriptionHistoryRecord } from "@/mocks/types";
+import { subscriptionStatusConfig } from "@/features/customers/model/status-config";
+import type { CustomerSubscription } from "@/features/customers/types/customer-subscription";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { getTimeRemainingLabel } from "@/shared/utils/subscription-utils";
-
-import { subscriptionStatusConfig } from "../../model/status-config";
 
 function SubscriptionCardBody({
   isLoading,
@@ -14,7 +13,7 @@ function SubscriptionCardBody({
   isPaused,
 }: {
   isLoading?: boolean;
-  subscription: SubscriptionHistoryRecord | undefined;
+  subscription: CustomerSubscription | undefined;
   isActionable: boolean;
   isPaused: boolean;
 }) {
@@ -48,7 +47,7 @@ function SubscriptionCardBody({
 }
 
 interface SubscriptionCardProps {
-  subscription: SubscriptionHistoryRecord | undefined;
+  subscription: CustomerSubscription | undefined;
   isLoading?: boolean;
 }
 

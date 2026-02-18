@@ -2,6 +2,7 @@ import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
 import { Globe, Mail } from "lucide-react";
 import { useMemo } from "react";
 
+import type { Customer } from "@/features/customers/ui/customer-card";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import {
   formatInstagramDisplay,
@@ -10,8 +11,6 @@ import {
   getWhatsAppUrl,
 } from "@/shared/utils/contact-utils";
 import { analyzePhoneNumber, formatPhoneDisplay, getCountryFlag } from "@/shared/utils/phone-utils";
-
-import type { Customer } from "../customer-card";
 
 interface CustomerProfileCardProps {
   customer: Customer;
