@@ -1,21 +1,24 @@
-import { subscriptionStatusConfig } from "@/features/customers/model/status-config";
-import type { CustomerSubscription } from "@/features/customers/types/customer-subscription";
+import { addMonths, formatISO } from "date-fns";
+
+import type { SubscriptionRecord } from "@/features/customers/api/subscriptions-api";
 import * as m from "@/paraglide/messages";
-import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
+import { durationToMonths } from "@/shared/utils/duration-utils";
 import { getTimeRemainingLabel } from "@/shared/utils/subscription-utils";
+
+function computeEndDate(startDate: string, planDurationMonths: number): string {
+  return formatISO(addMonths(new Date(startDate), planDurationMonths), { representation: "date" });
+}
 
 function SubscriptionCardBody({
   isLoading,
   subscription,
   isActionable,
-  isPaused,
 }: {
   isLoading?: boolean;
-  subscription: CustomerSubscription | undefined;
+  subscription: SubscriptionRecord | undefined;
   isActionable: boolean;
-  isPaused: boolean;
 }) {
   if (isLoading) {
     return (
@@ -29,17 +32,15 @@ function SubscriptionCardBody({
   }
 
   if (subscription && isActionable) {
+    const planDurationMonths = durationToMonths(subscription.plan.duration);
+    const endDate = computeEndDate(subscription.startDate, planDurationMonths);
+
     return (
-      <div className="space-y-3">
-        <SubscriptionProgress subscription={subscription} />
-        {isPaused ? (
-          <div className="flex justify-center">
-            <Badge variant={subscriptionStatusConfig.paused.variant}>
-              {subscriptionStatusConfig.paused.label}
-            </Badge>
-          </div>
-        ) : null}
-      </div>
+      <SubscriptionProgress
+        startDate={subscription.startDate}
+        endDate={endDate}
+        planDurationMonths={planDurationMonths}
+      />
     );
   }
 
@@ -47,13 +48,19 @@ function SubscriptionCardBody({
 }
 
 interface SubscriptionCardProps {
-  subscription: CustomerSubscription | undefined;
+  subscription: SubscriptionRecord | undefined;
   isLoading?: boolean;
 }
 
 export function SubscriptionCard({ subscription, isLoading }: Readonly<SubscriptionCardProps>) {
-  const isActionable = subscription?.status === "active" || subscription?.status === "paused";
-  const isPaused = subscription?.status === "paused";
+  const isActionable = subscription?.state === "active" || subscription?.state === "suspended";
+
+  const timeLabel =
+    subscription && isActionable
+      ? getTimeRemainingLabel(
+          computeEndDate(subscription.startDate, durationToMonths(subscription.plan.duration)),
+        )
+      : m.sub_no_active();
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-neutral-50 shadow-sm">
@@ -62,9 +69,7 @@ export function SubscriptionCard({ subscription, isLoading }: Readonly<Subscript
           <Skeleton className="h-5 w-24" />
         ) : (
           <h3 className="font-semibold text-foreground lg:font-bold lg:text-sm lg:uppercase lg:tracking-wide">
-            {subscription && isActionable
-              ? getTimeRemainingLabel(subscription.endDate)
-              : m.sub_no_active()}
+            {timeLabel}
           </h3>
         )}
       </div>
@@ -74,7 +79,6 @@ export function SubscriptionCard({ subscription, isLoading }: Readonly<Subscript
           isLoading={isLoading}
           subscription={subscription}
           isActionable={isActionable}
-          isPaused={isPaused}
         />
       </div>
     </div>
