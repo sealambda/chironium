@@ -18,6 +18,7 @@ defmodule Chironium.Health.Observation do
   @unit_of_measure_code_kg "kg"
   @unit_of_measure_code_cm "cm"
   @unit_of_measure_code_bmi "kg/m2"
+  @unit_of_measure_code_ratio "1"
 
   @loinc_system "http://loinc.org"
   @loinc_code_body_weight "29463-7"
@@ -25,15 +26,19 @@ defmodule Chironium.Health.Observation do
   @loinc_code_bmi "39156-5"
 
   @loinc_code_chest_circumference "8279-2"
-  @loinc_code_hip_circumference "56063-1"
 
   # According to LOINC hip is "Circumference.at maximal protrusion of gluteus muscles Pelvis"
+  @loinc_code_hip_circumference "56063-1"
+
   @loinc_code_waist_circumference "8280-0"
 
   @loinc_code_arm_right_circumference "56072-2"
   @loinc_code_thigh_right_circumference "8286-7"
 
   # @loinc_code_thigh_left_circumference "8285-9" - not sure why left is available for thigh but not for arm... just for reference
+
+  @snomed_system "http://snomed.info/sct"
+  @snomed_waist_hip_ratio "248367009"
 
   postgres do
     table "observations"
@@ -65,6 +70,7 @@ defmodule Chironium.Health.Observation do
       list :list_body_weight_observations, :read_body_weight
       list :list_body_height_observations, :read_body_height
       list :list_bmi_observations, :read_bmi
+      list :list_waist_hip_ratio_observations, :read_waist_hip_ratio
       list :list_chest_circumference_observations, :read_chest_circumference
       list :list_hip_circumference_observations, :read_hip_circumference
       list :list_waist_circumference_observations, :read_waist_circumference
@@ -293,6 +299,73 @@ defmodule Chironium.Health.Observation do
              )
     end
 
+    ### Waist/hip ratio
+    create :compute_waist_hip_ratio do
+      description "Auto-generate a waist/hip ratio observation from the latest waist and hip circumference."
+      accept [:subject_id]
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @snomed_system,
+                   code: @snomed_waist_hip_ratio,
+                   display: "Waist/hip ratio"
+                 }
+               ]
+             })
+
+      change fn changeset, context ->
+        subject_id = Ash.Changeset.get_attribute(changeset, :subject_id)
+        tenant = context.tenant
+
+        waist_query =
+          Chironium.Health.Observation
+          |> Ash.Query.for_read(:read_waist_circumference)
+          |> Ash.Query.filter(subject_id == ^subject_id)
+          |> Ash.Query.sort(id: :desc)
+
+        hip_query =
+          Chironium.Health.Observation
+          |> Ash.Query.for_read(:read_hip_circumference)
+          |> Ash.Query.filter(subject_id == ^subject_id)
+          |> Ash.Query.sort(id: :desc)
+
+        with {:ok, %{results: [waist]}} <-
+               Ash.read(waist_query, tenant: tenant, authorize?: false, page: [limit: 1]),
+             {:ok, %{results: [hip]}} <-
+               Ash.read(hip_query, tenant: tenant, authorize?: false, page: [limit: 1]) do
+          waist_cm = waist.value_quantity.value
+          hip_cm = hip.value_quantity.value
+          ratio = Decimal.div(waist_cm, hip_cm)
+
+          Ash.Changeset.change_attribute(changeset, :value_quantity, %{
+            system: @unit_of_measure_system,
+            code: @unit_of_measure_code_ratio,
+            value: Decimal.round(ratio, 2)
+          })
+        else
+          _ ->
+            Ash.Changeset.add_error(changeset,
+              field: :subject_id,
+              message: "No waist or hip circumference observation found for subject."
+            )
+        end
+      end
+    end
+
+    read :read_waist_hip_ratio do
+      description "Read all waist/hip ratio observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @snomed_system, code: @snomed_waist_hip_ratio}]}
+               )
+             )
+    end
+
     ### Chest Circumference
     create :log_chest_circumference do
       description "Log a chest circumference observation."
@@ -360,6 +433,28 @@ defmodule Chironium.Health.Observation do
                code: @unit_of_measure_code_cm,
                value: arg(:hip_circumference_cm)
              })
+
+      change after_action(fn changeset, observation, context ->
+               opts = [tenant: context.tenant, authorize?: false]
+
+               case Chironium.Health.Observation
+                    |> Ash.Changeset.for_create(
+                      :compute_waist_hip_ratio,
+                      %{subject_id: observation.subject_id},
+                      opts
+                    )
+                    |> Ash.create() do
+                 {:ok, _} ->
+                   :ok
+
+                 {:error, reason} ->
+                   Logger.warning(
+                     "[Observation] Waist/hip ratio computation skipped after hip log: #{inspect(reason)}"
+                   )
+               end
+
+               {:ok, observation}
+             end)
     end
 
     read :read_hip_circumference do
@@ -401,6 +496,28 @@ defmodule Chironium.Health.Observation do
                code: @unit_of_measure_code_cm,
                value: arg(:waist_circumference_cm)
              })
+
+      change after_action(fn changeset, observation, context ->
+               opts = [tenant: context.tenant, authorize?: false]
+
+               case Chironium.Health.Observation
+                    |> Ash.Changeset.for_create(
+                      :compute_waist_hip_ratio,
+                      %{subject_id: observation.subject_id},
+                      opts
+                    )
+                    |> Ash.create() do
+                 {:ok, _} ->
+                   :ok
+
+                 {:error, reason} ->
+                   Logger.warning(
+                     "[Observation] Waist/hip ratio computation skipped after waist log: #{inspect(reason)}"
+                   )
+               end
+
+               {:ok, observation}
+             end)
     end
 
     read :read_waist_circumference do
