@@ -1,5 +1,7 @@
 defmodule Chironium.Health.Practitioner do
   @moduledoc """
+  A person who is directly or indirectly involved in the provisioning of healthcare or related services.
+
   https://hl7.org/fhir/R5/practitioner.html
   """
 

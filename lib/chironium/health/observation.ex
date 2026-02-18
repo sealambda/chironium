@@ -1,5 +1,7 @@
 defmodule Chironium.Health.Observation do
   @moduledoc """
+  Measurements and simple assertions made about a patient, device or other subject.
+
   https://hl7.org/fhir/R5/observation.html
   """
   require Ash.Resource.Change.Builtins
