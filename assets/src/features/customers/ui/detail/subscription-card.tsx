@@ -44,7 +44,7 @@ function SubscriptionCardBody({
     );
   }
 
-  return <p className="text-muted-foreground text-sm">{m.stat_no_plan()}</p>;
+  return <p className="text-muted-foreground text-sm">{m.sub_no_plan()}</p>;
 }
 
 interface SubscriptionCardProps {

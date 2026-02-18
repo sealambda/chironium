@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 
-import type { NoteFormData } from "@/features/customers/api/onboarding-api";
+import type { NoteFormData } from "@/features/customers/api/observations-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
@@ -21,18 +21,20 @@ interface NoteEntry extends NoteFormData {
   id: string;
 }
 
-let noteCounter = 0;
-
 /**
  * Step 8: Capture one or more free-text notes, each with a title and body.
  * Uses the same add-to-list pattern as the org plans step: a single form
  * at the top, an "Add" button, and a compact summary list below.
  */
 export function NotesStep({ initialData, isSubmitting, onSubmit, onBack }: NotesStepProps) {
+  const idPrefix = useId();
+  const counterRef = useRef(0);
+  const nextId = () => `${idPrefix}-${++counterRef.current}`;
+
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [addedNotes, setAddedNotes] = useState<NoteEntry[]>(() =>
-    (initialData ?? []).map((n) => ({ ...n, id: `note-${++noteCounter}` })),
+    (initialData ?? []).map((n) => ({ ...n, id: nextId() })),
   );
 
   const submitting = isSubmitting ?? false;
@@ -42,10 +44,7 @@ export function NotesStep({ initialData, isSubmitting, onSubmit, onBack }: Notes
     if (!hasInput) {
       return;
     }
-    setAddedNotes((prev) => [
-      ...prev,
-      { id: `note-${++noteCounter}`, title: title.trim(), body: body.trim() },
-    ]);
+    setAddedNotes((prev) => [...prev, { id: nextId(), title: title.trim(), body: body.trim() }]);
     setTitle("");
     setBody("");
   };
