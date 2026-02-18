@@ -48,6 +48,48 @@ const CreateObservationMutation = graphql(`
   }
 `);
 
+const LogBodyHeightMutation = graphql(`
+  mutation LogBodyHeight($input: LogBodyHeightInput!) {
+    logBodyHeight(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const LogBodyWeightMutation = graphql(`
+  mutation LogBodyWeight($input: LogBodyWeightInput!) {
+    logBodyWeight(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const CreateAllergyIntoleranceMutation = graphql(`
+  mutation CreateAllergyIntolerance($input: CreateAllergyIntoleranceInput!) {
+    createAllergyIntolerance(input: $input) {
+      result {
+        id
+        type
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 const ListSubscriptionPlansQuery = graphql(`
   query ListSubscriptionPlans($first: Int) {
     listSubscriptionPlans(first: $first) {
@@ -188,4 +230,271 @@ export async function fetchSubscriptionPlans(organizationId: string): Promise<Su
   });
 
   return data.listSubscriptionPlans?.results ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Onboarding steps 4-8
+// ---------------------------------------------------------------------------
+
+export interface MenstrualCycleFormData {
+  startDate: string;
+  endDate: string;
+  notes: string;
+}
+
+/**
+ * Create a menstrual-cycle observation (SNOMED 364307006) combining dates and notes.
+ */
+export async function createMenstrualCycleObservation(
+  data: MenstrualCycleFormData,
+  subjectId: string,
+  organizationId: string,
+): Promise<void> {
+  const parts: string[] = [];
+  if (data.startDate) {
+    parts.push(`Start: ${data.startDate}`);
+  }
+  if (data.endDate) {
+    parts.push(`End: ${data.endDate}`);
+  }
+  if (data.notes.trim()) {
+    parts.push(data.notes.trim());
+  }
+  const noteText = parts.join(" | ");
+
+  const result = await requestGraphql({
+    document: CreateObservationMutation,
+    variables: {
+      input: {
+        status: "FINAL",
+        code: { coding: [{ system: "http://snomed.info/sct", code: "364307006" }] },
+        valueString: noteText,
+        note: [{ text: noteText, authorString: "System", time: new Date().toISOString() }],
+        subjectId,
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.createObservation, "Failed to create menstrual cycle observation.");
+}
+
+export interface BodyMeasurementsFormData {
+  heightCm: number | null;
+  weightKg: number | null;
+}
+
+/**
+ * Log body height and/or weight. Skips whichever value is absent.
+ */
+export async function logBodyMeasurements(
+  data: BodyMeasurementsFormData,
+  subjectId: string,
+  organizationId: string,
+): Promise<void> {
+  const promises: Promise<void>[] = [];
+
+  if (data.heightCm && data.heightCm > 0) {
+    const heightCm = data.heightCm;
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: LogBodyHeightMutation,
+          variables: { input: { subjectId, heightCm } },
+          organizationId,
+        });
+        unwrapMutationResult(result.logBodyHeight, "Failed to log body height.");
+      })(),
+    );
+  }
+
+  if (data.weightKg && data.weightKg > 0) {
+    const weightKg = data.weightKg;
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: LogBodyWeightMutation,
+          variables: { input: { subjectId, weightKg } },
+          organizationId,
+        });
+        unwrapMutationResult(result.logBodyWeight, "Failed to log body weight.");
+      })(),
+    );
+  }
+
+  await Promise.all(promises);
+}
+
+export interface AllergiesFormData {
+  allergies: string;
+  intolerances: string;
+}
+
+/**
+ * Create allergy and/or intolerance records. Skips empty values.
+ */
+export async function createAllergiesAndIntolerances(
+  data: AllergiesFormData,
+  patientId: string,
+  organizationId: string,
+): Promise<void> {
+  const promises: Promise<void>[] = [];
+
+  if (data.allergies.trim()) {
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: CreateAllergyIntoleranceMutation,
+          variables: {
+            input: {
+              type: "ALLERGY",
+              clinicalStatus: "ACTIVE",
+              verificationStatus: "CONFIRMED",
+              code: { text: data.allergies.trim() },
+              patientId,
+            },
+          },
+          organizationId,
+        });
+        unwrapMutationResult(result.createAllergyIntolerance, "Failed to create allergy record.");
+      })(),
+    );
+  }
+
+  if (data.intolerances.trim()) {
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: CreateAllergyIntoleranceMutation,
+          variables: {
+            input: {
+              type: "INTOLERANCE",
+              clinicalStatus: "ACTIVE",
+              verificationStatus: "CONFIRMED",
+              code: { text: data.intolerances.trim() },
+              patientId,
+            },
+          },
+          organizationId,
+        });
+        unwrapMutationResult(
+          result.createAllergyIntolerance,
+          "Failed to create intolerance record.",
+        );
+      })(),
+    );
+  }
+
+  await Promise.all(promises);
+}
+
+export interface FoodFormData {
+  included: string;
+  excluded: string;
+}
+
+/**
+ * Create diet-inclusion and/or diet-exclusion observations. Skips empty values.
+ */
+export async function createFoodObservations(
+  data: FoodFormData,
+  subjectId: string,
+  organizationId: string,
+): Promise<void> {
+  const promises: Promise<void>[] = [];
+
+  if (data.included.trim()) {
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: CreateObservationMutation,
+          variables: {
+            input: {
+              status: "FINAL",
+              code: { text: "diet-inclusion" },
+              valueString: data.included.trim(),
+              note: [
+                {
+                  text: data.included.trim(),
+                  authorString: "System",
+                  time: new Date().toISOString(),
+                },
+              ],
+              subjectId,
+            },
+          },
+          organizationId,
+        });
+        unwrapMutationResult(result.createObservation, "Failed to create diet inclusion record.");
+      })(),
+    );
+  }
+
+  if (data.excluded.trim()) {
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: CreateObservationMutation,
+          variables: {
+            input: {
+              status: "FINAL",
+              code: { text: "diet-exclusion" },
+              valueString: data.excluded.trim(),
+              note: [
+                {
+                  text: data.excluded.trim(),
+                  authorString: "System",
+                  time: new Date().toISOString(),
+                },
+              ],
+              subjectId,
+            },
+          },
+          organizationId,
+        });
+        unwrapMutationResult(result.createObservation, "Failed to create diet exclusion record.");
+      })(),
+    );
+  }
+
+  await Promise.all(promises);
+}
+
+export interface NoteFormData {
+  title: string;
+  body: string;
+}
+
+/**
+ * Create one observation per note. Skips notes where both title and body are empty.
+ */
+export async function createNoteObservations(
+  notes: NoteFormData[],
+  subjectId: string,
+  organizationId: string,
+): Promise<void> {
+  const validNotes = notes.filter((n) => n.title.trim() || n.body.trim());
+
+  await Promise.all(
+    validNotes.map(async (note) => {
+      const valueString = note.title.trim()
+        ? `${note.title.trim()}: ${note.body.trim()}`
+        : note.body.trim();
+
+      const result = await requestGraphql({
+        document: CreateObservationMutation,
+        variables: {
+          input: {
+            status: "FINAL",
+            code: { text: "clinical-note" },
+            valueString,
+            note: [{ text: valueString, authorString: "System", time: new Date().toISOString() }],
+            subjectId,
+          },
+        },
+        organizationId,
+      });
+      unwrapMutationResult(result.createObservation, "Failed to create note observation.");
+    }),
+  );
 }

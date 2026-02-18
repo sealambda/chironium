@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 import * as m from "@/paraglide/messages";
-import { Button } from "@/shared/ui/button";
-import { DialogFooter } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Textarea } from "@/shared/ui/textarea";
+
+import { StepLayout } from "./step-layout";
 
 interface ObjectiveStepProps {
   readonly onSubmit: (note: string) => Promise<void>;
@@ -44,7 +44,14 @@ export function ObjectiveStep({ onSubmit, onBack }: ObjectiveStepProps) {
   };
 
   return (
-    <>
+    <StepLayout
+      title={m.step_objective_title()}
+      description={m.step_objective_desc()}
+      isSubmitting={isSubmitting}
+      submittingLabel={m.common_creating()}
+      onSubmit={handleSubmit}
+      onBack={onBack}
+    >
       <FieldGroup>
         <Field data-invalid={Boolean(error)}>
           <FieldLabel>{m.field_objective()}</FieldLabel>
@@ -64,15 +71,6 @@ export function ObjectiveStep({ onSubmit, onBack }: ObjectiveStepProps) {
           {error ? <FieldError>{error}</FieldError> : null}
         </Field>
       </FieldGroup>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
-          {m.common_back()}
-        </Button>
-        <Button onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? m.common_creating() : m.common_finish()}
-        </Button>
-      </DialogFooter>
-    </>
+    </StepLayout>
   );
 }

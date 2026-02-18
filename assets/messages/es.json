@@ -124,10 +124,14 @@
   "common_finish": "Finalizar",
 
   "onboarding_title": "Nuevo Cliente",
-  "onboarding_desc": "Completa los pasos a continuación para registrar un nuevo cliente.",
   "onboarding_step_personal": "Datos Personales",
   "onboarding_step_subscription": "Suscripción",
   "onboarding_step_objective": "Objetivo",
+  "onboarding_step_cycle": "Ciclo",
+  "onboarding_step_body": "Cuerpo",
+  "onboarding_step_allergies": "Alergias",
+  "onboarding_step_food": "Alimentación",
+  "onboarding_step_notes": "Notas",
   "onboarding_success": "Cliente creado con éxito.",
   "onboarding_error": "Algo salió mal. Inténtalo de nuevo.",
 
@@ -152,5 +156,52 @@
   "plan_placeholder": "Seleccionar un plan",
   "plan_no_plans": "No hay planes disponibles",
 
-  "validation_required": "Este campo es obligatorio."
+  "step_personal_title": "Datos Personales",
+  "step_personal_desc": "Introduce los datos personales del cliente.",
+  "step_subscription_title": "Plan de Suscripción",
+  "step_subscription_desc": "Selecciona un plan de suscripción y fecha de inicio.",
+  "step_objective_title": "Objetivo del Cliente",
+  "step_objective_desc": "Describe el objetivo principal de salud o fitness del cliente.",
+  "step_cycle_title": "Último Ciclo Menstrual",
+  "step_cycle_desc": "Registra las fechas y notas sobre el último ciclo menstrual.",
+  "step_body_title": "Medidas Corporales",
+  "step_body_desc": "Registra la altura y el peso actuales del cliente.",
+  "step_allergies_title": "Alergias e Intolerancias",
+  "step_allergies_desc": "Lista las alergias e intolerancias alimentarias conocidas.",
+  "step_food_title": "Preferencias Alimentarias",
+  "step_food_desc": "Indica alimentos que deben o no formar parte de la dieta.",
+  "step_notes_title": "Notas Importantes",
+  "step_notes_desc": "Añade notas adicionales relevantes para el cuidado del cliente.",
+
+  "field_cycle_start_date": "Fecha de Inicio",
+  "field_cycle_end_date": "Fecha de Fin",
+  "field_cycle_notes": "Notas Adicionales",
+  "field_cycle_notes_placeholder": "Información adicional sobre el ciclo menstrual...",
+
+  "field_height_cm": "Altura (cm)",
+  "field_weight_kg": "Peso (kg)",
+  "field_height_placeholder": "ej. 165",
+  "field_weight_placeholder": "ej. 62",
+
+  "field_allergies": "Alergias",
+  "field_allergies_placeholder": "Lista de alergias conocidas...",
+  "field_intolerances": "Intolerancias",
+  "field_intolerances_placeholder": "Lista de intolerancias alimentarias conocidas...",
+
+  "field_food_included": "Alimentos a Incluir",
+  "field_food_included_placeholder": "Alimentos que deben incluirse en la dieta...",
+  "field_food_excluded": "Alimentos a Excluir",
+  "field_food_excluded_placeholder": "Alimentos que no deben incluirse en la dieta...",
+
+  "field_note_title": "Título",
+  "field_note_title_placeholder": "Título de la nota...",
+  "field_note_body": "Contenido",
+  "field_note_body_placeholder": "Escribe el contenido de la nota...",
+  "note_add": "Agregar Nota",
+  "note_remove": "Eliminar",
+  "note_added": "{count} nota(s) agregada(s)",
+  "note_empty_hint": "Agrega notas usando el formulario de arriba.",
+
+  "validation_required": "Este campo es obligatorio.",
+  "validation_positive_number": "Debe ser un número positivo."
 }
