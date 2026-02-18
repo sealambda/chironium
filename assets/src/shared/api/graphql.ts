@@ -45,7 +45,6 @@ export async function requestGraphql<TResult>({
   });
 
   try {
-    // biome-ignore lint/nursery/useAwaitThenable: client.request returns Promise.
     return await client.request({
       document,
       variables,
