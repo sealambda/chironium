@@ -1507,6 +1507,101 @@ type Practitioner {
   ): [PractitionerVersion!]!
 }
 
+"The result of the :log_thigh_circumference mutation"
+type LogThighCircumferenceResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogThighCircumferenceInput {
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+
+  "The thigh circumference in centimeters"
+  thighCircumferenceCm: Float!
+}
+
+"The result of the :log_arm_circumference mutation"
+type LogArmCircumferenceResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogArmCircumferenceInput {
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+
+  "The arm circumference in centimeters"
+  armCircumferenceCm: Float!
+}
+
+"The result of the :log_waist_circumference mutation"
+type LogWaistCircumferenceResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogWaistCircumferenceInput {
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+
+  "The waist circumference in centimeters"
+  waistCircumferenceCm: Float!
+}
+
+"The result of the :log_hip_circumference mutation"
+type LogHipCircumferenceResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogHipCircumferenceInput {
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+
+  "The hip circumference in centimeters"
+  hipCircumferenceCm: Float!
+}
+
+"The result of the :log_chest_circumference mutation"
+type LogChestCircumferenceResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogChestCircumferenceInput {
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+
+  "The chest circumference in centimeters"
+  chestCircumferenceCm: Float!
+}
+
 "The result of the :log_body_height mutation"
 type LogBodyHeightResult {
   "The successful result of the mutation"
@@ -2186,6 +2281,111 @@ type RootQueryType {
     last: Int
   ): KeysetPageOfObservation
 
+  "Read all chest circumference observations."
+  listChestCircumferenceObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  "Read all hip circumference observations."
+  listHipCircumferenceObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  "Read all waist circumference observations."
+  listWaistCircumferenceObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  "Read all arm circumference observations."
+  listArmCircumferenceObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  "Read all thigh circumference observations."
+  listThighCircumferenceObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
   listSubscriptionPlans(
     "How to sort the records in the response"
     sort: [SubscriptionPlanSortInput]
@@ -2304,6 +2504,21 @@ type RootMutationType {
   According to https://hl7.org/fhir/R5/bodyheight.html
   """
   logBodyHeight(input: LogBodyHeightInput!): LogBodyHeightResult!
+
+  "Log a chest circumference observation."
+  logChestCircumference(input: LogChestCircumferenceInput!): LogChestCircumferenceResult!
+
+  "Log a hip circumference observation."
+  logHipCircumference(input: LogHipCircumferenceInput!): LogHipCircumferenceResult!
+
+  "Log a waist circumference observation."
+  logWaistCircumference(input: LogWaistCircumferenceInput!): LogWaistCircumferenceResult!
+
+  "Log a arm circumference observation."
+  logArmCircumference(input: LogArmCircumferenceInput!): LogArmCircumferenceResult!
+
+  "Log a thigh circumference observation."
+  logThighCircumference(input: LogThighCircumferenceInput!): LogThighCircumferenceResult!
 
   createPractitioner(input: CreatePractitionerInput!): CreatePractitionerResult!
 
