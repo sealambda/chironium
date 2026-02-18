@@ -3,7 +3,7 @@ import { lazy } from "react";
 
 // Lazy load the customers page for code splitting.
 const CustomersPage = lazy(() =>
-  import("@/features/customers/pages/customers-page").then((m) => ({
+  import("@/features/customers/pages/persons-page").then((m) => ({
     default: m.CustomersPage,
   })),
 );

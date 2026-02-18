@@ -3,14 +3,10 @@ import { differenceInMonths, format } from "date-fns";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { cn } from "@/shared/utils/utils";
 
-export interface SubscriptionProgressData {
-  startDate: Date | string;
-  endDate: Date | string;
-  planDurationMonths: number;
-}
-
 interface SubscriptionProgressProps {
-  subscription: SubscriptionProgressData;
+  startDate: string;
+  endDate: string;
+  planDurationMonths: number;
   className?: string;
 }
 
@@ -29,21 +25,16 @@ function segmentRounding(isFirst: boolean, isLast: boolean): string {
  * Each circle represents one month; elapsed months are colored, remaining are neutral.
  */
 export function SubscriptionProgress({
-  subscription,
+  startDate: startDateStr,
+  endDate: endDateStr,
+  planDurationMonths,
   className,
 }: Readonly<SubscriptionProgressProps>) {
-  const startDate =
-    typeof subscription.startDate === "string"
-      ? new Date(subscription.startDate)
-      : subscription.startDate;
-
-  const endDate =
-    typeof subscription.endDate === "string"
-      ? new Date(subscription.endDate)
-      : subscription.endDate;
+  const startDate = new Date(startDateStr);
+  const endDate = new Date(endDateStr);
 
   const elapsedMonths = Math.min(
-    subscription.planDurationMonths,
+    planDurationMonths,
     Math.max(0, differenceInMonths(new Date(), startDate)),
   );
 
@@ -54,9 +45,9 @@ export function SubscriptionProgress({
   return (
     <div className={cn("w-full", className)}>
       <div className="flex items-center gap-0.5 md:gap-1">
-        {Array.from({ length: subscription.planDurationMonths }, (_, i) => {
+        {Array.from({ length: planDurationMonths }, (_, i) => {
           const isFirst = i === 0;
-          const isLast = i === subscription.planDurationMonths - 1;
+          const isLast = i === planDurationMonths - 1;
 
           const cls = cn(
             "h-4 flex-1 md:h-5",
