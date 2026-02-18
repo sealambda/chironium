@@ -5,7 +5,7 @@ import {
   fetchSubscriptionPlans,
   type SubscriptionFormData,
   type SubscriptionPlan,
-} from "@/features/customers/api/onboarding-api";
+} from "@/features/customers/api/subscriptions-api";
 import * as m from "@/paraglide/messages";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";

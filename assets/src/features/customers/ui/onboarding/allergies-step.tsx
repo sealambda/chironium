@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { AllergiesFormData } from "@/features/customers/api/onboarding-api";
+import type { AllergiesFormData } from "@/features/customers/api/allergy-intolerance-api";
 import * as m from "@/paraglide/messages";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Textarea } from "@/shared/ui/textarea";

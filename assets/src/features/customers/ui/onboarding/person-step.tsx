@@ -1,7 +1,8 @@
 import { useState } from "react";
 
-import type { PersonFormData } from "@/features/customers/api/onboarding-api";
+import type { PersonFormData } from "@/features/customers/api/patients-api";
 import * as m from "@/paraglide/messages";
+import type { AdministrativeGender } from "@/shared/types/schema-enums";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import {
