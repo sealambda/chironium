@@ -1,6 +1,6 @@
 import { ChevronDown, Plus } from "lucide-react";
 
-import type { Organization } from "@/gql/graphql";
+import type { OrgRecord } from "@/features/org/types";
 import * as m from "@/paraglide/messages";
 import {
   DropdownMenu,
@@ -10,8 +10,8 @@ import {
 } from "@/shared/ui/dropdown-menu";
 
 interface OrgSelectorProps {
-  selectedOrg: Organization | null;
-  availableOrgs: Organization[];
+  selectedOrg: OrgRecord | null;
+  availableOrgs: OrgRecord[];
   onSelectOrg: (orgId: string) => void;
   onCreateClick: () => void;
 }

@@ -2,32 +2,31 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 import { queryClient } from "@/app/providers/query-client";
-import type { Organization } from "@/gql/graphql";
-
-import { createOrganization, fetchAccessibleOrganizations } from "../api/org-api";
-import { getStoredPreference, storePreference } from "../model/org-preferences";
+import { createOrganization, fetchAccessibleOrganizations } from "@/features/org/api/org-api";
+import { getStoredPreference, storePreference } from "@/features/org/model/org-preferences";
+import type { OrgRecord } from "@/features/org/types";
 
 export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
 
 type OrgStoreState = {
-  selectedOrg: Organization | null;
-  availableOrgs: Organization[];
+  selectedOrg: OrgRecord | null;
+  availableOrgs: OrgRecord[];
   loading: boolean;
   error: Error | null;
   setFromQuery: (payload: {
-    availableOrgs: Organization[];
+    availableOrgs: OrgRecord[];
     loading: boolean;
     error: Error | null;
   }) => void;
   selectOrg: (orgId: string) => Promise<void>;
-  refreshOrgs: () => Promise<Organization[]>;
-  createOrg: (data: { name: string; slug: string }) => Promise<Organization>;
+  refreshOrgs: () => Promise<OrgRecord[]>;
+  createOrg: (data: { name: string; slug: string }) => Promise<OrgRecord>;
 };
 
 function resolveSelectedOrg(
-  current: Organization | null,
-  availableOrgs: Organization[],
-): Organization | null {
+  current: OrgRecord | null,
+  availableOrgs: OrgRecord[],
+): OrgRecord | null {
   if (availableOrgs.length === 0) {
     return null;
   }
@@ -69,7 +68,6 @@ export const useOrgStore = create<OrgStoreState>()(
         let org = availableOrgs.find((candidate) => candidate.id === orgId) ?? null;
 
         if (!org) {
-          // biome-ignore lint/nursery/useAwaitThenable: queryClient.fetchQuery returns Promise.
           const refreshed = await queryClient.fetchQuery({
             queryKey: ORG_QUERY_KEY,
             queryFn: fetchAccessibleOrganizations,
@@ -97,7 +95,6 @@ export const useOrgStore = create<OrgStoreState>()(
       },
       refreshOrgs: async () => {
         set({ error: null }, false, "orgs/refresh:start");
-        // biome-ignore lint/nursery/useAwaitThenable: queryClient.fetchQuery returns Promise.
         const refreshed = await queryClient.fetchQuery({
           queryKey: ORG_QUERY_KEY,
           queryFn: fetchAccessibleOrganizations,
@@ -116,7 +113,6 @@ export const useOrgStore = create<OrgStoreState>()(
       createOrg: async (data: { name: string; slug: string }) => {
         set({ error: null }, false, "orgs/create:start");
         const organization = await createOrganization(data);
-        // biome-ignore lint/nursery/useAwaitThenable: queryClient.invalidateQueries returns Promise.
         await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
         return organization;
       },
