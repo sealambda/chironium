@@ -7,8 +7,8 @@ interface ContactButtonGroupProps {
   email?: string;
   phone?: string;
   instagram?: string;
-  /** Customer name for aria-labels */
-  customerName: string;
+  /** Person name for aria-labels */
+  personName: string;
   /** Whether clicks should stop propagation (for nested buttons) */
   stopPropagation?: boolean;
 }
@@ -20,7 +20,7 @@ export function ContactButtonGroup({
   email,
   phone,
   instagram,
-  customerName,
+  personName,
   stopPropagation = false,
 }: Readonly<ContactButtonGroupProps>) {
   const handleClick = (url: string) => (e: React.MouseEvent) => {
@@ -39,7 +39,7 @@ export function ContactButtonGroup({
         className="size-11 text-muted-foreground hover:text-red-500 disabled:opacity-30"
         disabled={!email}
         onClick={email ? handleClick(getEmailUrl(email)) : undefined}
-        aria-label={`Email ${customerName}`}
+        aria-label={`Email ${personName}`}
       >
         <SiGmail size={20} />
       </Button>
@@ -49,7 +49,7 @@ export function ContactButtonGroup({
         className="size-11 text-muted-foreground hover:text-emerald-500 disabled:opacity-30"
         disabled={!phone}
         onClick={phone ? handleClick(getWhatsAppUrl(phone)) : undefined}
-        aria-label={`WhatsApp ${customerName}`}
+        aria-label={`WhatsApp ${personName}`}
       >
         <SiWhatsapp size={20} />
       </Button>
@@ -59,7 +59,7 @@ export function ContactButtonGroup({
         className="size-11 text-muted-foreground hover:text-pink-500 disabled:opacity-30"
         disabled={!instagram}
         onClick={instagram ? handleClick(getInstagramUrl(instagram)) : undefined}
-        aria-label={`Instagram ${customerName}`}
+        aria-label={`Instagram ${personName}`}
       >
         <SiInstagram size={20} />
       </Button>
