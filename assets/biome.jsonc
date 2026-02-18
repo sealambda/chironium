@@ -3,7 +3,7 @@
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
-    "includes": ["src/**", "js/**", "*.config.*", "codegen.ts", "*.jsonc"]
+    "includes": ["src/**", "js/**", "*.config.*", "*.jsonc"]
   },
   "vcs": {
     "enabled": true,
@@ -262,7 +262,7 @@
   "overrides": [
     // Build tools (Vite, codegen) require default exports.
     {
-      "includes": ["*.config.{js,ts,mjs,mts}", "codegen.ts"],
+      "includes": ["*.config.{js,ts,mjs,mts}"],
       "linter": {
         "rules": {
           "style": {
@@ -280,7 +280,7 @@
         "**/public/**",
         "**/vendor/**",
         "**/routeTree.gen.ts",
-        "**/src/gql/**",
+        "**/graphql-env.d.ts",
         "**/paraglide/**",
         "**/paraglide.d.ts",
         "**/mocks/**"
@@ -293,6 +293,18 @@
       },
       "assist": {
         "enabled": false
+      }
+    },
+
+    // gql.tada scalar keys must match the GraphQL schema names (PascalCase).
+    {
+      "includes": ["**/src/graphql.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": "off"
+          }
+        }
       }
     },
 

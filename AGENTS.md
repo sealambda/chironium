@@ -175,5 +175,5 @@ automatically. Run `pnpm check:fix` after edits to auto-sort imports.
 Never manually edit imports in these generated files:
 
 - `src/routeTree.gen.ts` — TanStack Router
-- `src/gql/fragment-masking.ts`, `src/gql/gql.ts`, `src/gql/graphql.ts`, `src/gql/index.ts` — GraphQL Codegen
+- `src/graphql-env.d.ts` — gql.tada introspection output
 - `src/paraglide/` — Paraglide i18n
