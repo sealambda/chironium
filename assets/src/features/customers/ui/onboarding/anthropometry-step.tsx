@@ -1,15 +1,15 @@
 import { useState } from "react";
 
-import type { BodyMeasurementsFormData } from "@/features/customers/api/onboarding-api";
+import type { AnthropometryFormData } from "@/features/customers/api/anthropometry-api";
 import * as m from "@/paraglide/messages";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 
 import { StepLayout } from "./step-layout";
 
-interface BodyMeasurementsStepProps {
-  readonly initialData?: BodyMeasurementsFormData;
-  readonly onSubmit: (data: BodyMeasurementsFormData) => void;
+interface AnthropometryStepProps {
+  readonly initialData?: AnthropometryFormData;
+  readonly onSubmit: (data: AnthropometryFormData) => void;
   readonly onBack: () => void;
 }
 
@@ -17,7 +17,7 @@ interface BodyMeasurementsStepProps {
  * Step 5: Capture height and weight.
  * Both fields are optional — the user can skip this step.
  */
-export function BodyMeasurementsStep({ initialData, onSubmit, onBack }: BodyMeasurementsStepProps) {
+export function AnthropometryStep({ initialData, onSubmit, onBack }: AnthropometryStepProps) {
   const [height, setHeight] = useState(initialData?.heightCm?.toString() ?? "");
   const [weight, setWeight] = useState(initialData?.weightKg?.toString() ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});

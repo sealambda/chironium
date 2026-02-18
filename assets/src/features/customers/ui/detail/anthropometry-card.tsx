@@ -2,7 +2,10 @@ import { differenceInDays } from "date-fns";
 import type { LucideIcon } from "lucide-react";
 import { ChevronRight, DumbbellIcon, ScaleIcon, ShirtIcon } from "lucide-react";
 
-import type { BodyMeasurements, BodyMetricsRecord } from "@/mocks/types";
+import type {
+  AnthropometricSnapshot,
+  CircumferenceKey,
+} from "@/features/customers/api/anthropometry-api";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -12,14 +15,13 @@ import {
   computeDelta,
   computeWaistToHipRatio,
   type HealthClassification,
-  heightMetersToCm,
 } from "@/shared/utils/measurement-utils";
 import { cn } from "@/shared/utils/utils";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
-interface BiometricSummaryCardProps {
-  history: BodyMetricsRecord[];
+interface AnthropometryCardProps {
+  history: AnthropometricSnapshot[];
   isLoading?: boolean;
 }
 
@@ -68,26 +70,30 @@ function DeltaPill({ value, unit }: Readonly<{ value: number; unit: string }>) {
 function HeroSection({
   latest,
   weightDelta,
-}: Readonly<{ latest: BodyMetricsRecord; weightDelta: number | null }>) {
-  const heightCm = heightMetersToCm(latest.heightM);
+}: Readonly<{ latest: AnthropometricSnapshot; weightDelta: number | null }>) {
   const daysAgo = differenceInDays(new Date(), new Date(latest.date));
 
   return (
     <div className="min-h-19 space-y-0.5">
-      <div className="flex items-baseline gap-2">
-        <span className="font-bold text-3xl text-foreground tabular-nums">{latest.weight}</span>
-        <span className="text-foreground/65 text-sm">kg</span>
-        {weightDelta !== null ? <DeltaPill value={weightDelta} unit="kg" /> : null}
-      </div>
+      {latest.weight !== undefined ? (
+        <div className="flex items-baseline gap-2">
+          <span className="font-bold text-3xl text-foreground tabular-nums">{latest.weight}</span>
+          <span className="text-foreground/65 text-sm">kg</span>
+          {weightDelta !== null ? <DeltaPill value={weightDelta} unit="kg" /> : null}
+        </div>
+      ) : null}
 
-      <div className="text-foreground/65 text-sm">
-        <span className="font-medium text-foreground tabular-nums">{heightCm}</span> <span>cm</span>
-      </div>
+      {latest.height !== undefined ? (
+        <div className="text-foreground/65 text-sm">
+          <span className="font-medium text-foreground tabular-nums">{latest.height}</span>{" "}
+          <span>cm</span>
+        </div>
+      ) : null}
 
       <div className="text-foreground/65 text-xs">
         {daysAgo === 0
-          ? m.biometric_recorded_today()
-          : m.biometric_recorded_days_ago({ count: daysAgo })}
+          ? m.anthropometry_recorded_today()
+          : m.anthropometry_recorded_days_ago({ count: daysAgo })}
       </div>
     </div>
   );
@@ -99,24 +105,30 @@ function MetabolicIndicatorsRow({
   bmi,
   waist,
   hip,
-}: Readonly<{ bmi: number; waist?: number; hip?: number }>) {
-  const bmiClass = classifyBmi(bmi);
+}: Readonly<{ bmi?: number; waist?: number; hip?: number }>) {
+  const bmiClass = bmi !== undefined ? classifyBmi(bmi) : null;
   const whr = computeWaistToHipRatio(waist, hip);
   const whrClass = whr !== null ? classifyWhr(whr) : null;
 
+  if (bmiClass === null && whrClass === null) {
+    return null;
+  }
+
   return (
     <div className="grid grid-cols-2 text-center">
-      <div>
-        <p className="text-foreground/65 text-xs">{m.table_bmi()}</p>
-        <p className="inline-flex items-center gap-1.5 font-semibold text-foreground text-lg tabular-nums">
-          {bmi.toFixed(1)}
-          <StatusDot classification={bmiClass} />
-        </p>
-      </div>
+      {bmi !== undefined && bmiClass !== null ? (
+        <div>
+          <p className="text-foreground/65 text-xs">{m.anthropometry_bmi()}</p>
+          <p className="inline-flex items-center gap-1.5 font-semibold text-foreground text-lg tabular-nums">
+            {bmi.toFixed(1)}
+            <StatusDot classification={bmiClass} />
+          </p>
+        </div>
+      ) : null}
 
       {whr !== null && whrClass !== null ? (
         <div>
-          <p className="text-foreground/65 text-xs">{m.biometric_whr()}</p>
+          <p className="text-foreground/65 text-xs">{m.anthropometry_whr()}</p>
           <p className="inline-flex items-center gap-1.5 font-semibold text-foreground text-lg tabular-nums">
             {whr.toFixed(2)}
             <StatusDot classification={whrClass} />
@@ -127,39 +139,39 @@ function MetabolicIndicatorsRow({
   );
 }
 
-// ─── Layer 3: Grouped Body Measurements ──────────────────────────────
+// ─── Layer 3: Grouped Circumferences ─────────────────────────────────
 
-interface MeasurementGroupDef {
+interface CircumferenceGroupDef {
   labelKey: () => string;
   icon: LucideIcon;
-  keys: (keyof BodyMeasurements)[];
+  keys: CircumferenceKey[];
 }
 
-const MEASUREMENT_GROUPS: MeasurementGroupDef[] = [
+const CIRCUMFERENCE_GROUPS: CircumferenceGroupDef[] = [
   {
-    labelKey: m.biometric_group_torso,
+    labelKey: m.anthropometry_group_torso,
     icon: ShirtIcon,
     keys: ["chest", "waist", "hip"],
   },
   {
-    labelKey: m.biometric_group_limbs,
+    labelKey: m.anthropometry_group_limbs,
     icon: DumbbellIcon,
-    keys: ["biceps", "quadriceps"],
+    keys: ["arm", "thigh"],
   },
 ];
 
-const MEASUREMENT_LABELS: Record<keyof BodyMeasurements, () => string> = {
-  chest: m.measurement_chest,
-  waist: m.measurement_waist,
-  hip: m.measurement_hip,
-  biceps: m.measurement_biceps,
-  quadriceps: m.measurement_quadriceps,
+const CIRCUMFERENCE_LABELS: Record<CircumferenceKey, () => string> = {
+  chest: m.anthropometry_chest,
+  waist: m.anthropometry_waist,
+  hip: m.anthropometry_hip,
+  arm: m.anthropometry_arm,
+  thigh: m.anthropometry_thigh,
 };
 
-function buildMeasurementCells(
-  visibleKeys: (keyof BodyMeasurements)[],
-  latest: BodyMeasurements,
-  previous: BodyMeasurements | undefined,
+function buildCircumferenceCells(
+  visibleKeys: CircumferenceKey[],
+  latest: AnthropometricSnapshot,
+  previous: AnthropometricSnapshot | undefined,
 ): React.ReactNode[] {
   const count = visibleKeys.length;
 
@@ -170,7 +182,7 @@ function buildMeasurementCells(
 
     return (
       <div key={key} className={cn("py-2 text-center", isFirstRow && "col-span-2")}>
-        <p className="text-foreground/65 text-xs">{MEASUREMENT_LABELS[key]()}</p>
+        <p className="text-foreground/65 text-xs">{CIRCUMFERENCE_LABELS[key]()}</p>
         <div className="inline-flex flex-col items-center gap-1 md:flex-row md:items-baseline md:gap-1.5">
           <span className="font-medium text-foreground tabular-nums leading-none">{value} cm</span>
           {delta !== null ? <DeltaPill value={delta} unit="cm" /> : null}
@@ -180,14 +192,14 @@ function buildMeasurementCells(
   });
 }
 
-function GroupedMeasurements({
+function GroupedCircumferences({
   latest,
   previous,
 }: Readonly<{
-  latest: BodyMeasurements;
-  previous: BodyMeasurements | undefined;
+  latest: AnthropometricSnapshot;
+  previous: AnthropometricSnapshot | undefined;
 }>) {
-  const visibleGroups = MEASUREMENT_GROUPS.filter((group) =>
+  const visibleGroups = CIRCUMFERENCE_GROUPS.filter((group) =>
     group.keys.some((key) => latest[key] !== undefined),
   );
 
@@ -209,7 +221,6 @@ function GroupedMeasurements({
             elements.push(<div key={`gspc-${groupId}`} className="col-span-2 h-3" />);
           }
 
-          // Group header spans full width (no vsep through headers)
           elements.push(
             <div
               key={`hdr-${groupId}`}
@@ -221,7 +232,7 @@ function GroupedMeasurements({
             <div key={`hsep-${groupId}`} className="col-span-2 h-px bg-neutral-200/50" />,
           );
 
-          elements.push(...buildMeasurementCells(visibleKeys, latest, previous));
+          elements.push(...buildCircumferenceCells(visibleKeys, latest, previous));
 
           return elements;
         })}
@@ -232,10 +243,9 @@ function GroupedMeasurements({
 
 // ─── Loading skeleton ────────────────────────────────────────────────
 
-export function BiometricSummaryCardSkeleton() {
+export function AnthropometryCardSkeleton() {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-      {/* Hero: weight, height, date */}
       <div className="min-h-19 space-y-1.5">
         <div className="flex items-baseline gap-2">
           <Skeleton className="h-9 w-20" />
@@ -248,7 +258,6 @@ export function BiometricSummaryCardSkeleton() {
 
       <div className="my-4 h-px bg-neutral-200" />
 
-      {/* Key Metrics */}
       <div className="grid grid-cols-2 text-center">
         <div className="flex flex-col items-center gap-1">
           <Skeleton className="h-3 w-8" />
@@ -260,7 +269,6 @@ export function BiometricSummaryCardSkeleton() {
         </div>
       </div>
 
-      {/* Measurements zone — fills remaining space */}
       <div className="mt-4 flex-1 space-y-3 rounded-xl bg-white/80 p-3">
         {Array.from({ length: 2 }, (_g, g) => (
           <div key={`grp-${String(g)}`} className="space-y-2">
@@ -283,7 +291,6 @@ export function BiometricSummaryCardSkeleton() {
         ))}
       </div>
 
-      {/* Footer — pinned to bottom */}
       <div className="mt-auto border-neutral-200 border-t pt-3">
         <Skeleton className="h-4 w-52" />
       </div>
@@ -293,9 +300,9 @@ export function BiometricSummaryCardSkeleton() {
 
 // ─── Main component ──────────────────────────────────────────────────
 
-export function BiometricSummaryCard({ history, isLoading }: Readonly<BiometricSummaryCardProps>) {
+export function AnthropometryCard({ history, isLoading }: Readonly<AnthropometryCardProps>) {
   if (isLoading) {
-    return <BiometricSummaryCardSkeleton />;
+    return <AnthropometryCardSkeleton />;
   }
 
   const latest = history[0];
@@ -307,8 +314,8 @@ export function BiometricSummaryCard({ history, isLoading }: Readonly<BiometricS
         <div className="flex flex-col items-center gap-2 py-6">
           <ScaleIcon className="size-8 text-neutral-400" />
           <div className="text-center">
-            <p className="font-medium text-foreground text-sm">{m.biometric_no_records()}</p>
-            <p className="text-foreground/65 text-xs">{m.biometric_no_records_desc()}</p>
+            <p className="font-medium text-foreground text-sm">{m.anthropometry_no_records()}</p>
+            <p className="text-foreground/65 text-xs">{m.anthropometry_no_records_desc()}</p>
           </div>
         </div>
       </div>
@@ -319,30 +326,22 @@ export function BiometricSummaryCard({ history, isLoading }: Readonly<BiometricS
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-      {/* Layer 1: Hero — weight, height, recency */}
       <HeroSection latest={latest} weightDelta={weightDelta} />
 
       <div className="my-4 h-px bg-neutral-200" />
 
-      {/* Layer 2: Key Metrics — BMI, WHR */}
-      <MetabolicIndicatorsRow
-        bmi={latest.bmi}
-        waist={latest.measurements.waist}
-        hip={latest.measurements.hip}
-      />
+      <MetabolicIndicatorsRow bmi={latest.bmi} waist={latest.waist} hip={latest.hip} />
 
-      {/* Layer 3: Grouped Body Measurements — fills remaining space */}
       <div className="mt-4 flex-1">
-        <GroupedMeasurements latest={latest.measurements} previous={previous?.measurements} />
+        <GroupedCircumferences latest={latest} previous={previous} />
       </div>
 
-      {/* Footer action — pinned to bottom */}
       <div className="mt-auto border-neutral-200 border-t pt-3">
         <a
-          href="#biometrics-history"
+          href="#anthropometry-history"
           className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
         >
-          <span>{m.biometric_view_history()}</span>
+          <span>{m.anthropometry_view_history()}</span>
           <ChevronRight className="size-4" />
         </a>
       </div>
