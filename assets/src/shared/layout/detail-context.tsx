@@ -19,10 +19,6 @@ interface DetailContextValue {
   headerContent: ReactNode | null;
   /** Set custom header content for the top bar */
   setHeaderContent: (content: ReactNode | null) => void;
-  /** Trailing actions to render on the right side of the nav bar */
-  trailingActions: ReactNode | null;
-  /** Set trailing actions for the nav bar */
-  setTrailingActions: (content: ReactNode | null) => void;
 }
 
 const DetailContext = createContext<DetailContextValue | null>(null);
@@ -39,7 +35,6 @@ interface DetailProviderProps {
 export function DetailProvider({ children }: Readonly<DetailProviderProps>) {
   const [isDetailMode, setIsDetailMode] = useState(false);
   const [headerContent, setHeaderContent] = useState<ReactNode | null>(null);
-  const [trailingActions, setTrailingActions] = useState<ReactNode | null>(null);
 
   const enterDetailMode = useCallback(() => {
     setIsDetailMode(true);
@@ -57,10 +52,8 @@ export function DetailProvider({ children }: Readonly<DetailProviderProps>) {
       exitDetailMode,
       headerContent,
       setHeaderContent,
-      trailingActions,
-      setTrailingActions,
     }),
-    [isDetailMode, enterDetailMode, exitDetailMode, headerContent, trailingActions],
+    [isDetailMode, enterDetailMode, exitDetailMode, headerContent],
   );
 
   return <DetailContext.Provider value={value}>{children}</DetailContext.Provider>;
@@ -105,23 +98,4 @@ export function useDetailModeEffect(headerContent: ReactNode, contentKey: string
   useEffect(() => {
     setHeaderContent(headerContent);
   }, [contentKey, setHeaderContent]);
-}
-
-/**
- * Hook to set trailing actions in the nav bar.
- * Actions are cleared when the component unmounts.
- *
- * @param actions - ReactNode to render in the trailing slot
- * @param actionsKey - Key to identify when actions should update
- */
-export function useNavTrailingActions(actions: ReactNode, actionsKey: string) {
-  const { setTrailingActions } = useDetailMode();
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: actionsKey is intentionally used as the trigger instead of actions to avoid infinite loops from JSX reference changes.
-  useEffect(() => {
-    setTrailingActions(actions);
-    return () => {
-      setTrailingActions(null);
-    };
-  }, [actionsKey, setTrailingActions]);
 }
