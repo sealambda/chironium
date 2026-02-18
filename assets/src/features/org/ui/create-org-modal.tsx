@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import {
   Dialog,
@@ -11,7 +12,6 @@ import {
 } from "@/shared/ui/dialog";
 import { StepIndicator } from "@/shared/ui/step-indicator";
 
-import { useOrg } from "../hooks/use-org";
 import { OrgDetailsStep } from "./org-details-step";
 import { PlansStep } from "./plans-step";
 
@@ -47,7 +47,6 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
     async (data: { name: string; slug: string }) => {
       setError(null);
       try {
-        // biome-ignore lint/nursery/useAwaitThenable: createOrg returns Promise.
         const newOrg = await createOrg(data);
         setOrganizationId(newOrg.id);
         setCurrentStep(1);
@@ -62,7 +61,6 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
 
   const handleFinish = useCallback(async () => {
     try {
-      // biome-ignore lint/nursery/useAwaitThenable: selectOrg returns Promise.
       await selectOrg(organizationId);
       toast.success(m.org_created());
       handleClose();

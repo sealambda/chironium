@@ -1,6 +1,11 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import {
+  type CreatedPlan,
+  createSubscriptionPlan,
+  type PlanFormData,
+} from "@/features/org/api/org-api";
 import type { DurationUnit } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -15,8 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-
-import { type CreatedPlan, createSubscriptionPlan, type PlanFormData } from "../api/org-api";
 
 interface PlansStepProps {
   readonly organizationId: string;

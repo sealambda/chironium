@@ -2,8 +2,6 @@
  * Shared utilities for building contact URLs (email, WhatsApp, Instagram).
  */
 
-import type { ContactPoint } from "@/gql/graphql";
-
 /**
  * Sanitize phone number to digits only for URL building.
  */

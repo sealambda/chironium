@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+import {
+  fetchSubscriptionPlans,
+  type SubscriptionFormData,
+  type SubscriptionPlan,
+} from "@/features/customers/api/onboarding-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { DialogFooter } from "@/shared/ui/dialog";
@@ -15,12 +20,6 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Skeleton } from "@/shared/ui/skeleton";
-
-import {
-  fetchSubscriptionPlans,
-  type SubscriptionFormData,
-  type SubscriptionPlan,
-} from "../../api/onboarding-api";
 
 interface SubscriptionStepProps {
   readonly organizationId: string;
@@ -62,7 +61,7 @@ function PlanSelector({ plans, loading, value, onChange, disabled }: PlanSelecto
   return (
     <Select
       value={value}
-      onValueChange={(v) => onChange(v as string)}
+      onValueChange={(v) => onChange(v ?? "")}
       disabled={disabled}
       items={plans.map((plan) => ({ value: plan.id, label: formatPlanLabel(plan) }))}
     >

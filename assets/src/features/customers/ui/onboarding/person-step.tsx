@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import type { PersonFormData } from "@/features/customers/api/onboarding-api";
 import type { AdministrativeGender } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -21,8 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-
-import type { PersonFormData } from "../../api/onboarding-api";
 
 interface PersonStepProps {
   readonly onSubmit: (data: PersonFormData) => Promise<void>;

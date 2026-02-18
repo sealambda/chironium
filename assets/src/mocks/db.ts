@@ -1,7 +1,7 @@
 import type { BodyMetricsRecord, NutritionPlanRecord } from "@/mocks/types";
 
-import { bodyMetrics } from "./data/body-metrics";
-import { nutritionPlans } from "./data/nutrition-plans";
+import { bodyMetrics } from "@/mocks/data/body-metrics";
+import { nutritionPlans } from "@/mocks/data/nutrition-plans";
 
 type DbShape = {
   bodyMetrics: BodyMetricsRecord[];

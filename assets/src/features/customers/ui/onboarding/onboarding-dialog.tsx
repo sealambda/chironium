@@ -2,6 +2,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  createObjective,
+  createPatientWithPerson,
+  createSubscription,
+  type PersonFormData,
+  type SubscriptionFormData,
+} from "@/features/customers/api/onboarding-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import {
@@ -13,13 +20,6 @@ import {
 } from "@/shared/ui/dialog";
 import { StepIndicator } from "@/shared/ui/step-indicator";
 
-import {
-  createObjective,
-  createPatientWithPerson,
-  createSubscription,
-  type PersonFormData,
-  type SubscriptionFormData,
-} from "../../api/onboarding-api";
 import { ObjectiveStep } from "./objective-step";
 import { PersonStep } from "./person-step";
 import { SubscriptionStep } from "./subscription-step";
@@ -99,7 +99,6 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
       setError(null);
       try {
         await createObjective(note, patientId, organizationId);
-        // biome-ignore lint/nursery/useAwaitThenable: queryClient.invalidateQueries returns Promise.
         await queryClient.invalidateQueries({ queryKey: ["customers", "list"] });
         toast.success(m.onboarding_success());
         handleClose();

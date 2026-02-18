@@ -5,13 +5,10 @@ import { useState } from "react";
 
 import { fetchCustomerList } from "@/features/customers/api/customers-api";
 import { type Customer, CustomerCard } from "@/features/customers/ui/customer-card";
+import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-
-import { fetchCustomerList } from "../api/customers-api";
-import { type Customer, CustomerCard } from "../ui/customer-card";
-import { OnboardingDialog } from "../ui/onboarding/onboarding-dialog";
 
 /**
  * Customers page displaying a scrollable list of customer cards.
