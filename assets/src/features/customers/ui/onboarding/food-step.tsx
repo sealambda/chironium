@@ -8,7 +8,8 @@ import { Textarea } from "@/shared/ui/textarea";
 import { StepLayout } from "./step-layout";
 
 interface FoodStepProps {
-  readonly onSubmit: (data: FoodFormData) => Promise<void>;
+  readonly initialData?: FoodFormData;
+  readonly onSubmit: (data: FoodFormData) => void;
   readonly onBack: () => void;
 }
 
@@ -16,27 +17,18 @@ interface FoodStepProps {
  * Step 7: Capture dietary inclusions and exclusions as free text.
  * Both fields are optional — the user can skip this step.
  */
-export function FoodStep({ onSubmit, onBack }: FoodStepProps) {
-  const [included, setIncluded] = useState("");
-  const [excluded, setExcluded] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function FoodStep({ initialData, onSubmit, onBack }: FoodStepProps) {
+  const [included, setIncluded] = useState(initialData?.included ?? "");
+  const [excluded, setExcluded] = useState(initialData?.excluded ?? "");
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit({ included, excluded });
-    } catch {
-      // Error handling is done in the parent dialog.
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmit = () => {
+    onSubmit({ included, excluded });
   };
 
   return (
     <StepLayout
       title={m.step_food_title()}
       description={m.step_food_desc()}
-      isSubmitting={isSubmitting}
       onSubmit={handleSubmit}
       onBack={onBack}
     >
@@ -48,7 +40,6 @@ export function FoodStep({ onSubmit, onBack }: FoodStepProps) {
             onChange={(e) => setIncluded(e.target.value)}
             placeholder={m.field_food_included_placeholder()}
             rows={3}
-            disabled={isSubmitting}
           />
         </Field>
 
@@ -59,7 +50,6 @@ export function FoodStep({ onSubmit, onBack }: FoodStepProps) {
             onChange={(e) => setExcluded(e.target.value)}
             placeholder={m.field_food_excluded_placeholder()}
             rows={3}
-            disabled={isSubmitting}
           />
         </Field>
       </FieldGroup>

@@ -23,7 +23,8 @@ import { StepLayout } from "./step-layout";
 
 interface SubscriptionStepProps {
   readonly organizationId: string;
-  readonly onSubmit: (data: SubscriptionFormData) => Promise<void>;
+  readonly initialData?: SubscriptionFormData;
+  readonly onSubmit: (data: SubscriptionFormData) => void;
   readonly onBack: () => void;
 }
 
@@ -46,10 +47,9 @@ interface PlanSelectorProps {
   readonly loading: boolean;
   readonly value: string;
   readonly onChange: (value: string) => void;
-  readonly disabled: boolean;
 }
 
-function PlanSelector({ plans, loading, value, onChange, disabled }: PlanSelectorProps) {
+function PlanSelector({ plans, loading, value, onChange }: PlanSelectorProps) {
   if (loading) {
     return <Skeleton className="h-9 w-full rounded-md" />;
   }
@@ -62,7 +62,6 @@ function PlanSelector({ plans, loading, value, onChange, disabled }: PlanSelecto
     <Select
       value={value}
       onValueChange={(v) => onChange(v ?? "")}
-      disabled={disabled}
       items={plans.map((plan) => ({ value: plan.id, label: formatPlanLabel(plan) }))}
     >
       <SelectTrigger className="w-full">
@@ -84,10 +83,16 @@ function PlanSelector({ plans, loading, value, onChange, disabled }: PlanSelecto
 /**
  * Step 2: Select a subscription plan and start date.
  */
-export function SubscriptionStep({ organizationId, onSubmit, onBack }: SubscriptionStepProps) {
-  const [planId, setPlanId] = useState("");
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function SubscriptionStep({
+  organizationId,
+  initialData,
+  onSubmit,
+  onBack,
+}: SubscriptionStepProps) {
+  const [planId, setPlanId] = useState(initialData?.planId ?? "");
+  const [startDate, setStartDate] = useState(
+    initialData?.startDate ?? new Date().toISOString().split("T")[0],
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: plans = [], isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
@@ -105,31 +110,22 @@ export function SubscriptionStep({ organizationId, onSubmit, onBack }: Subscript
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validate()) {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await onSubmit({
-        planId,
-        startDate: startDate || undefined,
-      });
-    } catch {
-      // Error handling is done in the parent dialog.
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSubmit({
+      planId,
+      startDate: startDate || undefined,
+    });
   };
 
   return (
     <StepLayout
       title={m.step_subscription_title()}
       description={m.step_subscription_desc()}
-      isSubmitting={isSubmitting}
       submitDisabled={plans.length === 0 && !plansLoading}
-      submittingLabel={m.common_creating()}
       onSubmit={handleSubmit}
       onBack={onBack}
     >
@@ -146,19 +142,13 @@ export function SubscriptionStep({ organizationId, onSubmit, onBack }: Subscript
                 setErrors((prev) => ({ ...prev, planId: "" }));
               }
             }}
-            disabled={isSubmitting}
           />
           {errors.planId ? <FieldError>{errors.planId}</FieldError> : null}
         </Field>
 
         <Field>
           <FieldLabel>{m.field_start_date()}</FieldLabel>
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            disabled={isSubmitting}
-          />
+          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </Field>
       </FieldGroup>
     </StepLayout>

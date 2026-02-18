@@ -8,7 +8,7 @@ interface StepLayoutProps {
   readonly title: string;
   readonly description: string;
   readonly children: ReactNode;
-  readonly isSubmitting: boolean;
+  readonly isSubmitting?: boolean;
   readonly isLastStep?: boolean;
   readonly submitDisabled?: boolean;
   readonly submittingLabel?: string;
