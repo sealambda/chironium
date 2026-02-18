@@ -2,6 +2,8 @@
  * Shared utilities for building contact URLs (email, WhatsApp, Instagram).
  */
 
+import type { ContactPoint } from "@/gql/graphql";
+
 /**
  * Sanitize phone number to digits only for URL building.
  */
@@ -50,14 +52,6 @@ export function getInstagramUrl(instagram: string): string {
 }
 
 /**
- * Contact point from GraphQL schema.
- */
-interface ContactPoint {
-  type?: string | null;
-  value?: string | null;
-}
-
-/**
  * Extract all contact values (email, phone, instagram) from contact points.
  */
 export function extractContactInfo(contactPoints: ContactPoint[] | undefined | null): {
@@ -65,10 +59,11 @@ export function extractContactInfo(contactPoints: ContactPoint[] | undefined | n
   phone?: string;
   instagram?: string;
 } {
-  const find = (type: string) => contactPoints?.find((p) => p.type === type)?.value ?? undefined;
+  const find = (system: string) =>
+    contactPoints?.find((p) => p.system === system)?.value ?? undefined;
   return {
     email: find("EMAIL"),
     phone: find("PHONE"),
-    instagram: find("INSTAGRAM"),
+    instagram: find("URL"),
   };
 }

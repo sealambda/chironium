@@ -30,6 +30,13 @@ defmodule Chironium.Subscriptions.Plan do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
+  # TODO: Add policies
+  policies do
+    policy always() do
+      authorize_if always()
+    end
+  end
+
   attributes do
     attribute :name, :string do
       public? true

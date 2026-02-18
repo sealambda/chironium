@@ -1,6 +1,5 @@
 import { LogOut } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
@@ -48,45 +47,22 @@ function getUserInitials(user: User | null): string {
  */
 export function TopNav() {
   const { user, isLoading } = useCurrentUser();
-  const { selectedOrg, availableOrgs, selectOrg, createOrg } = useOrg();
+  const { selectedOrg, availableOrgs, selectOrg } = useOrg();
   const { isDetailMode, headerContent } = useDetailMode();
   const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
-  const [createOrgError, setCreateOrgError] = useState<string | null>(null);
   const initials = getUserInitials(user);
-
-  const handleCreateOrg = async (data: { name: string; slug: string }) => {
-    setCreateOrgError(null);
-    try {
-      // biome-ignore lint/nursery/useAwaitThenable: createOrg returns Promise.
-      const newOrg = await createOrg(data);
-      // biome-ignore lint/nursery/useAwaitThenable: selectOrg returns Promise.
-      await selectOrg(newOrg.id);
-      toast.success(m.org_created());
-    } catch (error) {
-      console.error("Failed to create organisation:", error);
-      const errorMessage = error instanceof Error ? error.message : m.org_create_error();
-      setCreateOrgError(errorMessage);
-      throw error;
-    }
-  };
 
   const handleLogout = () => {
     window.location.href = AUTH_URLS.signOut;
   };
 
-  // Header classes - different positioning based on detail mode.
   const headerClasses = cn(
-    // Fixed positioning.
     "fixed top-0 right-0 left-0 z-50",
-    // Responsive left offset for side nav (only when not in detail mode).
     !isDetailMode && "md:left-18 lg:left-64",
-    // Styling - subtle border, glass effect.
     "border-border/40 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
-    // Safe area insets for notched devices.
     "pt-safe",
   );
 
-  // Show minimal header while loading or if no user data yet.
   if (isLoading || !user) {
     return (
       <header className={headerClasses}>
@@ -97,7 +73,6 @@ export function TopNav() {
     );
   }
 
-  // In detail mode, render custom header content.
   if (isDetailMode) {
     return (
       <header className={headerClasses}>
@@ -106,20 +81,11 @@ export function TopNav() {
     );
   }
 
-  // Get user's first name for welcome message.
   const firstName = user.name?.split(/\s+/)[0] || user.email.split("@")[0];
 
-  // Default: show org selector and profile.
   return (
     <header className={headerClasses}>
-      {/* Container: 64px height per M3 small app bar spec. */}
-      <div
-        className={cn(
-          "flex h-16 items-center justify-between",
-          // M3 margins: 16px compact, 24px medium, 32px expanded.
-          "px-4 md:px-6 lg:px-8",
-        )}
-      >
+      <div className={cn("flex h-16 items-center justify-between", "px-4 md:px-6 lg:px-8")}>
         {/* Leading: Welcome + Org Selector */}
         <div className="flex flex-col gap-0.5">
           <span className="text-muted-foreground text-xs">
@@ -135,14 +101,12 @@ export function TopNav() {
 
         {/* Trailing: Profile */}
         <div className="flex items-center">
-          {/* Profile avatar with dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
                 <button
                   type="button"
                   className={cn(
-                    // Touch target: 40px avatar within 44px minimum hit area.
                     "rounded-full ring-offset-background transition-opacity",
                     "hover:opacity-80",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -186,12 +150,7 @@ export function TopNav() {
         </div>
       </div>
 
-      <CreateOrgModal
-        open={isCreateOrgOpen}
-        onOpenChange={setIsCreateOrgOpen}
-        onSubmit={handleCreateOrg}
-        error={createOrgError}
-      />
+      <CreateOrgModal open={isCreateOrgOpen} onOpenChange={setIsCreateOrgOpen} />
     </header>
   );
 }
