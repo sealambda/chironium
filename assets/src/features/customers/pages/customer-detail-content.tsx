@@ -1,9 +1,9 @@
-import type { useCustomerDetail } from "../hooks/use-customer-detail";
-import type { Customer } from "../ui/customer-card";
-import { BiometricSummaryCard } from "../ui/detail/biometric-summary-card";
-import { CustomerProfileCard } from "../ui/detail/customer-profile-card";
-import { NutritionPlanSummaryCard } from "../ui/detail/nutrition-plan-summary-card";
-import { SubscriptionCard } from "../ui/detail/subscription-card";
+import type { useCustomerDetail } from "@/features/customers/hooks/use-customer-detail";
+import type { Customer } from "@/features/customers/ui/customer-card";
+import { BiometricSummaryCard } from "@/features/customers/ui/detail/biometric-summary-card";
+import { CustomerProfileCard } from "@/features/customers/ui/detail/customer-profile-card";
+import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
+import { SubscriptionCard } from "@/features/customers/ui/detail/subscription-card";
 
 interface CustomerDetailContentProps {
   customer: Customer;

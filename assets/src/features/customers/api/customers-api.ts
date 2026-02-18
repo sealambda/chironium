@@ -5,7 +5,7 @@ import { graphql } from "@/gql";
 import type { HumanName } from "@/gql/graphql";
 import { requestGraphql } from "@/shared/api/graphql";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
-import { parsePlanDurationMonths } from "@/shared/utils/duration-utils";
+import { durationToMonths } from "@/shared/utils/duration-utils";
 import { getInitials } from "@/shared/utils/name-utils";
 
 import type { Customer } from "../ui/customer-card";

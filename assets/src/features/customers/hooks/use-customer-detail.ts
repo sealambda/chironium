@@ -1,11 +1,8 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
+import { fetchCustomerSubscriptions } from "@/features/customers/api/customer-detail-api";
 import { useOrg } from "@/features/org/hooks/use-org";
-import {
-  fetchBodyMetrics,
-  fetchNutritionPlans,
-  fetchSubscriptionHistory,
-} from "@/mocks/api/customer-detail-api";
+import { fetchBodyMetrics, fetchNutritionPlans } from "@/mocks/api/customer-detail-api";
 
 /** Combine loading states from multiple queries. */
 function combineLoadingState(...queries: UseQueryResult<unknown, Error>[]) {
@@ -28,7 +25,7 @@ export function useCustomerDetail(customerId: string) {
     enabled,
   });
 
-  const subscriptions = useQuery(queryConfig("subscriptionHistory", fetchSubscriptionHistory));
+  const subscriptions = useQuery(queryConfig("subscriptions", fetchCustomerSubscriptions));
   const bodyMetrics = useQuery(queryConfig("bodyMetrics", fetchBodyMetrics));
   const nutritionPlans = useQuery(queryConfig("nutritionPlans", fetchNutritionPlans));
 

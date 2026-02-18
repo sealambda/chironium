@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 
+import { fetchCustomerList } from "@/features/customers/api/customers-api";
+import { useCustomerDetail } from "@/features/customers/hooks/use-customer-detail";
+import { CustomerDetailHeader } from "@/features/customers/ui/detail/customer-detail-header";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Route } from "@/routes/_app/customers_.$customerId";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
 
-import { fetchCustomerList } from "../api/customers-api";
-import { useCustomerDetail } from "../hooks/use-customer-detail";
-import { CustomerDetailHeader } from "../ui/detail/customer-detail-header";
 import { CustomerDetailContent } from "./customer-detail-content";
 
 // ─── Page component ─────────────────────────────────────────────────
