@@ -27,6 +27,14 @@ defmodule Chironium.Health.NutritionPlan do
 
   graphql do
     type :nutrition_plan
+
+    mutations do
+      create :create_nutrition_plan, :create
+    end
+
+    queries do
+      list :list_nutrition_plans, :read
+    end
   end
 
   paper_trail do
