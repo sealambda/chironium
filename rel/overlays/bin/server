@@ -4,7 +4,7 @@ set -eu
 cd -P -- "$(dirname -- "$0")"
 
 # Ensure migrations are up when the app starts
-./chironium eval Chironium.Release.migrate
+./chironium eval Chironium.Release.migrate_all
 
 # Start the Phoenix server
 PHX_SERVER=true exec ./chironium start
