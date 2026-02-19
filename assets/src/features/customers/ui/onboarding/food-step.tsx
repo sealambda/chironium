@@ -2,8 +2,8 @@ import { useState } from "react";
 
 import type { FoodFormData } from "@/features/customers/api/observations-api";
 import * as m from "@/paraglide/messages";
-import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { Textarea } from "@/shared/ui/textarea";
+import { FieldGroup } from "@/shared/ui/field";
+import { TagInput } from "@/shared/ui/tag-input";
 
 import { StepLayout } from "./step-layout";
 
@@ -11,18 +11,32 @@ interface FoodStepProps {
   readonly initialData?: FoodFormData;
   readonly onSubmit: (data: FoodFormData) => void;
   readonly onBack: () => void;
+  readonly onSaveDraft?: (data: FoodFormData) => void;
 }
 
 /**
- * Step 7: Capture dietary inclusions and exclusions as free text.
+ * Step 7: Capture dietary inclusions and exclusions as tagged items.
  * Both fields are optional — the user can skip this step.
  */
-export function FoodStep({ initialData, onSubmit, onBack }: FoodStepProps) {
-  const [included, setIncluded] = useState(initialData?.included ?? "");
-  const [excluded, setExcluded] = useState(initialData?.excluded ?? "");
+export function FoodStep({ initialData, onSubmit, onBack, onSaveDraft }: FoodStepProps) {
+  const [included, setIncluded] = useState<string[]>(initialData?.included ?? []);
+  const [excluded, setExcluded] = useState<string[]>(initialData?.excluded ?? []);
+  const [includedPending, setIncludedPending] = useState(false);
+  const [excludedPending, setExcludedPending] = useState(false);
+  const [pendingError, setPendingError] = useState<string | null>(null);
 
   const handleSubmit = () => {
+    if (includedPending || excludedPending) {
+      setPendingError(m.validation_pending_input());
+      return;
+    }
+    setPendingError(null);
     onSubmit({ included, excluded });
+  };
+
+  const handleBack = () => {
+    onSaveDraft?.({ included, excluded });
+    onBack();
   };
 
   return (
@@ -30,28 +44,40 @@ export function FoodStep({ initialData, onSubmit, onBack }: FoodStepProps) {
       title={m.step_food_title()}
       description={m.step_food_desc()}
       onSubmit={handleSubmit}
-      onBack={onBack}
+      onBack={handleBack}
     >
       <FieldGroup>
-        <Field>
-          <FieldLabel>{m.field_food_included()}</FieldLabel>
-          <Textarea
-            value={included}
-            onChange={(e) => setIncluded(e.target.value)}
-            placeholder={m.field_food_included_placeholder()}
-            rows={3}
-          />
-        </Field>
+        <TagInput
+          label={m.field_food_included()}
+          placeholder={m.field_food_included_placeholder()}
+          tags={included}
+          onAdd={(tag) => setIncluded((prev) => [...prev, tag])}
+          onRemove={(index) => setIncluded((prev) => prev.filter((_, i) => i !== index))}
+          addLabel={m.common_add()}
+          onPendingChange={(pending) => {
+            setIncludedPending(pending);
+            if (!pending) {
+              setPendingError(null);
+            }
+          }}
+          error={includedPending && pendingError ? pendingError : undefined}
+        />
 
-        <Field>
-          <FieldLabel>{m.field_food_excluded()}</FieldLabel>
-          <Textarea
-            value={excluded}
-            onChange={(e) => setExcluded(e.target.value)}
-            placeholder={m.field_food_excluded_placeholder()}
-            rows={3}
-          />
-        </Field>
+        <TagInput
+          label={m.field_food_excluded()}
+          placeholder={m.field_food_excluded_placeholder()}
+          tags={excluded}
+          onAdd={(tag) => setExcluded((prev) => [...prev, tag])}
+          onRemove={(index) => setExcluded((prev) => prev.filter((_, i) => i !== index))}
+          addLabel={m.common_add()}
+          onPendingChange={(pending) => {
+            setExcludedPending(pending);
+            if (!pending) {
+              setPendingError(null);
+            }
+          }}
+          error={excludedPending && pendingError ? pendingError : undefined}
+        />
       </FieldGroup>
     </StepLayout>
   );

@@ -82,6 +82,15 @@ const AnthropometryLatestQuery = graphql(`
         }
       }
     }
+    whr: listWaistHipRatioObservations(filter: $filter, sort: $sort, first: $first) {
+      results {
+        id
+        effectiveDateTime
+        valueQuantity {
+          value
+        }
+      }
+    }
   }
 `);
 
@@ -115,6 +124,76 @@ const LogBodyWeightMutation = graphql(`
   }
 `);
 
+const LogChestCircumferenceMutation = graphql(`
+  mutation LogChestCircumference($input: LogChestCircumferenceInput!) {
+    logChestCircumference(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const LogWaistCircumferenceMutation = graphql(`
+  mutation LogWaistCircumference($input: LogWaistCircumferenceInput!) {
+    logWaistCircumference(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const LogHipCircumferenceMutation = graphql(`
+  mutation LogHipCircumference($input: LogHipCircumferenceInput!) {
+    logHipCircumference(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const LogArmCircumferenceMutation = graphql(`
+  mutation LogArmCircumference($input: LogArmCircumferenceInput!) {
+    logArmCircumference(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const LogThighCircumferenceMutation = graphql(`
+  mutation LogThighCircumference($input: LogThighCircumferenceInput!) {
+    logThighCircumference(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** A point-in-time snapshot of all anthropometric measurements for a person. */
@@ -123,6 +202,7 @@ export interface AnthropometricSnapshot {
   weight?: number;
   height?: number;
   bmi?: number;
+  whr?: number;
   chest?: number;
   waist?: number;
   hip?: number;
@@ -133,10 +213,15 @@ export interface AnthropometricSnapshot {
 /** Keys for circumference measurement fields on an anthropometric snapshot. */
 export type CircumferenceKey = "chest" | "waist" | "hip" | "arm" | "thigh";
 
-/** Form data for logging body height and weight. */
+/** Form data for logging body measurements during onboarding. */
 export interface AnthropometryFormData {
   heightCm: number | null;
   weightKg: number | null;
+  chestCm: number | null;
+  waistCm: number | null;
+  hipCm: number | null;
+  armCm: number | null;
+  thighCm: number | null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -146,7 +231,7 @@ type ObservationPage = AnthropometryResult["weight"];
 type ObservationRecord = NonNullable<NonNullable<ObservationPage>["results"]>[number];
 
 /** Parse the numeric value from a FHIR valueQuantity string, returning undefined on NaN or missing data. */
-function extractValue(obs: ObservationRecord | undefined): number | undefined {
+export function extractValue(obs: ObservationRecord | undefined): number | undefined {
   if (!obs?.valueQuantity?.value) {
     return undefined;
   }
@@ -154,7 +239,7 @@ function extractValue(obs: ObservationRecord | undefined): number | undefined {
   return Number.isNaN(n) ? undefined : n;
 }
 
-function extractDate(obs: ObservationRecord | undefined): string {
+export function extractDate(obs: ObservationRecord | undefined): string {
   return obs?.effectiveDateTime ?? "";
 }
 
@@ -171,6 +256,7 @@ function buildSnapshot(
   hip: ObservationPage,
   arm: ObservationPage,
   thigh: ObservationPage,
+  whr: ObservationPage,
   index: number,
 ): AnthropometricSnapshot | null {
   const weightRecord = weight?.results?.[index];
@@ -181,6 +267,7 @@ function buildSnapshot(
   const hipRecord = hip?.results?.[index];
   const armRecord = arm?.results?.[index];
   const thighRecord = thigh?.results?.[index];
+  const whrRecord = whr?.results?.[index];
 
   const date =
     extractDate(weightRecord) ||
@@ -190,7 +277,8 @@ function buildSnapshot(
     extractDate(waistRecord) ||
     extractDate(hipRecord) ||
     extractDate(armRecord) ||
-    extractDate(thighRecord);
+    extractDate(thighRecord) ||
+    extractDate(whrRecord);
 
   // A snapshot requires at least one observation at the given index.
   if (!date) {
@@ -202,6 +290,7 @@ function buildSnapshot(
     weight: extractValue(weightRecord),
     height: extractValue(heightRecord),
     bmi: extractValue(bmiRecord),
+    whr: extractValue(whrRecord),
     chest: extractValue(chestRecord),
     waist: extractValue(waistRecord),
     hip: extractValue(hipRecord),
@@ -245,6 +334,7 @@ export async function fetchAnthropometry(
     data.hip,
     data.arm,
     data.thigh,
+    data.whr,
     0,
   );
   if (latest) {
@@ -260,6 +350,7 @@ export async function fetchAnthropometry(
     data.hip,
     data.arm,
     data.thigh,
+    data.whr,
     1,
   );
   if (previous) {
@@ -270,7 +361,63 @@ export async function fetchAnthropometry(
 }
 
 /**
- * Log body height and/or weight. Skips whichever value is absent.
+ * Fetch full anthropometric history for a person (up to 250 records per measurement type).
+ * Returns snapshots sorted DESC by date.
+ */
+export async function fetchAnthropometryHistory(
+  personId: string,
+  organizationId: string,
+): Promise<AnthropometricSnapshot[]> {
+  if (!personId || !organizationId) {
+    return [];
+  }
+
+  const data = await requestGraphql({
+    document: AnthropometryLatestQuery,
+    variables: {
+      filter: { subject: { personId: { eq: personId } } },
+      sort: [{ field: "EFFECTIVE_DATE_TIME", order: "DESC" }],
+      first: 250,
+    },
+    organizationId,
+  });
+
+  const maxLen = Math.max(
+    data.weight?.results?.length ?? 0,
+    data.height?.results?.length ?? 0,
+    data.bmi?.results?.length ?? 0,
+    data.chest?.results?.length ?? 0,
+    data.waist?.results?.length ?? 0,
+    data.hip?.results?.length ?? 0,
+    data.arm?.results?.length ?? 0,
+    data.thigh?.results?.length ?? 0,
+    data.whr?.results?.length ?? 0,
+  );
+
+  const snapshots: AnthropometricSnapshot[] = [];
+  for (let i = 0; i < maxLen; i++) {
+    const snapshot = buildSnapshot(
+      data.weight,
+      data.height,
+      data.bmi,
+      data.chest,
+      data.waist,
+      data.hip,
+      data.arm,
+      data.thigh,
+      data.whr,
+      i,
+    );
+    if (snapshot) {
+      snapshots.push(snapshot);
+    }
+  }
+
+  return snapshots;
+}
+
+/**
+ * Log all provided anthropometric measurements. Skips absent values.
  */
 export async function logAnthropometry(
   data: AnthropometryFormData,
@@ -303,6 +450,76 @@ export async function logAnthropometry(
           organizationId,
         });
         unwrapMutationResult(result.logBodyWeight, "Failed to log body weight.");
+      })(),
+    );
+  }
+
+  if (data.chestCm && data.chestCm > 0) {
+    const chestCircumferenceCm = data.chestCm;
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: LogChestCircumferenceMutation,
+          variables: { input: { subjectId, chestCircumferenceCm } },
+          organizationId,
+        });
+        unwrapMutationResult(result.logChestCircumference, "Failed to log chest circumference.");
+      })(),
+    );
+  }
+
+  if (data.waistCm && data.waistCm > 0) {
+    const waistCircumferenceCm = data.waistCm;
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: LogWaistCircumferenceMutation,
+          variables: { input: { subjectId, waistCircumferenceCm } },
+          organizationId,
+        });
+        unwrapMutationResult(result.logWaistCircumference, "Failed to log waist circumference.");
+      })(),
+    );
+  }
+
+  if (data.hipCm && data.hipCm > 0) {
+    const hipCircumferenceCm = data.hipCm;
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: LogHipCircumferenceMutation,
+          variables: { input: { subjectId, hipCircumferenceCm } },
+          organizationId,
+        });
+        unwrapMutationResult(result.logHipCircumference, "Failed to log hip circumference.");
+      })(),
+    );
+  }
+
+  if (data.armCm && data.armCm > 0) {
+    const armCircumferenceCm = data.armCm;
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: LogArmCircumferenceMutation,
+          variables: { input: { subjectId, armCircumferenceCm } },
+          organizationId,
+        });
+        unwrapMutationResult(result.logArmCircumference, "Failed to log arm circumference.");
+      })(),
+    );
+  }
+
+  if (data.thighCm && data.thighCm > 0) {
+    const thighCircumferenceCm = data.thighCm;
+    promises.push(
+      (async () => {
+        const result = await requestGraphql({
+          document: LogThighCircumferenceMutation,
+          variables: { input: { subjectId, thighCircumferenceCm } },
+          organizationId,
+        });
+        unwrapMutationResult(result.logThighCircumference, "Failed to log thigh circumference.");
       })(),
     );
   }

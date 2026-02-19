@@ -2,7 +2,7 @@
 
 ## Package Manager
 
-Always use **pnpm** for package management. Do not use npm, yarn, bun, or any other package manager.
+Always use **pnpm** for package management and script execution. Never use npm, yarn, bun, npx, or any other package manager or runner.
 
 ```bash
 # Install dependencies.
@@ -14,8 +14,13 @@ pnpm add <package-name>
 # Add a dev dependency.
 pnpm add -D <package-name>
 
-# Run scripts.
+# Run scripts defined in package.json.
 pnpm <script-name>
+
+# Execute a package binary (instead of npx).
+pnpm exec <binary>
+# Or use the shorthand — pnpm resolves binaries automatically.
+pnpm <binary> <args>
 ```
 
 ## Writing and Formatting Standards
@@ -104,6 +109,16 @@ throw new Error(`Customer email "${email}" is not a valid email address.`);
 - Use sentence case for messages, title case for headings.
 - Avoid technical jargon in user-facing text.
 
+## Domain Terminology
+
+### Anthropometry
+
+Following the FHIR standard, all body-related observations (weight, height, BMI, circumferences) are grouped under a single domain concept: **anthropometry** (or **anthropometric data**). Do not split these into separate "body metrics" and "body measurements" categories. Use a flat `AnthropometricSnapshot` interface with all fields optional — no nested `measurements` object.
+
+- API file: `features/customers/api/anthropometry-api.ts`
+- Card component: `features/customers/ui/detail/anthropometry-card.tsx`
+- i18n prefix: `anthropometry_*`
+
 ## Design Patterns
 
 Patterns established during the customers feature refactor. Follow these for consistency.
@@ -128,9 +143,9 @@ Zero `text-[Xpx]` or custom CSS. Use only standard Tailwind typography tokens (`
 
 If a file has zero importers, delete it. Verify with `grep` before deletion to confirm no references exist.
 
-### Read-Only Customer Feature
+### Customer Feature
 
-The customers feature is strictly for viewing and managing existing data. No creation or onboarding flows exist in the codebase.
+The customers feature supports viewing person profiles, managing subscriptions, and onboarding new customers via a multi-step wizard.
 
 ## TypeScript Import Conventions
 

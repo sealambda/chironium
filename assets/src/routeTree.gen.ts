@@ -13,6 +13,8 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
+import { Route as AppCustomersCustomerIdNutritionRouteImport } from './routes/_app/customers_.$customerId_.nutrition'
+import { Route as AppCustomersCustomerIdAnthropometryRouteImport } from './routes/_app/customers_.$customerId_.anthropometry'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -33,16 +35,32 @@ const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
   path: '/customers/$customerId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCustomersCustomerIdNutritionRoute =
+  AppCustomersCustomerIdNutritionRouteImport.update({
+    id: '/customers_/$customerId_/nutrition',
+    path: '/customers/$customerId/nutrition',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppCustomersCustomerIdAnthropometryRoute =
+  AppCustomersCustomerIdAnthropometryRouteImport.update({
+    id: '/customers_/$customerId_/anthropometry',
+    path: '/customers/$customerId/anthropometry',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
+  '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
+  '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
+  '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
+  '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,18 +68,32 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/customers': typeof AppCustomersRoute
   '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
+  '/_app/customers_/$customerId_/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
+  '/_app/customers_/$customerId_/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/customers' | '/customers/$customerId'
+  fullPaths:
+    | '/'
+    | '/customers'
+    | '/customers/$customerId'
+    | '/customers/$customerId/anthropometry'
+    | '/customers/$customerId/nutrition'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/customers' | '/customers/$customerId'
+  to:
+    | '/'
+    | '/customers'
+    | '/customers/$customerId'
+    | '/customers/$customerId/anthropometry'
+    | '/customers/$customerId/nutrition'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/_app/customers'
     | '/_app/customers_/$customerId'
+    | '/_app/customers_/$customerId_/anthropometry'
+    | '/_app/customers_/$customerId_/nutrition'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -99,17 +131,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomersCustomerIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/customers_/$customerId_/nutrition': {
+      id: '/_app/customers_/$customerId_/nutrition'
+      path: '/customers/$customerId/nutrition'
+      fullPath: '/customers/$customerId/nutrition'
+      preLoaderRoute: typeof AppCustomersCustomerIdNutritionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/customers_/$customerId_/anthropometry': {
+      id: '/_app/customers_/$customerId_/anthropometry'
+      path: '/customers/$customerId/anthropometry'
+      fullPath: '/customers/$customerId/anthropometry'
+      preLoaderRoute: typeof AppCustomersCustomerIdAnthropometryRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
   AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
+  AppCustomersCustomerIdAnthropometryRoute: typeof AppCustomersCustomerIdAnthropometryRoute
+  AppCustomersCustomerIdNutritionRoute: typeof AppCustomersCustomerIdNutritionRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
   AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
+  AppCustomersCustomerIdAnthropometryRoute:
+    AppCustomersCustomerIdAnthropometryRoute,
+  AppCustomersCustomerIdNutritionRoute: AppCustomersCustomerIdNutritionRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

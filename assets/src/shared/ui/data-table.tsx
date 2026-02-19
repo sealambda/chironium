@@ -50,6 +50,8 @@ export interface DataTableProps<TData> {
   getRowId?: (originalRow: TData, index: number) => string;
   /** Optional: Callback when a row is clicked (receives the row's original data) */
   onRowClick?: (data: TData) => void;
+  /** Optional: Pin the first column when scrolling horizontally */
+  pinFirstColumn?: boolean;
 }
 
 interface SortableHeaderProps<TData, TValue> {
@@ -114,6 +116,7 @@ function DataTable<TData>({
   emptyState,
   getRowId,
   onRowClick,
+  pinFirstColumn,
 }: DataTableProps<TData>) {
   // Internal state fallback for uncontrolled mode
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
@@ -163,7 +166,14 @@ function DataTable<TData>({
             <TableRow key={headerGroup.id}>
               {isExpandable && <TableHead className="w-10" />}
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead
+                  key={header.id}
+                  className={cn(
+                    pinFirstColumn &&
+                      header.column.getIndex() === 0 &&
+                      "sticky left-0 z-10 bg-background after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-border",
+                  )}
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -214,7 +224,14 @@ function DataTable<TData>({
                     </TableCell>
                   )}
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        pinFirstColumn &&
+                          cell.column.getIndex() === 0 &&
+                          "sticky left-0 z-10 bg-background after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-border",
+                      )}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

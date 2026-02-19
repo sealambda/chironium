@@ -40,7 +40,7 @@ function resolveSelectedOrg(
     return availableOrgs.find((org) => org.id === preferredOrgId) ?? null;
   }
 
-  return null;
+  return availableOrgs[0];
 }
 
 export const useOrgStore = create<OrgStoreState>()(
