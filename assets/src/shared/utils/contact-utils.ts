@@ -15,6 +15,17 @@ export function sanitizePhoneDigits(phone: string): string {
 }
 
 /**
+ * Check whether the value is already a full Instagram URL.
+ */
+function isInstagramUrl(value: string): boolean {
+  try {
+    return new URL(value).hostname.endsWith("instagram.com");
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Normalize Instagram handle by removing leading @ symbol.
  */
 export function normalizeInstagramHandle(handle: string): string {
@@ -27,6 +38,10 @@ export function normalizeInstagramHandle(handle: string): string {
 export function formatInstagramDisplay(handle: string): string {
   if (!handle) {
     return "";
+  }
+  if (isInstagramUrl(handle)) {
+    const path = new URL(handle).pathname.replace(/^\//, "").replace(/\/$/, "");
+    return `@${path}`;
   }
   return handle.startsWith("@") ? handle : `@${handle}`;
 }
@@ -50,6 +65,9 @@ export function getWhatsAppUrl(phone: string): string {
  * Build Instagram profile URL.
  */
 export function getInstagramUrl(instagram: string): string {
+  if (isInstagramUrl(instagram)) {
+    return instagram;
+  }
   const username = normalizeInstagramHandle(instagram);
   return `https://www.instagram.com/${username}`;
 }
