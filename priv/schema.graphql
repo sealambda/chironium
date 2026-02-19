@@ -8,8 +8,8 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -17,8 +17,8 @@ input PractitionerNameInput {
   """
   prefix: [String!]
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -196,8 +196,8 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -205,8 +205,8 @@ input PersonNameInput {
   """
   prefix: [String!]
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -1768,6 +1768,23 @@ type Observation {
   subject: Patient!
 }
 
+"The result of the :create_nutrition_plan mutation"
+type CreateNutritionPlanResult {
+  "The successful result of the mutation"
+  result: NutritionPlan
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateNutritionPlanInput {
+  targetKcal: Int!
+  proteinG: Int!
+  carbsG: Int!
+  fatG: Int!
+  patientId: ID!
+}
+
 enum NutritionPlanSortField {
   ID
   TARGET_KCAL
@@ -1775,6 +1792,21 @@ enum NutritionPlanSortField {
   CARBS_G
   FAT_G
   PATIENT_ID
+}
+
+"A keyset page of :nutrition_plan"
+type KeysetPageOfNutritionPlan {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [NutritionPlan!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
 }
 
 input NutritionPlanFilterPatientId {
@@ -2575,6 +2607,26 @@ type RootQueryType {
   "Retrieve the info for the actor that is currently signed in."
   currentActor: User
 
+  listNutritionPlans(
+    "How to sort the records in the response"
+    sort: [NutritionPlanSortInput]
+
+    "A filter to limit the results"
+    filter: NutritionPlanFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfNutritionPlan
+
   listObservations(
     "How to sort the records in the response"
     sort: [ObservationSortInput]
@@ -2919,6 +2971,8 @@ type RootMutationType {
   createGoal(input: CreateGoalInput!): CreateGoalResult!
 
   createMedicationStatement(input: CreateMedicationStatementInput!): CreateMedicationStatementResult!
+
+  createNutritionPlan(input: CreateNutritionPlanInput!): CreateNutritionPlanResult!
 
   createObservation(input: CreateObservationInput!): CreateObservationResult!
 
