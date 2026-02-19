@@ -1,10 +1,10 @@
 import { type AllergiesFormData, createAllergiesAndIntolerances } from "./allergy-intolerance-api";
 import { type AnthropometryFormData, logAnthropometry } from "./anthropometry-api";
+import { createGoal } from "./goals-api";
 import {
   createFoodObservations,
   createMenstrualCycleObservation,
   createNoteObservations,
-  createObjective,
   type FoodFormData,
   type MenstrualCycleFormData,
   type NoteFormData,
@@ -33,7 +33,9 @@ function hasCycleData(d: MenstrualCycleFormData): boolean {
 }
 
 function hasAnthropometryData(d: AnthropometryFormData): boolean {
-  return Boolean(d.heightCm || d.weightKg);
+  return Boolean(
+    d.heightCm || d.weightKg || d.chestCm || d.waistCm || d.hipCm || d.armCm || d.thighCm,
+  );
 }
 
 function hasAllergyData(d: AllergiesFormData): boolean {
@@ -41,7 +43,7 @@ function hasAllergyData(d: AllergiesFormData): boolean {
 }
 
 function hasFoodData(d: FoodFormData): boolean {
-  return Boolean(d.included.trim() || d.excluded.trim());
+  return d.included.length > 0 || d.excluded.length > 0;
 }
 
 function hasNoteData(notes: NoteFormData[]): boolean {
@@ -58,6 +60,7 @@ function hasNoteData(notes: NoteFormData[]): boolean {
 export async function submitOnboarding(
   draft: OnboardingDraft,
   organizationId: string,
+  userId: string,
 ): Promise<void> {
   if (!draft.person) {
     throw new Error("Person data is required to complete onboarding.");
@@ -71,11 +74,11 @@ export async function submitOnboarding(
     concurrent.push(createSubscription(draft.subscription, personId, organizationId));
   }
   if (draft.objective) {
-    concurrent.push(createObjective(draft.objective, patientId, organizationId));
+    concurrent.push(createGoal(draft.objective, patientId, organizationId, userId));
   }
   if (draft.menstrualCycle && hasCycleData(draft.menstrualCycle)) {
     concurrent.push(
-      createMenstrualCycleObservation(draft.menstrualCycle, patientId, organizationId),
+      createMenstrualCycleObservation(draft.menstrualCycle, patientId, organizationId, userId),
     );
   }
   if (draft.anthropometry && hasAnthropometryData(draft.anthropometry)) {
@@ -85,10 +88,10 @@ export async function submitOnboarding(
     concurrent.push(createAllergiesAndIntolerances(draft.allergies, patientId, organizationId));
   }
   if (draft.food && hasFoodData(draft.food)) {
-    concurrent.push(createFoodObservations(draft.food, patientId, organizationId));
+    concurrent.push(createFoodObservations(draft.food, patientId, organizationId, userId));
   }
   if (draft.notes && hasNoteData(draft.notes)) {
-    concurrent.push(createNoteObservations(draft.notes, patientId, organizationId));
+    concurrent.push(createNoteObservations(draft.notes, patientId, organizationId, userId));
   }
 
   await Promise.all(concurrent);

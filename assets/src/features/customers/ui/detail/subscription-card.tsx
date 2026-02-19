@@ -58,6 +58,7 @@ export function SubscriptionCard({ subscription, isLoading }: Readonly<Subscript
   const timeLabel =
     subscription && isActionable
       ? getTimeRemainingLabel(
+          subscription.startDate,
           computeEndDate(subscription.startDate, durationToMonths(subscription.plan.duration)),
         )
       : m.sub_no_active();

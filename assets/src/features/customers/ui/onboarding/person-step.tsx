@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
 
 import type { PersonFormData } from "@/features/customers/api/patients-api";
+import {
+  CONSECUTIVE_SPECIALS,
+  NAME_PATTERN,
+  personSchema,
+} from "@/features/customers/model/onboarding-schemas";
 import * as m from "@/paraglide/messages";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
+import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import {
@@ -40,135 +46,230 @@ const GENDER_OPTIONS: { value: AdministrativeGender; label: () => string }[] = [
  * Step 1: Collect personal information to create a patient with a person record.
  */
 export function PersonStep({ initialData, onSubmit, onCancel }: PersonStepProps) {
-  const [givenName, setGivenName] = useState(initialData?.givenName ?? "");
-  const [familyName, setFamilyName] = useState(initialData?.familyName ?? "");
-  const [birthDate, setBirthDate] = useState(initialData?.birthDate ?? "");
-  const [gender, setGender] = useState<AdministrativeGender | "">(initialData?.gender ?? "");
-  const [phone, setPhone] = useState(initialData?.phone ?? "");
-  const [email, setEmail] = useState(initialData?.email ?? "");
-  const [instagram, setInstagram] = useState(initialData?.instagram ?? "");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    if (!givenName.trim()) {
-      newErrors.givenName = m.validation_required();
-    }
-    if (!familyName.trim()) {
-      newErrors.familyName = m.validation_required();
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (!validate()) {
-      return;
-    }
-
-    onSubmit({
-      givenName: givenName.trim(),
-      familyName: familyName.trim(),
-      birthDate: birthDate || undefined,
-      gender: (gender as AdministrativeGender) || undefined,
-      phone: phone || undefined,
-      email: email.trim() || undefined,
-      instagram: instagram.trim() || undefined,
-    });
-  };
+  const form = useForm({
+    defaultValues: {
+      givenName: initialData?.givenName ?? "",
+      familyName: initialData?.familyName ?? "",
+      birthDate: initialData?.birthDate ?? "",
+      gender: (initialData?.gender ?? "") as AdministrativeGender | "",
+      phone: initialData?.phone ?? "",
+      email: initialData?.email ?? "",
+      instagram: initialData?.instagram ?? "",
+    },
+    // @ts-expect-error ZodDefault input type includes undefined, TanStack Form expects exact match
+    validators: { onSubmit: personSchema },
+    onSubmit: ({ value }) => {
+      onSubmit({
+        givenName: value.givenName.trim(),
+        familyName: value.familyName.trim(),
+        birthDate: value.birthDate || undefined,
+        gender: (value.gender as AdministrativeGender) || undefined,
+        phone: value.phone || undefined,
+        email: value.email.trim() || undefined,
+        instagram: value.instagram.trim() || undefined,
+      });
+    },
+  });
 
   return (
     <StepLayout
       title={m.step_personal_title()}
       description={m.step_personal_desc()}
-      onSubmit={handleSubmit}
+      onSubmit={() => form.handleSubmit()}
       onCancel={onCancel}
     >
       <FieldGroup>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field data-invalid={Boolean(errors.givenName)}>
-            <FieldLabel>{m.field_given_name()}</FieldLabel>
-            <Input
-              value={givenName}
-              onChange={(e) => {
-                setGivenName(e.target.value);
-                if (errors.givenName) {
-                  setErrors((prev) => ({ ...prev, givenName: "" }));
+          <form.Field
+            name="givenName"
+            validators={{
+              onBlur: ({ value }) => {
+                if (!value || value.trim().length < 2) {
+                  return m.validation_name_min();
                 }
-              }}
-              aria-invalid={Boolean(errors.givenName)}
-            />
-            {errors.givenName ? <FieldError>{errors.givenName}</FieldError> : null}
-          </Field>
+                if (!NAME_PATTERN.test(value)) {
+                  return m.validation_name_format();
+                }
+                if (CONSECUTIVE_SPECIALS.test(value)) {
+                  return m.validation_name_consecutive();
+                }
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <Field data-invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel required>{m.field_given_name()}</FieldLabel>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => {
+                    let filtered = e.target.value.replace(/[^\p{L}\s'.-]/gu, "");
+                    filtered = filtered.replace(/([\s'.-])([\s'.-]+)/gu, "$1");
+                    filtered = filtered.replace(/^[\s'.-]+/, "");
+                    field.handleChange(filtered);
+                  }}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                />
+                {field.state.meta.errors.length > 0 ? (
+                  <FieldError
+                    errors={field.state.meta.errors.map((e) =>
+                      typeof e === "string" ? { message: e } : e,
+                    )}
+                  />
+                ) : null}
+              </Field>
+            )}
+          </form.Field>
 
-          <Field data-invalid={Boolean(errors.familyName)}>
-            <FieldLabel>{m.field_family_name()}</FieldLabel>
-            <Input
-              value={familyName}
-              onChange={(e) => {
-                setFamilyName(e.target.value);
-                if (errors.familyName) {
-                  setErrors((prev) => ({ ...prev, familyName: "" }));
+          <form.Field
+            name="familyName"
+            validators={{
+              onBlur: ({ value }) => {
+                if (!value || value.trim().length < 2) {
+                  return m.validation_name_min();
                 }
-              }}
-              aria-invalid={Boolean(errors.familyName)}
-            />
-            {errors.familyName ? <FieldError>{errors.familyName}</FieldError> : null}
-          </Field>
+                if (!NAME_PATTERN.test(value)) {
+                  return m.validation_name_format();
+                }
+                if (CONSECUTIVE_SPECIALS.test(value)) {
+                  return m.validation_name_consecutive();
+                }
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <Field data-invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel required>{m.field_family_name()}</FieldLabel>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => {
+                    let filtered = e.target.value.replace(/[^\p{L}\s'.-]/gu, "");
+                    filtered = filtered.replace(/([\s'.-])([\s'.-]+)/gu, "$1");
+                    filtered = filtered.replace(/^[\s'.-]+/, "");
+                    field.handleChange(filtered);
+                  }}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                />
+                {field.state.meta.errors.length > 0 ? (
+                  <FieldError
+                    errors={field.state.meta.errors.map((e) =>
+                      typeof e === "string" ? { message: e } : e,
+                    )}
+                  />
+                ) : null}
+              </Field>
+            )}
+          </form.Field>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field>
-            <FieldLabel>{m.field_birth_date()}</FieldLabel>
-            <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-          </Field>
+          <form.Field name="birthDate">
+            {(field) => (
+              <Field>
+                <FieldLabel>{m.field_birth_date()}</FieldLabel>
+                <DatePickerString
+                  value={field.state.value}
+                  onChange={(v) => field.handleChange(v)}
+                />
+              </Field>
+            )}
+          </form.Field>
 
-          <Field>
-            <FieldLabel>{m.field_gender()}</FieldLabel>
-            <Select
-              value={gender}
-              onValueChange={(value) => setGender(value as AdministrativeGender)}
-              items={GENDER_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={m.gender_placeholder()} />
-              </SelectTrigger>
-              <SelectPositioner>
-                <SelectContent>
-                  {GENDER_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectPositioner>
-            </Select>
-          </Field>
+          <form.Field name="gender">
+            {(field) => (
+              <Field>
+                <FieldLabel>{m.field_gender()}</FieldLabel>
+                <Select
+                  value={field.state.value}
+                  onValueChange={(value) => field.handleChange(value as AdministrativeGender)}
+                  items={GENDER_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={m.gender_placeholder()} />
+                  </SelectTrigger>
+                  <SelectPositioner>
+                    <SelectContent>
+                      {GENDER_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectPositioner>
+                </Select>
+              </Field>
+            )}
+          </form.Field>
         </div>
 
-        <Field>
-          <FieldLabel>{m.field_phone()}</FieldLabel>
-          <PhoneInput value={phone} onChange={setPhone} />
-        </Field>
+        <form.Field name="phone">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.field_phone()}</FieldLabel>
+              <PhoneInput value={field.state.value} onChange={field.handleChange} />
+            </Field>
+          )}
+        </form.Field>
 
-        <Field>
-          <FieldLabel>{m.field_email()}</FieldLabel>
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </Field>
+        <form.Field
+          name="email"
+          validators={{
+            onBlur: ({ value }) => {
+              if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                return m.validation_email_format();
+              }
+              return undefined;
+            },
+          }}
+        >
+          {(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
+              <FieldLabel>{m.field_email()}</FieldLabel>
+              <Input
+                type="email"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                aria-invalid={field.state.meta.errors.length > 0}
+              />
+              {field.state.meta.errors.length > 0 ? (
+                <FieldError
+                  errors={field.state.meta.errors.map((e) =>
+                    typeof e === "string" ? { message: e } : e,
+                  )}
+                />
+              ) : null}
+            </Field>
+          )}
+        </form.Field>
 
-        <Field>
-          <FieldLabel>{m.field_instagram()}</FieldLabel>
-          <InputGroup>
-            <InputGroupAddon align="inline-start">
-              <InputGroupText>@</InputGroupText>
-            </InputGroupAddon>
-            <InputGroupInput
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              placeholder="username"
-            />
-          </InputGroup>
-        </Field>
+        <form.Field name="instagram">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.field_instagram()}</FieldLabel>
+              <InputGroup>
+                <InputGroupAddon align="inline-start">
+                  <InputGroupText>@</InputGroupText>
+                </InputGroupAddon>
+                <InputGroupInput
+                  value={field.state.value}
+                  onChange={(e) => {
+                    const sanitized = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9._]/g, "")
+                      .slice(0, 30);
+                    field.handleChange(sanitized);
+                  }}
+                  onBlur={field.handleBlur}
+                  placeholder="username"
+                />
+              </InputGroup>
+            </Field>
+          )}
+        </form.Field>
       </FieldGroup>
     </StepLayout>
   );

@@ -1,16 +1,25 @@
-import { Beef, ChevronRight, Droplet, LeafIcon, Wheat } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Beef, ChevronRight, Droplet, LeafIcon, PlusIcon, Wheat } from "lucide-react";
 
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
+import { NutritionPlanDialog } from "@/features/customers/ui/detail/nutrition-plan-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/utils/utils";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
 interface NutritionPlanSummaryCardProps {
+  personId: string;
+  patientId: string | null;
   plan: NutritionPlanRecord | undefined;
   isLoading?: boolean;
+  latestWeight?: number;
+  latestHeight?: number;
+  birthDate?: string;
+  gender?: string;
 }
 
 // ─── Internal helpers ────────────────────────────────────────────────
@@ -138,8 +147,14 @@ export function NutritionPlanSummaryCardSkeleton() {
 // ─── Main component ──────────────────────────────────────────────────
 
 export function NutritionPlanSummaryCard({
+  personId,
+  patientId,
   plan,
   isLoading,
+  latestWeight,
+  latestHeight,
+  birthDate,
+  gender,
 }: Readonly<NutritionPlanSummaryCardProps>) {
   if (isLoading) {
     return <NutritionPlanSummaryCardSkeleton />;
@@ -147,8 +162,16 @@ export function NutritionPlanSummaryCard({
 
   if (!plan) {
     return (
-      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
-        <div className="flex flex-col items-center gap-2 py-6">
+      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+        <div className="flex items-start justify-end">
+          <NutritionPlanDialog personId={personId} patientId={patientId} latestWeight={latestWeight} latestHeight={latestHeight} birthDate={birthDate} gender={gender}>
+            <Button variant="outline" size="sm">
+              <PlusIcon className="size-4" data-icon="inline-start" />
+              {m.nutrition_plan_add()}
+            </Button>
+          </NutritionPlanDialog>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
           <LeafIcon className="size-8 text-neutral-400" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.nutrition_no_plan()}</p>
@@ -162,7 +185,15 @@ export function NutritionPlanSummaryCard({
   return (
     <div className="flex h-fit flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
       {/* Section A: Hero — kcal, recency */}
-      <HeroSection plan={plan} />
+      <div className="flex items-start justify-between">
+        <HeroSection plan={plan} />
+        <NutritionPlanDialog personId={personId} patientId={patientId} latestWeight={latestWeight} latestHeight={latestHeight} birthDate={birthDate} gender={gender}>
+          <Button variant="outline" size="sm">
+            <PlusIcon className="size-4" data-icon="inline-start" />
+            {m.nutrition_plan_add()}
+          </Button>
+        </NutritionPlanDialog>
+      </div>
 
       <div className="my-4 h-px bg-neutral-200" />
 
@@ -178,13 +209,14 @@ export function NutritionPlanSummaryCard({
 
       {/* Footer action — pinned to bottom */}
       <div className="mt-auto border-neutral-200 border-t pt-3">
-        <a
-          href="#nutrition-history"
+        <Link
+          to="/customers/$customerId/nutrition"
+          params={{ customerId: personId }}
           className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
         >
           <span>{m.nutrition_view_history()}</span>
           <ChevronRight className="size-4" />
-        </a>
+        </Link>
       </div>
     </div>
   );

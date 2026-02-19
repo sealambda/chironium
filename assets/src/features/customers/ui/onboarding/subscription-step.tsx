@@ -1,14 +1,15 @@
+import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 
 import {
   fetchSubscriptionPlans,
   type SubscriptionFormData,
   type SubscriptionPlan,
 } from "@/features/customers/api/subscriptions-api";
+import { subscriptionSchema } from "@/features/customers/model/onboarding-schemas";
 import * as m from "@/paraglide/messages";
+import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { Input } from "@/shared/ui/input";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,22 @@ interface SubscriptionStepProps {
   readonly initialData?: SubscriptionFormData;
   readonly onSubmit: (data: SubscriptionFormData) => void;
   readonly onBack: () => void;
+  readonly onSaveDraft?: (data: SubscriptionFormData) => void;
+}
+
+function ucumLabel(code: string): string {
+  switch (code) {
+    case "MO":
+      return m.duration_months();
+    case "A":
+      return m.duration_years();
+    case "WK":
+      return m.duration_weeks();
+    case "D":
+      return m.duration_days();
+    default:
+      return code;
+  }
 }
 
 function formatPlanLabel(plan: SubscriptionPlan): string {
@@ -34,10 +51,7 @@ function formatPlanLabel(plan: SubscriptionPlan): string {
     parts.push(plan.name);
   }
   if (plan.duration?.value && plan.duration?.code) {
-    parts.push(`(${plan.duration.value} ${plan.duration.code})`);
-  }
-  if (plan.priceAmount) {
-    parts.push(`- ${plan.priceAmount.amount} ${plan.priceAmount.currency}`);
+    parts.push(`(${plan.duration.value} ${ucumLabel(plan.duration.code)})`);
   }
   return parts.join(" ") || plan.id;
 }
@@ -88,37 +102,33 @@ export function SubscriptionStep({
   initialData,
   onSubmit,
   onBack,
+  onSaveDraft,
 }: SubscriptionStepProps) {
-  const [planId, setPlanId] = useState(initialData?.planId ?? "");
-  const [startDate, setStartDate] = useState(
-    initialData?.startDate ?? new Date().toISOString().split("T")[0],
-  );
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const { data: plans = [], isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
     queryKey: ["subscriptionPlans", organizationId],
     queryFn: () => fetchSubscriptionPlans(organizationId),
     enabled: Boolean(organizationId),
   });
 
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    if (!planId) {
-      newErrors.planId = m.validation_required();
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const form = useForm({
+    defaultValues: {
+      planId: initialData?.planId ?? "",
+      startDate: initialData?.startDate ?? new Date().toISOString().split("T")[0],
+    },
+    // @ts-expect-error ZodDefault input type includes undefined, TanStack Form expects exact match
+    validators: { onSubmit: subscriptionSchema },
+    onSubmit: ({ value }) => {
+      onSubmit({
+        planId: value.planId,
+        startDate: value.startDate || undefined,
+      });
+    },
+  });
 
-  const handleSubmit = () => {
-    if (!validate()) {
-      return;
-    }
-
-    onSubmit({
-      planId,
-      startDate: startDate || undefined,
-    });
+  const handleBack = () => {
+    const v = form.state.values;
+    onSaveDraft?.({ planId: v.planId, startDate: v.startDate || undefined });
+    onBack();
   };
 
   return (
@@ -126,30 +136,53 @@ export function SubscriptionStep({
       title={m.step_subscription_title()}
       description={m.step_subscription_desc()}
       submitDisabled={plans.length === 0 && !plansLoading}
-      onSubmit={handleSubmit}
-      onBack={onBack}
+      onSubmit={() => form.handleSubmit()}
+      onBack={handleBack}
     >
       <FieldGroup>
-        <Field data-invalid={Boolean(errors.planId)}>
-          <FieldLabel>{m.field_plan()}</FieldLabel>
-          <PlanSelector
-            plans={plans}
-            loading={plansLoading}
-            value={planId}
-            onChange={(value) => {
-              setPlanId(value);
-              if (errors.planId) {
-                setErrors((prev) => ({ ...prev, planId: "" }));
+        <form.Field
+          name="planId"
+          validators={{
+            onBlur: ({ value }) => {
+              if (!value) {
+                return m.validation_plan_required();
               }
-            }}
-          />
-          {errors.planId ? <FieldError>{errors.planId}</FieldError> : null}
-        </Field>
+              return undefined;
+            },
+          }}
+        >
+          {(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
+              <FieldLabel required>{m.field_plan()}</FieldLabel>
+              <PlanSelector
+                plans={plans}
+                loading={plansLoading}
+                value={field.state.value}
+                onChange={(value) => field.handleChange(value)}
+              />
+              {field.state.meta.errors.length > 0 ? (
+                <FieldError
+                  errors={field.state.meta.errors.map((e) =>
+                    typeof e === "string" ? { message: e } : e,
+                  )}
+                />
+              ) : null}
+            </Field>
+          )}
+        </form.Field>
 
-        <Field>
-          <FieldLabel>{m.field_start_date()}</FieldLabel>
-          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        </Field>
+        <form.Field name="startDate">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.field_start_date()}</FieldLabel>
+              <DatePickerString
+                value={field.state.value}
+                onChange={(v) => field.handleChange(v)}
+                endMonth={new Date(new Date().getFullYear() + 5, 11, 31)}
+              />
+            </Field>
+          )}
+        </form.Field>
       </FieldGroup>
     </StepLayout>
   );

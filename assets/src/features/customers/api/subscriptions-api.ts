@@ -21,6 +21,8 @@ const SubscriptionsWithPersonQuery = graphql(`
             system
             value
           }
+          birthDate
+          gender
         }
         plan {
           id

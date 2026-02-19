@@ -1,13 +1,16 @@
+import { Link } from "@tanstack/react-router";
 import { differenceInDays } from "date-fns";
 import type { LucideIcon } from "lucide-react";
-import { ChevronRight, DumbbellIcon, ScaleIcon, ShirtIcon } from "lucide-react";
+import { ChevronRight, DumbbellIcon, PlusIcon, ScaleIcon, ShirtIcon } from "lucide-react";
 
 import type {
   AnthropometricSnapshot,
   CircumferenceKey,
 } from "@/features/customers/api/anthropometry-api";
+import { AnthropometryDialog } from "@/features/customers/ui/detail/anthropometry-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
   classifyBmi,
@@ -21,6 +24,8 @@ import { cn } from "@/shared/utils/utils";
 // ─── Props ───────────────────────────────────────────────────────────
 
 interface AnthropometryCardProps {
+  personId: string;
+  patientId: string | null;
   history: AnthropometricSnapshot[];
   isLoading?: boolean;
 }
@@ -103,19 +108,25 @@ function HeroSection({
 
 function MetabolicIndicatorsRow({
   bmi,
+  whr: backendWhr,
   waist,
   hip,
-}: Readonly<{ bmi?: number; waist?: number; hip?: number }>) {
+}: Readonly<{ bmi?: number; whr?: number; waist?: number; hip?: number }>) {
   const bmiClass = bmi !== undefined ? classifyBmi(bmi) : null;
-  const whr = computeWaistToHipRatio(waist, hip);
+  // Prefer backend-computed WHR; fall back to client-side calculation.
+  const whr = backendWhr ?? computeWaistToHipRatio(waist, hip);
   const whrClass = whr !== null ? classifyWhr(whr) : null;
 
   if (bmiClass === null && whrClass === null) {
     return null;
   }
 
+  const hasBmi = bmi !== undefined && bmiClass !== null;
+  const hasWhr = whr !== null && whrClass !== null;
+  const cols = hasBmi && hasWhr ? "grid-cols-2" : "grid-cols-1";
+
   return (
-    <div className="grid grid-cols-2 text-center">
+    <div className={cn("grid text-center", cols)}>
       {bmi !== undefined && bmiClass !== null ? (
         <div>
           <p className="text-foreground/65 text-xs">{m.anthropometry_bmi()}</p>
@@ -300,7 +311,12 @@ export function AnthropometryCardSkeleton() {
 
 // ─── Main component ──────────────────────────────────────────────────
 
-export function AnthropometryCard({ history, isLoading }: Readonly<AnthropometryCardProps>) {
+export function AnthropometryCard({
+  personId,
+  patientId,
+  history,
+  isLoading,
+}: Readonly<AnthropometryCardProps>) {
   if (isLoading) {
     return <AnthropometryCardSkeleton />;
   }
@@ -310,13 +326,31 @@ export function AnthropometryCard({ history, isLoading }: Readonly<Anthropometry
 
   if (!latest) {
     return (
-      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-        <div className="flex flex-col items-center gap-2 py-6">
-          <ScaleIcon className="size-8 text-neutral-400" />
+      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+        <div className="flex items-start justify-end">
+          <AnthropometryDialog personId={personId} patientId={patientId}>
+            <Button variant="outline" size="sm">
+              <PlusIcon className="size-4" data-icon="inline-start" />
+              {m.anthropometry_add()}
+            </Button>
+          </AnthropometryDialog>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
+          <ScaleIcon className="size-10 text-neutral-300" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.anthropometry_no_records()}</p>
-            <p className="text-foreground/65 text-xs">{m.anthropometry_no_records_desc()}</p>
+            <p className="mt-0.5 text-foreground/65 text-xs">{m.anthropometry_no_records_desc()}</p>
           </div>
+        </div>
+        <div className="mt-auto border-neutral-200 border-t pt-3">
+          <Link
+            to="/customers/$customerId/anthropometry"
+            params={{ customerId: personId }}
+            className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
+          >
+            <span>{m.anthropometry_view_history()}</span>
+            <ChevronRight className="size-4" />
+          </Link>
         </div>
       </div>
     );
@@ -326,24 +360,38 @@ export function AnthropometryCard({ history, isLoading }: Readonly<Anthropometry
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-      <HeroSection latest={latest} weightDelta={weightDelta} />
+      <div className="flex items-start justify-between">
+        <HeroSection latest={latest} weightDelta={weightDelta} />
+        <AnthropometryDialog personId={personId} patientId={patientId}>
+          <Button variant="outline" size="sm">
+            <PlusIcon className="size-4" data-icon="inline-start" />
+            {m.anthropometry_add()}
+          </Button>
+        </AnthropometryDialog>
+      </div>
 
       <div className="my-4 h-px bg-neutral-200" />
 
-      <MetabolicIndicatorsRow bmi={latest.bmi} waist={latest.waist} hip={latest.hip} />
+      <MetabolicIndicatorsRow
+        bmi={latest.bmi}
+        whr={latest.whr}
+        waist={latest.waist}
+        hip={latest.hip}
+      />
 
       <div className="mt-4 flex-1">
         <GroupedCircumferences latest={latest} previous={previous} />
       </div>
 
       <div className="mt-auto border-neutral-200 border-t pt-3">
-        <a
-          href="#anthropometry-history"
+        <Link
+          to="/customers/$customerId/anthropometry"
+          params={{ customerId: personId }}
           className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
         >
           <span>{m.anthropometry_view_history()}</span>
           <ChevronRight className="size-4" />
-        </a>
+        </Link>
       </div>
     </div>
   );

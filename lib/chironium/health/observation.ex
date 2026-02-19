@@ -558,6 +558,12 @@ defmodule Chironium.Health.Observation do
                  }
                ]
              })
+
+      change set_attribute(:value_quantity, %{
+               system: @unit_of_measure_system,
+               code: @unit_of_measure_code_cm,
+               value: arg(:arm_circumference_cm)
+             })
     end
 
     read :read_arm_circumference do

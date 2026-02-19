@@ -56,7 +56,7 @@ export function getInstagramUrl(instagram: string): string {
 
 /**
  * Extract all contact values (email, phone, instagram) from telecom entries.
- * Instagram is stored as a URL-type contact containing "instagram" in the value.
+ * Instagram is the only URL-type contact, stored as a plain username.
  */
 export function extractContactInfo(telecom: ContactPoint[] | undefined | null): {
   email?: string;
@@ -70,11 +70,7 @@ export function extractContactInfo(telecom: ContactPoint[] | undefined | null): 
   const findBySystem = (system: string) =>
     telecom.find((t) => t.system === system)?.value ?? undefined;
 
-  // Instagram is stored as a URL or OTHER contact containing "instagram".
-  const instagram = telecom.find(
-    (t) =>
-      (t.system === "URL" || t.system === "OTHER") && t.value?.toLowerCase().includes("instagram"),
-  )?.value;
+  const instagram = telecom.find((t) => t.system === "URL")?.value;
 
   return {
     email: findBySystem("EMAIL"),

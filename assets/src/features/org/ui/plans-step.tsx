@@ -52,8 +52,6 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
   const [name, setName] = useState("");
   const [durationValue, setDurationValue] = useState("");
   const [durationUnit, setDurationUnit] = useState<DurationUnit | "">("");
-  const [priceAmount, setPriceAmount] = useState("");
-  const [currency, setCurrency] = useState("EUR");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [plans, setPlans] = useState<LocalPlan[]>(() =>
     (initialData ?? []).map((p) => ({ ...p, localId: nextId() })),
@@ -72,12 +70,6 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
     if (!durationUnit) {
       newErrors.durationUnit = m.validation_required();
     }
-    if (!priceAmount || Number(priceAmount) < 0) {
-      newErrors.priceAmount = m.validation_required();
-    }
-    if (!currency.trim()) {
-      newErrors.currency = m.validation_required();
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -86,8 +78,6 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
     setName("");
     setDurationValue("");
     setDurationUnit("");
-    setPriceAmount("");
-    // Keep currency since it's likely the same for all plans.
   };
 
   const handleAddPlan = () => {
@@ -102,8 +92,8 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
         name: name.trim(),
         durationValue: Number(durationValue),
         durationUnit: durationUnit as DurationUnit,
-        priceAmount: Number(priceAmount),
-        currency: currency.trim(),
+        priceAmount: 0,
+        currency: "EUR",
       },
     ]);
     resetForm();
@@ -117,14 +107,14 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
     const committed: PlanFormData[] = plans.map(({ localId: _, ...data }) => data);
 
     // Include unsaved form content if the user forgot to click "Add".
-    const hasInput = name.trim() && durationUnit && durationValue && priceAmount;
+    const hasInput = name.trim() && durationUnit && durationValue;
     if (hasInput && validate()) {
       committed.push({
         name: name.trim(),
         durationValue: Number(durationValue),
         durationUnit: durationUnit as DurationUnit,
-        priceAmount: Number(priceAmount),
-        currency: currency.trim(),
+        priceAmount: 0,
+        currency: "EUR",
       });
     }
 
@@ -200,44 +190,6 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
               {errors.durationUnit ? <FieldError>{errors.durationUnit}</FieldError> : null}
             </Field>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field data-invalid={Boolean(errors.priceAmount)}>
-              <FieldLabel>{m.plan_price()}</FieldLabel>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={priceAmount}
-                onChange={(e) => {
-                  setPriceAmount(e.target.value);
-                  if (errors.priceAmount) {
-                    setErrors((prev) => ({ ...prev, priceAmount: "" }));
-                  }
-                }}
-                disabled={submitting}
-                aria-invalid={Boolean(errors.priceAmount)}
-              />
-              {errors.priceAmount ? <FieldError>{errors.priceAmount}</FieldError> : null}
-            </Field>
-
-            <Field data-invalid={Boolean(errors.currency)}>
-              <FieldLabel>{m.plan_currency()}</FieldLabel>
-              <Input
-                value={currency}
-                onChange={(e) => {
-                  setCurrency(e.target.value);
-                  if (errors.currency) {
-                    setErrors((prev) => ({ ...prev, currency: "" }));
-                  }
-                }}
-                placeholder={m.plan_currency_placeholder()}
-                disabled={submitting}
-                aria-invalid={Boolean(errors.currency)}
-              />
-              {errors.currency ? <FieldError>{errors.currency}</FieldError> : null}
-            </Field>
-          </div>
         </FieldGroup>
 
         <Button
@@ -288,7 +240,6 @@ function PlanList({ plans, onRemove }: PlanListProps) {
             <p className="truncate font-medium text-sm">{plan.name}</p>
             <p className="text-muted-foreground text-xs">
               {plan.durationValue} {formatDurationUnit(plan.durationUnit)}
-              {plan.priceAmount ? ` · ${plan.priceAmount} ${plan.currency}` : ""}
             </p>
           </div>
           <Button

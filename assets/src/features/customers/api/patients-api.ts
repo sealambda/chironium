@@ -3,6 +3,19 @@ import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
 
+// ─── Queries ─────────────────────────────────────────────────────────
+
+const PatientByPersonQuery = graphql(`
+  query PatientByPerson($filter: PatientFilterInput, $first: Int) {
+    listPatients(filter: $filter, first: $first) {
+      results {
+        id
+        personId
+      }
+    }
+  }
+`);
+
 // ─── Mutations ───────────────────────────────────────────────────────
 
 const CreatePatientWithPersonMutation = graphql(`
@@ -77,4 +90,28 @@ export async function createPatientWithPerson(
   const patient = unwrapMutationResult(result.createPatientWithPerson, "Failed to create patient.");
 
   return { patientId: patient.id, personId: patient.personId ?? "" };
+}
+
+/**
+ * Fetch the patient record associated with a person.
+ * Returns the patient ID, or null if no patient exists for the person.
+ */
+export async function fetchPatientByPerson(
+  personId: string,
+  organizationId: string,
+): Promise<string | null> {
+  if (!personId || !organizationId) {
+    return null;
+  }
+
+  const result = await requestGraphql({
+    document: PatientByPersonQuery,
+    variables: {
+      filter: { personId: { eq: personId } },
+      first: 1,
+    },
+    organizationId,
+  });
+
+  return result.listPatients?.results?.[0]?.id ?? null;
 }

@@ -13,6 +13,7 @@ import { type OnboardingDraft, submitOnboarding } from "@/features/customers/api
 import type { PersonFormData } from "@/features/customers/api/patients-api";
 import type { SubscriptionFormData } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { StepIndicator } from "@/shared/ui/step-indicator";
@@ -54,7 +55,11 @@ const EMPTY_DRAFT: OnboardingDraft = {
 };
 
 /** Encapsulates draft state and step navigation for the onboarding wizard. */
-function useOnboardingDraft(organizationId: string, onCloseRef: React.RefObject<() => void>) {
+function useOnboardingDraft(
+  organizationId: string,
+  userId: string,
+  onCloseRef: React.RefObject<() => void>,
+) {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(0);
   const [draft, setDraft] = useState<OnboardingDraft>(EMPTY_DRAFT);
@@ -75,13 +80,17 @@ function useOnboardingDraft(organizationId: string, onCloseRef: React.RefObject<
 
   const goBack = useCallback((step: number) => setCurrentStep(step), []);
 
+  const saveDraft = useCallback((patch: Partial<OnboardingDraft>) => {
+    setDraft((prev) => ({ ...prev, ...patch }));
+  }, []);
+
   const finish = useCallback(
     async (notes: NoteFormData[]) => {
       const finalDraft: OnboardingDraft = { ...draft, notes };
       setError(null);
       setIsSubmitting(true);
       try {
-        await submitOnboarding(finalDraft, organizationId);
+        await submitOnboarding(finalDraft, organizationId, userId);
         await queryClient.invalidateQueries({ queryKey: ["customers", "list"] });
         toast.success(m.onboarding_success());
         onCloseRef.current();
@@ -92,10 +101,20 @@ function useOnboardingDraft(organizationId: string, onCloseRef: React.RefObject<
         setIsSubmitting(false);
       }
     },
-    [draft, organizationId, queryClient, onCloseRef],
+    [draft, organizationId, userId, queryClient, onCloseRef],
   );
 
-  return { currentStep, draft, isSubmitting, error, reset, advance, goBack, finish } as const;
+  return {
+    currentStep,
+    draft,
+    isSubmitting,
+    error,
+    reset,
+    advance,
+    goBack,
+    saveDraft,
+    finish,
+  } as const;
 }
 
 /**
@@ -106,11 +125,12 @@ function useOnboardingDraft(organizationId: string, onCloseRef: React.RefObject<
 export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) {
   const { selectedOrg } = useOrg();
   const organizationId = selectedOrg?.id ?? "";
+  const { user } = useCurrentUser();
 
   // Use a ref so the hook's finish callback always sees the latest handleClose
   // without creating a circular dependency.
   const handleCloseRef = useRef(() => {});
-  const wizard = useOnboardingDraft(organizationId, handleCloseRef);
+  const wizard = useOnboardingDraft(organizationId, user?.id ?? "", handleCloseRef);
 
   const handleClose = useCallback(() => {
     onOpenChange(false);
@@ -153,7 +173,7 @@ interface StepContentProps {
 }
 
 function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
-  const { currentStep, draft, isSubmitting, advance, goBack, finish } = wizard;
+  const { currentStep, draft, isSubmitting, advance, goBack, saveDraft, finish } = wizard;
 
   switch (currentStep) {
     case 0:
@@ -171,6 +191,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
           initialData={draft.subscription ?? undefined}
           onSubmit={(data: SubscriptionFormData) => advance({ subscription: data }, 2)}
           onBack={() => goBack(0)}
+          onSaveDraft={(data) => saveDraft({ subscription: data })}
         />
       );
     case 2:
@@ -179,14 +200,17 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
           initialData={draft.objective ?? undefined}
           onSubmit={(note: string) => advance({ objective: note }, 3)}
           onBack={() => goBack(1)}
+          onSaveDraft={(note) => saveDraft({ objective: note })}
         />
       );
     case 3:
       return (
         <MenstrualCycleStep
           initialData={draft.menstrualCycle ?? undefined}
+          gender={draft.person?.gender}
           onSubmit={(data: MenstrualCycleFormData) => advance({ menstrualCycle: data }, 4)}
           onBack={() => goBack(2)}
+          onSaveDraft={(data) => saveDraft({ menstrualCycle: data })}
         />
       );
     case 4:
@@ -195,6 +219,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
           initialData={draft.anthropometry ?? undefined}
           onSubmit={(data: AnthropometryFormData) => advance({ anthropometry: data }, 5)}
           onBack={() => goBack(3)}
+          onSaveDraft={(data) => saveDraft({ anthropometry: data })}
         />
       );
     case 5:
@@ -203,6 +228,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
           initialData={draft.allergies ?? undefined}
           onSubmit={(data: AllergiesFormData) => advance({ allergies: data }, 6)}
           onBack={() => goBack(4)}
+          onSaveDraft={(data) => saveDraft({ allergies: data })}
         />
       );
     case 6:
@@ -211,6 +237,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
           initialData={draft.food ?? undefined}
           onSubmit={(data: FoodFormData) => advance({ food: data }, 7)}
           onBack={() => goBack(5)}
+          onSaveDraft={(data) => saveDraft({ food: data })}
         />
       );
     case 7:
@@ -220,6 +247,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
           isSubmitting={isSubmitting}
           onSubmit={finish}
           onBack={() => goBack(6)}
+          onSaveDraft={(notes) => saveDraft({ notes })}
         />
       );
     default:

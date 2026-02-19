@@ -19,7 +19,6 @@ const CreateObservationMutation = graphql(`
 `);
 
 const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
-const SYSTEM_AUTHOR = "System" as const;
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -32,8 +31,8 @@ export interface MenstrualCycleFormData {
 
 /** Form data for included and excluded foods in the diet step. */
 export interface FoodFormData {
-  included: string;
-  excluded: string;
+  included: string[];
+  excluded: string[];
 }
 
 /** Title and body of a single clinical note. */
@@ -45,49 +44,26 @@ export interface NoteFormData {
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
- * Create an objective observation (code 703039001) for a patient.
- */
-export async function createObjective(
-  note: string,
-  subjectId: string,
-  organizationId: string,
-): Promise<void> {
-  const result = await requestGraphql({
-    document: CreateObservationMutation,
-    variables: {
-      input: {
-        status: "FINAL",
-        code: { coding: [{ system: SNOMED_SYSTEM, code: "703039001" }] },
-        valueString: note,
-        note: [{ text: note, authorString: SYSTEM_AUTHOR, time: new Date().toISOString() }],
-        subjectId,
-      },
-    },
-    organizationId,
-  });
-
-  unwrapMutationResult(result.createObservation, "Failed to create objective.");
-}
-
-/**
  * Create a menstrual-cycle observation (SNOMED 364307006) combining dates and notes.
  */
 export async function createMenstrualCycleObservation(
   data: MenstrualCycleFormData,
   subjectId: string,
   organizationId: string,
+  userId: string,
 ): Promise<void> {
-  const parts: string[] = [];
+  // Structured format for parseability.
+  const fields: string[] = [];
   if (data.startDate) {
-    parts.push(`Start: ${data.startDate}`);
+    fields.push(`start:${data.startDate}`);
   }
   if (data.endDate) {
-    parts.push(`End: ${data.endDate}`);
+    fields.push(`end:${data.endDate}`);
   }
   if (data.notes.trim()) {
-    parts.push(data.notes.trim());
+    fields.push(`notes:${data.notes.trim()}`);
   }
-  const noteText = parts.join(" | ");
+  const noteText = fields.join("|");
 
   const result = await requestGraphql({
     document: CreateObservationMutation,
@@ -96,7 +72,7 @@ export async function createMenstrualCycleObservation(
         status: "FINAL",
         code: { coding: [{ system: SNOMED_SYSTEM, code: "364307006" }] },
         valueString: noteText,
-        note: [{ text: noteText, authorString: SYSTEM_AUTHOR, time: new Date().toISOString() }],
+        note: [{ text: noteText, authorReference: userId, time: new Date().toISOString() }],
         subjectId,
       },
     },
@@ -113,10 +89,13 @@ export async function createFoodObservations(
   data: FoodFormData,
   subjectId: string,
   organizationId: string,
+  userId: string,
 ): Promise<void> {
   const promises: Promise<void>[] = [];
+  const includedCsv = data.included.filter((s) => s.trim()).join(",");
+  const excludedCsv = data.excluded.filter((s) => s.trim()).join(",");
 
-  if (data.included.trim()) {
+  if (includedCsv) {
     promises.push(
       (async () => {
         const result = await requestGraphql({
@@ -125,11 +104,11 @@ export async function createFoodObservations(
             input: {
               status: "FINAL",
               code: { text: "diet-inclusion" },
-              valueString: data.included.trim(),
+              valueString: includedCsv,
               note: [
                 {
-                  text: data.included.trim(),
-                  authorString: SYSTEM_AUTHOR,
+                  text: includedCsv,
+                  authorReference: userId,
                   time: new Date().toISOString(),
                 },
               ],
@@ -143,7 +122,7 @@ export async function createFoodObservations(
     );
   }
 
-  if (data.excluded.trim()) {
+  if (excludedCsv) {
     promises.push(
       (async () => {
         const result = await requestGraphql({
@@ -152,11 +131,11 @@ export async function createFoodObservations(
             input: {
               status: "FINAL",
               code: { text: "diet-exclusion" },
-              valueString: data.excluded.trim(),
+              valueString: excludedCsv,
               note: [
                 {
-                  text: data.excluded.trim(),
-                  authorString: SYSTEM_AUTHOR,
+                  text: excludedCsv,
+                  authorReference: userId,
                   time: new Date().toISOString(),
                 },
               ],
@@ -180,6 +159,7 @@ export async function createNoteObservations(
   notes: NoteFormData[],
   subjectId: string,
   organizationId: string,
+  userId: string,
 ): Promise<void> {
   const validNotes = notes.filter((n) => n.title.trim() || n.body.trim());
 
@@ -196,9 +176,7 @@ export async function createNoteObservations(
             status: "FINAL",
             code: { text: "clinical-note" },
             valueString,
-            note: [
-              { text: valueString, authorString: SYSTEM_AUTHOR, time: new Date().toISOString() },
-            ],
+            note: [{ text: valueString, authorReference: userId, time: new Date().toISOString() }],
             subjectId,
           },
         },
