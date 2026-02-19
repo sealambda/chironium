@@ -1,0 +1,2 @@
+schema: "priv/schema.graphql"
+documents: "**/*.{graphql,js,ts,jsx,tsx}"

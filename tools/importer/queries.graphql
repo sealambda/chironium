@@ -1,0 +1,135 @@
+query CurrentActor {
+  currentActor {
+    id
+    email
+  }
+  listOrganizations {
+    results {
+      id
+      name
+      slug
+    }
+  }
+}
+
+query ListSubscriptionPlans($first: Int) {
+  listSubscriptionPlans(first: $first) {
+    results {
+      id
+      name
+      duration {
+        value
+        code
+      }
+      priceAmount {
+        amount
+        currency
+      }
+    }
+  }
+}
+
+mutation CreatePatientWithPerson($input: CreatePatientWithPersonInput!) {
+  createPatientWithPerson(input: $input) {
+    result {
+      id
+      personId
+    }
+    errors {
+      message
+    }
+  }
+}
+
+mutation CreateSubscription($input: CreateSubscriptionInput!) {
+  createSubscription(input: $input) {
+    result {
+      id
+      state
+      startDate
+    }
+    errors {
+      message
+    }
+  }
+}
+
+mutation CreateGoal($input: CreateGoalInput!) {
+  createGoal(input: $input) {
+    result {
+      id
+      lifecycleStatus
+      description {
+        text
+      }
+    }
+    errors {
+      message
+    }
+  }
+}
+
+mutation LogBodyWeight($input: LogBodyWeightInput!) {
+  logBodyWeight(input: $input) {
+    result {
+      id
+      status
+    }
+    errors {
+      message
+    }
+  }
+}
+
+mutation LogBodyHeight($input: LogBodyHeightInput!) {
+  logBodyHeight(input: $input) {
+    result {
+      id
+      status
+    }
+    errors {
+      message
+    }
+  }
+}
+
+mutation CreateObservation($input: CreateObservationInput!) {
+  createObservation(input: $input) {
+    result {
+      id
+      status
+      code {
+        text
+        coding {
+          system
+          code
+          display
+        }
+      }
+      valueString
+      valueQuantity {
+        value
+        unit
+      }
+    }
+    errors {
+      message
+    }
+  }
+}
+
+mutation CreateAllergyIntolerance($input: CreateAllergyIntoleranceInput!) {
+  createAllergyIntolerance(input: $input) {
+    result {
+      id
+      type
+      clinicalStatus
+      code {
+        text
+      }
+    }
+    errors {
+      message
+    }
+  }
+}
