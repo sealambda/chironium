@@ -1,6 +1,46 @@
-import { graphql } from "@/graphql";
+import { graphql, type ResultOf } from "@/graphql";
+import * as m from "@/paraglide/messages";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+
+// ─── Queries ─────────────────────────────────────────────────────────
+
+const ListObservationsQuery = graphql(`
+  query ListObservations(
+    $filter: ObservationFilterInput!
+    $sort: [ObservationSortInput]
+    $first: Int
+    $after: String
+  ) {
+    listObservations(filter: $filter, sort: $sort, first: $first, after: $after) {
+      count
+      results {
+        id
+        status
+        code {
+          coding {
+            system
+            code
+            display
+          }
+          text
+        }
+        effectiveDateTime
+        valueString
+        valueQuantity {
+          value
+          unit
+        }
+        note {
+          text
+          time
+          authorString
+        }
+      }
+      endKeyset
+    }
+  }
+`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -39,6 +79,18 @@ export interface FoodFormData {
 export interface NoteFormData {
   title: string;
   body: string;
+}
+
+/** A single observation item returned by the list query. */
+export type ObservationItem = NonNullable<
+  ResultOf<typeof ListObservationsQuery>["listObservations"]
+>["results"][number];
+
+/** Paginated observations result. */
+export interface ObservationsPage {
+  items: ObservationItem[];
+  count: number;
+  endKeyset: string | null;
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
@@ -185,4 +237,141 @@ export async function createNoteObservations(
       unwrapMutationResult(result.createObservation, "Failed to create note observation.");
     }),
   );
+}
+
+// ─── List queries ────────────────────────────────────────────────────
+
+const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
+
+function buildSubjectFilter(personId: string) {
+  return {
+    status: { eq: "FINAL" as const },
+    subject: { personId: { eq: personId } },
+  };
+}
+
+/**
+ * Fetch the latest observations for the summary card.
+ */
+export async function fetchObservationsSummary(
+  personId: string,
+  organizationId: string,
+): Promise<ObservationsPage> {
+  if (!personId || !organizationId) {
+    return { items: [], count: 0, endKeyset: null };
+  }
+
+  const result = await requestGraphql({
+    document: ListObservationsQuery,
+    variables: {
+      filter: buildSubjectFilter(personId),
+      sort: SORT_NEWEST_FIRST,
+      first: 3,
+    },
+    organizationId,
+  });
+
+  const page = result.listObservations;
+  return {
+    items: page?.results ?? [],
+    count: page?.count ?? 0,
+    endKeyset: page?.endKeyset ?? null,
+  };
+}
+
+/**
+ * Fetch all observations for the list page (up to 250).
+ */
+export async function fetchObservationsList(
+  personId: string,
+  organizationId: string,
+): Promise<ObservationsPage> {
+  if (!personId || !organizationId) {
+    return { items: [], count: 0, endKeyset: null };
+  }
+
+  const result = await requestGraphql({
+    document: ListObservationsQuery,
+    variables: {
+      filter: buildSubjectFilter(personId),
+      sort: SORT_NEWEST_FIRST,
+      first: 250,
+    },
+    organizationId,
+  });
+
+  const page = result.listObservations;
+  return {
+    items: page?.results ?? [],
+    count: page?.count ?? 0,
+    endKeyset: page?.endKeyset ?? null,
+  };
+}
+
+// ─── Label helpers ───────────────────────────────────────────────────
+
+const CODE_TEXT_LABELS: Record<string, () => string> = {
+  "clinical-note": m.observations_type_clinical_note,
+  "diet-inclusion": m.observations_type_diet_inclusion,
+  "diet-exclusion": m.observations_type_diet_exclusion,
+};
+
+const CODING_LABELS: Record<string, () => string> = {
+  "29463-7": m.observations_type_body_weight,
+  "8302-2": m.observations_type_body_height,
+  "364307006": m.observations_type_menstrual_cycle,
+};
+
+/** Derive a human-readable label from an observation's code. */
+export function getObservationLabel(code: ObservationItem["code"]): string {
+  if (!code) {
+    return m.observations_type_default();
+  }
+
+  if (code.text && CODE_TEXT_LABELS[code.text]) {
+    return CODE_TEXT_LABELS[code.text]();
+  }
+
+  const firstCoding = code.coding?.[0];
+  if (firstCoding?.code && CODING_LABELS[firstCoding.code]) {
+    return CODING_LABELS[firstCoding.code]();
+  }
+
+  return code.text ?? firstCoding?.display ?? m.observations_type_default();
+}
+
+/** Whether an observation is a clinical note (has title/body split and markdown body). */
+export function isClinicalNote(obs: ObservationItem): boolean {
+  return obs.code?.text === "clinical-note";
+}
+
+/** Parsed title + body from a clinical-note observation's valueString. */
+export interface ParsedNote {
+  title: string;
+  body: string;
+}
+
+/**
+ * Split a clinical-note valueString into title and body at the first `: `.
+ * Only meaningful for clinical-note observations (stored as "title: body").
+ */
+export function parseClinicalNote(obs: ObservationItem): ParsedNote {
+  const raw = obs.valueString ?? "";
+  const colonIdx = raw.indexOf(": ");
+  if (colonIdx > 0 && colonIdx < 120) {
+    return { title: raw.slice(0, colonIdx), body: raw.slice(colonIdx + 2) };
+  }
+  return { title: raw, body: "" };
+}
+
+/** Get a plain display value for non-clinical-note observations. */
+export function getObservationDisplayValue(obs: ObservationItem): string {
+  if (obs.valueString) {
+    return obs.valueString;
+  }
+  if (obs.valueQuantity?.value != null) {
+    const unit = obs.valueQuantity.unit ? ` ${obs.valueQuantity.unit}` : "";
+    return `${obs.valueQuantity.value}${unit}`;
+  }
+  return "\u2014";
 }

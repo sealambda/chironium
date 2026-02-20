@@ -164,7 +164,14 @@ export function NutritionPlanSummaryCard({
     return (
       <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
         <div className="flex items-start justify-end">
-          <NutritionPlanDialog personId={personId} patientId={patientId} latestWeight={latestWeight} latestHeight={latestHeight} birthDate={birthDate} gender={gender}>
+          <NutritionPlanDialog
+            personId={personId}
+            patientId={patientId}
+            latestWeight={latestWeight}
+            latestHeight={latestHeight}
+            birthDate={birthDate}
+            gender={gender}
+          >
             <Button variant="outline" size="sm">
               <PlusIcon className="size-4" data-icon="inline-start" />
               {m.nutrition_plan_add()}
@@ -187,7 +194,14 @@ export function NutritionPlanSummaryCard({
       {/* Section A: Hero — kcal, recency */}
       <div className="flex items-start justify-between">
         <HeroSection plan={plan} />
-        <NutritionPlanDialog personId={personId} patientId={patientId} latestWeight={latestWeight} latestHeight={latestHeight} birthDate={birthDate} gender={gender}>
+        <NutritionPlanDialog
+          personId={personId}
+          patientId={patientId}
+          latestWeight={latestWeight}
+          latestHeight={latestHeight}
+          birthDate={birthDate}
+          gender={gender}
+        >
           <Button variant="outline" size="sm">
             <PlusIcon className="size-4" data-icon="inline-start" />
             {m.nutrition_plan_add()}

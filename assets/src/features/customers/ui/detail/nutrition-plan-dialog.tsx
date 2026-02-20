@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import {
-  type NutritionPlanFormData,
   createNutritionPlan,
+  type NutritionPlanFormData,
 } from "@/features/customers/api/nutrition-plans-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -51,9 +51,7 @@ const nutritionPlanSchema = z
   .refine(
     (d) => {
       const macroKcal =
-        d.proteinG * KCAL_PER_G.protein +
-        d.carbsG * KCAL_PER_G.carbs +
-        d.fatG * KCAL_PER_G.fat;
+        d.proteinG * KCAL_PER_G.protein + d.carbsG * KCAL_PER_G.carbs + d.fatG * KCAL_PER_G.fat;
       return Math.abs(macroKcal - d.targetKcal) <= TOLERANCE_KCAL;
     },
     { message: m.validation_macro_balance() },
@@ -269,9 +267,7 @@ export function NutritionPlanDialog({
                 if (protein === 0 && carbs === 0 && fat === 0) return;
 
                 const oldKcal =
-                  protein * KCAL_PER_G.protein +
-                  carbs * KCAL_PER_G.carbs +
-                  fat * KCAL_PER_G.fat;
+                  protein * KCAL_PER_G.protein + carbs * KCAL_PER_G.carbs + fat * KCAL_PER_G.fat;
                 if (oldKcal <= 0) return;
 
                 const pRatio = (protein * KCAL_PER_G.protein) / oldKcal;
@@ -334,9 +330,7 @@ export function NutritionPlanDialog({
               const fPct = computeMacroPct(fat, KCAL_PER_G.fat, kcal);
 
               const macroKcal =
-                protein * KCAL_PER_G.protein +
-                carbs * KCAL_PER_G.carbs +
-                fat * KCAL_PER_G.fat;
+                protein * KCAL_PER_G.protein + carbs * KCAL_PER_G.carbs + fat * KCAL_PER_G.fat;
               const hasMacros = protein > 0 || carbs > 0 || fat > 0;
               const atBudget = kcal > 0 && macroKcal >= kcal;
 
@@ -422,7 +416,11 @@ export function NutritionPlanDialog({
             {(errors) =>
               errors.length > 0 ? (
                 <FieldError
-                  errors={errors.map((e) => (typeof e === "string" ? { message: e } : e)) as Array<{ message?: string } | undefined>}
+                  errors={
+                    errors.map((e) => (typeof e === "string" ? { message: e } : e)) as Array<
+                      { message?: string } | undefined
+                    >
+                  }
                 />
               ) : null
             }
