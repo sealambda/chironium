@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 interface EmptyStateProps {
   readonly icon: React.ElementType;
   readonly title: string;
-  readonly description: string;
+  readonly description?: string;
   readonly actionLabel?: string;
   readonly onAction?: () => void;
 }
@@ -20,7 +20,7 @@ function EmptyState({ icon: Icon, title, description, actionLabel, onAction }: E
         <Icon className="size-12 text-muted-foreground" />
         <div>
           <div className="font-medium text-muted-foreground">{title}</div>
-          <div className="text-muted-foreground text-sm">{description}</div>
+          {description && <div className="text-muted-foreground text-sm">{description}</div>}
         </div>
         {actionLabel && onAction ? (
           <Button variant="outline" size="sm" onClick={onAction}>

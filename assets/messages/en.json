@@ -50,6 +50,8 @@
   "customers_empty": "No customers yet",
   "customers_empty_desc": "Customers will appear here once added.",
   "customers_error": "Error loading customers",
+  "customers_no_results": "No customers match your search",
+  "customers_search_placeholder": "Search customers...",
   "customers_no_org": "No organisation selected",
   "customers_no_org_desc": "Please select an organisation to view customers.",
   "customers_title": "Customers",
