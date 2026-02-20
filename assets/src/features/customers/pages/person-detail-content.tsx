@@ -2,6 +2,7 @@ import type { SubscriptionWithPerson } from "@/features/customers/api/subscripti
 import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
+import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
 import { PersonProfileCard } from "@/features/customers/ui/detail/person-profile-card";
 import { SubscriptionCard } from "@/features/customers/ui/detail/subscription-card";
 
@@ -11,8 +12,14 @@ interface PersonDetailContentProps {
 }
 
 export function PersonDetailContent({ item, detail }: Readonly<PersonDetailContentProps>) {
-  const { currentSubscription, activeNutritionPlan, subscriptions, anthropometry, nutritionPlans } =
-    detail;
+  const {
+    currentSubscription,
+    activeNutritionPlan,
+    subscriptions,
+    anthropometry,
+    nutritionPlans,
+    observations,
+  } = detail;
 
   const latestSnapshot = anthropometry.data?.[0];
 
@@ -40,6 +47,13 @@ export function PersonDetailContent({ item, detail }: Readonly<PersonDetailConte
           gender={item.subscriber.gender ?? undefined}
         />
       </div>
+
+      <ObservationsCard
+        personId={item.subscriber.id}
+        patientId={detail.patientId}
+        observations={observations.data ?? null}
+        isLoading={observations.isLoading}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
 import { fetchAnthropometry } from "@/features/customers/api/anthropometry-api";
 import { fetchNutritionPlans } from "@/features/customers/api/nutrition-plans-api";
+import { fetchObservationsSummary } from "@/features/customers/api/observations-api";
 import { fetchPatientByPerson } from "@/features/customers/api/patients-api";
 import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -31,6 +32,7 @@ export function usePersonDetail(personId: string) {
   const subscriptions = useQuery(queryConfig("subscriptions", fetchSubscriptionsByPerson));
   const anthropometry = useQuery(queryConfig("anthropometry", fetchAnthropometry));
   const nutritionPlans = useQuery(queryConfig("nutritionPlans", fetchNutritionPlans));
+  const observations = useQuery(queryConfig("observations", fetchObservationsSummary));
 
   // Derived state for cards
   const patientId = patient.data ?? null;
@@ -38,13 +40,20 @@ export function usePersonDetail(personId: string) {
 
   const activeNutritionPlan = nutritionPlans.data?.[0];
 
-  const isLoading = combineLoadingState(patient, subscriptions, anthropometry, nutritionPlans);
+  const isLoading = combineLoadingState(
+    patient,
+    subscriptions,
+    anthropometry,
+    nutritionPlans,
+    observations,
+  );
 
   return {
     patientId,
     subscriptions,
     anthropometry,
     nutritionPlans,
+    observations,
     currentSubscription,
     activeNutritionPlan,
     isLoading,

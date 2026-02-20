@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
+import { Route as AppCustomersCustomerIdObservationsRouteImport } from './routes/_app/customers_.$customerId_.observations'
 import { Route as AppCustomersCustomerIdNutritionRouteImport } from './routes/_app/customers_.$customerId_.nutrition'
 import { Route as AppCustomersCustomerIdAnthropometryRouteImport } from './routes/_app/customers_.$customerId_.anthropometry'
 
@@ -35,6 +36,12 @@ const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
   path: '/customers/$customerId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCustomersCustomerIdObservationsRoute =
+  AppCustomersCustomerIdObservationsRouteImport.update({
+    id: '/customers_/$customerId_/observations',
+    path: '/customers/$customerId/observations',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppCustomersCustomerIdNutritionRoute =
   AppCustomersCustomerIdNutritionRouteImport.update({
     id: '/customers_/$customerId_/nutrition',
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
   '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
+  '/customers/$customerId/observations': typeof AppCustomersCustomerIdObservationsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,6 +69,7 @@ export interface FileRoutesByTo {
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
   '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
+  '/customers/$customerId/observations': typeof AppCustomersCustomerIdObservationsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,6 +79,7 @@ export interface FileRoutesById {
   '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
   '/_app/customers_/$customerId_/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
   '/_app/customers_/$customerId_/nutrition': typeof AppCustomersCustomerIdNutritionRoute
+  '/_app/customers_/$customerId_/observations': typeof AppCustomersCustomerIdObservationsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,6 +89,7 @@ export interface FileRouteTypes {
     | '/customers/$customerId'
     | '/customers/$customerId/anthropometry'
     | '/customers/$customerId/nutrition'
+    | '/customers/$customerId/observations'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -86,6 +97,7 @@ export interface FileRouteTypes {
     | '/customers/$customerId'
     | '/customers/$customerId/anthropometry'
     | '/customers/$customerId/nutrition'
+    | '/customers/$customerId/observations'
   id:
     | '__root__'
     | '/'
@@ -94,6 +106,7 @@ export interface FileRouteTypes {
     | '/_app/customers_/$customerId'
     | '/_app/customers_/$customerId_/anthropometry'
     | '/_app/customers_/$customerId_/nutrition'
+    | '/_app/customers_/$customerId_/observations'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -131,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomersCustomerIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/customers_/$customerId_/observations': {
+      id: '/_app/customers_/$customerId_/observations'
+      path: '/customers/$customerId/observations'
+      fullPath: '/customers/$customerId/observations'
+      preLoaderRoute: typeof AppCustomersCustomerIdObservationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/customers_/$customerId_/nutrition': {
       id: '/_app/customers_/$customerId_/nutrition'
       path: '/customers/$customerId/nutrition'
@@ -153,6 +173,7 @@ interface AppRouteChildren {
   AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
   AppCustomersCustomerIdAnthropometryRoute: typeof AppCustomersCustomerIdAnthropometryRoute
   AppCustomersCustomerIdNutritionRoute: typeof AppCustomersCustomerIdNutritionRoute
+  AppCustomersCustomerIdObservationsRoute: typeof AppCustomersCustomerIdObservationsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -161,6 +182,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppCustomersCustomerIdAnthropometryRoute:
     AppCustomersCustomerIdAnthropometryRoute,
   AppCustomersCustomerIdNutritionRoute: AppCustomersCustomerIdNutritionRoute,
+  AppCustomersCustomerIdObservationsRoute:
+    AppCustomersCustomerIdObservationsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
