@@ -14,8 +14,7 @@ defmodule Chironium.BaseResources.Auditable do
       end
 
       paper_trail do
-        # TODO Revisit the belongs_to_actor approach depending on whether we are inside or outside the Organization
-        # belongs_to_actor :changed_by, Chironium.Accounts.User, domain: Chironium.Accounts
+        belongs_to_actor :changed_by, Chironium.Accounts.User, domain: Chironium.Accounts
         ignore_attributes [:created_at, :updated_at]
         store_action_name? true
         change_tracking_mode :changes_only

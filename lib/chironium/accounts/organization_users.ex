@@ -26,11 +26,6 @@ defmodule Chironium.Accounts.OrganizationUsers do
     end
   end
 
-  # Global resource - no tenancy.
-  multitenancy do
-    global? true
-  end
-
   relationships do
     belongs_to :organization, Chironium.Accounts.Organization do
       allow_nil? false

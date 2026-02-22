@@ -11,6 +11,14 @@ defmodule Chironium.Accounts.Organization do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
 
+  postgres do
+    table "organizations"
+
+    manage_tenant do
+      template ["org_", :id]
+    end
+  end
+
   graphql do
     type :organization
     derive_filter? false
@@ -28,14 +36,6 @@ defmodule Chironium.Accounts.Organization do
 
   paper_trail do
     mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:organization]}
-  end
-
-  postgres do
-    table "organizations"
-
-    manage_tenant do
-      template ["org_", :id]
-    end
   end
 
   actions do

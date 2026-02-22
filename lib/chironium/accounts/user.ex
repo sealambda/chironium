@@ -112,10 +112,6 @@ defmodule Chironium.Accounts.User do
     end
   end
 
-  multitenancy do
-    global? true
-  end
-
   attributes do
     attribute :email, :ci_string do
       allow_nil? false
