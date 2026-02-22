@@ -12,6 +12,7 @@ defmodule Chironium.Accounts do
 
     show_resources [
       Chironium.Accounts.Organization,
+      Chironium.Accounts.Invitation,
       Chironium.Accounts.User,
       Chironium.Accounts.UserIdentity
     ]
@@ -22,6 +23,11 @@ defmodule Chironium.Accounts do
   end
 
   resources do
+    resource Chironium.Accounts.Invitation do
+      define :accept_invitation, args: [:invite_code], action: :accept_by_invite_code
+      define :find_current_email_invitations, args: [], action: :current_email_invitation
+    end
+
     resource Chironium.Accounts.Organization
     resource Chironium.Accounts.OrganizationUsers
     resource Chironium.Accounts.Token

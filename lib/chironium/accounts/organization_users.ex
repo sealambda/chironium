@@ -9,7 +9,8 @@ defmodule Chironium.Accounts.OrganizationUsers do
     otp_app: :chironium,
     domain: Chironium.Accounts,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer, AshPaperTrail.Resource]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshPaperTrail.Resource]
 
   postgres do
     table "organization_users"
