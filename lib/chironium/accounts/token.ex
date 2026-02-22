@@ -86,10 +86,6 @@ defmodule Chironium.Accounts.Token do
     end
   end
 
-  multitenancy do
-    global? true
-  end
-
   attributes do
     attribute :jti, :string do
       primary_key? true

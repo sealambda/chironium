@@ -20,8 +20,4 @@ defmodule Chironium.Accounts.UserIdentity do
     table "user_identities"
     repo Chironium.Repo
   end
-
-  multitenancy do
-    global? true
-  end
 end
