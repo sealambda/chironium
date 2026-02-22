@@ -31,6 +31,7 @@ defmodule Chironium.Accounts.Organization do
 
     mutations do
       create :create_organization, :create
+      update :invite_users_to_organization, :invite_users
     end
   end
 
@@ -45,12 +46,24 @@ defmodule Chironium.Accounts.Organization do
       accept [:name, :slug]
       change relate_actor(:owner)
     end
+
+    update :invite_users do
+      argument :invitations, {:array, :map} do
+        allow_nil? false
+      end
+
+      change manage_relationship(:invitations, type: :create)
+    end
   end
 
   policies do
     policy action(:create) do
       description "Authenticated users can create organisations."
       authorize_if actor_present()
+    end
+
+    policy action_type(:update) do
+      authorize_if relates_to_actor_via(:owner)
     end
 
     policy action_type(:read) do
@@ -84,6 +97,11 @@ defmodule Chironium.Accounts.Organization do
       through Chironium.Accounts.OrganizationUsers
       source_attribute_on_join_resource :organization_id
       destination_attribute_on_join_resource :user_id
+    end
+
+    has_many :invitations, Chironium.Accounts.Invitation do
+      description "Invitations to join the organization"
+      public? true
     end
   end
 
