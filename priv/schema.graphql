@@ -4,12 +4,16 @@ schema {
   subscription: Subscription
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+}
+
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -17,8 +21,8 @@ input PractitionerNameInput {
   """
   prefix: [String!]
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -196,8 +200,8 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -205,8 +209,8 @@ input PersonNameInput {
   """
   prefix: [String!]
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -709,6 +713,19 @@ type User {
   ): [UserVersion!]!
 }
 
+"The result of the :invite_users_to_organization mutation"
+type InviteUsersToOrganizationResult {
+  "The successful result of the mutation"
+  result: Organization
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input InviteUsersToOrganizationInput {
+  invitations: [OrganizationInviteUsersInvitationsInput!]
+}
+
 "The result of the :create_organization mutation"
 type CreateOrganizationResult {
   "The successful result of the mutation"
@@ -740,8 +757,11 @@ type KeysetPageOfOrganization {
 
 type Organization {
   id: ID!
+
   name: String!
+
   slug: String!
+
   paperTrailVersions(
     "The number of records to return."
     limit: Int
@@ -749,6 +769,169 @@ type Organization {
     "The number of records to skip."
     offset: Int
   ): [OrganizationVersion!]!
+
+  "Invitations to join the organization"
+  invitations(
+    "How to sort the records in the response"
+    sort: [InvitationSortInput]
+
+    "A filter to limit the results"
+    filter: InvitationFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Invitation!]!
+}
+
+"The result of the :accept_invitation mutation"
+type AcceptInvitationResult {
+  "The successful result of the mutation"
+  result: Invitation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+enum InvitationSortField {
+  ID
+  EMAIL
+  INVITE_CODE
+  EXPIRES_AT
+  ORGANIZATION_ID
+  INVITED_BY_ID
+}
+
+input InvitationFilterInvitedById {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input InvitationFilterOrganizationId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input InvitationFilterExpiresAt {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+}
+
+input InvitationFilterInviteCode {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input InvitationFilterEmail {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input InvitationFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input InvitationFilterInput {
+  and: [InvitationFilterInput!]
+
+  or: [InvitationFilterInput!]
+
+  not: [InvitationFilterInput!]
+
+  id: InvitationFilterId
+
+  email: InvitationFilterEmail
+
+  "The code that the user will use to accept the invitation"
+  inviteCode: InvitationFilterInviteCode
+
+  expiresAt: InvitationFilterExpiresAt
+
+  organizationId: InvitationFilterOrganizationId
+
+  invitedById: InvitationFilterInvitedById
+
+  invitedBy: UserFilterInput
+}
+
+input InvitationSortInput {
+  order: SortOrder
+  field: InvitationSortField!
+}
+
+type Invitation {
+  id: ID!
+
+  email: String
+
+  "The code that the user will use to accept the invitation"
+  inviteCode: String
+
+  expiresAt: DateTime
+
+  organizationId: ID!
+
+  invitedById: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [InvitationVersion!]!
+
+  organization: Organization!
+
+  invitedBy: User!
+}
+
+type InvitationVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Invitation!
 }
 
 type OrganizationVersion {
@@ -3279,6 +3462,15 @@ type RootQueryType {
     last: Int
   ): KeysetPageOfPerson
 
+  "Find invitation for the current email address"
+  findCurrentEmailInvitations(
+    "How to sort the records in the response"
+    sort: [InvitationSortInput]
+
+    "A filter to limit the results"
+    filter: InvitationFilterInput
+  ): [Invitation!]!
+
   getOrganization: Organization
 
   listOrganizations(
@@ -3400,7 +3592,12 @@ type RootMutationType {
 
   deletePerson(id: ID!): DeletePersonResult!
 
+  "Accept an invitation to join an organization"
+  acceptInvitation(inviteCode: String!): AcceptInvitationResult!
+
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
+
+  inviteUsersToOrganization(id: ID!, input: InviteUsersToOrganizationInput): InviteUsersToOrganizationResult!
 }
 
 """

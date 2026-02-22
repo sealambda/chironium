@@ -3,6 +3,7 @@
     :absinthe,
     :ash,
     :ash_admin,
+    :ash_archival,
     :ash_authentication,
     :ash_authentication_phoenix,
     :ash_graphql,
