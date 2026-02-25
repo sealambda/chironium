@@ -10,7 +10,7 @@ defmodule Chironium.Health.Patient do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "patients"
@@ -22,6 +22,10 @@ defmodule Chironium.Health.Patient do
     mutations do
       create :create_patient, :create
       create :create_patient_with_person, :create_patient_with_person
+
+      update :update_patient, :update
+
+      destroy :delete_patient, :destroy
     end
 
     queries do

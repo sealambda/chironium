@@ -4,7 +4,7 @@ defmodule Chironium.CRM.Person do
     domain: Chironium.CRM,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "persons"
@@ -15,7 +15,10 @@ defmodule Chironium.CRM.Person do
 
     mutations do
       create :create_person, :create
+
       update :update_person, :update
+
+      destroy :delete_person, :destroy
     end
 
     queries do

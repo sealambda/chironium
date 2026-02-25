@@ -14,7 +14,12 @@ defmodule Chironium.BaseResources.Auditable do
       end
 
       paper_trail do
-        belongs_to_actor :changed_by, Chironium.Accounts.User, domain: Chironium.Accounts
+        belongs_to_actor :changed_by, Chironium.Accounts.User do
+          domain Chironium.Accounts
+          # TODO Need to add a policy to allow access to the User
+          # public? true
+        end
+
         ignore_attributes [:created_at, :updated_at]
         store_action_name? true
         change_tracking_mode :changes_only
