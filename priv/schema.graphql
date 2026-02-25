@@ -8,17 +8,17 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -196,17 +196,17 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -796,6 +796,15 @@ type MutationError {
   fields: [String!]
 }
 
+"The result of the :delete_person mutation"
+type DeletePersonResult {
+  "The record that was successfully deleted"
+  result: Person
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
 "The result of the :update_person mutation"
 type UpdatePersonResult {
   "The successful result of the mutation"
@@ -1199,14 +1208,41 @@ input PatientCreatePatientWithPersonPersonInput {
   "A name associated with the person"
   name: [PersonNameInput!]
 
-  "The date on which the person was born"
-  birthDate: Date
+  "A contact detail for the person (e.g. email, phone, etc.)"
+  telecom: [PersonTelecomInput!]
 
   "The gender of a person used for administrative purposes."
   gender: AdministrativeGender
 
-  "A contact detail for the person (e.g. email, phone, etc.)"
-  telecom: [PersonTelecomInput!]
+  "The date on which the person was born"
+  birthDate: Date
+}
+
+"The result of the :delete_practitioner mutation"
+type DeletePractitionerResult {
+  "The record that was successfully deleted"
+  result: Practitioner
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_practitioner mutation"
+type UpdatePractitionerResult {
+  "The successful result of the mutation"
+  result: Practitioner
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdatePractitionerInput {
+  name: [PractitionerNameInput!]
+
+  "Whether this practitioner's record is in active use"
+  active: Boolean
+
+  birthDate: Date
 }
 
 "The result of the :create_practitioner mutation"
@@ -1244,6 +1280,28 @@ type Practitioner {
     "The number of records to skip."
     offset: Int
   ): [PractitionerVersion!]!
+}
+
+"The result of the :delete_patient mutation"
+type DeletePatientResult {
+  "The record that was successfully deleted"
+  result: Patient
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_patient mutation"
+type UpdatePatientResult {
+  "The successful result of the mutation"
+  result: Patient
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdatePatientInput {
+  personId: ID
 }
 
 "The result of the :create_patient_with_person mutation"
@@ -1455,6 +1513,48 @@ type Patient {
     "The number of records to skip."
     offset: Int
   ): [NutritionPlan!]!
+}
+
+"The result of the :delete_observation mutation"
+type DeleteObservationResult {
+  "The record that was successfully deleted"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_observation mutation"
+type UpdateObservationResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateObservationInput {
+  status: ObservationStatus
+
+  "Type of observation (code \/ type)"
+  code: ObservationCodeInput
+
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
+  "Actual result"
+  valueQuantity: ObservationValueQuantityInput
+
+  "Actual result"
+  valueCodeableConcept: ObservationValueCodeableConceptInput
+
+  "Actual result"
+  valueString: String
+
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID
 }
 
 "The result of the :log_thigh_circumference mutation"
@@ -1910,6 +2010,37 @@ type NutritionPlan {
   patient: Patient!
 }
 
+"The result of the :delete_medication_statement mutation"
+type DeleteMedicationStatementResult {
+  "The record that was successfully deleted"
+  result: MedicationStatement
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_medication_statement mutation"
+type UpdateMedicationStatementResult {
+  "The successful result of the mutation"
+  result: MedicationStatement
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateMedicationStatementInput {
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: MedicationStatementCodeInput
+
+  "Further information about the usage"
+  note: [MedicationStatementNoteInput!]
+
+  subjectId: ID
+}
+
 "The result of the :create_medication_statement mutation"
 type CreateMedicationStatementResult {
   "The successful result of the mutation"
@@ -2278,6 +2409,37 @@ type Goal {
   subject: Patient!
 }
 
+"The result of the :delete_condition mutation"
+type DeleteConditionResult {
+  "The record that was successfully deleted"
+  result: Condition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_condition mutation"
+type UpdateConditionResult {
+  "The successful result of the mutation"
+  result: Condition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateConditionInput {
+  clinicalStatus: ConditionClinicalStatus
+
+  verificationStatus: ConditionVerificationStatus
+
+  code: ConditionCodeInput
+
+  "Additional information about the Condition"
+  note: [ConditionNoteInput!]
+
+  subjectId: ID
+}
+
 "The result of the :create_condition mutation"
 type CreateConditionResult {
   "The successful result of the mutation"
@@ -2390,6 +2552,39 @@ type Condition {
   ): [ConditionVersion!]!
 
   subject: Patient!
+}
+
+"The result of the :delete_allergy_intolerance mutation"
+type DeleteAllergyIntoleranceResult {
+  "The record that was successfully deleted"
+  result: AllergyIntolerance
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_allergy_intolerance mutation"
+type UpdateAllergyIntoleranceResult {
+  "The successful result of the mutation"
+  result: AllergyIntolerance
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateAllergyIntoleranceInput {
+  clinicalStatus: AllergyIntoleranceClinicalStatus
+
+  verificationStatus: AllergyIntoleranceVerificationStatus
+
+  type: AllergyIntoleranceType
+
+  code: AllergyIntoleranceCodeInput
+
+  "Additional text not captured in other fields"
+  note: [AllergyIntoleranceNoteInput!]
+
+  patientId: ID
 }
 
 "The result of the :create_allergy_intolerance mutation"
@@ -2966,11 +3161,23 @@ input MoneyInput {
 type RootMutationType {
   createAllergyIntolerance(input: CreateAllergyIntoleranceInput!): CreateAllergyIntoleranceResult!
 
+  updateAllergyIntolerance(id: ID!, input: UpdateAllergyIntoleranceInput): UpdateAllergyIntoleranceResult!
+
+  deleteAllergyIntolerance(id: ID!): DeleteAllergyIntoleranceResult!
+
   createCondition(input: CreateConditionInput!): CreateConditionResult!
+
+  updateCondition(id: ID!, input: UpdateConditionInput): UpdateConditionResult!
+
+  deleteCondition(id: ID!): DeleteConditionResult!
 
   createGoal(input: CreateGoalInput!): CreateGoalResult!
 
   createMedicationStatement(input: CreateMedicationStatementInput!): CreateMedicationStatementResult!
+
+  updateMedicationStatement(id: ID!, input: UpdateMedicationStatementInput): UpdateMedicationStatementResult!
+
+  deleteMedicationStatement(id: ID!): DeleteMedicationStatementResult!
 
   createNutritionPlan(input: CreateNutritionPlanInput!): CreateNutritionPlanResult!
 
@@ -3005,12 +3212,24 @@ type RootMutationType {
   "Log a thigh circumference observation."
   logThighCircumference(input: LogThighCircumferenceInput!): LogThighCircumferenceResult!
 
+  updateObservation(id: ID!, input: UpdateObservationInput): UpdateObservationResult!
+
+  deleteObservation(id: ID!): DeleteObservationResult!
+
   createPatient(input: CreatePatientInput): CreatePatientResult!
 
   "Create a patient and a new person"
   createPatientWithPerson(input: CreatePatientWithPersonInput): CreatePatientWithPersonResult!
 
+  updatePatient(id: ID!, input: UpdatePatientInput): UpdatePatientResult!
+
+  deletePatient(id: ID!): DeletePatientResult!
+
   createPractitioner(input: CreatePractitionerInput!): CreatePractitionerResult!
+
+  updatePractitioner(id: ID!, input: UpdatePractitionerInput): UpdatePractitionerResult!
+
+  deletePractitioner(id: ID!): DeletePractitionerResult!
 
   createSubscriptionPlan(input: CreateSubscriptionPlanInput): CreateSubscriptionPlanResult!
 
@@ -3019,6 +3238,8 @@ type RootMutationType {
   createPerson(input: CreatePersonInput): CreatePersonResult!
 
   updatePerson(id: ID!, input: UpdatePersonInput): UpdatePersonResult!
+
+  deletePerson(id: ID!): DeletePersonResult!
 
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 }

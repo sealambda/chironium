@@ -48,6 +48,7 @@ ash_resource_section_order = [
   :token,
   :user_identity,
   :postgres,
+  :archive,
   :graphql,
   :resource,
   :code_interface,

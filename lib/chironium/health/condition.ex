@@ -11,7 +11,7 @@ defmodule Chironium.Health.Condition do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshAdmin.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "conditions"
@@ -22,6 +22,10 @@ defmodule Chironium.Health.Condition do
 
     mutations do
       create :create_condition, :create
+
+      update :update_condition, :update
+
+      destroy :delete_condition, :destroy
     end
   end
 

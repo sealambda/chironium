@@ -11,7 +11,7 @@ defmodule Chironium.Health.AllergyIntolerance do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshAdmin.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "allergy_intolerances"
@@ -22,6 +22,10 @@ defmodule Chironium.Health.AllergyIntolerance do
 
     mutations do
       create :create_allergy_intolerance, :create
+
+      update :update_allergy_intolerance, :update
+
+      destroy :delete_allergy_intolerance, :destroy
     end
   end
 

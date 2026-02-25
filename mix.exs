@@ -65,6 +65,7 @@ defmodule Chironium.MixProject do
       {:oban_web, "~> 2.0"},
       {:ash_oban, "~> 0.7"},
       {:ash_admin, "~> 0.13"},
+      {:ash_archival, "~> 2.0.3"},
       {:ash_authentication_phoenix, "~> 2.0"},
       {:ash_authentication, "~> 4.0"},
       {:ash_postgres, "~> 2.0"},
