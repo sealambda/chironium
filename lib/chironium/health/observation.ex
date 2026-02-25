@@ -13,7 +13,12 @@ defmodule Chironium.Health.Observation do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshAdmin.Resource]
+    extensions: [
+      AshGraphql.Resource,
+      AshPaperTrail.Resource,
+      AshAdmin.Resource,
+      AshArchival.Resource
+    ]
 
   # TODO: Improve the code system to validate systems and related codes
   @unit_of_measure_system "http://unitsofmeasure.org"
@@ -37,8 +42,8 @@ defmodule Chironium.Health.Observation do
   @loinc_code_arm_right_circumference "56072-2"
   @loinc_code_thigh_right_circumference "8286-7"
 
-  @loinc_code_menstrual_period_start "8665-2"
-  @loinc_code_menstrual_period_duration "3144-3"
+  # @loinc_code_menstrual_period_start "8665-2"
+  # @loinc_code_menstrual_period_duration "3144-3"
 
   # @loinc_code_thigh_left_circumference "8285-9" - not sure why left is available for thigh but not for arm... just for reference
 
@@ -51,6 +56,10 @@ defmodule Chironium.Health.Observation do
     custom_indexes do
       index :code, using: "gin"
     end
+  end
+
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:observation]}
   end
 
   graphql do
@@ -66,6 +75,10 @@ defmodule Chironium.Health.Observation do
       create :log_waist_circumference, :log_waist_circumference
       create :log_arm_circumference, :log_arm_circumference
       create :log_thigh_circumference, :log_thigh_circumference
+
+      update :update_observation, :update
+
+      destroy :delete_observation, :destroy
     end
 
     queries do
@@ -82,10 +95,6 @@ defmodule Chironium.Health.Observation do
       list :list_arm_circumference_observations, :read_arm_circumference
       list :list_thigh_circumference_observations, :read_thigh_circumference
     end
-  end
-
-  paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:observation]}
   end
 
   actions do

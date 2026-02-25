@@ -12,7 +12,7 @@ defmodule Chironium.Health.MedicationStatement do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshAdmin.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "medication_statements"
@@ -23,6 +23,10 @@ defmodule Chironium.Health.MedicationStatement do
 
     mutations do
       create :create_medication_statement, :create
+
+      update :update_medication_statement, :update
+
+      destroy :delete_medication_statement, :destroy
     end
   end
 

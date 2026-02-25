@@ -4,7 +4,12 @@ defmodule Chironium.Subscriptions.Subscription do
     domain: Chironium.Subscriptions,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshStateMachine]
+    extensions: [
+      AshGraphql.Resource,
+      AshPaperTrail.Resource,
+      AshStateMachine,
+      AshArchival.Resource
+    ]
 
   postgres do
     table "subscriptions"

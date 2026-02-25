@@ -10,7 +10,7 @@ defmodule Chironium.Health.Practitioner do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshAdmin.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "practitioners"
@@ -21,6 +21,10 @@ defmodule Chironium.Health.Practitioner do
 
     mutations do
       create :create_practitioner, :create
+
+      update :update_practitioner, :update
+
+      destroy :delete_practitioner, :destroy
     end
   end
 
