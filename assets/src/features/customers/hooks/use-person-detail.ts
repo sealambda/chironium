@@ -1,9 +1,13 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
+import { fetchAllergyIntolerances } from "@/features/customers/api/allergy-intolerance-api";
 import { fetchAnthropometry } from "@/features/customers/api/anthropometry-api";
 import { fetchGoals } from "@/features/customers/api/goals-api";
 import { fetchNutritionPlans } from "@/features/customers/api/nutrition-plans-api";
-import { fetchObservationsSummary } from "@/features/customers/api/observations-api";
+import {
+  fetchFoodPreferences,
+  fetchObservationsSummary,
+} from "@/features/customers/api/observations-api";
 import { fetchPatientByPerson } from "@/features/customers/api/patients-api";
 import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -35,9 +39,17 @@ export function usePersonDetail(personId: string) {
   const nutritionPlans = useQuery(queryConfig("nutritionPlans", fetchNutritionPlans));
   const goals = useQuery(queryConfig("goals", fetchGoals));
   const observations = useQuery(queryConfig("observations", fetchObservationsSummary));
+  const foodPreferences = useQuery(queryConfig("foodPreferences", fetchFoodPreferences));
 
   // Derived state for cards
   const patientId = patient.data ?? null;
+
+  const allergyIntolerances = useQuery({
+    queryKey: ["person", personId, "allergyIntolerances", organizationId],
+    queryFn: () =>
+      patientId ? fetchAllergyIntolerances(patientId, organizationId) : Promise.resolve([]),
+    enabled: enabled && Boolean(patientId),
+  });
   const currentSubscription = subscriptions.data?.[0];
 
   const activeNutritionPlan = nutritionPlans.data?.[0];
@@ -58,6 +70,8 @@ export function usePersonDetail(personId: string) {
     nutritionPlans,
     goals,
     observations,
+    foodPreferences,
+    allergyIntolerances,
     currentSubscription,
     activeNutritionPlan,
     isLoading,

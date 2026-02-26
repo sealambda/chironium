@@ -1,6 +1,8 @@
 import type { SubscriptionWithPerson } from "@/features/customers/api/subscriptions-api";
 import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
+import { AllergyIntoleranceCard } from "@/features/customers/ui/detail/allergy-intolerance-card";
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
+import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-preferences-card";
 import { GoalsCard } from "@/features/customers/ui/detail/goals-card";
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
 import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
@@ -21,6 +23,8 @@ export function PersonDetailContent({ item, detail }: Readonly<PersonDetailConte
     nutritionPlans,
     goals,
     observations,
+    foodPreferences,
+    allergyIntolerances,
   } = detail;
 
   const latestSnapshot = anthropometry.data?.[0];
@@ -52,6 +56,21 @@ export function PersonDetailContent({ item, detail }: Readonly<PersonDetailConte
           latestHeight={latestSnapshot?.height}
           birthDate={item.subscriber.birthDate ?? undefined}
           gender={item.subscriber.gender ?? undefined}
+        />
+      </div>
+
+      <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
+        <FoodPreferencesCard
+          personId={item.subscriber.id}
+          included={foodPreferences.data?.included ?? []}
+          excluded={foodPreferences.data?.excluded ?? []}
+          isLoading={foodPreferences.isLoading}
+        />
+        <AllergyIntoleranceCard
+          personId={item.subscriber.id}
+          patientId={detail.patientId}
+          items={allergyIntolerances.data ?? []}
+          isLoading={allergyIntolerances.isLoading}
         />
       </div>
 
