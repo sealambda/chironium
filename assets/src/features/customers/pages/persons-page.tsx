@@ -36,7 +36,9 @@ export function CustomersPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return customers;
+    if (!q) {
+      return customers;
+    }
     return customers.filter((sub) =>
       formatPersonName(sub.subscriber.name).toLowerCase().includes(q),
     );
