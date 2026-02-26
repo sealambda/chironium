@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { normalizeDuration } from "@/shared/utils/duration-utils";
 
 interface PlansStepProps {
   readonly initialData?: PlanFormData[];
@@ -78,6 +79,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
     setName("");
     setDurationValue("");
     setDurationUnit("");
+    setPendingError("");
   };
 
   const handleAddPlan = () => {
@@ -85,13 +87,14 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
       return;
     }
 
+    const normalized = normalizeDuration(Number(durationValue), durationUnit as DurationUnit);
     setPlans((prev) => [
       ...prev,
       {
         localId: nextId(),
         name: name.trim(),
-        durationValue: Number(durationValue),
-        durationUnit: durationUnit as DurationUnit,
+        durationValue: normalized.value,
+        durationUnit: normalized.unit,
         priceAmount: 0,
         currency: "EUR",
       },
@@ -103,22 +106,15 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
     setPlans((prev) => prev.filter((p) => p.localId !== localId));
   };
 
+  const [pendingError, setPendingError] = useState("");
+
   const handleFinish = () => {
-    const committed: PlanFormData[] = plans.map(({ localId: _, ...data }) => data);
-
-    // Include unsaved form content if the user forgot to click "Add".
-    const hasInput = name.trim() && durationUnit && durationValue;
-    if (hasInput && validate()) {
-      committed.push({
-        name: name.trim(),
-        durationValue: Number(durationValue),
-        durationUnit: durationUnit as DurationUnit,
-        priceAmount: 0,
-        currency: "EUR",
-      });
+    const hasInput = name.trim() || durationUnit || durationValue;
+    if (hasInput) {
+      setPendingError(m.validation_pending_input());
+      return;
     }
-
-    onFinish(committed);
+    onFinish(plans.map(({ localId: _, ...data }) => data));
   };
 
   return (
@@ -204,6 +200,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
         </Button>
 
         <PlanList plans={plans} onRemove={handleRemovePlan} />
+        {pendingError ? <p className="text-destructive text-sm">{pendingError}</p> : null}
       </div>
 
       <DialogFooter>
