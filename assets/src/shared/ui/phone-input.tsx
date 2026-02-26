@@ -3,8 +3,10 @@ import {
   AsYouType,
   getCountries,
   getCountryCallingCode,
+  getExampleNumber,
   parsePhoneNumberFromString,
 } from "libphonenumber-js";
+import examples from "libphonenumber-js/examples.mobile.json";
 import { ChevronDown, Globe } from "lucide-react";
 import {
   type ComponentProps,
@@ -208,9 +210,12 @@ export function PhoneInput({
     if (placeholder) {
       return placeholder;
     }
-    // Generate a placeholder for the selected country.
+    const example = getExampleNumber(selectedCountry, examples);
+    if (example?.nationalNumber) {
+      return new AsYouType(selectedCountry).input(example.nationalNumber);
+    }
     return "600 000 000";
-  }, [placeholder]);
+  }, [placeholder, selectedCountry]);
 
   return (
     <div className={cn("flex gap-2", disabled && "opacity-50")}>

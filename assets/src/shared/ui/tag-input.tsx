@@ -45,20 +45,28 @@ export function TagInput({
   );
 
   const handleAdd = useCallback(() => {
-    const trimmed = inputValue.trim();
-    if (!trimmed) {
-      return;
-    }
-    // Duplicate prevention (case-insensitive)
-    if (tags.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
-      return;
-    }
-    // Max tags check
-    if (maxTags !== undefined && tags.length >= maxTags) {
+    const parts = inputValue
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length === 0) {
       return;
     }
 
-    onAdd(trimmed);
+    let added = 0;
+    for (const part of parts) {
+      // Max tags check
+      if (maxTags !== undefined && tags.length + added >= maxTags) {
+        break;
+      }
+      // Duplicate prevention (case-insensitive)
+      if (tags.some((t) => t.toLowerCase() === part.toLowerCase())) {
+        continue;
+      }
+      onAdd(part);
+      added++;
+    }
+
     setInputValue("");
     onPendingChange?.(false);
   }, [inputValue, tags, maxTags, onAdd, onPendingChange]);
@@ -96,7 +104,7 @@ export function TagInput({
                 setInputValue("");
                 onPendingChange?.(false);
               }}
-              className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted-foreground hover:text-foreground"
+              className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-2.5 text-muted-foreground hover:text-foreground"
             >
               <X className="size-3.5" />
             </button>
@@ -126,7 +134,7 @@ export function TagInput({
                 type="button"
                 onClick={() => onRemove(index)}
                 disabled={disabled}
-                className="rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+                className="cursor-pointer rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground"
               >
                 <X className="size-3" />
               </button>

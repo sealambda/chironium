@@ -29,6 +29,14 @@ function DatePicker({
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState(() => (value ? format(value, "dd/MM/yyyy") : ""));
+  const [calendarMonth, setCalendarMonth] = useState<Date>(value ?? new Date());
+
+  // Sync calendar month when value changes (e.g., typing a date)
+  useEffect(() => {
+    if (value) {
+      setCalendarMonth(value);
+    }
+  }, [value]);
 
   // Sync input when value changes externally (e.g., calendar pick)
   useEffect(() => {
@@ -84,6 +92,8 @@ function DatePicker({
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
+            month={calendarMonth}
+            onMonthChange={setCalendarMonth}
             selected={value}
             onSelect={handleSelect}
             endMonth={endMonth}
