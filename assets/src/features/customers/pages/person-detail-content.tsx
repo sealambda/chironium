@@ -1,6 +1,7 @@
 import type { SubscriptionWithPerson } from "@/features/customers/api/subscriptions-api";
 import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
+import { GoalsCard } from "@/features/customers/ui/detail/goals-card";
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
 import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
 import { PersonProfileCard } from "@/features/customers/ui/detail/person-profile-card";
@@ -18,6 +19,7 @@ export function PersonDetailContent({ item, detail }: Readonly<PersonDetailConte
     subscriptions,
     anthropometry,
     nutritionPlans,
+    goals,
     observations,
   } = detail;
 
@@ -27,7 +29,12 @@ export function PersonDetailContent({ item, detail }: Readonly<PersonDetailConte
     <div className="space-y-4 lg:space-y-6">
       <PersonProfileCard item={item} />
 
-      <SubscriptionCard subscription={currentSubscription} isLoading={subscriptions.isLoading} />
+      <GoalsCard
+        personId={item.subscriber.id}
+        patientId={detail.patientId}
+        goals={goals.data ?? []}
+        isLoading={goals.isLoading}
+      />
 
       <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
         <AnthropometryCard
@@ -54,6 +61,8 @@ export function PersonDetailContent({ item, detail }: Readonly<PersonDetailConte
         observations={observations.data ?? null}
         isLoading={observations.isLoading}
       />
+
+      <SubscriptionCard subscription={currentSubscription} isLoading={subscriptions.isLoading} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
 import { fetchAnthropometry } from "@/features/customers/api/anthropometry-api";
+import { fetchGoals } from "@/features/customers/api/goals-api";
 import { fetchNutritionPlans } from "@/features/customers/api/nutrition-plans-api";
 import { fetchObservationsSummary } from "@/features/customers/api/observations-api";
 import { fetchPatientByPerson } from "@/features/customers/api/patients-api";
@@ -32,6 +33,7 @@ export function usePersonDetail(personId: string) {
   const subscriptions = useQuery(queryConfig("subscriptions", fetchSubscriptionsByPerson));
   const anthropometry = useQuery(queryConfig("anthropometry", fetchAnthropometry));
   const nutritionPlans = useQuery(queryConfig("nutritionPlans", fetchNutritionPlans));
+  const goals = useQuery(queryConfig("goals", fetchGoals));
   const observations = useQuery(queryConfig("observations", fetchObservationsSummary));
 
   // Derived state for cards
@@ -45,6 +47,7 @@ export function usePersonDetail(personId: string) {
     subscriptions,
     anthropometry,
     nutritionPlans,
+    goals,
     observations,
   );
 
@@ -53,6 +56,7 @@ export function usePersonDetail(personId: string) {
     subscriptions,
     anthropometry,
     nutritionPlans,
+    goals,
     observations,
     currentSubscription,
     activeNutritionPlan,
