@@ -1,6 +1,53 @@
-import { graphql } from "@/graphql";
+import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+
+// ─── Queries ─────────────────────────────────────────────────────────
+
+const ActiveGoalsByPersonQuery = graphql(`
+  query ActiveGoalsByPerson($personId: ID!) {
+    listPatients(filter: { personId: { eq: $personId } }, first: 1) {
+      results {
+        goals(
+          filter: { lifecycleStatus: { eq: ACTIVE } }
+          sort: [{ field: PRIORITY, order: ASC }]
+        ) {
+          id
+          lifecycleStatus
+          achievementStatus
+          priority
+          description {
+            text
+          }
+          startDate
+          dueDate
+          category
+        }
+      }
+    }
+  }
+`);
+
+const AllGoalsByPersonQuery = graphql(`
+  query AllGoalsByPerson($personId: ID!) {
+    listPatients(filter: { personId: { eq: $personId } }, first: 1) {
+      results {
+        goals(sort: [{ field: PRIORITY, order: ASC }]) {
+          id
+          lifecycleStatus
+          achievementStatus
+          priority
+          description {
+            text
+          }
+          startDate
+          dueDate
+          category
+        }
+      }
+    }
+  }
+`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -18,17 +65,83 @@ const CreateGoalMutation = graphql(`
   }
 `);
 
+// ─── Types ───────────────────────────────────────────────────────────
+
+/** A single goal record returned by the list query. */
+export type GoalRecord = NonNullable<
+  NonNullable<
+    NonNullable<ResultOf<typeof ActiveGoalsByPersonQuery>["listPatients"]>["results"]
+  >[number]["goals"]
+>[number];
+
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
- * Create a goal for a patient with the given description.
+ * Fetch active goals for a person via their patient record, sorted by priority.
  */
-export async function createGoal(
-  description: string,
-  subjectId: string,
+export async function fetchGoals(personId: string, organizationId: string): Promise<GoalRecord[]> {
+  if (!personId || !organizationId) {
+    return [];
+  }
+
+  const data = await requestGraphql({
+    document: ActiveGoalsByPersonQuery,
+    variables: { personId },
+    organizationId,
+  });
+
+  const patient = data.listPatients?.results?.[0];
+  return patient?.goals ?? [];
+}
+
+/**
+ * Fetch all goals for a person (all lifecycle statuses), for the list page.
+ */
+export async function fetchAllGoals(
+  personId: string,
   organizationId: string,
-  userId: string,
-): Promise<void> {
+): Promise<GoalRecord[]> {
+  if (!personId || !organizationId) {
+    return [];
+  }
+
+  const data = await requestGraphql({
+    document: AllGoalsByPersonQuery,
+    variables: { personId },
+    organizationId,
+  });
+
+  const patient = data.listPatients?.results?.[0];
+  return patient?.goals ?? [];
+}
+
+/**
+ * Parameters for creating a new goal.
+ */
+export interface CreateGoalParams {
+  description: string;
+  subjectId: string;
+  organizationId: string;
+  userId: string;
+  priority?: "HIGH_PRIORITY" | "MEDIUM_PRIORITY" | "LOW_PRIORITY";
+  category?: ("DIETARY" | "BEHAVIORAL" | "NURSING" | "PHYSIOTHERAPY" | "SAFETY")[];
+  startDate?: string;
+  dueDate?: string;
+}
+
+/**
+ * Create a goal for a patient with the given description and optional fields.
+ */
+export async function createGoal({
+  description,
+  subjectId,
+  organizationId,
+  userId,
+  priority,
+  category,
+  startDate,
+  dueDate,
+}: CreateGoalParams): Promise<void> {
   const result = await requestGraphql({
     document: CreateGoalMutation,
     variables: {
@@ -37,6 +150,10 @@ export async function createGoal(
         description: { text: description },
         note: [{ text: description, authorReference: userId, time: new Date().toISOString() }],
         subjectId,
+        ...(priority && { priority }),
+        ...(category?.length && { category }),
+        ...(startDate && { startDate }),
+        ...(dueDate && { dueDate }),
       },
     },
     organizationId,
