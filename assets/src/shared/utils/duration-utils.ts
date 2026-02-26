@@ -1,9 +1,31 @@
+type DurationUnit = "MO" | "A" | "WK" | "D";
+
 interface Duration {
   value?: string | null;
   code?: string | null;
 }
 
 const DEFAULT_MONTHS = 3;
+
+/**
+ * Normalize a duration to months as the canonical unit.
+ * Used when storing subscription plan durations.
+ */
+export function normalizeDuration(
+  value: number,
+  unit: DurationUnit,
+): { value: number; unit: "MO" } {
+  switch (unit) {
+    case "A":
+      return { value: Math.round(value * 12), unit: "MO" };
+    case "WK":
+      return { value: Math.max(1, Math.round(value / 4.33)), unit: "MO" };
+    case "D":
+      return { value: Math.max(1, Math.round(value / 30)), unit: "MO" };
+    default:
+      return { value: Math.round(value), unit: "MO" };
+  }
+}
 
 /**
  * Convert a backend Duration object to months.
