@@ -1,0 +1,340 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { AlertTriangle, ChevronRight, PlusIcon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import {
+  type AllergyIntoleranceItem,
+  createAllergiesAndIntolerances,
+} from "@/features/customers/api/allergy-intolerance-api";
+import { useOrg } from "@/features/org/hooks/use-org";
+import * as m from "@/paraglide/messages";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/dialog";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { TagInput } from "@/shared/ui/tag-input";
+import { cn } from "@/shared/utils/utils";
+
+// ─── Constants ───────────────────────────────────────────────────────
+
+const MAX_VISIBLE_TAGS = 6;
+
+// ─── Props ───────────────────────────────────────────────────────────
+
+interface AllergyIntoleranceCardProps {
+  personId: string;
+  patientId: string | null;
+  items: AllergyIntoleranceItem[];
+  isLoading?: boolean;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────
+
+function parseItemTags(items: AllergyIntoleranceItem[], type: string): string[] {
+  return items
+    .filter((item) => item.type === type)
+    .flatMap(
+      (item) =>
+        item.code?.text
+          ?.split(",")
+          .map((t) => t.trim())
+          .filter(Boolean) ?? [],
+    );
+}
+
+// ─── Tag section ─────────────────────────────────────────────────────
+
+interface TagSectionProps {
+  label: string;
+  tags: string[];
+  tagClassName: string;
+}
+
+function TagSection({ label, tags, tagClassName }: Readonly<TagSectionProps>) {
+  if (tags.length === 0) {
+    return null;
+  }
+
+  const visible = tags.slice(0, MAX_VISIBLE_TAGS);
+  const overflow = tags.length - visible.length;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <p className="font-medium text-foreground/65 text-xs">{label}</p>
+        <Badge className="h-4 border-border/60 bg-muted/50 px-1 font-semibold text-foreground/50 text-xs">
+          {tags.length}
+        </Badge>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {visible.map((tag) => (
+          <span
+            key={tag}
+            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs ${tagClassName}`}
+          >
+            {tag}
+          </span>
+        ))}
+        {overflow > 0 ? (
+          <Badge className="h-5 border-border bg-muted/50 px-1.5 font-semibold text-foreground/65 text-xs">
+            +{overflow}
+          </Badge>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+// ─── Add dialog ──────────────────────────────────────────────────────
+
+interface AddAllergyIntoleranceDialogProps {
+  personId: string;
+  patientId: string | null;
+  children: React.ReactNode;
+}
+
+function AddAllergyIntoleranceDialog({
+  personId,
+  patientId,
+  children,
+}: Readonly<AddAllergyIntoleranceDialogProps>) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [allergies, setAllergies] = useState<string[]>([]);
+  const [intolerances, setIntolerances] = useState<string[]>([]);
+  const { selectedOrg } = useOrg();
+  const queryClient = useQueryClient();
+
+  const hasContent = allergies.length > 0 || intolerances.length > 0;
+
+  const resetForm = () => {
+    setAllergies([]);
+    setIntolerances([]);
+  };
+
+  const handleSubmit = async () => {
+    if (!hasContent || !patientId) {
+      if (!patientId) {
+        toast.error(m.onboarding_error());
+      }
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await createAllergiesAndIntolerances(
+        {
+          allergies: allergies.join(", "),
+          intolerances: intolerances.join(", "),
+        },
+        patientId,
+        selectedOrg?.id ?? "",
+      );
+
+      await queryClient.invalidateQueries({
+        queryKey: ["person", personId, "allergyIntolerances"],
+      });
+
+      toast.success(m.allergy_intolerance_add_success());
+      setOpen(false);
+      resetForm();
+    } catch {
+      toast.error(m.onboarding_error());
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={children as React.ReactElement} />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{m.allergy_intolerance_dialog_title()}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <TagInput
+            label={m.allergy_intolerance_allergies_label()}
+            placeholder={m.field_allergies_placeholder()}
+            tags={allergies}
+            onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
+            onRemove={(i) => setAllergies((prev) => prev.filter((_, idx) => idx !== i))}
+            addLabel={m.common_add()}
+            disabled={saving}
+          />
+          <TagInput
+            label={m.allergy_intolerance_intolerances_label()}
+            placeholder={m.field_intolerances_placeholder()}
+            tags={intolerances}
+            onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
+            onRemove={(i) => setIntolerances((prev) => prev.filter((_, idx) => idx !== i))}
+            addLabel={m.common_add()}
+            disabled={saving}
+          />
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+            {m.common_cancel()}
+          </Button>
+          <Button onClick={handleSubmit} disabled={saving || !hasContent}>
+            {saving ? m.common_saving() : m.allergy_intolerance_dialog_submit()}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Loading skeleton ────────────────────────────────────────────────
+
+function AllergyIntoleranceCardSkeleton() {
+  return (
+    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="flex items-start justify-between">
+        <div className="min-h-19 space-y-0.5">
+          <div className="flex items-baseline gap-2">
+            <Skeleton className="h-9 w-8" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <Skeleton className="h-4 w-28" />
+        </div>
+        <Skeleton className="h-8 w-16 rounded-md" />
+      </div>
+      <div className="my-4 h-px bg-neutral-200" />
+      <div className="space-y-3">
+        <Skeleton className="h-3 w-16" />
+        <div className="flex flex-wrap gap-1.5">
+          {Array.from({ length: 3 }, (_, i) => (
+            <Skeleton key={String(i)} className="h-5 w-16 rounded-full" />
+          ))}
+        </div>
+        <Skeleton className="h-3 w-20" />
+        <div className="flex flex-wrap gap-1.5">
+          {Array.from({ length: 2 }, (_, i) => (
+            <Skeleton key={String(i)} className="h-5 w-20 rounded-full" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ──────────────────────────────────────────────────
+
+export function AllergyIntoleranceCard({
+  personId,
+  patientId,
+  items,
+  isLoading,
+}: Readonly<AllergyIntoleranceCardProps>) {
+  if (isLoading) {
+    return <AllergyIntoleranceCardSkeleton />;
+  }
+
+  const allergyTags = parseItemTags(items, "ALLERGY");
+  const intoleranceTags = parseItemTags(items, "INTOLERANCE");
+  const isEmpty = allergyTags.length === 0 && intoleranceTags.length === 0;
+
+  const viewHistoryLink = (
+    <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+      <Link
+        to="/customers/$customerId/allergies"
+        params={{ customerId: personId }}
+        className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
+      >
+        <span>{m.allergy_intolerance_view_history()}</span>
+        <ChevronRight className="size-4" />
+      </Link>
+    </div>
+  );
+
+  if (isEmpty) {
+    return (
+      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+        <div className="flex items-start justify-end">
+          <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
+            <Button variant="outline" size="sm">
+              <PlusIcon className="size-4" data-icon="inline-start" />
+              {m.allergy_intolerance_add()}
+            </Button>
+          </AddAllergyIntoleranceDialog>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
+          <AlertTriangle className="size-8 text-neutral-400" />
+          <div className="text-center">
+            <p className="font-medium text-foreground text-sm">{m.allergy_intolerance_empty()}</p>
+            <p className="text-foreground/65 text-xs">{m.allergy_intolerance_empty_desc()}</p>
+          </div>
+        </div>
+        {viewHistoryLink}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="flex items-start justify-between">
+        <div className="min-h-19 space-y-0.5">
+          <div className="flex items-baseline gap-2">
+            <span
+              className={cn(
+                "font-bold text-3xl tabular-nums",
+                allergyTags.length > 0 ? "text-red-600" : "text-foreground",
+              )}
+            >
+              {allergyTags.length}
+            </span>
+            <span className="text-foreground/65 text-sm">
+              {m.allergy_intolerance_allergies_label()}
+            </span>
+          </div>
+          <div className="text-foreground/65 text-sm">
+            <span
+              className={cn(
+                "font-medium tabular-nums",
+                intoleranceTags.length > 0 && "text-amber-600",
+              )}
+            >
+              {intoleranceTags.length}
+            </span>{" "}
+            {m.allergy_intolerance_intolerances_label()}
+          </div>
+        </div>
+        <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
+          <Button variant="outline" size="sm">
+            <PlusIcon className="size-4" data-icon="inline-start" />
+            {m.allergy_intolerance_add()}
+          </Button>
+        </AddAllergyIntoleranceDialog>
+      </div>
+
+      <div className="my-4 h-px bg-neutral-200" />
+
+      <div className="space-y-3">
+        <TagSection
+          label={m.allergy_intolerance_allergies_label()}
+          tags={allergyTags}
+          tagClassName="border-red-200 bg-red-50 text-red-800"
+        />
+        <TagSection
+          label={m.allergy_intolerance_intolerances_label()}
+          tags={intoleranceTags}
+          tagClassName="border-amber-200 bg-amber-50 text-amber-800"
+        />
+      </div>
+
+      {viewHistoryLink}
+    </div>
+  );
+}

@@ -60,6 +60,9 @@ const CreateObservationMutation = graphql(`
 
 const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
 
+/** Code text values used for diet observations — excluded from the general observations list. */
+export const DIET_CODES = ["diet-inclusion", "diet-exclusion"] as const;
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** Form data for the menstrual cycle onboarding step. */
@@ -91,6 +94,12 @@ export interface ObservationsPage {
   items: ObservationItem[];
   count: number;
   endKeyset: string | null;
+}
+
+/** Aggregated food preferences parsed from diet-inclusion/exclusion observations. */
+export interface FoodPreferencesData {
+  included: string[];
+  excluded: string[];
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
@@ -243,6 +252,10 @@ export async function createNoteObservations(
 
 const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
 
+function isDietObservation(item: ObservationItem): boolean {
+  return DIET_CODES.includes(item.code?.text as (typeof DIET_CODES)[number]);
+}
+
 function buildSubjectFilter(personId: string) {
   return {
     status: { eq: "FINAL" as const },
@@ -272,9 +285,10 @@ export async function fetchObservationsSummary(
   });
 
   const page = result.listObservations;
+  const items = (page?.results ?? []).filter((item) => !isDietObservation(item));
   return {
-    items: page?.results ?? [],
-    count: page?.count ?? 0,
+    items,
+    count: items.length,
     endKeyset: page?.endKeyset ?? null,
   };
 }
@@ -301,10 +315,79 @@ export async function fetchObservationsList(
   });
 
   const page = result.listObservations;
+  const items = (page?.results ?? []).filter((item) => !isDietObservation(item));
   return {
-    items: page?.results ?? [],
-    count: page?.count ?? 0,
+    items,
+    count: items.length,
     endKeyset: page?.endKeyset ?? null,
+  };
+}
+
+/**
+ * Fetch raw diet observations (diet-inclusion / diet-exclusion) for the history table.
+ */
+export async function fetchDietObservationsList(
+  personId: string,
+  organizationId: string,
+): Promise<ObservationItem[]> {
+  if (!personId || !organizationId) {
+    return [];
+  }
+
+  const result = await requestGraphql({
+    document: ListObservationsQuery,
+    variables: {
+      filter: buildSubjectFilter(personId),
+      sort: SORT_NEWEST_FIRST,
+      first: 250,
+    },
+    organizationId,
+  });
+
+  const allItems = result.listObservations?.results ?? [];
+  return allItems.filter((item) =>
+    DIET_CODES.includes(item.code?.text as (typeof DIET_CODES)[number]),
+  );
+}
+
+/**
+ * Fetch food preference observations (diet-inclusion / diet-exclusion) for a person
+ * and return aggregated tag lists.
+ */
+export async function fetchFoodPreferences(
+  personId: string,
+  organizationId: string,
+): Promise<FoodPreferencesData> {
+  if (!personId || !organizationId) {
+    return { included: [], excluded: [] };
+  }
+
+  const result = await requestGraphql({
+    document: ListObservationsQuery,
+    variables: {
+      filter: buildSubjectFilter(personId),
+      sort: SORT_NEWEST_FIRST,
+      first: 250,
+    },
+    organizationId,
+  });
+
+  const allItems = result.listObservations?.results ?? [];
+
+  const parseTags = (codeText: string): string[] =>
+    allItems
+      .filter((obs) => obs.code?.text === codeText)
+      .flatMap(
+        (obs) =>
+          obs.valueString
+            ?.split(",")
+            .map((t) => t.trim())
+            .filter(Boolean) ?? [],
+      );
+
+  return {
+    included: parseTags("diet-inclusion"),
+    excluded: parseTags("diet-exclusion"),
   };
 }
 
