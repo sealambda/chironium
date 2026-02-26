@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
