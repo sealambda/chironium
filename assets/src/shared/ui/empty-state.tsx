@@ -20,7 +20,7 @@ function EmptyState({ icon: Icon, title, description, actionLabel, onAction }: E
         <Icon className="size-12 text-muted-foreground" />
         <div>
           <div className="font-medium text-muted-foreground">{title}</div>
-          {description && <div className="text-muted-foreground text-sm">{description}</div>}
+          {description ? <div className="text-muted-foreground text-sm">{description}</div> : null}
         </div>
         {actionLabel && onAction ? (
           <Button variant="outline" size="sm" onClick={onAction}>
