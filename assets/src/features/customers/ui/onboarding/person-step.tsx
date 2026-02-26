@@ -101,14 +101,22 @@ export function PersonStep({ initialData, onSubmit, onCancel }: PersonStepProps)
               <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel required>{m.field_given_name()}</FieldLabel>
                 <Input
+                  maxLength={50}
                   value={field.state.value}
                   onChange={(e) => {
                     let filtered = e.target.value.replace(/[^\p{L}\s'.-]/gu, "");
                     filtered = filtered.replace(/([\s'.-])([\s'.-]+)/gu, "$1");
                     filtered = filtered.replace(/^[\s'.-]+/, "");
+                    filtered = filtered.slice(0, 50);
                     field.handleChange(filtered);
                   }}
-                  onBlur={field.handleBlur}
+                  onBlur={() => {
+                    const trimmed = field.state.value.replace(/[\s'.-]+$/, "").trim();
+                    if (trimmed !== field.state.value) {
+                      field.handleChange(trimmed);
+                    }
+                    field.handleBlur();
+                  }}
                   aria-invalid={field.state.meta.errors.length > 0}
                 />
                 {field.state.meta.errors.length > 0 ? (
@@ -143,14 +151,22 @@ export function PersonStep({ initialData, onSubmit, onCancel }: PersonStepProps)
               <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel required>{m.field_family_name()}</FieldLabel>
                 <Input
+                  maxLength={50}
                   value={field.state.value}
                   onChange={(e) => {
                     let filtered = e.target.value.replace(/[^\p{L}\s'.-]/gu, "");
                     filtered = filtered.replace(/([\s'.-])([\s'.-]+)/gu, "$1");
                     filtered = filtered.replace(/^[\s'.-]+/, "");
+                    filtered = filtered.slice(0, 50);
                     field.handleChange(filtered);
                   }}
-                  onBlur={field.handleBlur}
+                  onBlur={() => {
+                    const trimmed = field.state.value.replace(/[\s'.-]+$/, "").trim();
+                    if (trimmed !== field.state.value) {
+                      field.handleChange(trimmed);
+                    }
+                    field.handleBlur();
+                  }}
                   aria-invalid={field.state.meta.errors.length > 0}
                 />
                 {field.state.meta.errors.length > 0 ? (
@@ -231,7 +247,10 @@ export function PersonStep({ initialData, onSubmit, onCancel }: PersonStepProps)
               <Input
                 type="email"
                 value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
+                onChange={(e) => {
+                  const filtered = e.target.value.replace(/[^a-zA-Z0-9.@_+-]/g, "");
+                  field.handleChange(filtered);
+                }}
                 onBlur={field.handleBlur}
                 aria-invalid={field.state.meta.errors.length > 0}
               />

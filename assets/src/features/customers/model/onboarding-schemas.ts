@@ -14,6 +14,7 @@ export const CONSECUTIVE_SPECIALS = /[\s'.-]{2}/;
 const nameField = z
   .string()
   .min(2, { message: m.validation_name_min() })
+  .max(50, { message: m.validation_name_max() })
   .regex(NAME_PATTERN, { message: m.validation_name_format() })
   .refine((v) => !CONSECUTIVE_SPECIALS.test(v), { message: m.validation_name_consecutive() });
 

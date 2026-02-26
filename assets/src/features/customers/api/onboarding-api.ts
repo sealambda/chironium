@@ -24,6 +24,7 @@ export interface OnboardingDraft {
   allergies: AllergiesFormData | null;
   food: FoodFormData | null;
   notes: NoteFormData[] | null;
+  pendingNote: NoteFormData | null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -74,7 +75,9 @@ export async function submitOnboarding(
     concurrent.push(createSubscription(draft.subscription, personId, organizationId));
   }
   if (draft.objective) {
-    concurrent.push(createGoal(draft.objective, patientId, organizationId, userId));
+    concurrent.push(
+      createGoal({ description: draft.objective, subjectId: patientId, organizationId, userId }),
+    );
   }
   if (draft.menstrualCycle && hasCycleData(draft.menstrualCycle)) {
     concurrent.push(

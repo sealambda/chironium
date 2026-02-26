@@ -13,10 +13,11 @@ import { StepLayout } from "./step-layout";
 
 interface NotesStepProps {
   readonly initialData?: NoteFormData[];
+  readonly initialPending?: NoteFormData;
   readonly isSubmitting?: boolean;
   readonly onSubmit: (notes: NoteFormData[]) => void;
   readonly onBack: () => void;
-  readonly onSaveDraft?: (notes: NoteFormData[]) => void;
+  readonly onSaveDraft?: (notes: NoteFormData[], pending?: NoteFormData) => void;
 }
 
 interface NoteEntry extends NoteFormData {
@@ -31,6 +32,7 @@ interface NoteEntry extends NoteFormData {
  */
 export function NotesStep({
   initialData,
+  initialPending,
   isSubmitting,
   onSubmit,
   onBack,
@@ -45,8 +47,8 @@ export function NotesStep({
     (initialData ?? []).map((n) => ({ ...n, id: nextId() })),
   );
 
-  const [noteTitle, setNoteTitle] = useState("");
-  const [noteBody, setNoteBody] = useState("");
+  const [noteTitle, setNoteTitle] = useState(initialPending?.title ?? "");
+  const [noteBody, setNoteBody] = useState(initialPending?.body ?? "");
 
   const submitting = isSubmitting ?? false;
   const hasInput = noteTitle.trim() || noteBody.trim();
@@ -77,10 +79,11 @@ export function NotesStep({
 
   const handleBack = () => {
     const notes: NoteFormData[] = addedNotes.map((n) => ({ title: n.title, body: n.body }));
-    if (noteTitle.trim() || noteBody.trim()) {
-      notes.push({ title: noteTitle.trim(), body: noteBody.trim() });
-    }
-    onSaveDraft?.(notes);
+    const pending =
+      noteTitle.trim() || noteBody.trim()
+        ? { title: noteTitle.trim(), body: noteBody.trim() }
+        : undefined;
+    onSaveDraft?.(notes, pending);
     onBack();
   };
 
@@ -98,6 +101,7 @@ export function NotesStep({
           <Field>
             <FieldLabel>{m.field_note_title()}</FieldLabel>
             <Input
+              maxLength={100}
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
               placeholder={m.field_note_title_placeholder()}

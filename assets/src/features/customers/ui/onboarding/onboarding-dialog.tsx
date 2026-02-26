@@ -15,6 +15,16 @@ import type { SubscriptionFormData } from "@/features/customers/api/subscription
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { StepIndicator } from "@/shared/ui/step-indicator";
 
@@ -37,7 +47,7 @@ const STEPS = [
   { label: () => m.onboarding_step_subscription() },
   { label: () => m.onboarding_step_objective() },
   { label: () => m.onboarding_step_cycle() },
-  { label: () => m.onboarding_step_body() },
+  { label: () => m.onboarding_step_anthropometry() },
   { label: () => m.onboarding_step_allergies() },
   { label: () => m.onboarding_step_food() },
   { label: () => m.onboarding_step_notes() },
@@ -52,6 +62,7 @@ const EMPTY_DRAFT: OnboardingDraft = {
   allergies: null,
   food: null,
   notes: null,
+  pendingNote: null,
 };
 
 /** Encapsulates draft state and step navigation for the onboarding wizard. */
@@ -126,11 +137,14 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   const { selectedOrg } = useOrg();
   const organizationId = selectedOrg?.id ?? "";
   const { user } = useCurrentUser();
+  const [confirmClose, setConfirmClose] = useState(false);
 
   // Use a ref so the hook's finish callback always sees the latest handleClose
   // without creating a circular dependency.
   const handleCloseRef = useRef(() => {});
   const wizard = useOnboardingDraft(organizationId, user?.id ?? "", handleCloseRef);
+
+  const hasDraftData = Object.values(wizard.draft).some((v) => v !== null);
 
   const handleClose = useCallback(() => {
     onOpenChange(false);
@@ -139,26 +153,61 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
 
   handleCloseRef.current = handleClose;
 
+  const handleDialogChange = useCallback(() => {
+    if (hasDraftData) {
+      setConfirmClose(true);
+      return;
+    }
+    handleClose();
+  }, [hasDraftData, handleClose]);
+
   const stepLabels = STEPS.map((s) => ({ label: s.label() }));
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{m.onboarding_title()}</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleDialogChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{m.onboarding_title()}</DialogTitle>
+          </DialogHeader>
 
-        <StepIndicator steps={stepLabels} currentStep={wizard.currentStep} />
+          <StepIndicator steps={stepLabels} currentStep={wizard.currentStep} />
 
-        {wizard.error ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
-            {wizard.error}
-          </div>
-        ) : null}
+          {wizard.error ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
+              {wizard.error}
+            </div>
+          ) : null}
 
-        <StepContent organizationId={organizationId} wizard={wizard} onClose={handleClose} />
-      </DialogContent>
-    </Dialog>
+          <StepContent
+            organizationId={organizationId}
+            wizard={wizard}
+            onClose={handleDialogChange}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmClose} onOpenChange={setConfirmClose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{m.onboarding_confirm_abandon_title()}</AlertDialogTitle>
+            <AlertDialogDescription>{m.onboarding_confirm_abandon_desc()}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{m.onboarding_confirm_abandon_keep()}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                setConfirmClose(false);
+                handleClose();
+              }}
+            >
+              {m.onboarding_confirm_abandon_discard()}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -244,10 +293,11 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
       return (
         <NotesStep
           initialData={draft.notes ?? undefined}
+          initialPending={draft.pendingNote ?? undefined}
           isSubmitting={isSubmitting}
           onSubmit={finish}
           onBack={() => goBack(6)}
-          onSaveDraft={(notes) => saveDraft({ notes })}
+          onSaveDraft={(notes, pending) => saveDraft({ notes, pendingNote: pending ?? null })}
         />
       );
     default:
