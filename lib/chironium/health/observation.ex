@@ -49,6 +49,8 @@ defmodule Chironium.Health.Observation do
 
   @snomed_system "http://snomed.info/sct"
   @snomed_waist_hip_ratio "248367009"
+  @snomed_food_preference "1163282001"
+  @snomed_food_aversion "248135001"
 
   postgres do
     table "observations"
@@ -68,6 +70,8 @@ defmodule Chironium.Health.Observation do
     mutations do
       create :create_observation, :create
 
+      create :log_food_preference, :log_food_preference
+      create :log_food_aversion, :log_food_aversion
       create :log_body_weight, :log_body_weight
       create :log_body_height, :log_body_height
       create :log_chest_circumference, :log_chest_circumference
@@ -85,6 +89,8 @@ defmodule Chironium.Health.Observation do
       list :list_observations, :read
       get :get_observation, :read
 
+      list :list_food_preference_observations, :read_food_preference
+      list :list_food_aversion_observations, :read_food_aversion
       list :list_body_weight_observations, :read_body_weight
       list :list_body_height_observations, :read_body_height
       list :list_bmi_observations, :read_bmi
@@ -100,6 +106,64 @@ defmodule Chironium.Health.Observation do
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
 
+    ### Food Preference
+    create :log_food_preference do
+      description "Log a food preference observation."
+      accept [:subject_id, :note, :value_string, :value_codeable_concept, :effective_date_time]
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @snomed_system,
+                   code: @snomed_food_preference,
+                   display: "Food preference"
+                 }
+               ]
+             })
+    end
+
+    read :read_food_preference do
+      description "Read all food preference observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @snomed_system, code: @snomed_food_preference}]}
+               )
+             )
+    end
+
+    ### Food Aversion
+    create :log_food_aversion do
+      description "Log a food aversion observation."
+      accept [:subject_id, :note, :value_string, :value_codeable_concept, :effective_date_time]
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @snomed_system,
+                   code: @snomed_food_aversion,
+                   display: "Aversion to particular food (finding)"
+                 }
+               ]
+             })
+    end
+
+    read :read_food_aversion do
+      description "Read all food aversion observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @snomed_system, code: @snomed_food_aversion}]}
+               )
+             )
+    end
+
     ### Body Weight
     create :log_body_weight do
       description """
@@ -109,7 +173,7 @@ defmodule Chironium.Health.Observation do
       """
 
       # TODO Should we allow a single note and automatically reference the practitioner?
-      accept [:subject_id, :note]
+      accept [:subject_id, :note, :effective_date_time]
 
       argument :weight_kg, :float do
         description "The weight in kilograms"
@@ -181,7 +245,7 @@ defmodule Chironium.Health.Observation do
       """
 
       # TODO Should we allow a single note and automatically reference the practitioner?
-      accept [:subject_id, :note]
+      accept [:subject_id, :note, :effective_date_time]
 
       argument :height_cm, :float do
         description "The height in centimeters"
@@ -247,7 +311,7 @@ defmodule Chironium.Health.Observation do
     ### BMI
     create :compute_bmi do
       description "Auto-generate a BMI observation from the latest weight and height."
-      accept [:subject_id]
+      accept [:subject_id, :effective_date_time]
 
       change set_attribute(:code, %{
                coding: [
@@ -316,7 +380,7 @@ defmodule Chironium.Health.Observation do
     ### Waist/hip ratio
     create :compute_waist_hip_ratio do
       description "Auto-generate a waist/hip ratio observation from the latest waist and hip circumference."
-      accept [:subject_id]
+      accept [:subject_id, :effective_date_time]
 
       change set_attribute(:code, %{
                coding: [
@@ -383,7 +447,7 @@ defmodule Chironium.Health.Observation do
     ### Chest Circumference
     create :log_chest_circumference do
       description "Log a chest circumference observation."
-      accept [:subject_id, :note]
+      accept [:subject_id, :note, :effective_date_time]
 
       argument :chest_circumference_cm, :float do
         description "The chest circumference in centimeters"
@@ -424,7 +488,7 @@ defmodule Chironium.Health.Observation do
     ### Hip Circumference
     create :log_hip_circumference do
       description "Log a hip circumference observation."
-      accept [:subject_id, :note]
+      accept [:subject_id, :note, :effective_date_time]
 
       argument :hip_circumference_cm, :float do
         description "The hip circumference in centimeters"
@@ -487,7 +551,7 @@ defmodule Chironium.Health.Observation do
     ### Waist Circumference
     create :log_waist_circumference do
       description "Log a waist circumference observation."
-      accept [:subject_id, :note]
+      accept [:subject_id, :note, :effective_date_time]
 
       argument :waist_circumference_cm, :float do
         description "The waist circumference in centimeters"
@@ -550,7 +614,7 @@ defmodule Chironium.Health.Observation do
     ### Arm Circumference
     create :log_arm_circumference do
       description "Log a arm circumference observation."
-      accept [:subject_id, :note]
+      accept [:subject_id, :note, :effective_date_time]
 
       argument :arm_circumference_cm, :float do
         description "The arm circumference in centimeters"
@@ -591,7 +655,7 @@ defmodule Chironium.Health.Observation do
     ### Thigh Circumference
     create :log_thigh_circumference do
       description "Log a thigh circumference observation."
-      accept [:subject_id, :note]
+      accept [:subject_id, :note, :effective_date_time]
 
       argument :thigh_circumference_cm, :float do
         description "The thigh circumference in centimeters"
