@@ -29,6 +29,7 @@ const MAX_VISIBLE_TAGS = 6;
 
 interface FoodPreferencesCardProps {
   personId: string;
+  patientId: string | null;
   included: string[];
   excluded: string[];
   isLoading?: boolean;
@@ -76,10 +77,15 @@ function TagSection({ label, tags, tagClassName }: Readonly<TagSectionProps>) {
 
 interface AddFoodPreferenceDialogProps {
   personId: string;
+  patientId: string | null;
   children: React.ReactNode;
 }
 
-function AddFoodPreferenceDialog({ personId, children }: Readonly<AddFoodPreferenceDialogProps>) {
+function AddFoodPreferenceDialog({
+  personId,
+  patientId,
+  children,
+}: Readonly<AddFoodPreferenceDialogProps>) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [included, setIncluded] = useState<string[]>([]);
@@ -96,7 +102,10 @@ function AddFoodPreferenceDialog({ personId, children }: Readonly<AddFoodPrefere
   };
 
   const handleSubmit = async () => {
-    if (!hasContent) {
+    if (!hasContent || !patientId) {
+      if (!patientId) {
+        toast.error(m.customers_detail_missing_patient());
+      }
       return;
     }
 
@@ -104,7 +113,7 @@ function AddFoodPreferenceDialog({ personId, children }: Readonly<AddFoodPrefere
     try {
       await createFoodObservations(
         { included, excluded },
-        personId,
+        patientId,
         selectedOrg?.id ?? "",
         user?.id ?? "",
       );
@@ -203,6 +212,7 @@ function FoodPreferencesCardSkeleton() {
 
 export function FoodPreferencesCard({
   personId,
+  patientId,
   included,
   excluded,
   isLoading,
@@ -230,7 +240,7 @@ export function FoodPreferencesCard({
     return (
       <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
-          <AddFoodPreferenceDialog personId={personId}>
+          <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
             <Button variant="outline" size="sm">
               <PlusIcon className="size-4" data-icon="inline-start" />
               {m.food_preferences_add()}
@@ -263,7 +273,7 @@ export function FoodPreferencesCard({
             {m.food_preferences_summary({ included: included.length, excluded: excluded.length })}
           </div>
         </div>
-        <AddFoodPreferenceDialog personId={personId}>
+        <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
           <Button variant="outline" size="sm">
             <PlusIcon className="size-4" data-icon="inline-start" />
             {m.food_preferences_add()}
