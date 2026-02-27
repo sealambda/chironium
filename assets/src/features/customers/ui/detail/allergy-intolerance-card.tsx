@@ -10,7 +10,6 @@ import {
 } from "@/features/customers/api/allergy-intolerance-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -22,11 +21,6 @@ import {
 } from "@/shared/ui/dialog";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { TagInput } from "@/shared/ui/tag-input";
-import { cn } from "@/shared/utils/utils";
-
-// ─── Constants ───────────────────────────────────────────────────────
-
-const MAX_VISIBLE_TAGS = 6;
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -51,45 +45,34 @@ function parseItemTags(items: AllergyIntoleranceItem[], type: string): string[] 
     );
 }
 
-// ─── Tag section ─────────────────────────────────────────────────────
+// ─── Tag column ─────────────────────────────────────────────────────
 
-interface TagSectionProps {
+interface TagColumnProps {
   label: string;
   tags: string[];
   tagClassName: string;
+  emptyText: string;
+  className?: string;
 }
 
-function TagSection({ label, tags, tagClassName }: Readonly<TagSectionProps>) {
-  if (tags.length === 0) {
-    return null;
-  }
-
-  const visible = tags.slice(0, MAX_VISIBLE_TAGS);
-  const overflow = tags.length - visible.length;
-
+function TagColumn({ label, tags, tagClassName, emptyText, className }: Readonly<TagColumnProps>) {
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <p className="font-medium text-foreground/65 text-xs">{label}</p>
-        <Badge className="h-4 border-border/60 bg-muted/50 px-1 font-semibold text-foreground/50 text-xs">
-          {tags.length}
-        </Badge>
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {visible.map((tag) => (
-          <span
-            key={tag}
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs ${tagClassName}`}
-          >
-            {tag}
-          </span>
-        ))}
-        {overflow > 0 ? (
-          <Badge className="h-5 border-border bg-muted/50 px-1.5 font-semibold text-foreground/65 text-xs">
-            +{overflow}
-          </Badge>
-        ) : null}
-      </div>
+    <div className={`space-y-3 ${className ?? ""}`}>
+      <p className="font-bold text-foreground text-xl uppercase tracking-wide">{label}</p>
+      {tags.length === 0 ? (
+        <p className="text-foreground/40 text-sm italic">{emptyText}</p>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-sm ${tagClassName}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -200,30 +183,23 @@ function AddAllergyIntoleranceDialog({
 
 function AllergyIntoleranceCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-      <div className="flex items-start justify-between">
-        <div className="min-h-19 space-y-0.5">
-          <div className="flex items-baseline gap-2">
-            <Skeleton className="h-9 w-8" />
-            <Skeleton className="h-5 w-20" />
+    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Skeleton className="mx-auto h-4 w-20" />
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={String(i)} className="h-7 w-18 rounded-full" />
+            ))}
           </div>
-          <Skeleton className="h-4 w-28" />
         </div>
-        <Skeleton className="h-8 w-16 rounded-md" />
-      </div>
-      <div className="my-4 h-px bg-neutral-200" />
-      <div className="space-y-3">
-        <Skeleton className="h-3 w-16" />
-        <div className="flex flex-wrap gap-1.5">
-          {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={String(i)} className="h-5 w-16 rounded-full" />
-          ))}
-        </div>
-        <Skeleton className="h-3 w-20" />
-        <div className="flex flex-wrap gap-1.5">
-          {Array.from({ length: 2 }, (_, i) => (
-            <Skeleton key={String(i)} className="h-5 w-20 rounded-full" />
-          ))}
+        <div className="space-y-2">
+          <Skeleton className="mx-auto h-4 w-24" />
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {Array.from({ length: 2 }, (_, i) => (
+              <Skeleton key={String(i)} className="h-7 w-22 rounded-full" />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -283,54 +259,27 @@ export function AllergyIntoleranceCard({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-      <div className="flex items-start justify-between">
-        <div className="min-h-19 space-y-0.5">
-          <div className="flex items-baseline gap-2">
-            <span
-              className={cn(
-                "font-bold text-3xl tabular-nums",
-                allergyTags.length > 0 ? "text-red-600" : "text-foreground",
-              )}
-            >
-              {allergyTags.length}
-            </span>
-            <span className="text-foreground/65 text-sm">
-              {m.allergy_intolerance_allergies_label()}
-            </span>
-          </div>
-          <div className="text-foreground/65 text-sm">
-            <span
-              className={cn(
-                "font-medium tabular-nums",
-                intoleranceTags.length > 0 && "text-amber-600",
-              )}
-            >
-              {intoleranceTags.length}
-            </span>{" "}
-            {m.allergy_intolerance_intolerances_label()}
-          </div>
-        </div>
-        <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
-          <Button variant="outline" size="sm">
-            <PlusIcon className="size-4" data-icon="inline-start" />
-            {m.allergy_intolerance_add()}
-          </Button>
-        </AddAllergyIntoleranceDialog>
-      </div>
+    <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
+        <Button variant="outline" size="sm" className="absolute top-4 right-4 lg:top-5 lg:right-5">
+          <PlusIcon className="size-4" data-icon="inline-start" />
+          {m.allergy_intolerance_add()}
+        </Button>
+      </AddAllergyIntoleranceDialog>
 
-      <div className="my-4 h-px bg-neutral-200" />
-
-      <div className="space-y-3">
-        <TagSection
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TagColumn
           label={m.allergy_intolerance_allergies_label()}
           tags={allergyTags}
           tagClassName="border-red-200 bg-red-50 text-red-800"
+          emptyText={m.allergy_intolerance_none_allergies()}
         />
-        <TagSection
+        <TagColumn
           label={m.allergy_intolerance_intolerances_label()}
           tags={intoleranceTags}
           tagClassName="border-amber-200 bg-amber-50 text-amber-800"
+          emptyText={m.allergy_intolerance_none_intolerances()}
+          className="sm:border-neutral-200 sm:border-l sm:pl-4"
         />
       </div>
 

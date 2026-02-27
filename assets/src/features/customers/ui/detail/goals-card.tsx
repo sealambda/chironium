@@ -55,15 +55,8 @@ function AchievementBadge({ status }: Readonly<{ status: string }>) {
 
 function GoalsCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
-      <div className="min-h-19 space-y-1.5">
-        <div className="flex items-baseline gap-2">
-          <Skeleton className="h-9 w-10" />
-          <Skeleton className="h-5 w-12" />
-        </div>
-        <Skeleton className="h-3.5 w-12" />
-      </div>
-      <div className="my-4 h-px bg-neutral-200" />
+    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <Skeleton className="mb-3 h-6 w-20" />
       <div className="space-y-3">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={String(i)} className="flex items-center justify-between gap-3">
@@ -86,9 +79,22 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
     return <GoalsCardSkeleton />;
   }
 
+  const viewHistoryLink = (
+    <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+      <Link
+        to="/customers/$customerId/goals"
+        params={{ customerId: personId }}
+        className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
+      >
+        <span>{m.goals_view_history()}</span>
+        <ChevronRight className="size-4" />
+      </Link>
+    </div>
+  );
+
   if (goals.length === 0) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AddGoalDialog personId={personId} patientId={patientId}>
             <Button variant="outline" size="sm">
@@ -104,61 +110,33 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
             <p className="text-foreground/65 text-xs">{m.goals_no_goals_desc()}</p>
           </div>
         </div>
-        <div className="mt-auto border-neutral-200 border-t pt-3">
-          <Link
-            to="/customers/$customerId/goals"
-            params={{ customerId: personId }}
-            className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-          >
-            <span>{m.goals_view_all()}</span>
-            <ChevronRight className="size-4" />
-          </Link>
-        </div>
+        {viewHistoryLink}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div className="min-h-19 space-y-0.5">
-          <div className="flex items-baseline gap-2">
-            <span className="font-bold text-3xl text-foreground tabular-nums">{goals.length}</span>
-            <span className="text-foreground/65 text-sm">{m.goals_title()}</span>
-          </div>
-          <div className="text-foreground/65 text-xs">{m.goals_active()}</div>
-        </div>
-        <AddGoalDialog personId={personId} patientId={patientId}>
-          <Button variant="outline" size="sm">
-            <PlusIcon className="size-4" data-icon="inline-start" />
-            {m.goals_add()}
-          </Button>
-        </AddGoalDialog>
-      </div>
-
-      <div className="my-4 h-px bg-neutral-200" />
+    <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <AddGoalDialog personId={personId} patientId={patientId}>
+        <Button variant="outline" size="sm" className="absolute top-4 right-4 lg:top-5 lg:right-5">
+          <PlusIcon className="size-4" data-icon="inline-start" />
+          {m.goals_add()}
+        </Button>
+      </AddGoalDialog>
 
       <div className="space-y-3">
+        <p className="font-bold text-foreground text-xl uppercase tracking-wide">
+          {m.goals_title()}
+        </p>
         {goals.map((goal) => (
-          <div key={goal.id} className="flex items-center justify-between gap-3">
-            <p className="min-w-0 truncate text-foreground/80 text-sm">
-              <span className="text-foreground/40">·</span> {goal.description.text}
-            </p>
+          <div key={goal.id} className="flex items-start justify-between gap-3">
+            <p className="min-w-0 text-foreground/80 text-sm">{goal.description.text}</p>
             {goal.achievementStatus ? <AchievementBadge status={goal.achievementStatus} /> : null}
           </div>
         ))}
       </div>
 
-      <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
-        <Link
-          to="/customers/$customerId/goals"
-          params={{ customerId: personId }}
-          className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-        >
-          <span>{m.goals_view_all()}</span>
-          <ChevronRight className="size-4" />
-        </Link>
-      </div>
+      {viewHistoryLink}
     </div>
   );
 }

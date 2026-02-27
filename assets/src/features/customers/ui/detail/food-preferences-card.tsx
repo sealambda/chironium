@@ -8,7 +8,6 @@ import { createFoodObservations } from "@/features/customers/api/observations-ap
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
-import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -21,10 +20,6 @@ import {
 import { Skeleton } from "@/shared/ui/skeleton";
 import { TagInput } from "@/shared/ui/tag-input";
 
-// ─── Constants ───────────────────────────────────────────────────────
-
-const MAX_VISIBLE_TAGS = 6;
-
 // ─── Props ───────────────────────────────────────────────────────────
 
 interface FoodPreferencesCardProps {
@@ -35,40 +30,34 @@ interface FoodPreferencesCardProps {
   isLoading?: boolean;
 }
 
-// ─── Tag section ─────────────────────────────────────────────────────
+// ─── Tag column ─────────────────────────────────────────────────────
 
-interface TagSectionProps {
+interface TagColumnProps {
   label: string;
   tags: string[];
   tagClassName: string;
+  emptyText: string;
+  className?: string;
 }
 
-function TagSection({ label, tags, tagClassName }: Readonly<TagSectionProps>) {
-  if (tags.length === 0) {
-    return null;
-  }
-
-  const visible = tags.slice(0, MAX_VISIBLE_TAGS);
-  const overflow = tags.length - visible.length;
-
+function TagColumn({ label, tags, tagClassName, emptyText, className }: Readonly<TagColumnProps>) {
   return (
-    <div className="space-y-1.5">
-      <p className="font-medium text-foreground/65 text-xs">{label}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {visible.map((tag) => (
-          <span
-            key={tag}
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs ${tagClassName}`}
-          >
-            {tag}
-          </span>
-        ))}
-        {overflow > 0 ? (
-          <Badge className="h-5 border-border bg-muted/50 px-1.5 font-semibold text-foreground/65 text-xs">
-            {m.food_preferences_more({ count: overflow })}
-          </Badge>
-        ) : null}
-      </div>
+    <div className={`space-y-3 ${className ?? ""}`}>
+      <p className="font-bold text-foreground text-xl uppercase tracking-wide">{label}</p>
+      {tags.length === 0 ? (
+        <p className="text-foreground/40 text-sm italic">{emptyText}</p>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-sm ${tagClassName}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -178,30 +167,23 @@ function AddFoodPreferenceDialog({
 
 function FoodPreferencesCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-      <div className="flex items-start justify-between">
-        <div className="min-h-19 space-y-0.5">
-          <div className="flex items-baseline gap-2">
-            <Skeleton className="h-9 w-10" />
-            <Skeleton className="h-5 w-28" />
+    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Skeleton className="mx-auto h-4 w-16" />
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={String(i)} className="h-7 w-18 rounded-full" />
+            ))}
           </div>
-          <Skeleton className="h-3.5 w-36" />
         </div>
-        <Skeleton className="h-8 w-16 rounded-md" />
-      </div>
-      <div className="my-4 h-px bg-neutral-200" />
-      <div className="space-y-3">
-        <Skeleton className="h-3 w-12" />
-        <div className="flex flex-wrap gap-1.5">
-          {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={String(i)} className="h-5 w-16 rounded-full" />
-          ))}
-        </div>
-        <Skeleton className="h-3 w-12" />
-        <div className="flex flex-wrap gap-1.5">
-          {Array.from({ length: 2 }, (_, i) => (
-            <Skeleton key={String(i)} className="h-5 w-20 rounded-full" />
-          ))}
+        <div className="space-y-2">
+          <Skeleton className="mx-auto h-4 w-20" />
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {Array.from({ length: 2 }, (_, i) => (
+              <Skeleton key={String(i)} className="h-7 w-22 rounded-full" />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -260,39 +242,27 @@ export function FoodPreferencesCard({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
-      <div className="flex items-start justify-between">
-        <div className="min-h-19 space-y-0.5">
-          <div className="flex items-baseline gap-2">
-            <span className="font-bold text-3xl text-foreground tabular-nums">
-              {included.length + excluded.length}
-            </span>
-            <span className="text-foreground/65 text-sm">{m.food_preferences_title()}</span>
-          </div>
-          <div className="text-foreground/65 text-xs">
-            {m.food_preferences_summary({ included: included.length, excluded: excluded.length })}
-          </div>
-        </div>
-        <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
-          <Button variant="outline" size="sm">
-            <PlusIcon className="size-4" data-icon="inline-start" />
-            {m.food_preferences_add()}
-          </Button>
-        </AddFoodPreferenceDialog>
-      </div>
+    <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
+        <Button variant="outline" size="sm" className="absolute top-4 right-4 lg:top-5 lg:right-5">
+          <PlusIcon className="size-4" data-icon="inline-start" />
+          {m.food_preferences_add()}
+        </Button>
+      </AddFoodPreferenceDialog>
 
-      <div className="my-4 h-px bg-neutral-200" />
-
-      <div className="space-y-3">
-        <TagSection
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TagColumn
+          label={m.food_preferences_avoids_label()}
+          tags={excluded}
+          tagClassName="border-yellow-200 bg-yellow-50 text-yellow-800"
+          emptyText={m.food_preferences_none_avoided()}
+        />
+        <TagColumn
           label={m.food_preferences_includes_label()}
           tags={included}
           tagClassName="border-emerald-200 bg-emerald-50 text-emerald-800"
-        />
-        <TagSection
-          label={m.food_preferences_avoids_label()}
-          tags={excluded}
-          tagClassName="border-border/60 bg-muted/50 text-foreground/80"
+          emptyText={m.food_preferences_none_included()}
+          className="sm:border-neutral-200 sm:border-l sm:pl-4"
         />
       </div>
 
