@@ -62,6 +62,7 @@ export function PersonDetailContent({ item, detail }: Readonly<PersonDetailConte
       <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
         <FoodPreferencesCard
           personId={item.subscriber.id}
+          patientId={detail.patientId}
           included={foodPreferences.data?.included ?? []}
           excluded={foodPreferences.data?.excluded ?? []}
           isLoading={foodPreferences.isLoading}
