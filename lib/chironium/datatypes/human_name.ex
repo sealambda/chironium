@@ -18,6 +18,11 @@ defmodule Chironium.Datatypes.HumanName do
       public? true
     end
 
+    attribute :period, Chironium.Datatypes.Period do
+      description "Time period when name was/is in use"
+      public? true
+    end
+
     attribute :text, :string do
       description "Text representation of the full name"
       public? true
@@ -52,11 +57,6 @@ defmodule Chironium.Datatypes.HumanName do
       This repeating element order: Suffixes appear in the correct order for presenting the name
       """
 
-      public? true
-    end
-
-    attribute :period, Chironium.Datatypes.Period do
-      description "Time period when name was/is in use"
       public? true
     end
   end
