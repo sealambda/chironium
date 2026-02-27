@@ -8,14 +8,14 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -196,14 +196,14 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -225,6 +225,9 @@ input PersonNameInput {
 
 type HumanName {
   use: NameUse
+
+  "Time period when name was\/is in use"
+  period: Period
 
   "Text representation of the full name"
   text: String
@@ -249,9 +252,6 @@ type HumanName {
   This repeating element order: Suffixes appear in the correct order for presenting the name
   """
   suffix: [String!]
-
-  "Time period when name was\/is in use"
-  period: Period
 }
 
 type Period {
@@ -1567,6 +1567,9 @@ type LogThighCircumferenceResult {
 }
 
 input LogThighCircumferenceInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
   "Comments about the observation"
   note: [ObservationNoteInput!]
 
@@ -1586,6 +1589,9 @@ type LogArmCircumferenceResult {
 }
 
 input LogArmCircumferenceInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
   "Comments about the observation"
   note: [ObservationNoteInput!]
 
@@ -1605,6 +1611,9 @@ type LogWaistCircumferenceResult {
 }
 
 input LogWaistCircumferenceInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
   "Comments about the observation"
   note: [ObservationNoteInput!]
 
@@ -1624,6 +1633,9 @@ type LogHipCircumferenceResult {
 }
 
 input LogHipCircumferenceInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
   "Comments about the observation"
   note: [ObservationNoteInput!]
 
@@ -1643,6 +1655,9 @@ type LogChestCircumferenceResult {
 }
 
 input LogChestCircumferenceInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
   "Comments about the observation"
   note: [ObservationNoteInput!]
 
@@ -1662,6 +1677,9 @@ type LogBodyHeightResult {
 }
 
 input LogBodyHeightInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
   "Comments about the observation"
   note: [ObservationNoteInput!]
 
@@ -1681,6 +1699,9 @@ type LogBodyWeightResult {
 }
 
 input LogBodyWeightInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
   "Comments about the observation"
   note: [ObservationNoteInput!]
 
@@ -1688,6 +1709,56 @@ input LogBodyWeightInput {
 
   "The weight in kilograms"
   weightKg: Float!
+}
+
+"The result of the :log_food_aversion mutation"
+type LogFoodAversionResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogFoodAversionInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
+  "Actual result"
+  valueCodeableConcept: ObservationValueCodeableConceptInput
+
+  "Actual result"
+  valueString: String
+
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
+}
+
+"The result of the :log_food_preference mutation"
+type LogFoodPreferenceResult {
+  "The successful result of the mutation"
+  result: Observation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input LogFoodPreferenceInput {
+  "Clinically relevant time\/time-period for observation"
+  effectiveDateTime: DateTime
+
+  "Actual result"
+  valueCodeableConcept: ObservationValueCodeableConceptInput
+
+  "Actual result"
+  valueString: String
+
+  "Comments about the observation"
+  note: [ObservationNoteInput!]
+
+  subjectId: ID!
 }
 
 "The result of the :create_observation mutation"
@@ -2847,6 +2918,48 @@ type RootQueryType {
     id: ID!
   ): Observation
 
+  "Read all food preference observations."
+  listFoodPreferenceObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
+  "Read all food aversion observations."
+  listFoodAversionObservations(
+    "How to sort the records in the response"
+    sort: [ObservationSortInput]
+
+    "A filter to limit the results"
+    filter: ObservationFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfObservation
+
   "Read all body weight observations."
   listBodyWeightObservations(
     "How to sort the records in the response"
@@ -3182,6 +3295,12 @@ type RootMutationType {
   createNutritionPlan(input: CreateNutritionPlanInput!): CreateNutritionPlanResult!
 
   createObservation(input: CreateObservationInput!): CreateObservationResult!
+
+  "Log a food preference observation."
+  logFoodPreference(input: LogFoodPreferenceInput!): LogFoodPreferenceResult!
+
+  "Log a food aversion observation."
+  logFoodAversion(input: LogFoodAversionInput!): LogFoodAversionResult!
 
   """
   Log a body weight observation.
