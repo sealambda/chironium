@@ -51,7 +51,7 @@ export function CustomersPage() {
   }, [customers, search]);
 
   useEffect(() => {
-    if (!selectedOrg) {
+    if (!selectedOrg || isLoading || Boolean(error)) {
       setHeaderContent(null);
       return;
     }
@@ -73,7 +73,7 @@ export function CustomersPage() {
     return () => {
       setHeaderContent(null);
     };
-  }, [customers.length, search, selectedOrg, setHeaderContent]);
+  }, [customers.length, error, isLoading, search, selectedOrg, setHeaderContent]);
 
   if (orgsLoading) {
     return (

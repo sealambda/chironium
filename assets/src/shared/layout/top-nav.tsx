@@ -5,10 +5,14 @@ import { cn } from "@/shared/utils/utils";
 import { useDetailMode } from "./detail-context";
 import { MobileSideNav } from "./side-nav";
 
+interface TopNavProps {
+  readonly onCreateOrgClick: () => void;
+}
+
 /**
  * Top navigation bar matching the Stitch "Clients List" layout.
  */
-export function TopNav() {
+export function TopNav({ onCreateOrgClick }: TopNavProps) {
   const { isLoading } = useCurrentUser();
   const { isDetailMode, headerContent } = useDetailMode();
 
@@ -48,7 +52,7 @@ export function TopNav() {
     <header className={headerClasses}>
       <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
         <div className="sm:hidden">
-          <MobileSideNav />
+          <MobileSideNav onCreateOrgClick={onCreateOrgClick} />
         </div>
         <div className="min-w-0 flex-1">{headerContent}</div>
       </div>
