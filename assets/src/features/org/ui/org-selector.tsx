@@ -69,8 +69,8 @@ export function OrgSelector({
         </span>
         <span
           className={cn(
-            "min-w-0 flex-1",
-            !showNameOnMobile && "hidden md:block",
+            "min-w-0",
+            showNameOnMobile ? "flex-none" : "hidden flex-1 md:block",
           )}
         >
           <span className="block truncate font-bold text-lg text-foreground leading-none tracking-tight">
