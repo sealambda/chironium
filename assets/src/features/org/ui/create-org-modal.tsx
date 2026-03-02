@@ -13,11 +13,10 @@ import * as m from "@/paraglide/messages";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { StepIndicator } from "@/shared/ui/step-indicator";
+import { ResponsiveStepIndicator } from "@/shared/ui/responsive-step-indicator";
 
 import { OrgDetailsStep } from "./org-details-step";
 import { PlansStep } from "./plans-step";
@@ -27,7 +26,18 @@ interface CreateOrgModalProps {
   readonly onOpenChange: (open: boolean) => void;
 }
 
-const STEPS = [{ label: () => m.org_step_details() }, { label: () => m.org_step_plans() }];
+const STEPS = [
+  {
+    label: () => m.org_step_details(),
+    title: () => m.org_step_details_title(),
+    description: () => m.org_step_details_desc(),
+  },
+  {
+    label: () => m.org_step_plans(),
+    title: () => m.org_step_plans_title(),
+    description: () => m.org_step_plans_desc(),
+  },
+];
 
 const EMPTY_DRAFT: OrgCreationDraft = {
   orgDetails: null,
@@ -59,10 +69,13 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
     setTimeout(resetState, 200);
   }, [onOpenChange, resetState]);
 
-  const handleOrgDetailsNext = useCallback((data: { name: string; slug: string }) => {
-    setDraft((prev) => ({ ...prev, orgDetails: data }));
-    setCurrentStep(1);
-  }, []);
+  const handleOrgDetailsNext = useCallback(
+    (data: { name: string; slug: string }) => {
+      setDraft((prev) => ({ ...prev, orgDetails: data }));
+      setCurrentStep(1);
+    },
+    [],
+  );
 
   const handleFinish = useCallback(
     async (plans: PlanFormData[]) => {
@@ -77,7 +90,8 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
         toast.success(m.org_created());
         handleClose();
       } catch (err) {
-        const message = err instanceof Error ? err.message : m.org_create_error();
+        const message =
+          err instanceof Error ? err.message : m.org_create_error();
         setError(message);
       } finally {
         setIsSubmitting(false);
@@ -87,16 +101,21 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
   );
 
   const stepLabels = STEPS.map((s) => ({ label: s.label() }));
+  const currentStepMeta = STEPS[currentStep];
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{m.org_create()}</DialogTitle>
-          <DialogDescription>{m.org_create_desc()}</DialogDescription>
         </DialogHeader>
 
-        <StepIndicator steps={stepLabels} currentStep={currentStep} />
+        <ResponsiveStepIndicator steps={stepLabels} currentStep={currentStep} />
+
+        <div className="space-y-1">
+          <h3 className="font-medium text-base">{currentStepMeta.title()}</h3>
+          <p className="text-muted-foreground text-sm">{currentStepMeta.description()}</p>
+        </div>
 
         {error ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
