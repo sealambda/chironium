@@ -8,12 +8,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { cn } from "@/shared/utils/utils";
 
 interface OrgSelectorProps {
   selectedOrg: OrganizationRecord | null;
   availableOrgs: OrganizationRecord[];
   onSelectOrg: (orgId: string) => void;
   onCreateClick: () => void;
+  showNameOnMobile?: boolean;
+}
+
+function getOrgMark(name: string | null): string {
+  if (!name) {
+    return "O";
+  }
+
+  const parts = name.trim().split(/\s+/).filter(Boolean).slice(0, 2);
+
+  if (parts.length === 0) {
+    return "O";
+  }
+
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
 
 /**
@@ -25,26 +41,50 @@ export function OrgSelector({
   availableOrgs,
   onSelectOrg,
   onCreateClick,
+  showNameOnMobile = false,
 }: Readonly<OrgSelectorProps>) {
+  const orgName = selectedOrg ? selectedOrg.name : m.org_none();
+  const orgMark = getOrgMark(selectedOrg?.name ?? null);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <button
             type="button"
-            className={[
-              "flex items-center gap-1",
-              "text-left font-semibold text-sm",
-              "text-foreground transition-colors hover:text-primary focus-visible:text-primary",
+            className={cn([
+              "group flex w-full items-center gap-2 rounded-lg py-1",
+              showNameOnMobile
+                ? "justify-start px-1"
+                : "justify-center px-0 md:justify-start md:px-1",
+              "cursor-pointer",
+              "text-left transition-colors hover:bg-accent/50 focus-visible:bg-accent/50",
               "focus-visible:outline-none",
-            ].join(" ")}
+            ])}
           />
         }
       >
-        {selectedOrg ? selectedOrg.name : m.org_none()}
-        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/15 font-bold text-primary text-sm">
+          {orgMark}
+        </span>
+        <span
+          className={cn(
+            "min-w-0 flex-1",
+            !showNameOnMobile && "hidden md:block",
+          )}
+        >
+          <span className="block truncate font-bold text-lg text-foreground leading-none tracking-tight">
+            {orgName}
+          </span>
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-65 transition-opacity group-hover:opacity-100",
+            !showNameOnMobile && "hidden md:block",
+          )}
+        />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48 p-0">
+      <DropdownMenuContent align="start" className="w-56 p-0">
         <div className="p-1">
           {availableOrgs.map((org) => (
             <DropdownMenuItem
@@ -60,12 +100,13 @@ export function OrgSelector({
           <button
             type="button"
             onClick={onCreateClick}
-            className={[
+            className={cn([
               "flex h-9 w-full items-center gap-1.5 px-3",
+              "cursor-pointer",
               "font-medium text-primary text-xs",
               "transition-colors hover:bg-accent",
               "focus-visible:bg-accent focus-visible:outline-none",
-            ].join(" ")}
+            ])}
           >
             <Plus className="h-3.5 w-3.5" />
             {m.org_create()}

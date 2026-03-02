@@ -9,7 +9,7 @@ export function getInitials(name: string): string {
     return "?";
   }
   const firstInitial = parts[0][0] || "";
-  const lastInitial = parts.length > 1 ? parts[parts.length - 1][0] || "" : "";
+  const lastInitial = parts.length > 1 ? parts.at(-1)?.[0] || "" : "";
   return `${firstInitial}${lastInitial || firstInitial}`.toUpperCase();
 }
 
@@ -28,4 +28,18 @@ export function getInitialsFromEmail(email: string): string {
     return parts[0][0].toUpperCase();
   }
   return "?";
+}
+
+/**
+ * Generate user initials from name, falling back to email.
+ */
+export function getUserInitials(
+  name: string | null | undefined,
+  email: string | undefined,
+): string {
+  if (!email) {
+    return "?";
+  }
+
+  return name ? getInitials(name) : getInitialsFromEmail(email);
 }

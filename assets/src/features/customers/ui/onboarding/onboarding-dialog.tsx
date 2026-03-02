@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/shared/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
-import { StepIndicator } from "@/shared/ui/step-indicator";
+import { ResponsiveStepIndicator } from "@/shared/ui/responsive-step-indicator";
 
 import { AllergiesStep } from "./allergies-step";
 import { AnthropometryStep } from "./anthropometry-step";
@@ -162,7 +162,6 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   }, [hasDraftData, handleClose]);
 
   const stepLabels = STEPS.map((s) => ({ label: s.label() }));
-
   return (
     <>
       <Dialog open={open} onOpenChange={handleDialogChange}>
@@ -171,7 +170,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
             <DialogTitle>{m.onboarding_title()}</DialogTitle>
           </DialogHeader>
 
-          <StepIndicator steps={stepLabels} currentStep={wizard.currentStep} />
+          <ResponsiveStepIndicator steps={stepLabels} currentStep={wizard.currentStep} />
 
           {wizard.error ? (
             <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
