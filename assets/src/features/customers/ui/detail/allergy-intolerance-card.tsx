@@ -63,9 +63,9 @@ function TagColumn({ label, tags, tagClassName, emptyText, className }: Readonly
         <p className="text-foreground/40 text-sm italic">{emptyText}</p>
       ) : (
         <div className="flex flex-wrap gap-1.5">
-          {tags.map((tag) => (
+          {tags.map((tag, i) => (
             <span
-              key={tag}
+              key={`${tag}-${i}`}
               className={`inline-flex items-center rounded-full border px-3 py-1 text-sm ${tagClassName}`}
             >
               {tag}
