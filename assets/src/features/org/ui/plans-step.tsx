@@ -42,7 +42,7 @@ interface LocalPlan extends PlanFormData {
 }
 
 /**
- * Step 2: Define subscription plans for the new organisation.
+ * Step 2: Define subscription plans for the new organization.
  * Plans are accumulated locally and submitted in batch on finish.
  */
 export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: PlansStepProps) {

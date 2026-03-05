@@ -115,7 +115,7 @@ export interface SubscriptionFormData {
 
 // ─── Functions ───────────────────────────────────────────────────────
 
-/** Fetch subscriptions with nested person and plan data for an organisation. */
+/** Fetch subscriptions with nested person and plan data for an organization. */
 export async function fetchSubscriptionsWithPerson(
   organizationId: string,
 ): Promise<SubscriptionWithPerson[]> {
@@ -171,7 +171,7 @@ export async function createSubscription(
   unwrapMutationResult(result.createSubscription, "Failed to create subscription.");
 }
 
-/** Fetch all available subscription plans for the organisation. */
+/** Fetch all available subscription plans for the organization. */
 export async function fetchSubscriptionPlans(organizationId: string): Promise<SubscriptionPlan[]> {
   const data = await requestGraphql({
     document: ListSubscriptionPlansQuery,
