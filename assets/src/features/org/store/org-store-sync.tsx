@@ -6,7 +6,7 @@ import { fetchAccessibleOrganizations } from "@/features/org/api/org-api";
 import { ORG_QUERY_KEY, useOrgStore } from "./org-store";
 
 /**
- * Syncs the org store with accessible organisation queries.
+ * Syncs the org store with accessible organization queries.
  * Render within authenticated routes to keep org state fresh.
  */
 export function OrgStoreSync() {

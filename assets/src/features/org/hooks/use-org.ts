@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useOrgStore } from "@/features/org/store/org-store";
 
 /**
- * Hook to access organisation state.
+ * Hook to access organization state.
  */
 export function useOrg() {
   return useOrgStore(
