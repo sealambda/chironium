@@ -8,6 +8,7 @@ interface ThemeContextValue {
 }
 
 const STORAGE_KEY = "chironium-theme";
+const VALID_THEMES = new Set<Theme>(["light", "dark", "system"]);
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
@@ -16,25 +17,35 @@ interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
+function getStoredTheme(): Theme | null {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return stored && VALID_THEMES.has(stored as Theme) ? (stored as Theme) : null;
+}
+
 /**
  * Manages dark/light/system theme by toggling a `.dark` class on `<html>`.
  * Persists the user's choice in localStorage.
  */
 export function ThemeProvider({ children, defaultTheme = "system" }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(
-    () => (localStorage.getItem(STORAGE_KEY) as Theme) || defaultTheme,
-  );
+  const [theme, setThemeState] = useState<Theme>(() => getStoredTheme() ?? defaultTheme);
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("light", "dark");
 
     if (theme === "system") {
-      const resolved = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      root.classList.add(resolved);
-      return;
+      const mql = window.matchMedia("(prefers-color-scheme: dark)");
+
+      const applySystemTheme = () => {
+        root.classList.remove("light", "dark");
+        root.classList.add(mql.matches ? "dark" : "light");
+      };
+
+      applySystemTheme();
+      mql.addEventListener("change", applySystemTheme);
+      return () => mql.removeEventListener("change", applySystemTheme);
     }
 
+    root.classList.remove("light", "dark");
     root.classList.add(theme);
   }, [theme]);
 
