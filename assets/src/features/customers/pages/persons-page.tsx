@@ -4,9 +4,11 @@ import { Building2, Plus, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  fetchSubscriptionsWithPerson,
-  type SubscriptionWithPerson,
-} from "@/features/customers/api/subscriptions-api";
+  type CustomerListItem,
+  fetchPersons,
+  mergePersonsWithSubscriptions,
+} from "@/features/customers/api/persons-api";
+import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
@@ -19,7 +21,8 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-
 import { formatPersonName } from "@/shared/utils/person-utils";
 
 /**
- * Customers page displaying a scrollable list of customer cards.
+ * Customers page displaying a scrollable list of all persons, with subscription
+ * data shown where available.
  */
 export function CustomersPage() {
   const { selectedOrg, loading: orgsLoading } = useOrg();
@@ -28,23 +31,39 @@ export function CustomersPage() {
   const [search, setSearch] = useState("");
 
   const {
-    data: customers = [],
-    isLoading,
-    error,
-  } = useQuery<SubscriptionWithPerson[]>({
-    queryKey: ["customers", "list", selectedOrg?.id],
-    queryFn: () => fetchSubscriptionsWithPerson(selectedOrg?.id ?? ""),
+    data: persons = [],
+    isLoading: personsLoading,
+    error: personsError,
+  } = useQuery({
+    queryKey: ["customers", "persons", selectedOrg?.id],
+    queryFn: () => fetchPersons(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg),
   });
+
+  const {
+    data: subscriptions = [],
+    isLoading: subscriptionsLoading,
+    error: subscriptionsError,
+  } = useQuery({
+    queryKey: ["customers", "subscriptions", selectedOrg?.id],
+    queryFn: () => fetchSubscriptions(selectedOrg?.id ?? ""),
+    enabled: Boolean(selectedOrg),
+  });
+
+  const isLoading = personsLoading || subscriptionsLoading;
+  const error = personsError ?? subscriptionsError;
+
+  const customers = useMemo(
+    () => mergePersonsWithSubscriptions(persons, subscriptions),
+    [persons, subscriptions],
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) {
       return customers;
     }
-    return customers.filter((sub) =>
-      formatPersonName(sub.subscriber.name).toLowerCase().includes(q),
-    );
+    return customers.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
   }, [customers, search]);
 
   useEffect(() => {
@@ -168,7 +187,7 @@ function CustomerList({
   isEmpty,
   onAdd,
 }: Readonly<{
-  items: SubscriptionWithPerson[];
+  items: CustomerListItem[];
   isEmpty: boolean;
   onAdd: () => void;
 }>) {
@@ -194,9 +213,9 @@ function CustomerList({
       <div className="space-y-3 lg:hidden">
         {items.map((item) => (
           <Link
-            key={item.subscriber.id}
+            key={item.person.id}
             to="/customers/$customerId"
-            params={{ customerId: item.subscriber.id }}
+            params={{ customerId: item.person.id }}
             className="block"
           >
             <PersonCard item={item} />

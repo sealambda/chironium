@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { addMonths, formatISO } from "date-fns";
 
-import type { SubscriptionWithPerson } from "@/features/customers/api/subscriptions-api";
+import type { CustomerListItem } from "@/features/customers/api/persons-api";
 import * as m from "@/paraglide/messages";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
@@ -11,11 +11,11 @@ import { durationToMonths } from "@/shared/utils/duration-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
 
 interface CustomerTableProps {
-  items: SubscriptionWithPerson[];
+  items: CustomerListItem[];
 }
 
 /**
- * Desktop table view of customer subscriptions, including contact actions and progress bars.
+ * Desktop table view of persons with optional subscription progress.
  */
 export function CustomerTable({ items }: Readonly<CustomerTableProps>) {
   const navigate = useNavigate();
@@ -32,22 +32,27 @@ export function CustomerTable({ items }: Readonly<CustomerTableProps>) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item) => {
-            const name = formatPersonName(item.subscriber.name);
-            const contact = extractContactInfo(item.subscriber.telecom);
-            const planDurationMonths = durationToMonths(item.plan.duration);
-            const endDate = formatISO(addMonths(new Date(item.startDate), planDurationMonths), {
-              representation: "date",
-            });
+          {items.map(({ person, subscription }) => {
+            const name = formatPersonName(person.name);
+            const contact = extractContactInfo(person.telecom);
+            const planDurationMonths = subscription
+              ? durationToMonths(subscription.plan?.duration)
+              : null;
+            const endDate =
+              subscription && planDurationMonths
+                ? formatISO(addMonths(new Date(subscription.startDate), planDurationMonths), {
+                    representation: "date",
+                  })
+                : null;
 
             return (
               <TableRow
-                key={item.subscriber.id}
+                key={person.id}
                 className="cursor-pointer"
                 onClick={() =>
                   navigate({
                     to: "/customers/$customerId",
-                    params: { customerId: item.subscriber.id },
+                    params: { customerId: person.id },
                   })
                 }
               >
@@ -55,13 +60,21 @@ export function CustomerTable({ items }: Readonly<CustomerTableProps>) {
                 <TableCell>
                   <ContactButtonGroup {...contact} personName={name} stopPropagation />
                 </TableCell>
-                <TableCell className="text-muted-foreground">{planDurationMonths} mo.</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {planDurationMonths ? `${planDurationMonths} mo.` : "—"}
+                </TableCell>
                 <TableCell className="min-w-56">
-                  <SubscriptionProgress
-                    startDate={item.startDate}
-                    endDate={endDate}
-                    planDurationMonths={planDurationMonths}
-                  />
+                  {subscription && endDate && planDurationMonths ? (
+                    <SubscriptionProgress
+                      startDate={subscription.startDate}
+                      endDate={endDate}
+                      planDurationMonths={planDurationMonths}
+                    />
+                  ) : (
+                    <span className="text-muted-foreground text-sm">
+                      {m.customer_no_subscription()}
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             );

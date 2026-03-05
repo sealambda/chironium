@@ -2,7 +2,7 @@ import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
 import { Globe, Mail } from "lucide-react";
 import { useMemo } from "react";
 
-import type { SubscriptionWithPerson } from "@/features/customers/api/subscriptions-api";
+import type { Person } from "@/features/customers/api/persons-api";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import {
   extractContactInfo,
@@ -16,13 +16,13 @@ import { formatPersonName } from "@/shared/utils/person-utils";
 import { analyzePhoneNumber, formatPhoneDisplay, getCountryFlag } from "@/shared/utils/phone-utils";
 
 interface PersonProfileCardProps {
-  item: SubscriptionWithPerson;
+  person: Person;
 }
 
-export function PersonProfileCard({ item }: Readonly<PersonProfileCardProps>) {
-  const name = formatPersonName(item.subscriber.name);
+export function PersonProfileCard({ person }: Readonly<PersonProfileCardProps>) {
+  const name = formatPersonName(person.name);
   const initials = getInitials(name);
-  const { email, phone, instagram } = extractContactInfo(item.subscriber.telecom);
+  const { email, phone, instagram } = extractContactInfo(person.telecom);
 
   const phoneAnalysis = useMemo(() => (phone ? analyzePhoneNumber(phone) : null), [phone]);
   const formattedPhone = phone ? formatPhoneDisplay(phone) : null;

@@ -65,6 +65,20 @@ const PatientDetailByPersonQuery = graphql(`
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
+const CreatePatientMutation = graphql(`
+  mutation CreatePatient($input: CreatePatientInput!) {
+    createPatient(input: $input) {
+      result {
+        id
+        personId
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 const CreatePatientWithPersonMutation = graphql(`
   mutation CreatePatientWithPerson($input: CreatePatientWithPersonInput) {
     createPatientWithPerson(input: $input) {
@@ -163,4 +177,22 @@ export async function fetchPatientDetail(
   });
 
   return result.listPatients?.results?.[0] ?? null;
+}
+
+/**
+ * Create a patient record linked to an existing person.
+ * Returns the new patient ID.
+ */
+export async function createPatientForPerson(
+  personId: string,
+  organizationId: string,
+): Promise<string> {
+  const result = await requestGraphql({
+    document: CreatePatientMutation,
+    variables: { input: { personId } },
+    organizationId,
+  });
+
+  const patient = unwrapMutationResult(result.createPatient, "Failed to create patient record.");
+  return patient.id;
 }
