@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ColumnDef, Row } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { PlusIcon } from "lucide-react";
 
 import {
   fetchObservationsList,
   getObservationDisplayValue,
-  getObservationLabel,
   isClinicalNote,
   type ObservationItem,
   parseClinicalNote,
@@ -20,7 +19,6 @@ import { Route } from "@/routes/_app/customers_.$customerId_.observations";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
-import { MarkdownContent } from "@/shared/ui/markdown-content";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 
@@ -31,9 +29,10 @@ function formatDate(value: string | null | undefined): string {
   return format(new Date(value), "PP", { locale: getDateLocale() });
 }
 
-function getRowTitle(obs: ObservationItem): string {
+function getRowNote(obs: ObservationItem): string {
   if (isClinicalNote(obs)) {
-    return parseClinicalNote(obs).title;
+    const { title, body } = parseClinicalNote(obs);
+    return body ? `${title}\n\n${body}` : title;
   }
   return getObservationDisplayValue(obs);
 }
@@ -45,52 +44,22 @@ const columns: ColumnDef<ObservationItem, unknown>[] = [
     header: ({ column }) => (
       <SortableHeader column={column}>{m.observations_col_date()}</SortableHeader>
     ),
-    cell: ({ getValue }) => formatDate(getValue() as string | null),
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap">{formatDate(getValue() as string | null)}</span>
+    ),
     sortingFn: "datetime",
   },
   {
-    id: "type",
-    accessorFn: (row) => getObservationLabel(row.code),
-    header: ({ column }) => (
-      <SortableHeader column={column}>{m.observations_col_type()}</SortableHeader>
-    ),
-  },
-  {
     id: "value",
-    accessorFn: (row) => getRowTitle(row),
+    accessorFn: (row) => getRowNote(row),
     header: ({ column }) => (
       <SortableHeader column={column}>{m.observations_col_value()}</SortableHeader>
     ),
-    cell: ({ getValue }) => {
-      const title = getValue() as string;
-      return <span className="line-clamp-1 max-w-md">{title}</span>;
-    },
+    cell: ({ getValue }) => (
+      <p className="break-words text-justify text-sm">{getValue() as string}</p>
+    ),
   },
 ];
-
-function ExpandedObservation({ row }: Readonly<{ row: Row<ObservationItem> }>) {
-  const obs = row.original;
-
-  if (isClinicalNote(obs)) {
-    const { title, body } = parseClinicalNote(obs);
-    return (
-      <div className="max-w-2xl space-y-2">
-        <h2 className="font-semibold text-foreground text-lg">{title}</h2>
-        {body ? (
-          <MarkdownContent content={body} />
-        ) : (
-          <p className="text-foreground/50 text-sm italic">{"\u2014"}</p>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-2xl">
-      <p className="text-foreground/80 text-sm">{getObservationDisplayValue(obs)}</p>
-    </div>
-  );
-}
 
 export function ObservationsListPage() {
   const { customerId } = Route.useParams();
@@ -127,7 +96,6 @@ export function ObservationsListPage() {
           columns={columns}
           data={data?.items ?? []}
           sorting={[{ id: "date", desc: true }]}
-          renderExpandedRow={(row) => <ExpandedObservation row={row} />}
           pinFirstColumn
         />
       )}
