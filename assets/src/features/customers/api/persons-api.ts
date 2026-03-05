@@ -1,6 +1,8 @@
 import { graphql, type ResultOf } from "@/graphql";
+import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
+import type { PersonFormData } from "./patients-api";
 import type { SubscriptionListItem } from "./subscriptions-api";
 
 // ─── Queries ─────────────────────────────────────────────────────────
@@ -20,6 +22,31 @@ const ListPersonsQuery = graphql(`
         }
         birthDate
         gender
+      }
+    }
+  }
+`);
+
+// ─── Mutations ───────────────────────────────────────────────────────
+
+const UpdatePersonMutation = graphql(`
+  mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {
+    updatePerson(id: $id, input: $input) {
+      result {
+        id
+        name {
+          given
+          family
+        }
+        telecom {
+          system
+          value
+        }
+        gender
+        birthDate
+      }
+      errors {
+        message
       }
     }
   }
@@ -89,4 +116,38 @@ export function mergePersonsWithSubscriptions(
     const bName = b.person.name?.[0]?.family ?? "";
     return aName.localeCompare(bName);
   });
+}
+
+/** Update a person's demographics and contact info. */
+export async function updatePerson(
+  personId: string,
+  data: PersonFormData,
+  organizationId: string,
+): Promise<void> {
+  const telecom: Array<{ system: string; value: string }> = [];
+  if (data.phone) {
+    telecom.push({ system: "PHONE", value: data.phone });
+  }
+  if (data.email) {
+    telecom.push({ system: "EMAIL", value: data.email });
+  }
+  if (data.instagram) {
+    telecom.push({ system: "URL", value: data.instagram });
+  }
+
+  const result = await requestGraphql({
+    document: UpdatePersonMutation,
+    variables: {
+      id: personId,
+      input: {
+        name: [{ given: [data.givenName], family: data.familyName }],
+        birthDate: data.birthDate || undefined,
+        gender: data.gender || undefined,
+        telecom: telecom.length > 0 ? telecom : undefined,
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.updatePerson, "Failed to update person.");
 }

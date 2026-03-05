@@ -31,6 +31,8 @@ import { StepLayout } from "./step-layout";
 
 interface PersonStepProps {
   readonly initialData?: PersonFormData;
+  readonly isSubmitting?: boolean;
+  readonly submitLabel?: string;
   readonly onSubmit: (data: PersonFormData) => void;
   readonly onCancel: () => void;
 }
@@ -45,7 +47,13 @@ const GENDER_OPTIONS: { value: AdministrativeGender; label: () => string }[] = [
 /**
  * Step 1: Collect personal information to create a patient with a person record.
  */
-export function PersonStep({ initialData, onSubmit, onCancel }: PersonStepProps) {
+export function PersonStep({
+  initialData,
+  isSubmitting,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: PersonStepProps) {
   const form = useForm({
     defaultValues: {
       givenName: initialData?.givenName ?? "",
@@ -75,6 +83,8 @@ export function PersonStep({ initialData, onSubmit, onCancel }: PersonStepProps)
     <StepLayout
       title={m.step_personal_title()}
       description={m.step_personal_desc()}
+      isSubmitting={isSubmitting}
+      submitLabel={submitLabel}
       onSubmit={() => form.handleSubmit()}
       onCancel={onCancel}
     >
