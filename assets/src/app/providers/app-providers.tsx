@@ -6,6 +6,7 @@ import { InnerApp } from "@/app/inner-app";
 import { router } from "@/app/router";
 import { UserStoreSync } from "@/features/user/store/user-store-sync";
 import { LocaleProvider } from "@/shared/i18n/locale-provider";
+import { ThemeProvider } from "@/shared/theme/theme-provider";
 import { Toaster } from "@/shared/ui/sonner";
 
 import { queryClient } from "./query-client";
@@ -25,9 +26,11 @@ export function AppProviders() {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <UserStoreSync />
-        <LocaleProvider>
-          <InnerApp router={router} />
-        </LocaleProvider>
+        <ThemeProvider defaultTheme="system">
+          <LocaleProvider>
+            <InnerApp router={router} />
+          </LocaleProvider>
+        </ThemeProvider>
         <Toaster />
         {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
       </QueryClientProvider>
