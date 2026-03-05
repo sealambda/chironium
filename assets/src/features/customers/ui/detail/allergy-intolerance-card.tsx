@@ -36,13 +36,8 @@ interface AllergyIntoleranceCardProps {
 function parseItemTags(items: AllergyIntoleranceItem[], type: string): string[] {
   return items
     .filter((item) => item.type === type)
-    .flatMap(
-      (item) =>
-        item.code?.text
-          ?.split(",")
-          .map((t) => t.trim())
-          .filter(Boolean) ?? [],
-    );
+    .map((item) => item.code?.text ?? item.code?.coding?.[0]?.display ?? "")
+    .filter(Boolean);
 }
 
 // ─── Tag column ─────────────────────────────────────────────────────
@@ -115,16 +110,16 @@ function AddAllergyIntoleranceDialog({
     setSaving(true);
     try {
       await createAllergiesAndIntolerances(
-        {
-          allergies: allergies.join(", "),
-          intolerances: intolerances.join(", "),
-        },
+        { allergies, intolerances },
         patientId,
         selectedOrg?.id ?? "",
       );
 
       await queryClient.invalidateQueries({
         queryKey: ["person", personId, "allergyIntolerances"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["person", personId, "patient-detail"],
       });
 
       toast.success(m.allergy_intolerance_add_success());

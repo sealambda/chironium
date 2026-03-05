@@ -7,6 +7,7 @@ import {
   fetchSubscriptionsWithPerson,
   type SubscriptionWithPerson,
 } from "@/features/customers/api/subscriptions-api";
+import { CustomerTable } from "@/features/customers/ui/customer-table";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -188,17 +189,25 @@ function CustomerList({
   }
 
   return (
-    <div className="space-y-3">
-      {items.map((item) => (
-        <Link
-          key={item.subscriber.id}
-          to="/customers/$customerId"
-          params={{ customerId: item.subscriber.id }}
-          className="block"
-        >
-          <PersonCard item={item} />
-        </Link>
-      ))}
-    </div>
+    <>
+      {/* Mobile: stacked cards */}
+      <div className="space-y-3 lg:hidden">
+        {items.map((item) => (
+          <Link
+            key={item.subscriber.id}
+            to="/customers/$customerId"
+            params={{ customerId: item.subscriber.id }}
+            className="block"
+          >
+            <PersonCard item={item} />
+          </Link>
+        ))}
+      </div>
+
+      {/* Desktop: data table */}
+      <div className="hidden lg:block">
+        <CustomerTable items={items} />
+      </div>
+    </>
   );
 }

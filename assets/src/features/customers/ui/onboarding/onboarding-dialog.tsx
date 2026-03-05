@@ -4,8 +4,8 @@ import { toast } from "sonner";
 
 import type { AllergiesFormData } from "@/features/customers/api/allergy-intolerance-api";
 import type { AnthropometryFormData } from "@/features/customers/api/anthropometry-api";
+import type { FoodFormData } from "@/features/customers/api/food-preferences-api";
 import type {
-  FoodFormData,
   MenstrualCycleFormData,
   NoteFormData,
 } from "@/features/customers/api/observations-api";

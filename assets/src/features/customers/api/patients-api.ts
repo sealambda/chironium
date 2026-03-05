@@ -1,16 +1,63 @@
-import { graphql } from "@/graphql";
+import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
-const PatientByPersonQuery = graphql(`
-  query PatientByPerson($filter: PatientFilterInput, $first: Int) {
-    listPatients(filter: $filter, first: $first) {
+const PatientDetailByPersonQuery = graphql(`
+  query PatientDetailByPerson($personId: ID!) {
+    listPatients(filter: { personId: { eq: $personId } }, first: 1) {
       results {
         id
         personId
+        person {
+          id
+          name {
+            given
+            family
+          }
+          telecom {
+            system
+            value
+            use
+          }
+          gender
+          birthDate
+        }
+        allergyIntolerances {
+          id
+          type
+          clinicalStatus
+          code {
+            text
+            coding {
+              display
+            }
+          }
+        }
+        goals(
+          filter: { lifecycleStatus: { eq: ACTIVE } }
+          sort: [{ field: PRIORITY, order: ASC }]
+        ) {
+          id
+          lifecycleStatus
+          achievementStatus
+          priority
+          description {
+            text
+          }
+          startDate
+          dueDate
+          category
+        }
+        nutritionPlans {
+          id
+          targetKcal
+          proteinG
+          carbsG
+          fatG
+        }
       }
     }
   }
@@ -50,6 +97,11 @@ export interface CreatePatientResult {
   patientId: string;
   personId: string;
 }
+
+/** Full patient record returned by the detail query. */
+export type PatientDetail = NonNullable<
+  NonNullable<ResultOf<typeof PatientDetailByPersonQuery>["listPatients"]>["results"]
+>[number];
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -93,25 +145,22 @@ export async function createPatientWithPerson(
 }
 
 /**
- * Fetch the patient record associated with a person.
- * Returns the patient ID, or null if no patient exists for the person.
+ * Fetch the full patient detail for a person, including demographics, goals,
+ * nutrition plans, and allergy intolerances. Returns null if no patient exists.
  */
-export async function fetchPatientByPerson(
+export async function fetchPatientDetail(
   personId: string,
   organizationId: string,
-): Promise<string | null> {
+): Promise<PatientDetail | null> {
   if (!personId || !organizationId) {
     return null;
   }
 
   const result = await requestGraphql({
-    document: PatientByPersonQuery,
-    variables: {
-      filter: { personId: { eq: personId } },
-      first: 1,
-    },
+    document: PatientDetailByPersonQuery,
+    variables: { personId },
     organizationId,
   });
 
-  return result.listPatients?.results?.[0]?.id ?? null;
+  return result.listPatients?.results?.[0] ?? null;
 }

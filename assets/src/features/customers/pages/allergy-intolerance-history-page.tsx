@@ -41,7 +41,7 @@ const columns: ColumnDef<AllergyIntoleranceItem, unknown>[] = [
   },
   {
     id: "items",
-    accessorFn: (row) => row.code?.text ?? "\u2014",
+    accessorFn: (row) => row.code?.text ?? row.code?.coding?.[0]?.display ?? "—",
     header: ({ column }) => (
       <SortableHeader column={column}>{m.allergy_intolerance_history_col_items()}</SortableHeader>
     ),

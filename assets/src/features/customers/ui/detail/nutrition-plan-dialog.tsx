@@ -370,6 +370,9 @@ export function NutritionPlanDialog({
         await queryClient.invalidateQueries({
           queryKey: ["person", personId, "nutritionPlans", selectedOrg?.id ?? ""],
         });
+        await queryClient.invalidateQueries({
+          queryKey: ["person", personId, "patient-detail"],
+        });
         toast.success(m.nutrition_plan_add_success());
         setOpen(false);
         form.reset();

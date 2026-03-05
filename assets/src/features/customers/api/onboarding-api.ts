@@ -1,11 +1,10 @@
 import { type AllergiesFormData, createAllergiesAndIntolerances } from "./allergy-intolerance-api";
 import { type AnthropometryFormData, logAnthropometry } from "./anthropometry-api";
+import { createFoodObservations, type FoodFormData } from "./food-preferences-api";
 import { createGoal } from "./goals-api";
 import {
-  createFoodObservations,
   createMenstrualCycleObservation,
   createNoteObservations,
-  type FoodFormData,
   type MenstrualCycleFormData,
   type NoteFormData,
 } from "./observations-api";
@@ -40,7 +39,7 @@ function hasAnthropometryData(d: AnthropometryFormData): boolean {
 }
 
 function hasAllergyData(d: AllergiesFormData): boolean {
-  return Boolean(d.allergies.trim() || d.intolerances.trim());
+  return d.allergies.length > 0 || d.intolerances.length > 0;
 }
 
 function hasFoodData(d: FoodFormData): boolean {

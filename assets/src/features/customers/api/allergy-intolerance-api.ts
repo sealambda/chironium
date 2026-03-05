@@ -13,6 +13,9 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
         clinicalStatus
         code {
           text
+          coding {
+            display
+          }
         }
       }
     }
@@ -46,8 +49,8 @@ export type AllergyIntoleranceItem = NonNullable<
 
 /** Form data for the allergies and intolerances onboarding step. */
 export interface AllergiesFormData {
-  allergies: string;
-  intolerances: string;
+  allergies: string[];
+  intolerances: string[];
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
@@ -73,59 +76,36 @@ export async function fetchAllergyIntolerances(
 }
 
 /**
- * Create allergy and/or intolerance records. Skips empty values.
+ * Create one record per tag for allergies and intolerances.
  */
 export async function createAllergiesAndIntolerances(
   data: AllergiesFormData,
   patientId: string,
   organizationId: string,
 ): Promise<void> {
-  const promises: Promise<void>[] = [];
-
-  if (data.allergies.trim()) {
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: CreateAllergyIntoleranceMutation,
-          variables: {
-            input: {
-              type: "ALLERGY",
-              clinicalStatus: "ACTIVE",
-              verificationStatus: "CONFIRMED",
-              code: { text: data.allergies.trim() },
-              patientId,
-            },
+  const makeRecord = (type: "ALLERGY" | "INTOLERANCE", tag: string) =>
+    (async () => {
+      const result = await requestGraphql({
+        document: CreateAllergyIntoleranceMutation,
+        variables: {
+          input: {
+            type,
+            clinicalStatus: "ACTIVE",
+            verificationStatus: "CONFIRMED",
+            code: { text: tag },
+            patientId,
           },
-          organizationId,
-        });
-        unwrapMutationResult(result.createAllergyIntolerance, "Failed to create allergy record.");
-      })(),
-    );
-  }
+        },
+        organizationId,
+      });
+      unwrapMutationResult(
+        result.createAllergyIntolerance,
+        `Failed to create ${type.toLowerCase()} record.`,
+      );
+    })();
 
-  if (data.intolerances.trim()) {
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: CreateAllergyIntoleranceMutation,
-          variables: {
-            input: {
-              type: "INTOLERANCE",
-              clinicalStatus: "ACTIVE",
-              verificationStatus: "CONFIRMED",
-              code: { text: data.intolerances.trim() },
-              patientId,
-            },
-          },
-          organizationId,
-        });
-        unwrapMutationResult(
-          result.createAllergyIntolerance,
-          "Failed to create intolerance record.",
-        );
-      })(),
-    );
-  }
-
-  await Promise.all(promises);
+  await Promise.all([
+    ...data.allergies.map((tag) => makeRecord("ALLERGY", tag)),
+    ...data.intolerances.map((tag) => makeRecord("INTOLERANCE", tag)),
+  ]);
 }
