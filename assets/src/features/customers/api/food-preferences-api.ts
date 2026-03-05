@@ -13,6 +13,8 @@ const ListFoodPreferenceObservationsQuery = graphql(`
     listFoodPreferenceObservations(filter: $filter, sort: $sort, first: $first) {
       results {
         id
+        effectiveDateTime
+        valueString
         valueCodeableConcept {
           coding {
             display
@@ -32,6 +34,8 @@ const ListFoodAversionObservationsQuery = graphql(`
     listFoodAversionObservations(filter: $filter, sort: $sort, first: $first) {
       results {
         id
+        effectiveDateTime
+        valueString
         valueCodeableConcept {
           coding {
             display
@@ -84,6 +88,14 @@ export interface FoodPreferencesData {
   excluded: string[];
 }
 
+/** A single row for the food preferences history table. */
+export interface FoodPreferenceHistoryItem {
+  id: string;
+  date: string | null;
+  type: "inclusion" | "exclusion";
+  items: string;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
@@ -95,6 +107,61 @@ function buildSubjectFilter(personId: string) {
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
+
+/**
+ * Fetch food preference and aversion observations for the history table.
+ * Returns one row per observation, sorted newest first.
+ */
+export async function fetchFoodPreferencesHistory(
+  personId: string,
+  organizationId: string,
+): Promise<FoodPreferenceHistoryItem[]> {
+  if (!personId || !organizationId) {
+    return [];
+  }
+
+  const variables = {
+    filter: buildSubjectFilter(personId),
+    sort: SORT_NEWEST_FIRST,
+    first: 250,
+  };
+
+  const [preferenceResult, aversionResult] = await Promise.all([
+    requestGraphql({ document: ListFoodPreferenceObservationsQuery, variables, organizationId }),
+    requestGraphql({ document: ListFoodAversionObservationsQuery, variables, organizationId }),
+  ]);
+
+  const toItems = (obs: { id: string; effectiveDateTime?: string | null; valueString?: string | null; valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null }): string => {
+    if (obs.valueString) return obs.valueString;
+    return (
+      obs.valueCodeableConcept?.coding
+        ?.flatMap((c) => (c.display ? [c.display] : []))
+        .join(", ") ?? ""
+    );
+  };
+
+  const preferences: FoodPreferenceHistoryItem[] = (
+    preferenceResult.listFoodPreferenceObservations?.results ?? []
+  ).map((obs) => ({
+    id: obs.id,
+    date: obs.effectiveDateTime ?? null,
+    type: "inclusion" as const,
+    items: toItems(obs),
+  }));
+
+  const aversions: FoodPreferenceHistoryItem[] = (
+    aversionResult.listFoodAversionObservations?.results ?? []
+  ).map((obs) => ({
+    id: obs.id,
+    date: obs.effectiveDateTime ?? null,
+    type: "exclusion" as const,
+    items: toItems(obs),
+  }));
+
+  return [...preferences, ...aversions].sort((a, b) =>
+    (b.date ?? "").localeCompare(a.date ?? ""),
+  );
+}
 
 /**
  * Fetch food preference and aversion observations for a person and return
