@@ -11,14 +11,10 @@ import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-
 import { PersonCard } from "@/features/customers/ui/person-card";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/shared/ui/input-group";
-import { useDetailMode } from "@/shared/layout/detail-context";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { formatPersonName } from "@/shared/utils/person-utils";
 
 /**
@@ -79,9 +75,7 @@ export function CustomersPage() {
     return (
       <div className="flex min-h-96 items-center justify-center">
         <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">
-            {m.common_loading()}
-          </div>
+          <div className="mb-2 font-medium text-muted-foreground">{m.common_loading()}</div>
         </div>
       </div>
     );
@@ -101,23 +95,18 @@ export function CustomersPage() {
     return (
       <div className="flex min-h-96 items-center justify-center">
         <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">
-            {m.common_loading()}
-          </div>
+          <div className="mb-2 font-medium text-muted-foreground">{m.common_loading()}</div>
         </div>
       </div>
     );
   }
 
   if (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to fetch customers";
+    const message = error instanceof Error ? error.message : "Failed to fetch customers";
     return (
       <div className="flex min-h-96 items-center justify-center">
         <div className="text-center">
-          <div className="mb-2 font-medium text-destructive">
-            {m.customers_error()}
-          </div>
+          <div className="mb-2 font-medium text-destructive">{m.customers_error()}</div>
           <div className="text-muted-foreground text-sm">{message}</div>
         </div>
       </div>
@@ -131,9 +120,7 @@ export function CustomersPage() {
           <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
             {m.customers_title()}
           </h1>
-          <span className="text-muted-foreground text-sm">
-            ({customers.length})
-          </span>
+          <span className="text-muted-foreground text-sm">({customers.length})</span>
         </div>
       </header>
 
@@ -149,10 +136,7 @@ export function CustomersPage() {
         onAdd={() => setOnboardingOpen(true)}
       />
 
-      <OnboardingDialog
-        open={onboardingOpen}
-        onOpenChange={setOnboardingOpen}
-      />
+      <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
     </div>
   );
 }
