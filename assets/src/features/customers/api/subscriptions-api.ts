@@ -4,26 +4,17 @@ import { requestGraphql } from "@/shared/api/graphql";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
-const SubscriptionsWithPersonQuery = graphql(`
-  query SubscriptionsWithPerson($first: Int) {
-    listSubscriptions(first: $first) {
+const ListSubscriptionsQuery = graphql(`
+  query ListSubscriptions($first: Int) {
+    listSubscriptions(
+      first: $first
+      sort: [{ field: START_DATE, order: DESC }]
+    ) {
       results {
         id
         state
         startDate
-        subscriber {
-          id
-          name {
-            given
-            family
-          }
-          telecom {
-            system
-            value
-          }
-          birthDate
-          gender
-        }
+        subscriberId
         plan {
           id
           duration {
@@ -92,9 +83,9 @@ const CreateSubscriptionMutation = graphql(`
 
 // ─── Types ───────────────────────────────────────────────────────────
 
-/** Subscription record with the subscriber's person and plan details. */
-export type SubscriptionWithPerson = NonNullable<
-  NonNullable<ResultOf<typeof SubscriptionsWithPersonQuery>["listSubscriptions"]>["results"]
+/** Subscription with state, start date, subscriber ID, and plan duration. Used for list merging. */
+export type SubscriptionListItem = NonNullable<
+  NonNullable<ResultOf<typeof ListSubscriptionsQuery>["listSubscriptions"]>["results"]
 >[number];
 
 /** Subscription record with state, start date, and plan duration. */
@@ -115,16 +106,14 @@ export interface SubscriptionFormData {
 
 // ─── Functions ───────────────────────────────────────────────────────
 
-/** Fetch subscriptions with nested person and plan data for an organization. */
-export async function fetchSubscriptionsWithPerson(
-  organizationId: string,
-): Promise<SubscriptionWithPerson[]> {
+/** Fetch all subscriptions for an organization, sorted by start date descending. */
+export async function fetchSubscriptions(organizationId: string): Promise<SubscriptionListItem[]> {
   if (!organizationId) {
     return [];
   }
 
   const result = await requestGraphql({
-    document: SubscriptionsWithPersonQuery,
+    document: ListSubscriptionsQuery,
     variables: { first: 250 },
     organizationId,
   });

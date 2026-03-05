@@ -1,6 +1,7 @@
 import { addMonths, formatISO } from "date-fns";
 
-import type { SubscriptionWithPerson } from "@/features/customers/api/subscriptions-api";
+import type { CustomerListItem } from "@/features/customers/api/persons-api";
+import * as m from "@/paraglide/messages";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
@@ -8,19 +9,24 @@ import { durationToMonths } from "@/shared/utils/duration-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
 
 interface PersonCardProps {
-  item: SubscriptionWithPerson;
+  item: CustomerListItem;
 }
 
 /**
- * Person card displaying subscription progress, contact actions, and status.
+ * Person card displaying contact actions and, when a subscription exists, its progress.
  */
 export function PersonCard({ item }: Readonly<PersonCardProps>) {
-  const name = formatPersonName(item.subscriber.name);
-  const contact = extractContactInfo(item.subscriber.telecom);
-  const planDurationMonths = durationToMonths(item.plan.duration);
-  const endDate = formatISO(addMonths(new Date(item.startDate), planDurationMonths), {
-    representation: "date",
-  });
+  const { person, subscription } = item;
+  const name = formatPersonName(person.name);
+  const contact = extractContactInfo(person.telecom);
+
+  const planDurationMonths = subscription ? durationToMonths(subscription.plan?.duration) : null;
+  const endDate =
+    subscription && planDurationMonths
+      ? formatISO(addMonths(new Date(subscription.startDate), planDurationMonths), {
+          representation: "date",
+        })
+      : null;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-border/50 bg-card p-4 shadow-sm">
@@ -30,12 +36,16 @@ export function PersonCard({ item }: Readonly<PersonCardProps>) {
         <ContactButtonGroup {...contact} personName={name} stopPropagation />
       </div>
 
-      <SubscriptionProgress
-        startDate={item.startDate}
-        endDate={endDate}
-        planDurationMonths={planDurationMonths}
-        className="mt-4"
-      />
+      {subscription && endDate && planDurationMonths ? (
+        <SubscriptionProgress
+          startDate={subscription.startDate}
+          endDate={endDate}
+          planDurationMonths={planDurationMonths}
+          className="mt-4"
+        />
+      ) : (
+        <p className="mt-3 text-muted-foreground text-xs">{m.customer_no_subscription()}</p>
+      )}
     </article>
   );
 }

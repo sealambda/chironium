@@ -21,26 +21,44 @@ export function usePersonDetail(personId: string) {
   const organizationId = selectedOrg?.id ?? "";
   const enabled = Boolean(personId && organizationId);
 
-  // Query config factory for consistent structure
-  const queryConfig = <T>(key: string, fetchFn: (id: string, orgId: string) => Promise<T>) => ({
-    queryKey: ["person", personId, key, organizationId],
-    queryFn: () => fetchFn(personId, organizationId),
-    enabled,
-  });
-
   // Single query for patient identity and all directly associated records.
   const patientDetail = useQuery({
     queryKey: ["person", personId, "patient-detail", organizationId],
     queryFn: () => fetchPatientDetail(personId, organizationId),
     enabled,
   });
-  const subscriptions = useQuery(queryConfig("subscriptions", fetchSubscriptionsByPerson));
-  const anthropometry = useQuery(queryConfig("anthropometry", fetchAnthropometry));
-  const observations = useQuery(queryConfig("observations", fetchObservationsSummary));
-  const foodPreferences = useQuery(queryConfig("foodPreferences", fetchFoodPreferences));
 
   // Derived from the consolidated patient detail query.
   const patientId = patientDetail.data?.id ?? null;
+  const hasPatient = patientDetail.data != null;
+  const person = patientDetail.data?.person ?? null;
+
+  // Health-data queries only fire once a patient record is confirmed to exist.
+  const healthEnabled = enabled && hasPatient;
+
+  // Per-person query (does not require a patient record).
+  const subscriptions = useQuery({
+    queryKey: ["person", personId, "subscriptions", organizationId],
+    queryFn: () => fetchSubscriptionsByPerson(personId, organizationId),
+    enabled,
+  });
+
+  const anthropometry = useQuery({
+    queryKey: ["person", personId, "anthropometry", organizationId],
+    queryFn: () => fetchAnthropometry(personId, organizationId),
+    enabled: healthEnabled,
+  });
+  const observations = useQuery({
+    queryKey: ["person", personId, "observations", organizationId],
+    queryFn: () => fetchObservationsSummary(personId, organizationId),
+    enabled: healthEnabled,
+  });
+  const foodPreferences = useQuery({
+    queryKey: ["person", personId, "foodPreferences", organizationId],
+    queryFn: () => fetchFoodPreferences(personId, organizationId),
+    enabled: healthEnabled,
+  });
+
   const goals = {
     data: patientDetail.data?.goals ?? [],
     isLoading: patientDetail.isLoading,
@@ -61,6 +79,8 @@ export function usePersonDetail(personId: string) {
 
   return {
     patientId,
+    hasPatient,
+    person,
     subscriptions,
     anthropometry,
     nutritionPlans,
