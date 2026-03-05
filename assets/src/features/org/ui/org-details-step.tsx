@@ -13,7 +13,7 @@ interface OrgDetailsStepProps {
 }
 
 /**
- * Step 1: Collect organisation name and slug.
+ * Step 1: Collect organization name and slug.
  * Auto-generates the slug from the name input.
  */
 export function OrgDetailsStep({ initialData, onSubmit, onCancel }: OrgDetailsStepProps) {
