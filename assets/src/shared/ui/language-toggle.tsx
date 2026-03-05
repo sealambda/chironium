@@ -1,55 +1,68 @@
 import * as Flags from "country-flag-icons/react/3x2";
 
-import { locales } from "@/paraglide/runtime";
+import { locales, type Locale } from "@/paraglide/runtime";
+import * as m from "@/paraglide/messages";
 import { useLocale } from "@/shared/i18n/locale-provider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPositioner,
+  SelectTrigger,
+} from "@/shared/ui/select";
 import { cn } from "@/shared/utils/utils";
 
 interface LanguageToggleProps {
   className?: string;
+  /** Renders without border/background to blend into dropdown menus. */
+  variant?: "default" | "ghost";
 }
 
+const LOCALE_CONFIG: Record<Locale, { Flag: React.ElementType; label: () => string }> = {
+  en: { Flag: Flags.GB, label: m.nav_lang_en },
+  es: { Flag: Flags.ES, label: m.nav_lang_es },
+};
+
 /**
- * Inline language toggle with flags for use in dropdown menus.
- * Shows both language options as a segmented control with country flags.
+ * Language selector dropdown with country flags and language names.
  */
-export function LanguageToggle({ className }: LanguageToggleProps) {
+export function LanguageToggle({ className, variant = "default" }: LanguageToggleProps) {
   const { locale: currentLocale, setLocale } = useLocale();
+  const { Flag, label } = LOCALE_CONFIG[currentLocale];
 
   return (
-    <fieldset
-      className={cn("flex w-full items-center rounded-lg bg-muted p-1", className)}
-      aria-label="Select language"
-    >
-      {locales.map((locale) => {
-        const isSelected = locale === currentLocale;
-        const FlagComponent = locale === "en" ? Flags.GB : Flags.ES;
-        const label = locale.toUpperCase();
-
-        return (
-          <label
-            key={locale}
-            className={cn(
-              "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md px-3 py-1.5",
-              "font-medium text-sm transition-all",
-              "has-[:focus-visible]:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2",
-              isSelected
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <input
-              type="radio"
-              name="language"
-              value={locale}
-              checked={isSelected}
-              onChange={() => setLocale(locale)}
-              className="sr-only"
-            />
-            <FlagComponent className="h-4 w-6 overflow-hidden rounded-sm" aria-hidden="true" />
-            <span>{label}</span>
-          </label>
-        );
-      })}
-    </fieldset>
+    <Select value={currentLocale} onValueChange={(val) => setLocale(val as Locale)}>
+      <SelectTrigger
+        className={cn(
+          "w-full",
+          variant === "ghost" &&
+            "h-auto border-none bg-transparent px-2 py-1.5 shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-0 dark:bg-transparent dark:hover:bg-accent",
+          className,
+        )}
+      >
+        <span className="flex items-center gap-2">
+          <Flag className="h-4 w-6 shrink-0 overflow-hidden rounded-sm" aria-hidden="true" />
+          <span>{label()}</span>
+        </span>
+      </SelectTrigger>
+      <SelectPositioner>
+        <SelectContent>
+          {locales.map((locale) => {
+            const { Flag: LocaleFlag, label: localeLabel } = LOCALE_CONFIG[locale];
+            return (
+              <SelectItem key={locale} value={locale}>
+                <span className="flex items-center gap-2">
+                  <LocaleFlag
+                    className="h-4 w-6 shrink-0 overflow-hidden rounded-sm"
+                    aria-hidden="true"
+                  />
+                  {localeLabel()}
+                </span>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </SelectPositioner>
+    </Select>
   );
 }

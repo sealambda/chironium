@@ -4,7 +4,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "build": "paraglide-js compile --emit-ts-declarations && tsc -b && vite build",
+    "build": "paraglide-js compile --emit-ts-declarations --strategy cookie preferredLanguage baseLocale && tsc -b && vite build",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "dev": "vite dev",
