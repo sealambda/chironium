@@ -6,6 +6,7 @@ import { useTheme } from "@/shared/theme/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -13,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { LanguageToggle } from "@/shared/ui/language-toggle";
-import { Switch } from "@/shared/ui/switch";
 import { getUserInitials } from "@/shared/utils/name-utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { cn } from "@/shared/utils/utils";
@@ -113,14 +113,14 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: NavUserProps) 
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem
+          <DropdownMenuCheckboxItem
             closeOnClick={false}
-            onClick={() => setTheme(isDark ? "light" : "dark")}
+            checked={isDark}
+            onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
           >
             {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
-            <span className="flex-1">{m.nav_dark_mode()}</span>
-            <Switch size="sm" checked={isDark} tabIndex={-1} aria-hidden="true" />
-          </DropdownMenuItem>
+            {m.nav_dark_mode()}
+          </DropdownMenuCheckboxItem>
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />

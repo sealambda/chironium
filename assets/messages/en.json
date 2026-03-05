@@ -272,7 +272,7 @@
   "org_no_access_action": "Create New Organization",
   "org_no_access_desc": "You are not a member of any organization. Please ask your organization owner or manager to invite you, or create your own.",
   "org_no_access_title": "No organization access",
-  "org_none": "No Organizations",
+  "org_none": "No organizations",
   "org_slug": "Slug (URL identifier)",
   "org_slug_desc": "Used in URLs. Must be unique.",
   "org_slug_placeholder": "acme-corporation",

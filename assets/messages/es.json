@@ -272,7 +272,7 @@
   "org_no_access_action": "Crear nueva organización",
   "org_no_access_desc": "No eres miembro de ninguna organización. Pide al propietario o administrador de tu organización que te invite, o crea la tuya propia.",
   "org_no_access_title": "Sin acceso a ninguna organización",
-  "org_none": "Sin Organizaciones",
+  "org_none": "Sin organizaciones",
   "org_slug": "Slug (identificador URL)",
   "org_slug_desc": "Se usa en URLs. Debe ser único.",
   "org_slug_placeholder": "empresa-sl",

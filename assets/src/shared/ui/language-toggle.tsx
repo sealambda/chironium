@@ -1,7 +1,7 @@
 import * as Flags from "country-flag-icons/react/3x2";
 
-import { locales, type Locale } from "@/paraglide/runtime";
 import * as m from "@/paraglide/messages";
+import { type Locale, locales } from "@/paraglide/runtime";
 import { useLocale } from "@/shared/i18n/locale-provider";
 import {
   Select,
