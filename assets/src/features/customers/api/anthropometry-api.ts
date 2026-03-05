@@ -362,6 +362,8 @@ export async function fetchAnthropometry(
 
 /**
  * Fetch full anthropometric history for a person (up to 250 records per measurement type).
+ * Observations are grouped by calendar date so that measurements recorded on different
+ * days are never merged into the same snapshot.
  * Returns snapshots sorted DESC by date.
  */
 export async function fetchAnthropometryHistory(
@@ -382,38 +384,44 @@ export async function fetchAnthropometryHistory(
     organizationId,
   });
 
-  const maxLen = Math.max(
-    data.weight?.results?.length ?? 0,
-    data.height?.results?.length ?? 0,
-    data.bmi?.results?.length ?? 0,
-    data.chest?.results?.length ?? 0,
-    data.waist?.results?.length ?? 0,
-    data.hip?.results?.length ?? 0,
-    data.arm?.results?.length ?? 0,
-    data.thigh?.results?.length ?? 0,
-    data.whr?.results?.length ?? 0,
-  );
+  // Truncate an ISO datetime to a YYYY-MM-DD date key for grouping.
+  const toDateKey = (dt: string): string => dt.slice(0, 10);
 
-  const snapshots: AnthropometricSnapshot[] = [];
-  for (let i = 0; i < maxLen; i++) {
-    const snapshot = buildSnapshot(
-      data.weight,
-      data.height,
-      data.bmi,
-      data.chest,
-      data.waist,
-      data.hip,
-      data.arm,
-      data.thigh,
-      data.whr,
-      i,
-    );
-    if (snapshot) {
-      snapshots.push(snapshot);
+  // Accumulate one snapshot per calendar date.
+  const byDate = new Map<string, AnthropometricSnapshot>();
+
+  const merge = (
+    page: ObservationPage,
+    field: keyof Omit<AnthropometricSnapshot, "date">,
+  ) => {
+    for (const obs of page?.results ?? []) {
+      const dt = obs?.effectiveDateTime;
+      if (!dt) continue;
+      const key = toDateKey(dt);
+      if (!byDate.has(key)) {
+        byDate.set(key, { date: dt });
+      }
+      const snapshot = byDate.get(key)!;
+      // Keep the most precise datetime seen for this date.
+      if (dt > snapshot.date) snapshot.date = dt;
+      const value = extractValue(obs);
+      if (value !== undefined) {
+        (snapshot[field] as number | undefined) = value;
+      }
     }
-  }
+  };
 
-  return snapshots;
+  merge(data.weight, "weight");
+  merge(data.height, "height");
+  merge(data.bmi, "bmi");
+  merge(data.chest, "chest");
+  merge(data.waist, "waist");
+  merge(data.hip, "hip");
+  merge(data.arm, "arm");
+  merge(data.thigh, "thigh");
+  merge(data.whr, "whr");
+
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /**
