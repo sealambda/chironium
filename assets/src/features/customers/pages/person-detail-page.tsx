@@ -14,7 +14,10 @@ export function PersonDetailPage() {
 
   const detail = usePersonDetail(customerId);
 
-  useDetailModeEffect(<PersonDetailHeader />, "customer-detail");
+  useDetailModeEffect(
+    <PersonDetailHeader person={detail.person} />,
+    `customer-detail-${detail.person?.id ?? ""}`,
+  );
 
   if (detail.isLoading) {
     return (

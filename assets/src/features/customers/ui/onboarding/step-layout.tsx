@@ -11,6 +11,7 @@ interface StepLayoutProps {
   readonly isSubmitting?: boolean;
   readonly isLastStep?: boolean;
   readonly submitDisabled?: boolean;
+  readonly submitLabel?: string;
   readonly submittingLabel?: string;
   readonly onSubmit: () => void;
   readonly onBack?: () => void;
@@ -28,12 +29,13 @@ export function StepLayout({
   isSubmitting,
   isLastStep,
   submitDisabled,
+  submitLabel,
   submittingLabel,
   onSubmit,
   onBack,
   onCancel,
 }: StepLayoutProps) {
-  const submitText = isLastStep ? m.common_finish() : m.common_next();
+  const submitText = submitLabel ?? (isLastStep ? m.common_finish() : m.common_next());
   const busyText = submittingLabel ?? m.common_saving();
   const buttonLabel = isSubmitting ? busyText : submitText;
 

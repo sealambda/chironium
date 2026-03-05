@@ -390,10 +390,7 @@ export async function fetchAnthropometryHistory(
   // Accumulate one snapshot per calendar date.
   const byDate = new Map<string, AnthropometricSnapshot>();
 
-  const merge = (
-    page: ObservationPage,
-    field: keyof Omit<AnthropometricSnapshot, "date">,
-  ) => {
+  const merge = (page: ObservationPage, field: keyof Omit<AnthropometricSnapshot, "date">) => {
     for (const obs of page?.results ?? []) {
       const dt = obs?.effectiveDateTime;
       if (!dt) continue;

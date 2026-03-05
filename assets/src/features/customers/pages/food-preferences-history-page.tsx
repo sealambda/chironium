@@ -3,8 +3,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
 import {
-  fetchFoodPreferencesHistory,
   type FoodPreferenceHistoryItem,
+  fetchFoodPreferencesHistory,
 } from "@/features/customers/api/food-preferences-api";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -47,9 +47,7 @@ const columns: ColumnDef<FoodPreferenceHistoryItem, unknown>[] = [
     header: ({ column }) => (
       <SortableHeader column={column}>{m.food_preferences_history_col_type()}</SortableHeader>
     ),
-    cell: ({ getValue }) => (
-      <span className="whitespace-nowrap">{getValue() as string}</span>
-    ),
+    cell: ({ getValue }) => <span className="whitespace-nowrap">{getValue() as string}</span>,
   },
   {
     id: "items",

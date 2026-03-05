@@ -21,18 +21,10 @@ export function ThemeSwitcher() {
         }}
         className="h-9"
       >
-        <ToggleGroupItem
-          value="light"
-          aria-label={m.nav_theme_light()}
-          title={m.nav_theme_light()}
-        >
+        <ToggleGroupItem value="light" aria-label={m.nav_theme_light()} title={m.nav_theme_light()}>
           <Sun className="size-4" />
         </ToggleGroupItem>
-        <ToggleGroupItem
-          value="dark"
-          aria-label={m.nav_theme_dark()}
-          title={m.nav_theme_dark()}
-        >
+        <ToggleGroupItem value="dark" aria-label={m.nav_theme_dark()} title={m.nav_theme_dark()}>
           <Moon className="size-4" />
         </ToggleGroupItem>
         <ToggleGroupItem

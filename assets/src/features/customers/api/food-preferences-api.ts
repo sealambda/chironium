@@ -131,12 +131,16 @@ export async function fetchFoodPreferencesHistory(
     requestGraphql({ document: ListFoodAversionObservationsQuery, variables, organizationId }),
   ]);
 
-  const toItems = (obs: { id: string; effectiveDateTime?: string | null; valueString?: string | null; valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null }): string => {
+  const toItems = (obs: {
+    id: string;
+    effectiveDateTime?: string | null;
+    valueString?: string | null;
+    valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null;
+  }): string => {
     if (obs.valueString) return obs.valueString;
     return (
-      obs.valueCodeableConcept?.coding
-        ?.flatMap((c) => (c.display ? [c.display] : []))
-        .join(", ") ?? ""
+      obs.valueCodeableConcept?.coding?.flatMap((c) => (c.display ? [c.display] : [])).join(", ") ??
+      ""
     );
   };
 
@@ -158,9 +162,7 @@ export async function fetchFoodPreferencesHistory(
     items: toItems(obs),
   }));
 
-  return [...preferences, ...aversions].sort((a, b) =>
-    (b.date ?? "").localeCompare(a.date ?? ""),
-  );
+  return [...preferences, ...aversions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 }
 
 /**
@@ -221,7 +223,9 @@ export async function createFoodObservations(
           variables: {
             input: {
               valueString: includedCsv,
-              note: [{ text: includedCsv, authorReference: userId, time: new Date().toISOString() }],
+              note: [
+                { text: includedCsv, authorReference: userId, time: new Date().toISOString() },
+              ],
               subjectId,
             },
           },
@@ -240,7 +244,9 @@ export async function createFoodObservations(
           variables: {
             input: {
               valueString: excludedCsv,
-              note: [{ text: excludedCsv, authorReference: userId, time: new Date().toISOString() }],
+              note: [
+                { text: excludedCsv, authorReference: userId, time: new Date().toISOString() },
+              ],
               subjectId,
             },
           },
