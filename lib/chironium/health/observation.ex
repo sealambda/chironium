@@ -349,11 +349,19 @@ defmodule Chironium.Health.Observation do
           height_m = Decimal.div(height_cm, Decimal.new(100))
           bmi = Decimal.div(weight_kg, Decimal.mult(height_m, height_m))
 
-          Ash.Changeset.change_attribute(changeset, :value_quantity, %{
-            system: @unit_of_measure_system,
-            code: @unit_of_measure_code_bmi,
-            value: Decimal.round(bmi, 1)
-          })
+          effective_date_time =
+            Enum.max([weight.effective_date_time, height.effective_date_time], DateTime)
+
+          changeset =
+            changeset
+            |> Ash.Changeset.change_attribute(:value_quantity, %{
+              system: @unit_of_measure_system,
+              code: @unit_of_measure_code_bmi,
+              value: Decimal.round(bmi, 1)
+            })
+            |> Ash.Changeset.change_attribute(:effective_date_time, effective_date_time)
+
+          changeset
         else
           _ ->
             Ash.Changeset.add_error(changeset,
