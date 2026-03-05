@@ -111,6 +111,11 @@ export default defineConfig({
       project: "./project.inlang",
       outdir: "./src/paraglide",
       emitTsDeclarations: true,
+      // Resolve order: persisted user choice → browser language → English fallback.
+      // The cookie is written by the language toggle, so manual overrides always win.
+      // preferredLanguage reads navigator.languages and matches "es*" → es, anything else → falls through to baseLocale.
+      // globalVariable is intentionally excluded: it is testing-only and doesn't persist across page reloads.
+      strategy: ["cookie", "preferredLanguage", "baseLocale"],
     }),
     tanstackRouter({
       target: "react",

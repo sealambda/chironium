@@ -22,9 +22,7 @@ function AppShellInner({ children }: AppShellProps) {
     <div className="flex min-h-svh w-full max-w-full overflow-x-hidden bg-background">
       {/* Side Navigation - Hidden on mobile (compact), visible on tablet+ (medium+). */}
       {/* Also hidden when in detail mode. */}
-      {!isDetailMode && (
-        <SideNav onCreateOrgClick={() => setIsCreateOrgOpen(true)} />
-      )}
+      {!isDetailMode && <SideNav onCreateOrgClick={() => setIsCreateOrgOpen(true)} />}
 
       {/* Main content wrapper. */}
       <div

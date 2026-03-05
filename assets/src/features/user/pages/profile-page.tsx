@@ -1,8 +1,8 @@
 import { LogOut } from "lucide-react";
 import { useEffect } from "react";
 
-import * as m from "@/paraglide/messages";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -58,12 +58,8 @@ export function ProfilePage() {
         </AvatarFallback>
       </Avatar>
       <div className="mt-4 text-center">
-        <h1 className="font-bold text-2xl text-foreground">
-          {user?.name || m.nav_profile()}
-        </h1>
-        <p className="mt-1 text-muted-foreground text-sm">
-          {user?.email ?? "-"}
-        </p>
+        <h1 className="font-bold text-2xl text-foreground">{user?.name || m.nav_profile()}</h1>
+        <p className="mt-1 text-muted-foreground text-sm">{user?.email ?? "-"}</p>
         <div className="mt-3 flex justify-center">
           <LanguageToggle />
         </div>

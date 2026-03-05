@@ -12,10 +12,7 @@ interface ResponsiveStepIndicatorProps {
 /**
  * Shows a compact progress bar on mobile and the full step indicator on larger screens.
  */
-export function ResponsiveStepIndicator({
-  steps,
-  currentStep,
-}: ResponsiveStepIndicatorProps) {
+export function ResponsiveStepIndicator({ steps, currentStep }: ResponsiveStepIndicatorProps) {
   const progressPercent = ((currentStep + 1) / steps.length) * 100;
 
   return (
