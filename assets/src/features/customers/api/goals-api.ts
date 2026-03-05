@@ -4,30 +4,6 @@ import { requestGraphql } from "@/shared/api/graphql";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
-const ActiveGoalsByPersonQuery = graphql(`
-  query ActiveGoalsByPerson($personId: ID!) {
-    listPatients(filter: { personId: { eq: $personId } }, first: 1) {
-      results {
-        goals(
-          filter: { lifecycleStatus: { eq: ACTIVE } }
-          sort: [{ field: PRIORITY, order: ASC }]
-        ) {
-          id
-          lifecycleStatus
-          achievementStatus
-          priority
-          description {
-            text
-          }
-          startDate
-          dueDate
-          category
-        }
-      }
-    }
-  }
-`);
-
 const AllGoalsByPersonQuery = graphql(`
   query AllGoalsByPerson($personId: ID!) {
     listPatients(filter: { personId: { eq: $personId } }, first: 1) {
@@ -70,29 +46,11 @@ const CreateGoalMutation = graphql(`
 /** A single goal record returned by the list query. */
 export type GoalRecord = NonNullable<
   NonNullable<
-    NonNullable<ResultOf<typeof ActiveGoalsByPersonQuery>["listPatients"]>["results"]
+    NonNullable<ResultOf<typeof AllGoalsByPersonQuery>["listPatients"]>["results"]
   >[number]["goals"]
 >[number];
 
 // ─── Functions ───────────────────────────────────────────────────────
-
-/**
- * Fetch active goals for a person via their patient record, sorted by priority.
- */
-export async function fetchGoals(personId: string, organizationId: string): Promise<GoalRecord[]> {
-  if (!personId || !organizationId) {
-    return [];
-  }
-
-  const data = await requestGraphql({
-    document: ActiveGoalsByPersonQuery,
-    variables: { personId },
-    organizationId,
-  });
-
-  const patient = data.listPatients?.results?.[0];
-  return patient?.goals ?? [];
-}
 
 /**
  * Fetch all goals for a person (all lifecycle statuses), for the list page.

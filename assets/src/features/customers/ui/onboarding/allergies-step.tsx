@@ -19,12 +19,8 @@ interface AllergiesStepProps {
  * Both fields are optional — the user can skip this step.
  */
 export function AllergiesStep({ initialData, onSubmit, onBack, onSaveDraft }: AllergiesStepProps) {
-  const [allergies, setAllergies] = useState<string[]>(
-    initialData?.allergies ? initialData.allergies.split(/,\s*/).filter(Boolean) : [],
-  );
-  const [intolerances, setIntolerances] = useState<string[]>(
-    initialData?.intolerances ? initialData.intolerances.split(/,\s*/).filter(Boolean) : [],
-  );
+  const [allergies, setAllergies] = useState<string[]>(initialData?.allergies ?? []);
+  const [intolerances, setIntolerances] = useState<string[]>(initialData?.intolerances ?? []);
   const [allergiesPending, setAllergiesPending] = useState(false);
   const [intolerancesPending, setIntolerancesPending] = useState(false);
   const [pendingError, setPendingError] = useState<string | null>(null);
@@ -35,17 +31,11 @@ export function AllergiesStep({ initialData, onSubmit, onBack, onSaveDraft }: Al
       return;
     }
     setPendingError(null);
-    onSubmit({
-      allergies: allergies.join(", "),
-      intolerances: intolerances.join(", "),
-    });
+    onSubmit({ allergies, intolerances });
   };
 
   const handleBack = () => {
-    onSaveDraft?.({
-      allergies: allergies.join(", "),
-      intolerances: intolerances.join(", "),
-    });
+    onSaveDraft?.({ allergies, intolerances });
     onBack();
   };
 

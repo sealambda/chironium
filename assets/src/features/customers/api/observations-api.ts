@@ -72,12 +72,6 @@ export interface MenstrualCycleFormData {
   notes: string;
 }
 
-/** Form data for included and excluded foods in the diet step. */
-export interface FoodFormData {
-  included: string[];
-  excluded: string[];
-}
-
 /** Title and body of a single clinical note. */
 export interface NoteFormData {
   title: string;
@@ -86,20 +80,14 @@ export interface NoteFormData {
 
 /** A single observation item returned by the list query. */
 export type ObservationItem = NonNullable<
-  ResultOf<typeof ListObservationsQuery>["listObservations"]
->["results"][number];
+  NonNullable<ResultOf<typeof ListObservationsQuery>["listObservations"]>["results"]
+>[number];
 
 /** Paginated observations result. */
 export interface ObservationsPage {
   items: ObservationItem[];
   count: number;
   endKeyset: string | null;
-}
-
-/** Aggregated food preferences parsed from diet-inclusion/exclusion observations. */
-export interface FoodPreferencesData {
-  included: string[];
-  excluded: string[];
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
@@ -141,76 +129,6 @@ export async function createMenstrualCycleObservation(
   });
 
   unwrapMutationResult(result.createObservation, "Failed to create menstrual cycle observation.");
-}
-
-/**
- * Create diet-inclusion and/or diet-exclusion observations. Skips empty values.
- */
-export async function createFoodObservations(
-  data: FoodFormData,
-  subjectId: string,
-  organizationId: string,
-  userId: string,
-): Promise<void> {
-  const promises: Promise<void>[] = [];
-  const includedCsv = data.included.filter((s) => s.trim()).join(",");
-  const excludedCsv = data.excluded.filter((s) => s.trim()).join(",");
-
-  if (includedCsv) {
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: CreateObservationMutation,
-          variables: {
-            input: {
-              status: "FINAL",
-              code: { text: "diet-inclusion" },
-              valueString: includedCsv,
-              note: [
-                {
-                  text: includedCsv,
-                  authorReference: userId,
-                  time: new Date().toISOString(),
-                },
-              ],
-              subjectId,
-            },
-          },
-          organizationId,
-        });
-        unwrapMutationResult(result.createObservation, "Failed to create diet inclusion record.");
-      })(),
-    );
-  }
-
-  if (excludedCsv) {
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: CreateObservationMutation,
-          variables: {
-            input: {
-              status: "FINAL",
-              code: { text: "diet-exclusion" },
-              valueString: excludedCsv,
-              note: [
-                {
-                  text: excludedCsv,
-                  authorReference: userId,
-                  time: new Date().toISOString(),
-                },
-              ],
-              subjectId,
-            },
-          },
-          organizationId,
-        });
-        unwrapMutationResult(result.createObservation, "Failed to create diet exclusion record.");
-      })(),
-    );
-  }
-
-  await Promise.all(promises);
 }
 
 /**
@@ -348,47 +266,6 @@ export async function fetchDietObservationsList(
   return allItems.filter((item) =>
     DIET_CODES.includes(item.code?.text as (typeof DIET_CODES)[number]),
   );
-}
-
-/**
- * Fetch food preference observations (diet-inclusion / diet-exclusion) for a person
- * and return aggregated tag lists.
- */
-export async function fetchFoodPreferences(
-  personId: string,
-  organizationId: string,
-): Promise<FoodPreferencesData> {
-  if (!personId || !organizationId) {
-    return { included: [], excluded: [] };
-  }
-
-  const result = await requestGraphql({
-    document: ListObservationsQuery,
-    variables: {
-      filter: buildSubjectFilter(personId),
-      sort: SORT_NEWEST_FIRST,
-      first: 250,
-    },
-    organizationId,
-  });
-
-  const allItems = result.listObservations?.results ?? [];
-
-  const parseTags = (codeText: string): string[] =>
-    allItems
-      .filter((obs) => obs.code?.text === codeText)
-      .flatMap(
-        (obs) =>
-          obs.valueString
-            ?.split(",")
-            .map((t) => t.trim())
-            .filter(Boolean) ?? [],
-      );
-
-  return {
-    included: parseTags("diet-inclusion"),
-    excluded: parseTags("diet-exclusion"),
-  };
 }
 
 // ─── Label helpers ───────────────────────────────────────────────────

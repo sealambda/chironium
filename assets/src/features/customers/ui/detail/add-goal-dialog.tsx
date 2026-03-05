@@ -103,6 +103,9 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
       await queryClient.invalidateQueries({
         queryKey: ["person", personId, "goals"],
       });
+      await queryClient.invalidateQueries({
+        queryKey: ["person", personId, "patient-detail"],
+      });
 
       toast.success(m.goals_add_success());
       setOpen(false);

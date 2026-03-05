@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { FoodFormData } from "@/features/customers/api/observations-api";
+import type { FoodFormData } from "@/features/customers/api/food-preferences-api";
 import * as m from "@/paraglide/messages";
 import { FieldGroup } from "@/shared/ui/field";
 import { TagInput } from "@/shared/ui/tag-input";

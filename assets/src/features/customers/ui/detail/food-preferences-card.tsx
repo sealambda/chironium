@@ -4,7 +4,7 @@ import { ChevronRight, PlusIcon, Utensils } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { createFoodObservations } from "@/features/customers/api/observations-api";
+import { createFoodObservations } from "@/features/customers/api/food-preferences-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
