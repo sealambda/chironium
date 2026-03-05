@@ -3,9 +3,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
 import {
-  fetchDietObservationsList,
-  type ObservationItem,
-} from "@/features/customers/api/observations-api";
+  fetchFoodPreferencesHistory,
+  type FoodPreferenceHistoryItem,
+} from "@/features/customers/api/food-preferences-api";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -22,42 +22,44 @@ function formatDate(value: string | null | undefined): string {
   return format(new Date(value), "PP", { locale: getDateLocale() });
 }
 
-function getDietTypeLabel(codeText: string | null | undefined): string {
-  if (codeText === "diet-inclusion") {
+function getDietTypeLabel(type: FoodPreferenceHistoryItem["type"]): string {
+  if (type === "inclusion") {
     return m.food_preferences_includes_label();
   }
-  if (codeText === "diet-exclusion") {
-    return m.food_preferences_avoids_label();
-  }
-  return codeText ?? "\u2014";
+  return m.food_preferences_avoids_label();
 }
 
-const columns: ColumnDef<ObservationItem, unknown>[] = [
+const columns: ColumnDef<FoodPreferenceHistoryItem, unknown>[] = [
   {
     id: "date",
-    accessorKey: "effectiveDateTime",
+    accessorKey: "date",
     header: ({ column }) => (
       <SortableHeader column={column}>{m.food_preferences_history_col_date()}</SortableHeader>
     ),
-    cell: ({ getValue }) => formatDate(getValue() as string | null),
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap">{formatDate(getValue() as string | null)}</span>
+    ),
     sortingFn: "datetime",
   },
   {
     id: "type",
-    accessorFn: (row) => getDietTypeLabel(row.code?.text),
+    accessorFn: (row) => getDietTypeLabel(row.type),
     header: ({ column }) => (
       <SortableHeader column={column}>{m.food_preferences_history_col_type()}</SortableHeader>
+    ),
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap">{getValue() as string}</span>
     ),
   },
   {
     id: "items",
-    accessorKey: "valueString",
+    accessorKey: "items",
     header: ({ column }) => (
       <SortableHeader column={column}>{m.food_preferences_history_col_items()}</SortableHeader>
     ),
     cell: ({ getValue }) => {
-      const value = getValue() as string | null;
-      return <span>{value ?? "\u2014"}</span>;
+      const value = getValue() as string;
+      return <span>{value || "\u2014"}</span>;
     },
   },
 ];
@@ -69,8 +71,8 @@ export function FoodPreferencesHistoryPage() {
   useDetailModeEffect(<HistoryDetailHeader customerId={customerId} />, "food-preferences-history");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "dietObservationsList", selectedOrg?.id],
-    queryFn: () => fetchDietObservationsList(customerId, selectedOrg?.id ?? ""),
+    queryKey: ["person", customerId, "foodPreferencesHistory", selectedOrg?.id],
+    queryFn: () => fetchFoodPreferencesHistory(customerId, selectedOrg?.id ?? ""),
     enabled: Boolean(customerId && selectedOrg?.id),
   });
 
@@ -88,6 +90,7 @@ export function FoodPreferencesHistoryPage() {
           columns={columns}
           data={data ?? []}
           sorting={[{ id: "date", desc: true }]}
+          getRowId={(row) => row.id}
           pinFirstColumn
         />
       )}
