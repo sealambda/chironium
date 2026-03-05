@@ -1,12 +1,10 @@
-import { ChevronsUpDown, LogOut, Moon, Sun } from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
-import { useTheme } from "@/shared/theme/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -17,6 +15,7 @@ import { LanguageToggle } from "@/shared/ui/language-toggle";
 import { getUserInitials } from "@/shared/utils/name-utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { cn } from "@/shared/utils/utils";
+import { ThemeSwitcher } from "@/shared/layout/theme-switcher";
 
 interface NavUserProps {
   /** Show labels even on compact (tablet) viewports. */
@@ -27,17 +26,17 @@ interface NavUserProps {
 
 /**
  * User menu at the bottom of the sidebar.
- * Provides language switching, theme brightness toggle, and sign-out.
+ * Provides language switching, theme switching, and sign-out.
  */
-export function NavUser({ showLabelsOnMobile = false, onAction }: NavUserProps) {
+export function NavUser({
+  showLabelsOnMobile = false,
+  onAction,
+}: Readonly<NavUserProps>) {
   const { user } = useCurrentUser();
-  const { theme, setTheme } = useTheme();
 
   const initials = getUserInitials(user?.name, user?.email);
   const displayName = user?.name || m.nav_profile();
   const displayEmail = user?.email || "-";
-
-  const isDark = theme === "dark" || (theme === "system" && prefersDark());
 
   const handleSignOut = () => {
     onAction?.();
@@ -76,7 +75,9 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: NavUserProps) 
           )}
         >
           <span className="truncate font-semibold">{displayName}</span>
-          <span className="truncate text-muted-foreground text-xs">{displayEmail}</span>
+          <span className="truncate text-muted-foreground text-xs">
+            {displayEmail}
+          </span>
         </div>
         <ChevronsUpDown
           className={cn(
@@ -86,7 +87,12 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: NavUserProps) 
         />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start" side="top" sideOffset={4} className="w-64 rounded-lg">
+      <DropdownMenuContent
+        align="start"
+        side="top"
+        sideOffset={4}
+        className="w-64 rounded-lg"
+      >
         <div className="flex items-center gap-2 px-2 py-2 text-left text-sm">
           <Avatar className="size-8 border border-border/60">
             <AvatarImage
@@ -100,7 +106,9 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: NavUserProps) 
           </Avatar>
           <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">{displayName}</span>
-            <span className="truncate text-muted-foreground text-xs">{displayEmail}</span>
+            <span className="truncate text-muted-foreground text-xs">
+              {displayEmail}
+            </span>
           </div>
         </div>
 
@@ -113,14 +121,7 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: NavUserProps) 
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuCheckboxItem
-            closeOnClick={false}
-            checked={isDark}
-            onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-          >
-            {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
-            {m.nav_dark_mode()}
-          </DropdownMenuCheckboxItem>
+          <ThemeSwitcher />
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
@@ -132,8 +133,4 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: NavUserProps) 
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-function prefersDark(): boolean {
-  return globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
 }
