@@ -10,7 +10,11 @@ const ListFoodPreferenceObservationsQuery = graphql(`
     $sort: [ObservationSortInput]
     $first: Int
   ) {
-    listFoodPreferenceObservations(filter: $filter, sort: $sort, first: $first) {
+    listFoodPreferenceObservations(
+      filter: $filter
+      sort: $sort
+      first: $first
+    ) {
       results {
         id
         effectiveDateTime
@@ -104,12 +108,18 @@ export interface FoodPreferenceHistoryItem {
   date: string | null;
   type: "inclusion" | "exclusion";
   items: string;
-  notes: { text?: string | null; authorString?: string | null; time?: string | null }[];
+  notes: {
+    text?: string | null;
+    authorString?: string | null;
+    time?: string | null;
+  }[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
+const SORT_NEWEST_FIRST = [
+  { field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const },
+];
 
 function buildSubjectFilter(personId: string) {
   return {
@@ -138,21 +148,40 @@ export async function fetchFoodPreferencesHistory(
   };
 
   const [preferenceResult, aversionResult] = await Promise.all([
-    requestGraphql({ document: ListFoodPreferenceObservationsQuery, variables, organizationId }),
-    requestGraphql({ document: ListFoodAversionObservationsQuery, variables, organizationId }),
+    requestGraphql({
+      document: ListFoodPreferenceObservationsQuery,
+      variables,
+      organizationId,
+    }),
+    requestGraphql({
+      document: ListFoodAversionObservationsQuery,
+      variables,
+      organizationId,
+    }),
   ]);
 
   const toItems = (obs: {
     id: string;
     effectiveDateTime?: string | null;
     valueString?: string | null;
-    valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null;
-    note?: { text?: string | null; authorString?: string | null; time?: string | null }[] | null;
+    valueCodeableConcept?: {
+      coding?: { display?: string | null }[] | null;
+    } | null;
+    note?:
+      | {
+          text?: string | null;
+          authorString?: string | null;
+          time?: string | null;
+        }[]
+      | null;
   }): string => {
-    if (obs.valueString) return obs.valueString;
+    if (obs.valueString !== null && obs.valueString !== undefined) {
+      return obs.valueString;
+    }
     return (
-      obs.valueCodeableConcept?.coding?.flatMap((c) => (c.display ? [c.display] : [])).join(", ") ??
-      ""
+      obs.valueCodeableConcept?.coding
+        ?.flatMap((c) => (c.display ? [c.display] : []))
+        .join(", ") ?? ""
     );
   };
 
@@ -176,7 +205,9 @@ export async function fetchFoodPreferencesHistory(
     notes: obs.note ?? [],
   }));
 
-  return [...preferences, ...aversions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  return [...preferences, ...aversions].sort((a, b) =>
+    (b.date ?? "").localeCompare(a.date ?? ""),
+  );
 }
 
 /**
@@ -198,21 +229,49 @@ export async function fetchFoodPreferences(
   };
 
   const [preferenceResult, aversionResult] = await Promise.all([
-    requestGraphql({ document: ListFoodPreferenceObservationsQuery, variables, organizationId }),
-    requestGraphql({ document: ListFoodAversionObservationsQuery, variables, organizationId }),
+    requestGraphql({
+      document: ListFoodPreferenceObservationsQuery,
+      variables,
+      organizationId,
+    }),
+    requestGraphql({
+      document: ListFoodAversionObservationsQuery,
+      variables,
+      organizationId,
+    }),
   ]);
 
-  const extractDisplays = (
-    results: { valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null }[],
+  const extractItems = (
+    results: {
+      valueCodeableConcept?: {
+        coding?: { display?: string | null }[] | null;
+      } | null;
+      valueString?: string | null;
+    }[],
   ): string[] =>
-    results.flatMap(
-      (obs) =>
-        obs.valueCodeableConcept?.coding?.flatMap((c) => (c.display ? [c.display] : [])) ?? [],
-    );
+    results.flatMap((obs) => {
+      const fromCoding =
+        obs.valueCodeableConcept?.coding?.flatMap((c) =>
+          c.display ? [c.display.trim()] : [],
+        ) ?? [];
+
+      if (fromCoding.length > 0) {
+        return fromCoding;
+      }
+
+      return (obs.valueString ?? "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    });
 
   return {
-    included: extractDisplays(preferenceResult.listFoodPreferenceObservations?.results ?? []),
-    excluded: extractDisplays(aversionResult.listFoodAversionObservations?.results ?? []),
+    included: extractItems(
+      preferenceResult.listFoodPreferenceObservations?.results ?? [],
+    ),
+    excluded: extractItems(
+      aversionResult.listFoodAversionObservations?.results ?? [],
+    ),
   };
 }
 
@@ -238,14 +297,21 @@ export async function createFoodObservations(
             input: {
               valueString: includedCsv,
               note: [
-                { text: includedCsv, authorReference: userId, time: new Date().toISOString() },
+                {
+                  text: includedCsv,
+                  authorReference: userId,
+                  time: new Date().toISOString(),
+                },
               ],
               subjectId,
             },
           },
           organizationId,
         });
-        unwrapMutationResult(result.logFoodPreference, "Failed to log food preference.");
+        unwrapMutationResult(
+          result.logFoodPreference,
+          "Failed to log food preference.",
+        );
       })(),
     );
   }
@@ -259,14 +325,21 @@ export async function createFoodObservations(
             input: {
               valueString: excludedCsv,
               note: [
-                { text: excludedCsv, authorReference: userId, time: new Date().toISOString() },
+                {
+                  text: excludedCsv,
+                  authorReference: userId,
+                  time: new Date().toISOString(),
+                },
               ],
               subjectId,
             },
           },
           organizationId,
         });
-        unwrapMutationResult(result.logFoodAversion, "Failed to log food aversion.");
+        unwrapMutationResult(
+          result.logFoodAversion,
+          "Failed to log food aversion.",
+        );
       })(),
     );
   }
