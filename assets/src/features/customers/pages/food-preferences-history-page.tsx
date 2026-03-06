@@ -12,6 +12,7 @@ import * as m from "@/paraglide/messages";
 import { Route } from "@/routes/_app/customers_.$customerId_.food-preferences";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
+import { NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 
@@ -59,6 +60,11 @@ const columns: ColumnDef<FoodPreferenceHistoryItem, unknown>[] = [
       const value = getValue() as string;
       return <span>{value || "\u2014"}</span>;
     },
+  },
+  {
+    id: "notes",
+    cell: ({ row }) => <NotesPopover notes={row.original.notes} />,
+    enableSorting: false,
   },
 ];
 

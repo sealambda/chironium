@@ -6,9 +6,7 @@ import { PlusIcon } from "lucide-react";
 import {
   fetchObservationsList,
   getObservationDisplayValue,
-  isClinicalNote,
   type ObservationItem,
-  parseClinicalNote,
 } from "@/features/customers/api/observations-api";
 import { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
@@ -19,6 +17,7 @@ import { Route } from "@/routes/_app/customers_.$customerId_.observations";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
+import { NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 
@@ -27,14 +26,6 @@ function formatDate(value: string | null | undefined): string {
     return "\u2014";
   }
   return format(new Date(value), "PP", { locale: getDateLocale() });
-}
-
-function getRowNote(obs: ObservationItem): string {
-  if (isClinicalNote(obs)) {
-    const { title, body } = parseClinicalNote(obs);
-    return body ? `${title}\n\n${body}` : title;
-  }
-  return getObservationDisplayValue(obs);
 }
 
 const columns: ColumnDef<ObservationItem, unknown>[] = [
@@ -51,13 +42,18 @@ const columns: ColumnDef<ObservationItem, unknown>[] = [
   },
   {
     id: "value",
-    accessorFn: (row) => getRowNote(row),
+    accessorFn: (row) => getObservationDisplayValue(row),
     header: ({ column }) => (
       <SortableHeader column={column}>{m.observations_col_value()}</SortableHeader>
     ),
     cell: ({ getValue }) => (
       <p className="break-words text-justify text-sm">{getValue() as string}</p>
     ),
+  },
+  {
+    id: "notes",
+    cell: ({ row }) => <NotesPopover notes={row.original.note ?? []} />,
+    enableSorting: false,
   },
 ];
 

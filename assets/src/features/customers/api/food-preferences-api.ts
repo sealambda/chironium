@@ -20,6 +20,11 @@ const ListFoodPreferenceObservationsQuery = graphql(`
             display
           }
         }
+        note {
+          text
+          time
+          authorString
+        }
       }
     }
   }
@@ -40,6 +45,11 @@ const ListFoodAversionObservationsQuery = graphql(`
           coding {
             display
           }
+        }
+        note {
+          text
+          time
+          authorString
         }
       }
     }
@@ -94,6 +104,7 @@ export interface FoodPreferenceHistoryItem {
   date: string | null;
   type: "inclusion" | "exclusion";
   items: string;
+  notes: { text?: string | null; authorString?: string | null; time?: string | null }[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -136,6 +147,7 @@ export async function fetchFoodPreferencesHistory(
     effectiveDateTime?: string | null;
     valueString?: string | null;
     valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null;
+    note?: { text?: string | null; authorString?: string | null; time?: string | null }[] | null;
   }): string => {
     if (obs.valueString) return obs.valueString;
     return (
@@ -151,6 +163,7 @@ export async function fetchFoodPreferencesHistory(
     date: obs.effectiveDateTime ?? null,
     type: "inclusion" as const,
     items: toItems(obs),
+    notes: obs.note ?? [],
   }));
 
   const aversions: FoodPreferenceHistoryItem[] = (
@@ -160,6 +173,7 @@ export async function fetchFoodPreferencesHistory(
     date: obs.effectiveDateTime ?? null,
     type: "exclusion" as const,
     items: toItems(obs),
+    notes: obs.note ?? [],
   }));
 
   return [...preferences, ...aversions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));

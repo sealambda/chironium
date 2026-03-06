@@ -260,6 +260,8 @@
   "nutrition_status_active": "Activo",
   "nutrition_status_inactive": "Inactivo",
   "nutrition_view_history": "Ver detalles del plan",
+  "notes_popover_no_author": "Autor desconocido",
+  "notes_popover_title": "Notas",
   "onboarding_error": "Algo salió mal. Inténtalo de nuevo.",
   "onboarding_step_allergies": "Alergias",
   "onboarding_confirm_abandon_desc": "Tienes datos sin guardar. Si cierras ahora, se perderá todo el progreso.",

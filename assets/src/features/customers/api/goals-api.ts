@@ -19,6 +19,11 @@ const AllGoalsByPersonQuery = graphql(`
           startDate
           dueDate
           category
+          note {
+            text
+            time
+            authorString
+          }
         }
       }
     }

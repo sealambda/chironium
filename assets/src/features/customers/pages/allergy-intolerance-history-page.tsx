@@ -12,6 +12,7 @@ import * as m from "@/paraglide/messages";
 import { Route } from "@/routes/_app/customers_.$customerId_.allergies";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
+import { NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 function getAllergyTypeLabel(type: string): string {
@@ -53,6 +54,11 @@ const columns: ColumnDef<AllergyIntoleranceItem, unknown>[] = [
     header: ({ column }) => (
       <SortableHeader column={column}>{m.allergy_intolerance_history_col_status()}</SortableHeader>
     ),
+  },
+  {
+    id: "notes",
+    cell: ({ row }) => <NotesPopover notes={row.original.note ?? []} />,
+    enableSorting: false,
   },
 ];
 
