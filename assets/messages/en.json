@@ -260,6 +260,8 @@
   "nutrition_status_active": "Active",
   "nutrition_status_inactive": "Inactive",
   "nutrition_view_history": "View plan details",
+  "notes_popover_no_author": "Unknown author",
+  "notes_popover_title": "Notes",
   "onboarding_error": "Something went wrong. Please try again.",
   "onboarding_step_allergies": "Allergies",
   "onboarding_confirm_abandon_desc": "You have unsaved data. If you close now, all progress will be lost.",

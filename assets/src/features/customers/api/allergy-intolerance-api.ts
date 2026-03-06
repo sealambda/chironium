@@ -17,6 +17,11 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
             display
           }
         }
+        note {
+          text
+          time
+          authorString
+        }
       }
     }
   }
