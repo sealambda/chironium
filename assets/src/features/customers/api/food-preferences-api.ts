@@ -117,9 +117,7 @@ export interface FoodPreferenceHistoryItem {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-const SORT_NEWEST_FIRST = [
-  { field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const },
-];
+const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
 
 function buildSubjectFilter(personId: string) {
   return {
@@ -179,9 +177,8 @@ export async function fetchFoodPreferencesHistory(
       return obs.valueString;
     }
     return (
-      obs.valueCodeableConcept?.coding
-        ?.flatMap((c) => (c.display ? [c.display] : []))
-        .join(", ") ?? ""
+      obs.valueCodeableConcept?.coding?.flatMap((c) => (c.display ? [c.display] : [])).join(", ") ??
+      ""
     );
   };
 
@@ -205,9 +202,7 @@ export async function fetchFoodPreferencesHistory(
     notes: obs.note ?? [],
   }));
 
-  return [...preferences, ...aversions].sort((a, b) =>
-    (b.date ?? "").localeCompare(a.date ?? ""),
-  );
+  return [...preferences, ...aversions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 }
 
 /**
@@ -251,9 +246,8 @@ export async function fetchFoodPreferences(
   ): string[] =>
     results.flatMap((obs) => {
       const fromCoding =
-        obs.valueCodeableConcept?.coding?.flatMap((c) =>
-          c.display ? [c.display.trim()] : [],
-        ) ?? [];
+        obs.valueCodeableConcept?.coding?.flatMap((c) => (c.display ? [c.display.trim()] : [])) ??
+        [];
 
       if (fromCoding.length > 0) {
         return fromCoding;
@@ -266,12 +260,8 @@ export async function fetchFoodPreferences(
     });
 
   return {
-    included: extractItems(
-      preferenceResult.listFoodPreferenceObservations?.results ?? [],
-    ),
-    excluded: extractItems(
-      aversionResult.listFoodAversionObservations?.results ?? [],
-    ),
+    included: extractItems(preferenceResult.listFoodPreferenceObservations?.results ?? []),
+    excluded: extractItems(aversionResult.listFoodAversionObservations?.results ?? []),
   };
 }
 
@@ -308,10 +298,7 @@ export async function createFoodObservations(
           },
           organizationId,
         });
-        unwrapMutationResult(
-          result.logFoodPreference,
-          "Failed to log food preference.",
-        );
+        unwrapMutationResult(result.logFoodPreference, "Failed to log food preference.");
       })(),
     );
   }
@@ -336,10 +323,7 @@ export async function createFoodObservations(
           },
           organizationId,
         });
-        unwrapMutationResult(
-          result.logFoodAversion,
-          "Failed to log food aversion.",
-        );
+        unwrapMutationResult(result.logFoodAversion, "Failed to log food aversion.");
       })(),
     );
   }
