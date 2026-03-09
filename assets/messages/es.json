@@ -84,6 +84,8 @@
   "customers_col_progress": "Progreso",
   "customers_title": "Clientes",
   "customers_total": "total",
+  "customers_sort": "Ordenar",
+  "customers_sort_by": "Ordenar por",
   "data_table_collapse": "Contraer fila",
   "data_table_empty": "Sin datos disponibles",
   "data_table_empty_desc": "Los datos aparecerán aquí cuando estén disponibles.",

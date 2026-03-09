@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Building2, Plus, Search, Users } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpDownIcon,
+  ArrowUpIcon,
+  Building2,
+  Plus,
+  Search,
+  Users,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -16,6 +24,13 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
 import { formatPersonName } from "@/shared/utils/person-utils";
@@ -191,6 +206,20 @@ function CustomerList({
   isEmpty: boolean;
   onAdd: () => void;
 }>) {
+  const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
+
+  const sortedItems = useMemo(() => {
+    if (!sortDir) {
+      return items;
+    }
+    return [...items].sort((a, b) => {
+      const aName = formatPersonName(a.person.name).toLowerCase();
+      const bName = formatPersonName(b.person.name).toLowerCase();
+      const cmp = aName.localeCompare(bName);
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+  }, [items, sortDir]);
+
   if (isEmpty) {
     return (
       <EmptyState
@@ -208,10 +237,14 @@ function CustomerList({
   }
 
   return (
-    <>
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <CustomerSortDropdown sortDir={sortDir} onSortDirChange={setSortDir} />
+      </div>
+
       {/* Mobile: stacked cards */}
       <div className="space-y-3 lg:hidden">
-        {items.map((item) => (
+        {sortedItems.map((item) => (
           <Link
             key={item.person.id}
             to="/customers/$customerId"
@@ -225,8 +258,52 @@ function CustomerList({
 
       {/* Desktop: data table */}
       <div className="hidden lg:block">
-        <CustomerTable items={items} />
+        <CustomerTable items={sortedItems} />
       </div>
-    </>
+    </div>
+  );
+}
+
+function CustomerSortDropdown({
+  sortDir,
+  onSortDirChange,
+}: Readonly<{
+  sortDir: "asc" | "desc" | null;
+  onSortDirChange: (dir: "asc" | "desc" | null) => void;
+}>) {
+  let SortIcon: typeof ArrowUpDownIcon;
+  if (sortDir === "asc") {
+    SortIcon = ArrowUpIcon;
+  } else if (sortDir === "desc") {
+    SortIcon = ArrowDownIcon;
+  } else {
+    SortIcon = ArrowUpDownIcon;
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="outline" size="sm" type="button" />}>
+        <SortIcon className="size-4" />
+        {m.customers_sort()}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>{m.customers_sort_by()}</DropdownMenuLabel>
+        <DropdownMenuItem
+          closeOnClick={false}
+          onClick={() => {
+            if (!sortDir) {
+              onSortDirChange("asc");
+            } else if (sortDir === "asc") {
+              onSortDirChange("desc");
+            } else {
+              onSortDirChange(null);
+            }
+          }}
+        >
+          {m.customers_col_name()}
+          <SortIcon className="ml-auto size-4 opacity-60" />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
