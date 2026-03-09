@@ -6,8 +6,8 @@ import type { AllergiesFormData } from "@/features/customers/api/allergy-intoler
 import type { AnthropometryFormData } from "@/features/customers/api/anthropometry-api";
 import type { FoodFormData } from "@/features/customers/api/food-preferences-api";
 import type {
+  ClinicalNoteFormData,
   MenstrualCycleFormData,
-  NoteFormData,
 } from "@/features/customers/api/observations-api";
 import { type OnboardingDraft, submitOnboarding } from "@/features/customers/api/onboarding-api";
 import type { PersonFormData } from "@/features/customers/api/patients-api";
@@ -32,8 +32,8 @@ import { AllergiesStep } from "./allergies-step";
 import { AnthropometryStep } from "./anthropometry-step";
 import { FoodStep } from "./food-step";
 import { MenstrualCycleStep } from "./menstrual-cycle-step";
-import { NotesStep } from "./notes-step";
 import { ObjectiveStep } from "./objective-step";
+import { ObservationsStep } from "./observations-step";
 import { PersonStep } from "./person-step";
 import { SubscriptionStep } from "./subscription-step";
 
@@ -50,7 +50,7 @@ const STEPS = [
   { label: () => m.onboarding_step_anthropometry() },
   { label: () => m.onboarding_step_allergies() },
   { label: () => m.onboarding_step_food() },
-  { label: () => m.onboarding_step_notes() },
+  { label: () => m.onboarding_step_observations() },
 ];
 
 const EMPTY_DRAFT: OnboardingDraft = {
@@ -96,7 +96,7 @@ function useOnboardingDraft(
   }, []);
 
   const finish = useCallback(
-    async (notes: NoteFormData[]) => {
+    async (notes: ClinicalNoteFormData[]) => {
       const finalDraft: OnboardingDraft = { ...draft, notes };
       setError(null);
       setIsSubmitting(true);
@@ -290,7 +290,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
       );
     case 7:
       return (
-        <NotesStep
+        <ObservationsStep
           initialData={draft.notes ?? undefined}
           initialPending={draft.pendingNote ?? undefined}
           isSubmitting={isSubmitting}

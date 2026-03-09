@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useId, useRef, useState } from "react";
 
-import type { NoteFormData } from "@/features/customers/api/observations-api";
+import type { ClinicalNoteFormData } from "@/features/customers/api/observations-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
@@ -11,39 +11,39 @@ import { Textarea } from "@/shared/ui/textarea";
 
 import { StepLayout } from "./step-layout";
 
-interface NotesStepProps {
-  readonly initialData?: NoteFormData[];
-  readonly initialPending?: NoteFormData;
+interface ObservationsStepProps {
+  readonly initialData?: ClinicalNoteFormData[];
+  readonly initialPending?: ClinicalNoteFormData;
   readonly isSubmitting?: boolean;
-  readonly onSubmit: (notes: NoteFormData[]) => void;
+  readonly onSubmit: (notes: ClinicalNoteFormData[]) => void;
   readonly onBack: () => void;
-  readonly onSaveDraft?: (notes: NoteFormData[], pending?: NoteFormData) => void;
+  readonly onSaveDraft?: (notes: ClinicalNoteFormData[], pending?: ClinicalNoteFormData) => void;
 }
 
-interface NoteEntry extends NoteFormData {
+interface ObservationEntry extends ClinicalNoteFormData {
   id: string;
 }
 
 /**
- * Step 8: Capture one or more free-text notes, each with a title and body.
+ * Step 8: Capture one or more clinical note observations, each with a title and body.
  * Uses the same add-to-list pattern as the org plans step: a single form
  * at the top, an "Add" button, and a compact summary list below.
  * The body field includes a markdown toolbar for formatting.
  */
-export function NotesStep({
+export function ObservationsStep({
   initialData,
   initialPending,
   isSubmitting,
   onSubmit,
   onBack,
   onSaveDraft,
-}: NotesStepProps) {
+}: ObservationsStepProps) {
   const idPrefix = useId();
   const counterRef = useRef(0);
   const nextId = () => `${idPrefix}-${++counterRef.current}`;
   const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [addedNotes, setAddedNotes] = useState<NoteEntry[]>(() =>
+  const [addedNotes, setAddedNotes] = useState<ObservationEntry[]>(() =>
     (initialData ?? []).map((n) => ({ ...n, id: nextId() })),
   );
 
@@ -70,7 +70,7 @@ export function NotesStep({
   };
 
   const handleSubmit = () => {
-    const pending: NoteFormData[] =
+    const pending: ClinicalNoteFormData[] =
       noteTitle.trim() || noteBody.trim()
         ? [{ title: noteTitle.trim(), body: noteBody.trim() }]
         : [];
@@ -78,8 +78,8 @@ export function NotesStep({
   };
 
   const handleBack = () => {
-    const notes: NoteFormData[] = addedNotes.map((n) => ({ title: n.title, body: n.body }));
-    const pending =
+    const notes: ClinicalNoteFormData[] = addedNotes.map((n) => ({ title: n.title, body: n.body }));
+    const pending: ClinicalNoteFormData | undefined =
       noteTitle.trim() || noteBody.trim()
         ? { title: noteTitle.trim(), body: noteBody.trim() }
         : undefined;
@@ -89,8 +89,8 @@ export function NotesStep({
 
   return (
     <StepLayout
-      title={m.step_notes_title()}
-      description={m.step_notes_desc()}
+      title={m.step_observations_title()}
+      description={m.step_observations_desc()}
       isSubmitting={submitting}
       isLastStep
       onSubmit={handleSubmit}
@@ -99,18 +99,18 @@ export function NotesStep({
       <div className="space-y-4">
         <FieldGroup>
           <Field>
-            <FieldLabel>{m.field_note_title()}</FieldLabel>
+            <FieldLabel>{m.field_observation_title()}</FieldLabel>
             <Input
               maxLength={100}
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
-              placeholder={m.field_note_title_placeholder()}
+              placeholder={m.field_observation_title_placeholder()}
               disabled={submitting}
             />
           </Field>
 
           <Field>
-            <FieldLabel>{m.field_note_body()}</FieldLabel>
+            <FieldLabel>{m.field_observation_body()}</FieldLabel>
             <div>
               <MarkdownToolbar
                 textareaRef={bodyTextareaRef}
@@ -121,7 +121,7 @@ export function NotesStep({
                 ref={bodyTextareaRef}
                 value={noteBody}
                 onChange={(e) => setNoteBody(e.target.value)}
-                placeholder={m.field_note_body_placeholder()}
+                placeholder={m.field_observation_body_placeholder()}
                 rows={3}
                 disabled={submitting}
                 className="rounded-t-none border-t-0"
@@ -138,28 +138,32 @@ export function NotesStep({
           disabled={submitting || !hasInput}
         >
           <Plus className="size-4" data-icon="inline-start" />
-          {m.note_add()}
+          {m.observation_add()}
         </Button>
 
-        <NoteList notes={addedNotes} onRemove={handleRemove} />
+        <ObservationList notes={addedNotes} onRemove={handleRemove} />
       </div>
     </StepLayout>
   );
 }
 
-interface NoteListProps {
-  readonly notes: NoteEntry[];
+interface ObservationListProps {
+  readonly notes: ObservationEntry[];
   readonly onRemove: (id: string) => void;
 }
 
-function NoteList({ notes, onRemove }: NoteListProps) {
+function ObservationList({ notes, onRemove }: ObservationListProps) {
   if (notes.length === 0) {
-    return <p className="py-2 text-center text-muted-foreground text-sm">{m.note_empty_hint()}</p>;
+    return (
+      <p className="py-2 text-center text-muted-foreground text-sm">{m.observation_empty_hint()}</p>
+    );
   }
 
   return (
     <div className="space-y-2">
-      <p className="text-muted-foreground text-xs">{m.note_added({ count: notes.length })}</p>
+      <p className="text-muted-foreground text-xs">
+        {m.observation_added({ count: notes.length })}
+      </p>
       {notes.map((note) => (
         <div
           key={note.id}
@@ -175,7 +179,7 @@ function NoteList({ notes, onRemove }: NoteListProps) {
             variant="ghost"
             size="icon-xs"
             onClick={() => onRemove(note.id)}
-            aria-label={m.note_remove()}
+            aria-label={m.observation_remove()}
           >
             <Trash2 className="size-3.5 text-muted-foreground" />
           </Button>

@@ -2,6 +2,8 @@ import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
+import type { AnnotationInput } from "./observations-api";
+
 // ─── Queries ─────────────────────────────────────────────────────────
 
 const ListFoodPreferenceObservationsQuery = graphql(`
@@ -21,6 +23,9 @@ const ListFoodPreferenceObservationsQuery = graphql(`
         valueString
         valueCodeableConcept {
           coding {
+            system
+            code
+            version
             display
           }
         }
@@ -47,6 +52,9 @@ const ListFoodAversionObservationsQuery = graphql(`
         valueString
         valueCodeableConcept {
           coding {
+            system
+            code
+            version
             display
           }
         }
@@ -88,6 +96,20 @@ const LogFoodAversionMutation = graphql(`
   }
 `);
 
+const UpdateFoodObservationMutation = graphql(`
+  mutation UpdateFoodObservation($id: ID!, $input: UpdateObservationInput) {
+    updateObservation(id: $id, input: $input) {
+      result {
+        id
+        valueString
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** Form data for included and excluded foods in the diet step. */
@@ -96,10 +118,18 @@ export interface FoodFormData {
   excluded: string[];
 }
 
-/** Aggregated food preference labels fetched from coded observations. */
+/** Aggregated food preference labels for the summary card. */
 export interface FoodPreferencesData {
   included: string[];
   excluded: string[];
+}
+
+/** A single coding entry for coded values. */
+export interface ObservationCoding {
+  system: string;
+  code: string;
+  display?: string | null;
+  version?: string | null;
 }
 
 /** A single row for the food preferences history table. */
@@ -108,6 +138,10 @@ export interface FoodPreferenceHistoryItem {
   date: string | null;
   type: "inclusion" | "exclusion";
   items: string;
+  /** True when the value comes from a coded concept — these rows are not editable. */
+  isCoded: boolean;
+  /** Populated for coded rows; empty for free-text rows. */
+  codings: ObservationCoding[];
   notes: {
     text?: string | null;
     authorString?: string | null;
@@ -158,49 +192,51 @@ export async function fetchFoodPreferencesHistory(
     }),
   ]);
 
-  const toItems = (obs: {
+  type ObsNode = {
     id: string;
     effectiveDateTime?: string | null;
     valueString?: string | null;
     valueCodeableConcept?: {
-      coding?: { display?: string | null }[] | null;
+      coding?:
+        | { system: string; code: string; version?: string | null; display?: string | null }[]
+        | null;
     } | null;
-    note?:
-      | {
-          text?: string | null;
-          authorString?: string | null;
-          time?: string | null;
-        }[]
-      | null;
-  }): string => {
-    if (obs.valueString !== null && obs.valueString !== undefined) {
-      return obs.valueString;
-    }
-    return (
-      obs.valueCodeableConcept?.coding?.flatMap((c) => (c.display ? [c.display] : [])).join(", ") ??
-      ""
-    );
+    note?: { text?: string | null; authorString?: string | null; time?: string | null }[] | null;
+  };
+
+  const toHistoryItem = (
+    obs: ObsNode,
+    type: FoodPreferenceHistoryItem["type"],
+  ): FoodPreferenceHistoryItem => {
+    const rawCodings = obs.valueCodeableConcept?.coding ?? [];
+    const isCoded = rawCodings.length > 0;
+    const items = isCoded
+      ? rawCodings.flatMap((c) => (c.display ? [c.display] : [])).join(", ")
+      : (obs.valueString ?? "");
+    const codings: ObservationCoding[] = rawCodings.map((c) => ({
+      system: c.system,
+      code: c.code,
+      display: c.display,
+      version: c.version,
+    }));
+    return {
+      id: obs.id,
+      date: obs.effectiveDateTime ?? null,
+      type,
+      isCoded,
+      codings,
+      items,
+      notes: obs.note ?? [],
+    };
   };
 
   const preferences: FoodPreferenceHistoryItem[] = (
     preferenceResult.listFoodPreferenceObservations?.results ?? []
-  ).map((obs) => ({
-    id: obs.id,
-    date: obs.effectiveDateTime ?? null,
-    type: "inclusion" as const,
-    items: toItems(obs),
-    notes: obs.note ?? [],
-  }));
+  ).map((obs) => toHistoryItem(obs, "inclusion"));
 
   const aversions: FoodPreferenceHistoryItem[] = (
     aversionResult.listFoodAversionObservations?.results ?? []
-  ).map((obs) => ({
-    id: obs.id,
-    date: obs.effectiveDateTime ?? null,
-    type: "exclusion" as const,
-    items: toItems(obs),
-    notes: obs.note ?? [],
-  }));
+  ).map((obs) => toHistoryItem(obs, "exclusion"));
 
   return [...preferences, ...aversions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 }
@@ -236,32 +272,27 @@ export async function fetchFoodPreferences(
     }),
   ]);
 
-  const extractItems = (
+  const extractLabels = (
     results: {
-      valueCodeableConcept?: {
-        coding?: { display?: string | null }[] | null;
-      } | null;
+      valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null;
       valueString?: string | null;
     }[],
   ): string[] =>
     results.flatMap((obs) => {
-      const fromCoding =
-        obs.valueCodeableConcept?.coding?.flatMap((c) => (c.display ? [c.display.trim()] : [])) ??
-        [];
-
-      if (fromCoding.length > 0) {
-        return fromCoding;
+      if ((obs.valueCodeableConcept?.coding?.length ?? 0) > 0) {
+        return obs.valueCodeableConcept!.coding!.flatMap((c) =>
+          c.display ? [c.display.trim()] : [],
+        );
       }
-
       return (obs.valueString ?? "")
         .split(",")
-        .map((item) => item.trim())
+        .map((s) => s.trim())
         .filter(Boolean);
     });
 
   return {
-    included: extractItems(preferenceResult.listFoodPreferenceObservations?.results ?? []),
-    excluded: extractItems(aversionResult.listFoodAversionObservations?.results ?? []),
+    included: extractLabels(preferenceResult.listFoodPreferenceObservations?.results ?? []),
+    excluded: extractLabels(aversionResult.listFoodAversionObservations?.results ?? []),
   };
 }
 
@@ -329,4 +360,47 @@ export async function createFoodObservations(
   }
 
   await Promise.all(promises);
+}
+
+/**
+ * Replace the annotation notes array on a food preference or aversion observation.
+ * Sends the full notes array — partial updates are not supported by the API.
+ */
+export async function updateFoodObservationNotes(
+  id: string,
+  notes: AnnotationInput[],
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateFoodObservationMutation,
+    variables: {
+      id,
+      input: {
+        note: notes.map((n) => ({
+          text: n.text,
+          authorString: n.authorString ?? undefined,
+          time: n.time ?? undefined,
+        })),
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateObservation, "Failed to update food observation notes.");
+}
+
+/**
+ * Update the valueString of an uncoded food preference or aversion observation.
+ * For multi-item observations (CSV), pass the full updated CSV as `newValueString`.
+ */
+export async function updateFoodObservationText(
+  id: string,
+  newValueString: string,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateFoodObservationMutation,
+    variables: { id, input: { valueString: newValueString } },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateObservation, "Failed to update food preference.");
 }

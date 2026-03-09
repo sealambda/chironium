@@ -3,10 +3,10 @@ import { type AnthropometryFormData, logAnthropometry } from "./anthropometry-ap
 import { createFoodObservations, type FoodFormData } from "./food-preferences-api";
 import { createGoal } from "./goals-api";
 import {
+  type ClinicalNoteFormData,
+  createClinicalNoteObservations,
   createMenstrualCycleObservation,
-  createNoteObservations,
   type MenstrualCycleFormData,
-  type NoteFormData,
 } from "./observations-api";
 import { createPatientWithPerson, type PersonFormData } from "./patients-api";
 import { createSubscription, type SubscriptionFormData } from "./subscriptions-api";
@@ -22,8 +22,8 @@ export interface OnboardingDraft {
   anthropometry: AnthropometryFormData | null;
   allergies: AllergiesFormData | null;
   food: FoodFormData | null;
-  notes: NoteFormData[] | null;
-  pendingNote: NoteFormData | null;
+  notes: ClinicalNoteFormData[] | null;
+  pendingNote: ClinicalNoteFormData | null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ function hasFoodData(d: FoodFormData): boolean {
   return d.included.length > 0 || d.excluded.length > 0;
 }
 
-function hasNoteData(notes: NoteFormData[]): boolean {
+function hasNoteData(notes: ClinicalNoteFormData[]): boolean {
   return notes.some((n) => n.title.trim() || n.body.trim());
 }
 
@@ -93,7 +93,7 @@ export async function submitOnboarding(
     concurrent.push(createFoodObservations(draft.food, patientId, organizationId, userId));
   }
   if (draft.notes && hasNoteData(draft.notes)) {
-    concurrent.push(createNoteObservations(draft.notes, patientId, organizationId, userId));
+    concurrent.push(createClinicalNoteObservations(draft.notes, patientId, organizationId, userId));
   }
 
   await Promise.all(concurrent);
