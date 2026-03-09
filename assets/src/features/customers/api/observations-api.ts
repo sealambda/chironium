@@ -58,6 +58,38 @@ const CreateObservationMutation = graphql(`
   }
 `);
 
+const UpdateObservationMutation = graphql(`
+  mutation UpdateObservation($id: ID!, $input: UpdateObservationInput) {
+    updateObservation(id: $id, input: $input) {
+      result {
+        id
+        valueString
+        note {
+          text
+          time
+          authorString
+        }
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const DeleteObservationMutation = graphql(`
+  mutation DeleteObservation($id: ID!) {
+    deleteObservation(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
 
 /** Code text values used for diet observations — excluded from the general observations list. */
@@ -72,10 +104,17 @@ export interface MenstrualCycleFormData {
   notes: string;
 }
 
-/** Title and body of a single clinical note. */
-export interface NoteFormData {
+/** Form data for creating or editing a clinical note observation. */
+export interface ClinicalNoteFormData {
   title: string;
   body: string;
+}
+
+/** Input for adding or replacing annotation notes on a resource. */
+export interface AnnotationInput {
+  text: string;
+  authorString?: string | null;
+  time?: string | null;
 }
 
 /** A single observation item returned by the list query. */
@@ -132,20 +171,21 @@ export async function createMenstrualCycleObservation(
 }
 
 /**
- * Create one observation per note. Skips notes where both title and body are empty.
+ * Create one observation per clinical note. Skips entries where both title and body are empty.
  */
-export async function createNoteObservations(
-  notes: NoteFormData[],
+export async function createClinicalNoteObservations(
+  notes: ClinicalNoteFormData[],
   subjectId: string,
   organizationId: string,
-  userId: string,
+  // userId retained for API-signature compatibility.
+  _userId: string,
 ): Promise<void> {
   const validNotes = notes.filter((n) => n.title.trim() || n.body.trim());
 
   await Promise.all(
     validNotes.map(async (note) => {
       const valueString = note.title.trim()
-        ? `${note.title.trim()}: ${note.body.trim()}`
+        ? `# ${note.title.trim()}\n\n${note.body.trim()}`
         : note.body.trim();
 
       const result = await requestGraphql({
@@ -155,13 +195,12 @@ export async function createNoteObservations(
             status: "FINAL",
             code: { text: "clinical-note" },
             valueString,
-            note: [{ text: valueString, authorReference: userId, time: new Date().toISOString() }],
             subjectId,
           },
         },
         organizationId,
       });
-      unwrapMutationResult(result.createObservation, "Failed to create note observation.");
+      unwrapMutationResult(result.createObservation, "Failed to create clinical note observation.");
     }),
   );
 }
@@ -306,21 +345,31 @@ export function isClinicalNote(obs: ObservationItem): boolean {
 }
 
 /** Parsed title + body from a clinical-note observation's valueString. */
-export interface ParsedNote {
+export interface ParsedClinicalNote {
   title: string;
   body: string;
 }
 
 /**
- * Split a clinical-note valueString into title and body at the first `: `.
- * Only meaningful for clinical-note observations (stored as "title: body").
+ * Split a clinical-note valueString into title and body.
+ * Parses both the current markdown format (`# Title\n\nBody`) and the
+ * legacy colon format (`Title: Body`) for backward compatibility.
  */
-export function parseClinicalNote(obs: ObservationItem): ParsedNote {
+export function parseClinicalNote(obs: ObservationItem): ParsedClinicalNote {
   const raw = obs.valueString ?? "";
+
+  // Current format: "# Title\n\nBody"
+  const mdMatch = raw.match(/^#\s+(.+?)\n+([\s\S]*)$/);
+  if (mdMatch) {
+    return { title: mdMatch[1].trim(), body: mdMatch[2].trim() };
+  }
+
+  // Legacy format: "Title: Body"
   const colonIdx = raw.indexOf(": ");
   if (colonIdx > 0 && colonIdx < 120) {
     return { title: raw.slice(0, colonIdx), body: raw.slice(colonIdx + 2) };
   }
+
   return { title: raw, body: "" };
 }
 
@@ -334,4 +383,65 @@ export function getObservationDisplayValue(obs: ObservationItem): string {
     return `${obs.valueQuantity.value}${unit}`;
   }
   return "\u2014";
+}
+
+// ─── Mutation functions ───────────────────────────────────────────────
+
+/**
+ * Update the valueString of a clinical-note observation.
+ * Only updates the observation value — does not modify the note annotation array.
+ */
+export async function updateClinicalNoteObservation(
+  id: string,
+  data: ClinicalNoteFormData,
+  organizationId: string,
+): Promise<void> {
+  const valueString = data.title.trim()
+    ? `# ${data.title.trim()}\n\n${data.body.trim()}`
+    : data.body.trim();
+
+  const result = await requestGraphql({
+    document: UpdateObservationMutation,
+    variables: { id, input: { valueString } },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateObservation, "Failed to update clinical note.");
+}
+
+/**
+ * Replace the annotation notes array on an observation.
+ * Sends the full notes array — partial updates are not supported by the API.
+ */
+export async function updateObservationNotes(
+  id: string,
+  notes: AnnotationInput[],
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateObservationMutation,
+    variables: {
+      id,
+      input: {
+        note: notes.map((n) => ({
+          text: n.text,
+          authorString: n.authorString ?? undefined,
+          time: n.time ?? undefined,
+        })),
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateObservation, "Failed to update observation notes.");
+}
+
+/**
+ * Permanently delete an observation by ID.
+ */
+export async function deleteObservation(id: string, organizationId: string): Promise<void> {
+  const result = await requestGraphql({
+    document: DeleteObservationMutation,
+    variables: { id },
+    organizationId,
+  });
+  unwrapMutationResult(result.deleteObservation, "Failed to delete observation.");
 }

@@ -2,6 +2,8 @@ import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
+import type { AnnotationInput } from "./observations-api";
+
 // ─── Queries ─────────────────────────────────────────────────────────
 
 const GetPatientAllergyIntolerancesQuery = graphql(`
@@ -14,6 +16,9 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
         code {
           text
           coding {
+            system
+            code
+            version
             display
           }
         }
@@ -35,6 +40,24 @@ const CreateAllergyIntoleranceMutation = graphql(`
       result {
         id
         type
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const UpdateAllergyIntoleranceMutation = graphql(`
+  mutation UpdateAllergyIntolerance($id: ID!, $input: UpdateAllergyIntoleranceInput) {
+    updateAllergyIntolerance(id: $id, input: $input) {
+      result {
+        id
+        note {
+          text
+          time
+          authorString
+        }
       }
       errors {
         message
@@ -113,4 +136,50 @@ export async function createAllergiesAndIntolerances(
     ...data.allergies.map((tag) => makeRecord("ALLERGY", tag)),
     ...data.intolerances.map((tag) => makeRecord("INTOLERANCE", tag)),
   ]);
+}
+
+/**
+ * Replace the annotation notes array on an allergy or intolerance record.
+ * Sends the full notes array — partial updates are not supported by the API.
+ */
+export async function updateAllergyIntoleranceNotes(
+  id: string,
+  notes: AnnotationInput[],
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateAllergyIntoleranceMutation,
+    variables: {
+      id,
+      input: {
+        note: notes.map((n) => ({
+          text: n.text,
+          authorString: n.authorString ?? undefined,
+          time: n.time ?? undefined,
+        })),
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(
+    result.updateAllergyIntolerance,
+    "Failed to update allergy/intolerance notes.",
+  );
+}
+
+/**
+ * Update the display text of an uncoded allergy or intolerance record.
+ * Only valid for records without a coded concept (code.coding is empty).
+ */
+export async function updateAllergyIntoleranceCode(
+  id: string,
+  text: string,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateAllergyIntoleranceMutation,
+    variables: { id, input: { code: { text } } },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateAllergyIntolerance, "Failed to update record.");
 }

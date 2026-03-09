@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { formatDistanceToNowStrict } from "date-fns";
-import { ChevronRight, ClipboardList, PlusIcon } from "lucide-react";
+import { ChevronRight, ClipboardList, PencilIcon, PlusIcon } from "lucide-react";
+import { useState } from "react";
 
 import {
   getObservationDisplayValue,
@@ -11,6 +12,7 @@ import {
   parseClinicalNote,
 } from "@/features/customers/api/observations-api";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
+import { EditObservationDialog } from "@/features/customers/ui/detail/edit-observation-dialog";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -27,7 +29,12 @@ interface ObservationsCardProps {
 
 // ─── Observation row ─────────────────────────────────────────────────
 
-function ObservationRow({ item }: Readonly<{ item: ObservationItem }>) {
+interface ObservationRowProps {
+  item: ObservationItem;
+  onEdit: (item: ObservationItem) => void;
+}
+
+function ObservationRow({ item, onEdit }: Readonly<ObservationRowProps>) {
   const label = getObservationLabel(item.code);
   const title = isClinicalNote(item)
     ? parseClinicalNote(item).title
@@ -40,13 +47,24 @@ function ObservationRow({ item }: Readonly<{ item: ObservationItem }>) {
     : null;
 
   return (
-    <div className="py-2.5">
+    <div className="group py-2.5">
       <div className="flex items-baseline gap-2">
         <span className="truncate font-medium text-foreground text-sm">{title}</span>
         <span className="shrink-0 text-foreground/40 text-xs">{label}</span>
-        {timeAgo ? (
-          <span className="ml-auto shrink-0 text-foreground/50 text-xs">{timeAgo}</span>
-        ) : null}
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          {timeAgo ? <span className="text-foreground/50 text-xs">{timeAgo}</span> : null}
+          {isClinicalNote(item) ? (
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => onEdit(item)}
+              aria-label={m.observations_edit_title()}
+              className="opacity-0 text-foreground/40 transition-opacity hover:text-foreground group-hover:opacity-100"
+            >
+              <PencilIcon className="size-3.5" />
+            </Button>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -87,6 +105,8 @@ export function ObservationsCard({
   observations,
   isLoading,
 }: Readonly<ObservationsCardProps>) {
+  const [editTarget, setEditTarget] = useState<ObservationItem | null>(null);
+
   if (isLoading) {
     return <ObservationsCardSkeleton />;
   }
@@ -146,7 +166,7 @@ export function ObservationsCard({
 
       <div className="mt-1 divide-y divide-neutral-200/60">
         {items.map((item) => (
-          <ObservationRow key={item.id} item={item} />
+          <ObservationRow key={item.id} item={item} onEdit={setEditTarget} />
         ))}
       </div>
 
@@ -160,6 +180,17 @@ export function ObservationsCard({
           <ChevronRight className="size-4" />
         </Link>
       </div>
+
+      {editTarget ? (
+        <EditObservationDialog
+          observation={editTarget}
+          personId={personId}
+          open={editTarget !== null}
+          onOpenChange={(open) => {
+            if (!open) setEditTarget(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
