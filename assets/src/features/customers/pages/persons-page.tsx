@@ -44,6 +44,7 @@ export function CustomersPage() {
   const { setHeaderContent } = useDetailMode();
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
 
   const {
     data: persons = [],
@@ -80,6 +81,18 @@ export function CustomersPage() {
     }
     return customers.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
   }, [customers, search]);
+
+  const sortedCustomers = useMemo(() => {
+    if (!sortDir) {
+      return filtered;
+    }
+    return [...filtered].sort((a, b) => {
+      const aName = formatPersonName(a.person.name).toLowerCase();
+      const bName = formatPersonName(b.person.name).toLowerCase();
+      const cmp = aName.localeCompare(bName);
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+  }, [filtered, sortDir]);
 
   useEffect(() => {
     if (!selectedOrg || isLoading || Boolean(error)) {
@@ -157,6 +170,11 @@ export function CustomersPage() {
           </h1>
           <span className="text-muted-foreground text-sm">({customers.length})</span>
         </div>
+        {customers.length > 0 ? (
+          <div className="flex items-center">
+            <CustomerSortDropdown sortDir={sortDir} onSortDirChange={setSortDir} />
+          </div>
+        ) : null}
       </header>
 
       {customers.length > 0 ? (
@@ -166,7 +184,7 @@ export function CustomersPage() {
       ) : null}
 
       <CustomerList
-        items={filtered}
+        items={sortedCustomers}
         isEmpty={customers.length === 0}
         onAdd={() => setOnboardingOpen(true)}
       />
@@ -206,20 +224,6 @@ function CustomerList({
   isEmpty: boolean;
   onAdd: () => void;
 }>) {
-  const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
-
-  const sortedItems = useMemo(() => {
-    if (!sortDir) {
-      return items;
-    }
-    return [...items].sort((a, b) => {
-      const aName = formatPersonName(a.person.name).toLowerCase();
-      const bName = formatPersonName(b.person.name).toLowerCase();
-      const cmp = aName.localeCompare(bName);
-      return sortDir === "desc" ? -cmp : cmp;
-    });
-  }, [items, sortDir]);
-
   if (isEmpty) {
     return (
       <EmptyState
@@ -238,13 +242,9 @@ function CustomerList({
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
-        <CustomerSortDropdown sortDir={sortDir} onSortDirChange={setSortDir} />
-      </div>
-
       {/* Mobile: stacked cards */}
       <div className="space-y-3 lg:hidden">
-        {sortedItems.map((item) => (
+        {items.map((item) => (
           <Link
             key={item.person.id}
             to="/customers/$customerId"
@@ -258,7 +258,7 @@ function CustomerList({
 
       {/* Desktop: data table */}
       <div className="hidden lg:block">
-        <CustomerTable items={sortedItems} />
+        <CustomerTable items={items} />
       </div>
     </div>
   );
