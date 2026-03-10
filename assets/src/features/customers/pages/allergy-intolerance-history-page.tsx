@@ -87,6 +87,7 @@ export function AllergyIntoleranceHistoryPage() {
   ) => {
     const base = current.map((n) => ({
       text: n.text ?? "",
+      authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
       time: n.time ?? undefined,
     }));
@@ -95,6 +96,7 @@ export function AllergyIntoleranceHistoryPage() {
         ...base,
         {
           text: action.text,
+          authorReference: user?.id ?? undefined,
           authorString: user?.name ?? undefined,
           time: new Date().toISOString(),
         },
@@ -108,40 +110,52 @@ export function AllergyIntoleranceHistoryPage() {
 
   const makeNoteHandlers = (id: string, notes: Annotation[]) => ({
     onAddNote: async (text: string) => {
-      await updateAllergyIntoleranceNotes(
-        id,
-        buildUpdatedNotes(notes, { kind: "add", text }),
-        selectedOrg?.id ?? "",
-      );
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "allergyIntolerances"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
-      toast.success(m.notes_edit_success());
+      try {
+        await updateAllergyIntoleranceNotes(
+          id,
+          buildUpdatedNotes(notes, { kind: "add", text }),
+          selectedOrg?.id ?? "",
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "allergyIntolerances"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
+        toast.success(m.notes_edit_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
     onUpdateNote: async (index: number, text: string) => {
-      await updateAllergyIntoleranceNotes(
-        id,
-        buildUpdatedNotes(notes, { kind: "update", index, text }),
-        selectedOrg?.id ?? "",
-      );
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "allergyIntolerances"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
-      toast.success(m.notes_edit_success());
+      try {
+        await updateAllergyIntoleranceNotes(
+          id,
+          buildUpdatedNotes(notes, { kind: "update", index, text }),
+          selectedOrg?.id ?? "",
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "allergyIntolerances"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
+        toast.success(m.notes_edit_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
     onDeleteNote: async (index: number) => {
-      await updateAllergyIntoleranceNotes(
-        id,
-        buildUpdatedNotes(notes, { kind: "delete", index }),
-        selectedOrg?.id ?? "",
-      );
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "allergyIntolerances"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
-      toast.success(m.notes_delete_success());
+      try {
+        await updateAllergyIntoleranceNotes(
+          id,
+          buildUpdatedNotes(notes, { kind: "delete", index }),
+          selectedOrg?.id ?? "",
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "allergyIntolerances"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
+        toast.success(m.notes_delete_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
   });
 

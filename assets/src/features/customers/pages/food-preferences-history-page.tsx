@@ -84,6 +84,7 @@ export function FoodPreferencesHistoryPage() {
   ) => {
     const base = current.map((n) => ({
       text: n.text ?? "",
+      authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
       time: n.time ?? undefined,
     }));
@@ -92,6 +93,7 @@ export function FoodPreferencesHistoryPage() {
         ...base,
         {
           text: action.text,
+          authorReference: user?.id ?? undefined,
           authorString: user?.name ?? undefined,
           time: new Date().toISOString(),
         },
@@ -105,40 +107,52 @@ export function FoodPreferencesHistoryPage() {
 
   const makeNoteHandlers = (id: string, notes: Annotation[]) => ({
     onAddNote: async (text: string) => {
-      await updateFoodObservationNotes(
-        id,
-        buildUpdatedNotes(notes, { kind: "add", text }),
-        selectedOrg?.id ?? "",
-      );
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "foodPreferencesHistory"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
-      toast.success(m.notes_edit_success());
+      try {
+        await updateFoodObservationNotes(
+          id,
+          buildUpdatedNotes(notes, { kind: "add", text }),
+          selectedOrg?.id ?? "",
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "foodPreferencesHistory"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
+        toast.success(m.notes_edit_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
     onUpdateNote: async (index: number, text: string) => {
-      await updateFoodObservationNotes(
-        id,
-        buildUpdatedNotes(notes, { kind: "update", index, text }),
-        selectedOrg?.id ?? "",
-      );
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "foodPreferencesHistory"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
-      toast.success(m.notes_edit_success());
+      try {
+        await updateFoodObservationNotes(
+          id,
+          buildUpdatedNotes(notes, { kind: "update", index, text }),
+          selectedOrg?.id ?? "",
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "foodPreferencesHistory"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
+        toast.success(m.notes_edit_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
     onDeleteNote: async (index: number) => {
-      await updateFoodObservationNotes(
-        id,
-        buildUpdatedNotes(notes, { kind: "delete", index }),
-        selectedOrg?.id ?? "",
-      );
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "foodPreferencesHistory"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
-      toast.success(m.notes_delete_success());
+      try {
+        await updateFoodObservationNotes(
+          id,
+          buildUpdatedNotes(notes, { kind: "delete", index }),
+          selectedOrg?.id ?? "",
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "foodPreferencesHistory"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
+        toast.success(m.notes_delete_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
   });
 

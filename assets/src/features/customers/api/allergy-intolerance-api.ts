@@ -25,6 +25,7 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
         note {
           text
           time
+          authorReference
           authorString
         }
       }
@@ -56,6 +57,7 @@ const UpdateAllergyIntoleranceMutation = graphql(`
         note {
           text
           time
+          authorReference
           authorString
         }
       }
@@ -154,6 +156,7 @@ export async function updateAllergyIntoleranceNotes(
       input: {
         note: notes.map((n) => ({
           text: n.text,
+          authorReference: n.authorReference ?? undefined,
           authorString: n.authorString ?? undefined,
           time: n.time ?? undefined,
         })),

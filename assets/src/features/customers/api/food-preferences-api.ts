@@ -32,6 +32,7 @@ const ListFoodPreferenceObservationsQuery = graphql(`
         note {
           text
           time
+          authorReference
           authorString
         }
       }
@@ -61,6 +62,7 @@ const ListFoodAversionObservationsQuery = graphql(`
         note {
           text
           time
+          authorReference
           authorString
         }
       }
@@ -144,6 +146,7 @@ export interface FoodPreferenceHistoryItem {
   codings: ObservationCoding[];
   notes: {
     text?: string | null;
+    authorReference?: string | null;
     authorString?: string | null;
     time?: string | null;
   }[];
@@ -201,7 +204,12 @@ export async function fetchFoodPreferencesHistory(
         | { system: string; code: string; version?: string | null; display?: string | null }[]
         | null;
     } | null;
-    note?: { text?: string | null; authorString?: string | null; time?: string | null }[] | null;
+    note?: {
+      text?: string | null;
+      authorReference?: string | null;
+      authorString?: string | null;
+      time?: string | null;
+    }[] | null;
   };
 
   const toHistoryItem = (
@@ -378,6 +386,7 @@ export async function updateFoodObservationNotes(
       input: {
         note: notes.map((n) => ({
           text: n.text,
+          authorReference: n.authorReference ?? undefined,
           authorString: n.authorString ?? undefined,
           time: n.time ?? undefined,
         })),
