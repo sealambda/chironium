@@ -21,6 +21,7 @@ export interface Annotation {
   text?: string | null;
   authorReference?: string | null;
   authorString?: string | null;
+  authorReference?: string | null;
   time?: string | null;
 }
 
@@ -145,6 +146,8 @@ function NotesPopover({
       note.authorReference === currentUserId ||
       note.authorString === currentUserId);
   const hasNotes = notes.length > 0;
+  // Editable popovers always use click-to-open behavior for reliable interaction.
+  const useHoverOnly = hoverOnly && !isEditable;
 
   // In read-only mode, don't render when there are no notes to show.
   if (!isEditable && !hasNotes) {
@@ -249,7 +252,7 @@ function NotesPopover({
     </>
   );
 
-  if (hoverOnly) {
+  if (useHoverOnly) {
     return (
       <TooltipPrimitive.Root>
         <TooltipPrimitive.Trigger

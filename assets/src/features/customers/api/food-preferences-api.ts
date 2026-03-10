@@ -34,6 +34,7 @@ const ListFoodPreferenceObservationsQuery = graphql(`
           time
           authorReference
           authorString
+          authorReference
         }
       }
     }
@@ -64,6 +65,7 @@ const ListFoodAversionObservationsQuery = graphql(`
           time
           authorReference
           authorString
+          authorReference
         }
       }
     }
@@ -148,6 +150,7 @@ export interface FoodPreferenceHistoryItem {
     text?: string | null;
     authorReference?: string | null;
     authorString?: string | null;
+    authorReference?: string | null;
     time?: string | null;
   }[];
 }
@@ -312,6 +315,7 @@ export async function createFoodObservations(
   subjectId: string,
   organizationId: string,
   userId: string,
+  userName: string,
 ): Promise<void> {
   const promises: Promise<void>[] = [];
   const includedCsv = data.included.filter((s) => s.trim()).join(",");
@@ -328,6 +332,7 @@ export async function createFoodObservations(
               note: [
                 {
                   text: includedCsv,
+                  authorString: userName,
                   authorReference: userId,
                   time: new Date().toISOString(),
                 },
@@ -353,6 +358,7 @@ export async function createFoodObservations(
               note: [
                 {
                   text: excludedCsv,
+                  authorString: userName,
                   authorReference: userId,
                   time: new Date().toISOString(),
                 },
@@ -408,7 +414,9 @@ export async function updateFoodObservationText(
 ): Promise<void> {
   const result = await requestGraphql({
     document: UpdateFoodObservationMutation,
-    variables: { id, input: { valueString: newValueString } },
+    // Explicitly clear valueCodeableConcept so the backend's exactly-one-value
+    // constraint is satisfied when overwriting a previously coded observation.
+    variables: { id, input: { valueString: newValueString, valueCodeableConcept: null } },
     organizationId,
   });
   unwrapMutationResult(result.updateObservation, "Failed to update food preference.");

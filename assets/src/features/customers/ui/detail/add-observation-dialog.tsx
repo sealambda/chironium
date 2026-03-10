@@ -4,7 +4,6 @@ import { toast } from "sonner";
 
 import { createClinicalNoteObservations } from "@/features/customers/api/observations-api";
 import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
@@ -16,7 +15,6 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { Input } from "@/shared/ui/input";
 import { MarkdownToolbar } from "@/shared/ui/markdown-toolbar";
 import { Textarea } from "@/shared/ui/textarea";
 
@@ -33,14 +31,12 @@ export function AddObservationDialog({
 }: Readonly<AddObservationDialogProps>) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const { selectedOrg } = useOrg();
-  const { user } = useCurrentUser();
   const queryClient = useQueryClient();
 
-  const hasContent = title.trim() || body.trim();
+  const hasContent = body.trim();
 
   const handleSubmit = async () => {
     if (!hasContent || !patientId) {
@@ -53,10 +49,9 @@ export function AddObservationDialog({
     setSaving(true);
     try {
       await createClinicalNoteObservations(
-        [{ title: title.trim(), body: body.trim() }],
+        [{ body: body.trim() }],
         patientId,
         selectedOrg?.id ?? "",
-        user?.id ?? "",
       );
       await Promise.all([
         queryClient.invalidateQueries({
@@ -68,7 +63,6 @@ export function AddObservationDialog({
       ]);
       toast.success(m.observations_add_success());
       setOpen(false);
-      setTitle("");
       setBody("");
     } catch {
       toast.error(m.onboarding_error());
@@ -86,16 +80,6 @@ export function AddObservationDialog({
         </DialogHeader>
 
         <FieldGroup>
-          <Field>
-            <FieldLabel>{m.field_observation_title()}</FieldLabel>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={m.field_observation_title_placeholder()}
-              disabled={saving}
-            />
-          </Field>
-
           <Field>
             <FieldLabel>{m.field_observation_body()}</FieldLabel>
             <div>

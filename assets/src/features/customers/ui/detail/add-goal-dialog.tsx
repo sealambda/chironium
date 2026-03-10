@@ -90,6 +90,7 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
         subjectId: patientId,
         organizationId: selectedOrg?.id ?? "",
         userId: user?.id ?? "",
+        userName: user?.name ?? "",
         ...(priority && {
           priority: priority as "HIGH_PRIORITY" | "MEDIUM_PRIORITY" | "LOW_PRIORITY",
         }),

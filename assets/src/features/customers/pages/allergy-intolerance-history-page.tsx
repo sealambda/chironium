@@ -89,6 +89,7 @@ export function AllergyIntoleranceHistoryPage() {
       text: n.text ?? "",
       authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
+      authorReference: n.authorReference ?? undefined,
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
@@ -98,6 +99,7 @@ export function AllergyIntoleranceHistoryPage() {
           text: action.text,
           authorReference: user?.id ?? undefined,
           authorString: user?.name ?? undefined,
+          authorReference: user?.id ?? undefined,
           time: new Date().toISOString(),
         },
       ];
@@ -228,7 +230,6 @@ export function AllergyIntoleranceHistoryPage() {
     {
       id: "actions",
       cell: ({ row }) => {
-        const isUncoded = !row.original.code?.coding?.length;
         const codings = (row.original.code?.coding ?? []).map((c) => ({
           system: c.system ?? "",
           code: c.code ?? "",
@@ -236,26 +237,24 @@ export function AllergyIntoleranceHistoryPage() {
         }));
         return (
           <div className="flex items-center justify-end gap-0.5">
+            <CodingPopover codings={codings} />
             <NotesPopover
               notes={row.original.note ?? []}
-              hoverOnly
               currentUserId={user?.id ?? undefined}
               {...makeNoteHandlers(row.original.id, row.original.note ?? [])}
             />
-            <CodingPopover codings={codings} />
-            {isUncoded && (
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => {
-                  const val = row.original.code?.text ?? "";
-                  setEditTarget(row.original);
-                  setEditText(val);
-                }}
-              >
-                <PencilIcon className="size-3.5" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => {
+                const val =
+                  row.original.code?.text ?? row.original.code?.coding?.[0]?.display ?? "";
+                setEditTarget(row.original);
+                setEditText(val);
+              }}
+            >
+              <PencilIcon className="size-3.5" />
+            </Button>
           </div>
         );
       },

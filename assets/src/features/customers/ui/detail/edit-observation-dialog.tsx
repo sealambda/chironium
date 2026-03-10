@@ -4,7 +4,6 @@ import { toast } from "sonner";
 
 import {
   type ObservationItem,
-  parseClinicalNote,
   updateClinicalNoteObservation,
 } from "@/features/customers/api/observations-api";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -12,7 +11,6 @@ import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { Input } from "@/shared/ui/input";
 import { MarkdownToolbar } from "@/shared/ui/markdown-toolbar";
 import { Textarea } from "@/shared/ui/textarea";
 
@@ -30,22 +28,19 @@ export function EditObservationDialog({
   onOpenChange,
 }: Readonly<EditObservationDialogProps>) {
   const [saving, setSaving] = useState(false);
-  const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
-  // Reset form to the observation's current content each time the dialog opens.
+  // Reset form to the observation's raw markdown each time the dialog opens.
   useEffect(() => {
     if (open) {
-      const parsed = parseClinicalNote(observation);
-      setTitle(parsed.title);
-      setBody(parsed.body);
+      setBody(observation.valueString ?? "");
     }
   }, [open, observation]);
 
-  const hasContent = title.trim() || body.trim();
+  const hasContent = body.trim();
 
   const handleSubmit = async () => {
     if (!hasContent) return;
@@ -53,7 +48,7 @@ export function EditObservationDialog({
     try {
       await updateClinicalNoteObservation(
         observation.id,
-        { title: title.trim(), body: body.trim() },
+        { body: body.trim() },
         selectedOrg?.id ?? "",
       );
       await Promise.all([
@@ -77,16 +72,6 @@ export function EditObservationDialog({
         </DialogHeader>
 
         <FieldGroup>
-          <Field>
-            <FieldLabel>{m.field_observation_title()}</FieldLabel>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={m.field_observation_title_placeholder()}
-              disabled={saving}
-            />
-          </Field>
-
           <Field>
             <FieldLabel>{m.field_observation_body()}</FieldLabel>
             <div>

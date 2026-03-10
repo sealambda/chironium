@@ -9,7 +9,6 @@ import {
   isClinicalNote,
   type ObservationItem,
   type ObservationsPage,
-  parseClinicalNote,
 } from "@/features/customers/api/observations-api";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
 import { EditObservationDialog } from "@/features/customers/ui/detail/edit-observation-dialog";
@@ -37,7 +36,8 @@ interface ObservationRowProps {
 function ObservationRow({ item, onEdit }: Readonly<ObservationRowProps>) {
   const label = getObservationLabel(item.code);
   const title = isClinicalNote(item)
-    ? parseClinicalNote(item).title
+    ? // Show the first non-empty line, stripping any leading markdown heading markers.
+      ((item.valueString ?? "").split("\n").find((l) => l.trim()) ?? "").replace(/^#+\s*/, "")
     : getObservationDisplayValue(item);
   const timeAgo = item.effectiveDateTime
     ? formatDistanceToNowStrict(new Date(item.effectiveDateTime), {

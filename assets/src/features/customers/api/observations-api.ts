@@ -36,6 +36,7 @@ const ListObservationsQuery = graphql(`
           time
           authorReference
           authorString
+          authorReference
         }
       }
       endKeyset
@@ -70,6 +71,7 @@ const UpdateObservationMutation = graphql(`
           time
           authorReference
           authorString
+          authorReference
         }
       }
       errors {
@@ -108,7 +110,6 @@ export interface MenstrualCycleFormData {
 
 /** Form data for creating or editing a clinical note observation. */
 export interface ClinicalNoteFormData {
-  title: string;
   body: string;
 }
 
@@ -117,6 +118,7 @@ export interface AnnotationInput {
   text: string;
   authorReference?: string | null;
   authorString?: string | null;
+  authorReference?: string | null;
   time?: string | null;
 }
 
@@ -142,8 +144,8 @@ export async function createMenstrualCycleObservation(
   subjectId: string,
   organizationId: string,
   userId: string,
+  userName: string,
 ): Promise<void> {
-  // Structured format for parseability.
   const fields: string[] = [];
   if (data.startDate) {
     fields.push(`start:${data.startDate}`);
@@ -163,7 +165,7 @@ export async function createMenstrualCycleObservation(
         status: "FINAL",
         code: { coding: [{ system: SNOMED_SYSTEM, code: "364307006" }] },
         valueString: noteText,
-        note: [{ text: noteText, authorReference: userId, time: new Date().toISOString() }],
+        note: [{ text: noteText, authorString: userName, authorReference: userId, time: new Date().toISOString() }],
         subjectId,
       },
     },
@@ -174,30 +176,24 @@ export async function createMenstrualCycleObservation(
 }
 
 /**
- * Create one observation per clinical note. Skips entries where both title and body are empty.
+ * Create one observation per clinical note. Skips entries where the body is empty.
  */
 export async function createClinicalNoteObservations(
   notes: ClinicalNoteFormData[],
   subjectId: string,
   organizationId: string,
-  // userId retained for API-signature compatibility.
-  _userId: string,
 ): Promise<void> {
-  const validNotes = notes.filter((n) => n.title.trim() || n.body.trim());
+  const validNotes = notes.filter((n) => n.body.trim());
 
   await Promise.all(
     validNotes.map(async (note) => {
-      const valueString = note.title.trim()
-        ? `# ${note.title.trim()}\n\n${note.body.trim()}`
-        : note.body.trim();
-
       const result = await requestGraphql({
         document: CreateObservationMutation,
         variables: {
           input: {
             status: "FINAL",
             code: { text: "clinical-note" },
-            valueString,
+            valueString: note.body.trim(),
             subjectId,
           },
         },
@@ -399,13 +395,9 @@ export async function updateClinicalNoteObservation(
   data: ClinicalNoteFormData,
   organizationId: string,
 ): Promise<void> {
-  const valueString = data.title.trim()
-    ? `# ${data.title.trim()}\n\n${data.body.trim()}`
-    : data.body.trim();
-
   const result = await requestGraphql({
     document: UpdateObservationMutation,
-    variables: { id, input: { valueString } },
+    variables: { id, input: { valueString: data.body.trim() } },
     organizationId,
   });
   unwrapMutationResult(result.updateObservation, "Failed to update clinical note.");
@@ -429,6 +421,7 @@ export async function updateObservationNotes(
           text: n.text,
           authorReference: n.authorReference ?? undefined,
           authorString: n.authorString ?? undefined,
+          authorReference: n.authorReference ?? undefined,
           time: n.time ?? undefined,
         })),
       },

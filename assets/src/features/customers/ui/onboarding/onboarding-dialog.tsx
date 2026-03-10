@@ -69,6 +69,7 @@ const EMPTY_DRAFT: OnboardingDraft = {
 function useOnboardingDraft(
   organizationId: string,
   userId: string,
+  userName: string,
   onCloseRef: React.RefObject<() => void>,
 ) {
   const queryClient = useQueryClient();
@@ -101,7 +102,7 @@ function useOnboardingDraft(
       setError(null);
       setIsSubmitting(true);
       try {
-        await submitOnboarding(finalDraft, organizationId, userId);
+        await submitOnboarding(finalDraft, organizationId, userId, userName);
         await queryClient.invalidateQueries({ queryKey: ["customers", "list"] });
         toast.success(m.onboarding_success());
         onCloseRef.current();
@@ -112,7 +113,7 @@ function useOnboardingDraft(
         setIsSubmitting(false);
       }
     },
-    [draft, organizationId, userId, queryClient, onCloseRef],
+    [draft, organizationId, userId, userName, queryClient, onCloseRef],
   );
 
   return {
@@ -142,7 +143,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   // Use a ref so the hook's finish callback always sees the latest handleClose
   // without creating a circular dependency.
   const handleCloseRef = useRef(() => {});
-  const wizard = useOnboardingDraft(organizationId, user?.id ?? "", handleCloseRef);
+  const wizard = useOnboardingDraft(organizationId, user?.id ?? "", user?.name ?? "", handleCloseRef);
 
   const hasDraftData = Object.values(wizard.draft).some((v) => v !== null);
 
