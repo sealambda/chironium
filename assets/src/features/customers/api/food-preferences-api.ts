@@ -34,7 +34,6 @@ const ListFoodPreferenceObservationsQuery = graphql(`
           time
           authorReference
           authorString
-          authorReference
         }
       }
     }
@@ -65,7 +64,6 @@ const ListFoodAversionObservationsQuery = graphql(`
           time
           authorReference
           authorString
-          authorReference
         }
       }
     }
@@ -150,7 +148,6 @@ export interface FoodPreferenceHistoryItem {
     text?: string | null;
     authorReference?: string | null;
     authorString?: string | null;
-    authorReference?: string | null;
     time?: string | null;
   }[];
 }

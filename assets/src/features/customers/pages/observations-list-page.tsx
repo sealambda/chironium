@@ -82,7 +82,6 @@ export function ObservationsListPage() {
       text: n.text ?? "",
       authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
-      authorReference: n.authorReference ?? undefined,
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
