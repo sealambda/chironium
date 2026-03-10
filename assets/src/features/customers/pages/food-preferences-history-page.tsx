@@ -86,6 +86,7 @@ export function FoodPreferencesHistoryPage() {
       text: n.text ?? "",
       authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
+      authorReference: n.authorReference ?? undefined,
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
@@ -95,6 +96,7 @@ export function FoodPreferencesHistoryPage() {
           text: action.text,
           authorReference: user?.id ?? undefined,
           authorString: user?.name ?? undefined,
+          authorReference: user?.id ?? undefined,
           time: new Date().toISOString(),
         },
       ];
@@ -228,25 +230,22 @@ export function FoodPreferencesHistoryPage() {
       id: "actions",
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-0.5">
+          <CodingPopover codings={row.original.codings} />
           <NotesPopover
             notes={row.original.notes}
-            hoverOnly
             currentUserId={user?.id ?? undefined}
             {...makeNoteHandlers(row.original.id, row.original.notes)}
           />
-          <CodingPopover codings={row.original.codings} />
-          {!row.original.isCoded && (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => {
-                setEditTarget(row.original);
-                setEditText(row.original.items);
-              }}
-            >
-              <PencilIcon className="size-3.5" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => {
+              setEditTarget(row.original);
+              setEditText(row.original.items);
+            }}
+          >
+            <PencilIcon className="size-3.5" />
+          </Button>
         </div>
       ),
       enableSorting: false,

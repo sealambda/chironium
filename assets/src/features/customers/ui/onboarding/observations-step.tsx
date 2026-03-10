@@ -5,7 +5,6 @@ import type { ClinicalNoteFormData } from "@/features/customers/api/observations
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { Input } from "@/shared/ui/input";
 import { MarkdownToolbar } from "@/shared/ui/markdown-toolbar";
 import { Textarea } from "@/shared/ui/textarea";
 
@@ -47,42 +46,33 @@ export function ObservationsStep({
     (initialData ?? []).map((n) => ({ ...n, id: nextId() })),
   );
 
-  const [noteTitle, setNoteTitle] = useState(initialPending?.title ?? "");
   const [noteBody, setNoteBody] = useState(initialPending?.body ?? "");
 
   const submitting = isSubmitting ?? false;
-  const hasInput = noteTitle.trim() || noteBody.trim();
+  const hasInput = noteBody.trim();
 
   const handleRemove = (id: string) => {
     setAddedNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
   const handleAdd = () => {
-    if (!noteTitle.trim() && !noteBody.trim()) {
+    if (!noteBody.trim()) {
       return;
     }
-    setAddedNotes((prev) => [
-      ...prev,
-      { id: nextId(), title: noteTitle.trim(), body: noteBody.trim() },
-    ]);
-    setNoteTitle("");
+    setAddedNotes((prev) => [...prev, { id: nextId(), body: noteBody.trim() }]);
     setNoteBody("");
   };
 
   const handleSubmit = () => {
-    const pending: ClinicalNoteFormData[] =
-      noteTitle.trim() || noteBody.trim()
-        ? [{ title: noteTitle.trim(), body: noteBody.trim() }]
-        : [];
+    const pending: ClinicalNoteFormData[] = noteBody.trim() ? [{ body: noteBody.trim() }] : [];
     onSubmit([...addedNotes, ...pending]);
   };
 
   const handleBack = () => {
-    const notes: ClinicalNoteFormData[] = addedNotes.map((n) => ({ title: n.title, body: n.body }));
-    const pending: ClinicalNoteFormData | undefined =
-      noteTitle.trim() || noteBody.trim()
-        ? { title: noteTitle.trim(), body: noteBody.trim() }
-        : undefined;
+    const notes: ClinicalNoteFormData[] = addedNotes.map((n) => ({ body: n.body }));
+    const pending: ClinicalNoteFormData | undefined = noteBody.trim()
+      ? { body: noteBody.trim() }
+      : undefined;
     onSaveDraft?.(notes, pending);
     onBack();
   };
@@ -98,17 +88,6 @@ export function ObservationsStep({
     >
       <div className="space-y-4">
         <FieldGroup>
-          <Field>
-            <FieldLabel>{m.field_observation_title()}</FieldLabel>
-            <Input
-              maxLength={100}
-              value={noteTitle}
-              onChange={(e) => setNoteTitle(e.target.value)}
-              placeholder={m.field_observation_title_placeholder()}
-              disabled={submitting}
-            />
-          </Field>
-
           <Field>
             <FieldLabel>{m.field_observation_body()}</FieldLabel>
             <div>

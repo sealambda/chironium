@@ -27,6 +27,7 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
           time
           authorReference
           authorString
+          authorReference
         }
       }
     }
@@ -59,6 +60,7 @@ const UpdateAllergyIntoleranceMutation = graphql(`
           time
           authorReference
           authorString
+          authorReference
         }
       }
       errors {
@@ -158,6 +160,7 @@ export async function updateAllergyIntoleranceNotes(
           text: n.text,
           authorReference: n.authorReference ?? undefined,
           authorString: n.authorString ?? undefined,
+          authorReference: n.authorReference ?? undefined,
           time: n.time ?? undefined,
         })),
       },

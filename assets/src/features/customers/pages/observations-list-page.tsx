@@ -82,6 +82,7 @@ export function ObservationsListPage() {
       text: n.text ?? "",
       authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
+      authorReference: n.authorReference ?? undefined,
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
@@ -191,7 +192,11 @@ export function ObservationsListPage() {
           {isClinicalNote(row.original) ? (
             <NotesPopover notes={row.original.note ?? []} currentUserId={user?.id ?? undefined} />
           ) : (
-            <NotesPopover notes={row.original.note ?? []} currentUserId={user?.id ?? undefined} {...makeNoteHandlers(row.original)} />
+            <NotesPopover
+              notes={row.original.note ?? []}
+              currentUserId={user?.id ?? undefined}
+              {...makeNoteHandlers(row.original)}
+            />
           )}
           {isClinicalNote(row.original) ? (
             <Button

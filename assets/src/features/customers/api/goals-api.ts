@@ -23,6 +23,7 @@ const AllGoalsByPersonQuery = graphql(`
             text
             time
             authorString
+            authorReference
           }
         }
       }
@@ -86,6 +87,7 @@ export interface CreateGoalParams {
   subjectId: string;
   organizationId: string;
   userId: string;
+  userName: string;
   priority?: "HIGH_PRIORITY" | "MEDIUM_PRIORITY" | "LOW_PRIORITY";
   category?: ("DIETARY" | "BEHAVIORAL" | "NURSING" | "PHYSIOTHERAPY" | "SAFETY")[];
   startDate?: string;
@@ -100,6 +102,7 @@ export async function createGoal({
   subjectId,
   organizationId,
   userId,
+  userName,
   priority,
   category,
   startDate,
@@ -111,7 +114,7 @@ export async function createGoal({
       input: {
         lifecycleStatus: "ACTIVE",
         description: { text: description },
-        note: [{ text: description, authorReference: userId, time: new Date().toISOString() }],
+        note: [{ text: description, authorString: userName, authorReference: userId, time: new Date().toISOString() }],
         subjectId,
         ...(priority && { priority }),
         ...(category?.length && { category }),

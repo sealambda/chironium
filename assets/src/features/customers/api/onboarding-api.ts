@@ -61,6 +61,7 @@ export async function submitOnboarding(
   draft: OnboardingDraft,
   organizationId: string,
   userId: string,
+  userName: string,
 ): Promise<void> {
   if (!draft.person) {
     throw new Error("Person data is required to complete onboarding.");
@@ -75,12 +76,12 @@ export async function submitOnboarding(
   }
   if (draft.objective) {
     concurrent.push(
-      createGoal({ description: draft.objective, subjectId: patientId, organizationId, userId }),
+      createGoal({ description: draft.objective, subjectId: patientId, organizationId, userId, userName }),
     );
   }
   if (draft.menstrualCycle && hasCycleData(draft.menstrualCycle)) {
     concurrent.push(
-      createMenstrualCycleObservation(draft.menstrualCycle, patientId, organizationId, userId),
+      createMenstrualCycleObservation(draft.menstrualCycle, patientId, organizationId, userId, userName),
     );
   }
   if (draft.anthropometry && hasAnthropometryData(draft.anthropometry)) {
@@ -90,10 +91,10 @@ export async function submitOnboarding(
     concurrent.push(createAllergiesAndIntolerances(draft.allergies, patientId, organizationId));
   }
   if (draft.food && hasFoodData(draft.food)) {
-    concurrent.push(createFoodObservations(draft.food, patientId, organizationId, userId));
+    concurrent.push(createFoodObservations(draft.food, patientId, organizationId, userId, userName));
   }
   if (draft.notes && hasNoteData(draft.notes)) {
-    concurrent.push(createClinicalNoteObservations(draft.notes, patientId, organizationId, userId));
+    concurrent.push(createClinicalNoteObservations(draft.notes, patientId, organizationId));
   }
 
   await Promise.all(concurrent);
