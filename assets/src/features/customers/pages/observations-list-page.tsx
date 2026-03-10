@@ -80,6 +80,7 @@ export function ObservationsListPage() {
   ) => {
     const base = current.map((n) => ({
       text: n.text ?? "",
+      authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
       time: n.time ?? undefined,
     }));
@@ -88,7 +89,8 @@ export function ObservationsListPage() {
         ...base,
         {
           text: action.text,
-          authorString: user?.id ?? undefined,
+          authorReference: user?.id ?? undefined,
+          authorString: user?.name ?? undefined,
           time: new Date().toISOString(),
         },
       ];
@@ -101,31 +103,43 @@ export function ObservationsListPage() {
 
   const makeNoteHandlers = (obs: ObservationItem) => ({
     onAddNote: async (text: string) => {
-      await updateObservationNotes(
-        obs.id,
-        buildUpdatedNotes(obs.note ?? [], { kind: "add", text }),
-        selectedOrg?.id ?? "",
-      );
-      await invalidate();
-      toast.success(m.notes_edit_success());
+      try {
+        await updateObservationNotes(
+          obs.id,
+          buildUpdatedNotes(obs.note ?? [], { kind: "add", text }),
+          selectedOrg?.id ?? "",
+        );
+        await invalidate();
+        toast.success(m.notes_edit_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
     onUpdateNote: async (index: number, text: string) => {
-      await updateObservationNotes(
-        obs.id,
-        buildUpdatedNotes(obs.note ?? [], { kind: "update", index, text }),
-        selectedOrg?.id ?? "",
-      );
-      await invalidate();
-      toast.success(m.notes_edit_success());
+      try {
+        await updateObservationNotes(
+          obs.id,
+          buildUpdatedNotes(obs.note ?? [], { kind: "update", index, text }),
+          selectedOrg?.id ?? "",
+        );
+        await invalidate();
+        toast.success(m.notes_edit_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
     onDeleteNote: async (index: number) => {
-      await updateObservationNotes(
-        obs.id,
-        buildUpdatedNotes(obs.note ?? [], { kind: "delete", index }),
-        selectedOrg?.id ?? "",
-      );
-      await invalidate();
-      toast.success(m.notes_delete_success());
+      try {
+        await updateObservationNotes(
+          obs.id,
+          buildUpdatedNotes(obs.note ?? [], { kind: "delete", index }),
+          selectedOrg?.id ?? "",
+        );
+        await invalidate();
+        toast.success(m.notes_delete_success());
+      } catch {
+        toast.error(m.onboarding_error());
+      }
     },
   });
 

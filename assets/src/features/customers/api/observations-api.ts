@@ -34,6 +34,7 @@ const ListObservationsQuery = graphql(`
         note {
           text
           time
+          authorReference
           authorString
         }
       }
@@ -67,6 +68,7 @@ const UpdateObservationMutation = graphql(`
         note {
           text
           time
+          authorReference
           authorString
         }
       }
@@ -113,6 +115,7 @@ export interface ClinicalNoteFormData {
 /** Input for adding or replacing annotation notes on a resource. */
 export interface AnnotationInput {
   text: string;
+  authorReference?: string | null;
   authorString?: string | null;
   time?: string | null;
 }
@@ -424,6 +427,7 @@ export async function updateObservationNotes(
       input: {
         note: notes.map((n) => ({
           text: n.text,
+          authorReference: n.authorReference ?? undefined,
           authorString: n.authorString ?? undefined,
           time: n.time ?? undefined,
         })),

@@ -19,6 +19,7 @@ import { cn } from "@/shared/utils/utils";
 
 export interface Annotation {
   text?: string | null;
+  authorReference?: string | null;
   authorString?: string | null;
   time?: string | null;
 }
@@ -139,7 +140,10 @@ function NotesPopover({
   const isEditable = Boolean(onAddNote ?? onUpdateNote ?? onDeleteNote);
   // When a currentUserId is provided, restrict edit/delete to notes authored by that user.
   const canEditNote = (note: Annotation) =>
-    isEditable && (!currentUserId || note.authorString === currentUserId);
+    isEditable &&
+    (!currentUserId ||
+      note.authorReference === currentUserId ||
+      note.authorString === currentUserId);
   const hasNotes = notes.length > 0;
 
   // In read-only mode, don't render when there are no notes to show.
