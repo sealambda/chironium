@@ -21,7 +21,6 @@ export interface Annotation {
   text?: string | null;
   authorReference?: string | null;
   authorString?: string | null;
-  authorReference?: string | null;
   time?: string | null;
 }
 

@@ -86,7 +86,6 @@ export function FoodPreferencesHistoryPage() {
       text: n.text ?? "",
       authorReference: n.authorReference ?? undefined,
       authorString: n.authorString ?? undefined,
-      authorReference: n.authorReference ?? undefined,
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
@@ -96,7 +95,6 @@ export function FoodPreferencesHistoryPage() {
           text: action.text,
           authorReference: user?.id ?? undefined,
           authorString: user?.name ?? undefined,
-          authorReference: user?.id ?? undefined,
           time: new Date().toISOString(),
         },
       ];
