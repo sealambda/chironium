@@ -36,7 +36,6 @@ const ListObservationsQuery = graphql(`
           time
           authorReference
           authorString
-          authorReference
         }
       }
       endKeyset
@@ -71,7 +70,6 @@ const UpdateObservationMutation = graphql(`
           time
           authorReference
           authorString
-          authorReference
         }
       }
       errors {
@@ -118,7 +116,6 @@ export interface AnnotationInput {
   text: string;
   authorReference?: string | null;
   authorString?: string | null;
-  authorReference?: string | null;
   time?: string | null;
 }
 
@@ -421,7 +418,6 @@ export async function updateObservationNotes(
           text: n.text,
           authorReference: n.authorReference ?? undefined,
           authorString: n.authorString ?? undefined,
-          authorReference: n.authorReference ?? undefined,
           time: n.time ?? undefined,
         })),
       },
