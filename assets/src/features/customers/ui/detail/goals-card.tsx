@@ -115,6 +115,8 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
     );
   }
 
+  const lastGoal = goals.at(-1);
+
   return (
     <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <AddGoalDialog personId={personId} patientId={patientId}>
@@ -125,15 +127,17 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
       </AddGoalDialog>
 
       <div className="space-y-3">
-        <p className="font-bold text-foreground text-xl uppercase tracking-wide">
-          {m.goals_title()}
-        </p>
-        {goals.map((goal) => (
-          <div key={goal.id} className="flex items-start justify-between gap-3">
-            <p className="min-w-0 text-foreground/80 text-sm">{goal.description.text}</p>
-            {goal.achievementStatus ? <AchievementBadge status={goal.achievementStatus} /> : null}
-          </div>
-        ))}
+        <div className="flex items-center gap-2">
+          <p className="font-bold text-foreground text-xl uppercase tracking-wide">
+            {m.goals_title()}
+          </p>
+          {lastGoal?.achievementStatus ? (
+            <AchievementBadge status={lastGoal.achievementStatus} />
+          ) : null}
+        </div>
+        <div>
+          <p className="text-foreground/70 text-xl italic">“{lastGoal?.description.text ?? ""}”</p>
+        </div>
       </div>
 
       {viewHistoryLink}

@@ -58,12 +58,14 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
 
       {hasPatient ? (
         <>
-          <GoalsCard
-            personId={personId}
-            patientId={patientId}
-            goals={goals.data ?? []}
-            isLoading={goals.isLoading}
-          />
+          <div className="mx-auto w-full max-w-3xl">
+            <GoalsCard
+              personId={personId}
+              patientId={patientId}
+              goals={goals.data ?? []}
+              isLoading={goals.isLoading}
+            />
+          </div>
 
           <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
             <AnthropometryCard
@@ -113,7 +115,10 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
             />
           </div>
 
-          <SubscriptionCard subscription={currentSubscription} isLoading={subscriptions.isLoading} />
+          <SubscriptionCard
+            subscription={currentSubscription}
+            isLoading={subscriptions.isLoading}
+          />
         </>
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border border-dashed p-8 text-center">
