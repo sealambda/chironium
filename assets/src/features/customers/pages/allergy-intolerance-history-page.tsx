@@ -12,6 +12,7 @@ import {
 } from "@/features/customers/api/allergy-intolerance-api";
 import { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -68,7 +69,9 @@ export function AllergyIntoleranceHistoryPage() {
       await queryClient.invalidateQueries({
         queryKey: ["person", customerId, "allergyIntolerances"],
       });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["person", customerId, "patient-detail"],
+      });
       toast.success(m.allergy_intolerance_edit_success());
       setEditTarget(null);
     } catch {
@@ -87,17 +90,19 @@ export function AllergyIntoleranceHistoryPage() {
   ) => {
     const base = current.map((n) => ({
       text: n.text ?? "",
-      authorReference: n.authorReference ?? undefined,
-      authorString: n.authorString ?? undefined,
+      ...toAuthorInput(n),
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
+      const authorInput = toAuthorInput({
+        authorReference: user?.id,
+        authorString: user?.name,
+      });
       return [
         ...base,
         {
           text: action.text,
-          authorReference: user?.id ?? undefined,
-          authorString: user?.name ?? undefined,
+          ...authorInput,
           time: new Date().toISOString(),
         },
       ];
@@ -119,7 +124,9 @@ export function AllergyIntoleranceHistoryPage() {
         await queryClient.invalidateQueries({
           queryKey: ["person", customerId, "allergyIntolerances"],
         });
-        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "patient-detail"],
+        });
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -135,7 +142,9 @@ export function AllergyIntoleranceHistoryPage() {
         await queryClient.invalidateQueries({
           queryKey: ["person", customerId, "allergyIntolerances"],
         });
-        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "patient-detail"],
+        });
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -151,7 +160,9 @@ export function AllergyIntoleranceHistoryPage() {
         await queryClient.invalidateQueries({
           queryKey: ["person", customerId, "allergyIntolerances"],
         });
-        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "patient-detail"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "patient-detail"],
+        });
         toast.success(m.notes_delete_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -239,6 +250,7 @@ export function AllergyIntoleranceHistoryPage() {
             <NotesPopover
               notes={row.original.note ?? []}
               currentUserId={user?.id ?? undefined}
+              currentUserName={user?.name ?? undefined}
               {...makeNoteHandlers(row.original.id, row.original.note ?? [])}
             />
             <Button

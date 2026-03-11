@@ -143,7 +143,12 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   // Use a ref so the hook's finish callback always sees the latest handleClose
   // without creating a circular dependency.
   const handleCloseRef = useRef(() => {});
-  const wizard = useOnboardingDraft(organizationId, user?.id ?? "", user?.name ?? "", handleCloseRef);
+  const wizard = useOnboardingDraft(
+    organizationId,
+    user?.id ?? "",
+    user?.name ?? "",
+    handleCloseRef,
+  );
 
   const hasDraftData = Object.values(wizard.draft).some((v) => v !== null);
 
