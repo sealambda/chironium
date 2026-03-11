@@ -87,6 +87,10 @@ config :spark,
       type: Ash.Resource,
       section_order: ash_resource_section_order
     ],
+    "Chironium.BaseResources.Identifiable": [
+      type: Ash.Resource,
+      section_order: ash_resource_section_order
+    ],
     "Chironium.BaseResources.Tenantable": [
       type: Ash.Resource,
       section_order: ash_resource_section_order
@@ -106,7 +110,8 @@ config :chironium,
     Chironium.Accounts,
     Chironium.CRM,
     Chironium.Health,
-    Chironium.Subscriptions
+    Chironium.Subscriptions,
+    Chironium.Terminology
   ],
   base_resources: [
     Chironium.BaseResources.Auditable,

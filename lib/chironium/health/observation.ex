@@ -115,8 +115,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @snomed_system,
-                   code: @snomed_food_preference,
-                   display: "Food preference"
+                   code: @snomed_food_preference
                  }
                ]
              })
@@ -144,8 +143,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @snomed_system,
-                   code: @snomed_food_aversion,
-                   display: "Aversion to particular food (finding)"
+                   code: @snomed_food_aversion
                  }
                ]
              })
@@ -185,7 +183,7 @@ defmodule Chironium.Health.Observation do
                :code,
                %{
                  coding: [
-                   %{system: @loinc_system, code: @loinc_code_body_weight, display: "Body Weight"}
+                   %{system: @loinc_system, code: @loinc_code_body_weight}
                  ]
                }
              )
@@ -257,7 +255,7 @@ defmodule Chironium.Health.Observation do
                :code,
                %{
                  coding: [
-                   %{system: @loinc_system, code: @loinc_code_body_height, display: "Body Height"}
+                   %{system: @loinc_system, code: @loinc_code_body_height}
                  ]
                }
              )
@@ -317,8 +315,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @loinc_system,
-                   code: @loinc_code_bmi,
-                   display: "Body mass index (BMI) [Ratio]"
+                   code: @loinc_code_bmi
                  }
                ]
              })
@@ -394,8 +391,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @snomed_system,
-                   code: @snomed_waist_hip_ratio,
-                   display: "Waist/hip ratio"
+                   code: @snomed_waist_hip_ratio
                  }
                ]
              })
@@ -467,8 +463,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @loinc_system,
-                   code: @loinc_code_chest_circumference,
-                   display: "Chest Circumference at nipple line"
+                   code: @loinc_code_chest_circumference
                  }
                ]
              })
@@ -508,8 +503,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @loinc_system,
-                   code: @loinc_code_hip_circumference,
-                   display: "Circumference.at maximal protrusion of gluteus muscles Pelvis"
+                   code: @loinc_code_hip_circumference
                  }
                ]
              })
@@ -571,8 +565,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @loinc_system,
-                   code: @loinc_code_waist_circumference,
-                   display: "Waist Circumference"
+                   code: @loinc_code_waist_circumference
                  }
                ]
              })
@@ -634,8 +627,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @loinc_system,
-                   code: @loinc_code_arm_right_circumference,
-                   display: "Circumference Mid upper arm - right"
+                   code: @loinc_code_arm_right_circumference
                  }
                ]
              })
@@ -675,8 +667,7 @@ defmodule Chironium.Health.Observation do
                coding: [
                  %{
                    system: @loinc_system,
-                   code: @loinc_code_thigh_right_circumference,
-                   display: "Thigh - right Maximum circumference"
+                   code: @loinc_code_thigh_right_circumference
                  }
                ]
              })

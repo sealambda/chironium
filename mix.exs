@@ -76,6 +76,7 @@ defmodule Chironium.MixProject do
       {:phoenix_ecto, "~> 4.5"},
       {:dotenvy, "~> 0.9"},
       {:ecto_sql, "~> 3.13"},
+      {:nimble_csv, "~> 1.3"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},

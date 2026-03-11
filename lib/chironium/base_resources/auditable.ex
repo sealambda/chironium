@@ -1,15 +1,9 @@
 defmodule Chironium.BaseResources.Auditable do
   defmacro __using__(opts) do
     quote do
-      use Ash.Resource, unquote(opts)
-
-      postgres do
-        repo Chironium.Repo
-      end
+      use Chironium.BaseResources.Identifiable, unquote(opts)
 
       attributes do
-        uuid_v7_primary_key :id
-
         timestamps()
       end
 
