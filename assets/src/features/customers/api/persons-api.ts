@@ -146,6 +146,7 @@ export async function updatePerson(
   data: PersonFormData,
   organizationId: string,
 ): Promise<void> {
+  const fullName = `${data.givenName} ${data.familyName}`.trim();
   const telecom: Array<{ system: string; value: string }> = [];
   if (data.phone) {
     telecom.push({ system: "PHONE", value: data.phone });
@@ -162,7 +163,7 @@ export async function updatePerson(
     variables: {
       id: personId,
       input: {
-        name: [{ given: [data.givenName], family: data.familyName }],
+        name: [{ given: [data.givenName], family: data.familyName, text: fullName }],
         birthDate: data.birthDate || undefined,
         gender: data.gender || undefined,
         telecom: telecom.length > 0 ? telecom : undefined,
