@@ -95,7 +95,9 @@ export function ObservationsCard({
     return (
       <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-between">
-          <h3 className="font-semibold text-foreground text-sm">{m.observations_title()}</h3>
+          <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
+            {m.observations_title()}
+          </h3>
           <AddObservationDialog personId={personId} patientId={patientId}>
             <Button variant="outline" size="sm">
               <PlusIcon className="size-4" data-icon="inline-start" />
@@ -127,10 +129,10 @@ export function ObservationsCard({
   return (
     <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-foreground text-sm">
+        <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
           {m.observations_title()}
           {totalCount > 0 ? (
-            <span className="ml-1.5 font-normal text-foreground/50 text-xs">{totalCount}</span>
+            <span className="ml-1.5 font-normal text-foreground/50 text-sm">({totalCount})</span>
           ) : null}
         </h3>
         <AddObservationDialog personId={personId} patientId={patientId}>

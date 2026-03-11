@@ -2,7 +2,10 @@ import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
 import { fetchAnthropometry } from "@/features/customers/api/anthropometry-api";
 import { fetchFoodPreferences } from "@/features/customers/api/food-preferences-api";
-import { fetchObservationsSummary } from "@/features/customers/api/observations-api";
+import {
+  fetchLatestMenstrualCycle,
+  fetchObservationsSummary,
+} from "@/features/customers/api/observations-api";
 import { fetchPatientDetail } from "@/features/customers/api/patients-api";
 import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -53,6 +56,11 @@ export function usePersonDetail(personId: string) {
     queryFn: () => fetchObservationsSummary(personId, organizationId),
     enabled: healthEnabled,
   });
+  const menstrualCycle = useQuery({
+    queryKey: ["person", personId, "menstrualCycle", organizationId],
+    queryFn: () => fetchLatestMenstrualCycle(personId, organizationId),
+    enabled: healthEnabled,
+  });
   const foodPreferences = useQuery({
     queryKey: ["person", personId, "foodPreferences", organizationId],
     queryFn: () => fetchFoodPreferences(personId, organizationId),
@@ -75,7 +83,13 @@ export function usePersonDetail(personId: string) {
   const currentSubscription = subscriptions.data?.[0];
   const activeNutritionPlan = patientDetail.data?.nutritionPlans?.[0];
 
-  const isLoading = combineLoadingState(patientDetail, subscriptions, anthropometry, observations);
+  const isLoading = combineLoadingState(
+    patientDetail,
+    subscriptions,
+    anthropometry,
+    observations,
+    menstrualCycle,
+  );
 
   return {
     patientId,
@@ -86,6 +100,7 @@ export function usePersonDetail(personId: string) {
     nutritionPlans,
     goals,
     observations,
+    menstrualCycle,
     foodPreferences,
     allergyIntolerances,
     currentSubscription,

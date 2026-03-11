@@ -36,7 +36,10 @@ export function EditObservationDialog({
   }, [open, observation]);
 
   const handleSubmit = async () => {
-    if (!body.trim()) return;
+    if (!body.trim()) {
+      return;
+    }
+
     setSaving(true);
     try {
       await updateClinicalNoteObservation(
@@ -45,8 +48,12 @@ export function EditObservationDialog({
         selectedOrg?.id ?? "",
       );
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["person", personId, "observations"] }),
-        queryClient.invalidateQueries({ queryKey: ["person", personId, "observationsList"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["person", personId, "observations"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["person", personId, "observationsList"],
+        }),
       ]);
       toast.success(m.observations_edit_success());
       onOpenChange(false);

@@ -1,5 +1,5 @@
-import { graphql, type ResultOf } from "@/graphql";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
+import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
@@ -150,6 +150,12 @@ export interface ObservationsPage {
   endKeyset: string | null;
 }
 
+export interface MenstrualCycleSummary {
+  startDate: string | null;
+  endDate: string | null;
+  notes: string | null;
+}
+
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
@@ -236,6 +242,10 @@ function isDisplayable(item: ObservationItem): boolean {
   return !item.code || item.code.text === CODES.clinicalNote;
 }
 
+function isMenstrualCycleObservation(item: ObservationItem): boolean {
+  return item.code?.coding?.some((coding) => coding.code === CODES.menstrualCycle) ?? false;
+}
+
 function buildSubjectFilter(personId: string) {
   return {
     status: { eq: "FINAL" as const },
@@ -301,6 +311,67 @@ export async function fetchObservationsList(
     count: items.length,
     endKeyset: page?.endKeyset ?? null,
   };
+}
+
+function parseMenstrualCycleSummary(rawText: string): MenstrualCycleSummary {
+  const fields = rawText.split("|");
+
+  let startDate: string | null = null;
+  let endDate: string | null = null;
+  let notes: string | null = null;
+
+  for (const field of fields) {
+    const trimmed = field.trim();
+    if (!trimmed) {
+      continue;
+    }
+    if (trimmed.startsWith("start:")) {
+      const value = trimmed.slice("start:".length).trim();
+      startDate = value || null;
+      continue;
+    }
+    if (trimmed.startsWith("end:")) {
+      const value = trimmed.slice("end:".length).trim();
+      endDate = value || null;
+      continue;
+    }
+    if (trimmed.startsWith("notes:")) {
+      const value = trimmed.slice("notes:".length).trim();
+      notes = value || null;
+    }
+  }
+
+  return { startDate, endDate, notes };
+}
+
+export async function fetchLatestMenstrualCycle(
+  personId: string,
+  organizationId: string,
+): Promise<MenstrualCycleSummary | null> {
+  if (!personId || !organizationId) {
+    return null;
+  }
+
+  const result = await requestGraphql({
+    document: ListObservationsQuery,
+    variables: {
+      filter: buildSubjectFilter(personId),
+      sort: SORT_NEWEST_FIRST,
+      first: 250,
+    },
+    organizationId,
+  });
+
+  const latest = (result.listObservations?.results ?? []).find((item) =>
+    isMenstrualCycleObservation(item),
+  );
+
+  if (!latest) {
+    return null;
+  }
+
+  const rawText = latest.valueString ?? latest.note?.[0]?.text ?? "";
+  return parseMenstrualCycleSummary(rawText);
 }
 
 /** Parsed title + body from a clinical-note observation's valueString. */

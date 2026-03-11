@@ -7,6 +7,7 @@ import { AllergyIntoleranceCard } from "@/features/customers/ui/detail/allergy-i
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
 import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-preferences-card";
 import { GoalsCard } from "@/features/customers/ui/detail/goals-card";
+import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
 import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
 import { PersonProfileCard } from "@/features/customers/ui/detail/person-profile-card";
@@ -35,6 +36,7 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
     nutritionPlans,
     goals,
     observations,
+    menstrualCycle,
     foodPreferences,
     allergyIntolerances,
   } = detail;
@@ -54,18 +56,7 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
     <div className="space-y-4 lg:space-y-6">
       {person ? <PersonProfileCard person={person} /> : null}
 
-      {!hasPatient ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border border-dashed p-8 text-center">
-          <UserPlus className="size-8 text-muted-foreground" />
-          <div>
-            <p className="font-medium text-foreground">{m.customer_create_patient()}</p>
-            <p className="mt-1 text-muted-foreground text-sm">{m.customer_create_patient_desc()}</p>
-          </div>
-          <Button onClick={() => createPatient()} disabled={isPending}>
-            {isPending ? m.common_saving() : m.customer_create_patient()}
-          </Button>
-        </div>
-      ) : (
+      {hasPatient ? (
         <>
           <GoalsCard
             personId={personId}
@@ -109,18 +100,32 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
             />
           </div>
 
-          <ObservationsCard
-            personId={personId}
-            patientId={patientId}
-            observations={observations.data ?? null}
-            isLoading={observations.isLoading}
-          />
+          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
+            <MenstrualCycleCard
+              cycle={menstrualCycle.data ?? null}
+              isLoading={menstrualCycle.isLoading}
+            />
+            <ObservationsCard
+              personId={personId}
+              patientId={patientId}
+              observations={observations.data ?? null}
+              isLoading={observations.isLoading}
+            />
+          </div>
 
-          <SubscriptionCard
-            subscription={currentSubscription}
-            isLoading={subscriptions.isLoading}
-          />
+          <SubscriptionCard subscription={currentSubscription} isLoading={subscriptions.isLoading} />
         </>
+      ) : (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border border-dashed p-8 text-center">
+          <UserPlus className="size-8 text-muted-foreground" />
+          <div>
+            <p className="font-medium text-foreground">{m.customer_create_patient()}</p>
+            <p className="mt-1 text-muted-foreground text-sm">{m.customer_create_patient_desc()}</p>
+          </div>
+          <Button onClick={() => createPatient()} disabled={isPending}>
+            {isPending ? m.common_saving() : m.customer_create_patient()}
+          </Button>
+        </div>
       )}
     </div>
   );

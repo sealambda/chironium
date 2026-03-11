@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { MarkdownEditor } from "@/shared/ui/markdown-editor";
 
 interface ObservationDialogProps {

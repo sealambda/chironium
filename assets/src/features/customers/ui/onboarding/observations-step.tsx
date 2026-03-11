@@ -4,7 +4,6 @@ import { useId, useRef, useState } from "react";
 import type { ClinicalNoteFormData } from "@/features/customers/api/observations-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { MarkdownEditor } from "@/shared/ui/markdown-editor";
 
 import { StepLayout } from "./step-layout";
