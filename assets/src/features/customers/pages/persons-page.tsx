@@ -162,10 +162,7 @@ export function CustomersPage() {
         </div>
         {customers.length > 0 ? (
           <div className="flex items-center">
-            <CustomerSortDropdown
-              sortOption={sortOption}
-              onSortOptionChange={setSortOption}
-            />
+            <CustomerSortDropdown sortOption={sortOption} onSortOptionChange={setSortOption} />
           </div>
         ) : null}
       </header>
@@ -282,15 +279,11 @@ function CustomerSortDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>{m.customers_sort_by()}</DropdownMenuLabel>
-        <DropdownMenuItem
-          onClick={() => onSortOptionChange(getNextRecentSort(sortOption))}
-        >
+        <DropdownMenuItem onClick={() => onSortOptionChange(getNextRecentSort(sortOption))}>
           {m.customers_sort_recent()}
           <RecentSortIcon sortOption={sortOption} />
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onSortOptionChange(getNextNameSort(sortOption))}
-        >
+        <DropdownMenuItem onClick={() => onSortOptionChange(getNextNameSort(sortOption))}>
           {m.customers_sort_name()}
           <NameSortIcon sortOption={sortOption} />
         </DropdownMenuItem>

@@ -111,7 +111,6 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
               isLoading={observations.isLoading}
             />
           </div>
-
         </>
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border border-dashed p-8 text-center">

@@ -117,7 +117,10 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
   return (
     <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <AddGoalDialog personId={personId} patientId={patientId}>
-        <CardAddButton label={m.goals_add()} className="absolute top-4 right-4 lg:top-5 lg:right-5" />
+        <CardAddButton
+          label={m.goals_add()}
+          className="absolute top-4 right-4 lg:top-5 lg:right-5"
+        />
       </AddGoalDialog>
 
       <div className="space-y-3">
