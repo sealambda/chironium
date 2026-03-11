@@ -149,7 +149,9 @@ export function ObservationsCard({
       </div>
 
       <div className="mt-1 divide-y divide-neutral-200/60">
-        {items.map((item) => <ObservationRow key={item.id} item={item} />)}
+        {items.map((item) => (
+          <ObservationRow key={item.id} item={item} />
+        ))}
       </div>
 
       <div className="mt-auto border-neutral-200 border-t pt-3">

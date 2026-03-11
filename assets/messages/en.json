@@ -230,7 +230,7 @@
   "observations_add_success": "Observation added successfully.",
   "observations_col_date": "Date",
   "observations_col_type": "Type",
-  "observations_col_value": "Value",
+  "observations_col_value": "Content",
   "observations_delete_confirm_action": "Delete",
   "observations_delete_confirm_desc": "This observation cannot be recovered.",
   "observations_delete_confirm_title": "Delete observation?",

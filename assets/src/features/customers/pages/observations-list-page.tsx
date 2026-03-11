@@ -188,7 +188,7 @@ export function ObservationsListPage() {
         isClinicalNote(row.original) ? (
           <MarkdownContent content={row.original.valueString ?? ""} className="[&_h1]:mt-0" />
         ) : (
-          <p className="break-words text-sm">{getValue() as string}</p>
+          <p className="wrap-break-word text-sm">{getValue() as string}</p>
         ),
     },
     {

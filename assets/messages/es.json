@@ -230,7 +230,7 @@
   "observations_add_success": "Observación agregada correctamente.",
   "observations_col_date": "Fecha",
   "observations_col_type": "Tipo",
-  "observations_col_value": "Valor",
+  "observations_col_value": "Contenido",
   "observations_delete_confirm_action": "Eliminar",
   "observations_delete_confirm_desc": "Esta observación no podrá recuperarse.",
   "observations_delete_confirm_title": "¿Eliminar observación?",
