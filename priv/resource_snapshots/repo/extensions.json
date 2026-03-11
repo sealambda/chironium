@@ -3,6 +3,8 @@
   "installed": [
     "ash-functions",
     "citext",
+    "pg_trgm",
+    "vector",
     "ash_money_v5"
   ]
 }

@@ -5,8 +5,9 @@ defmodule ChironiumWeb.GraphqlSchema do
     domains: [
       Chironium.Accounts,
       Chironium.CRM,
+      Chironium.Health,
       Chironium.Subscriptions,
-      Chironium.Health
+      Chironium.Terminology
     ],
     generate_sdl_file: "priv/schema.graphql",
     auto_generate_sdl_file?: true

@@ -13,7 +13,13 @@ defmodule Chironium.Repo do
   @impl true
   def installed_extensions do
     # Add extensions here, and the migration generator will install them.
-    ["ash-functions", "citext", AshMoney.AshPostgresExtension]
+    [
+      "ash-functions",
+      "citext",
+      "pg_trgm",
+      "vector",
+      AshMoney.AshPostgresExtension
+    ]
   end
 
   # Don't open unnecessary transactions
