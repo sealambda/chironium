@@ -1,6 +1,7 @@
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 
 import type { AnnotationInput } from "./observations-api";
 
@@ -50,7 +51,10 @@ const CreateAllergyIntoleranceMutation = graphql(`
 `);
 
 const UpdateAllergyIntoleranceMutation = graphql(`
-  mutation UpdateAllergyIntolerance($id: ID!, $input: UpdateAllergyIntoleranceInput) {
+  mutation UpdateAllergyIntolerance(
+    $id: ID!
+    $input: UpdateAllergyIntoleranceInput
+  ) {
     updateAllergyIntolerance(id: $id, input: $input) {
       result {
         id
@@ -156,8 +160,7 @@ export async function updateAllergyIntoleranceNotes(
       input: {
         note: notes.map((n) => ({
           text: n.text,
-          authorReference: n.authorReference ?? undefined,
-          authorString: n.authorString ?? undefined,
+          ...toAuthorInput(n),
           time: n.time ?? undefined,
         })),
       },

@@ -12,6 +12,7 @@ import {
   updateFoodObservationText,
 } from "@/features/customers/api/food-preferences-api";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -65,7 +66,9 @@ export function FoodPreferencesHistoryPage() {
       await queryClient.invalidateQueries({
         queryKey: ["person", customerId, "foodPreferencesHistory"],
       });
-      await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["person", customerId, "foodPreferences"],
+      });
       toast.success(m.food_preferences_edit_success());
       setEditTarget(null);
     } catch {
@@ -84,17 +87,19 @@ export function FoodPreferencesHistoryPage() {
   ) => {
     const base = current.map((n) => ({
       text: n.text ?? "",
-      authorReference: n.authorReference ?? undefined,
-      authorString: n.authorString ?? undefined,
+      ...toAuthorInput(n),
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
+      const authorInput = toAuthorInput({
+        authorReference: user?.id,
+        authorString: user?.name,
+      });
       return [
         ...base,
         {
           text: action.text,
-          authorReference: user?.id ?? undefined,
-          authorString: user?.name ?? undefined,
+          ...authorInput,
           time: new Date().toISOString(),
         },
       ];
@@ -116,7 +121,9 @@ export function FoodPreferencesHistoryPage() {
         await queryClient.invalidateQueries({
           queryKey: ["person", customerId, "foodPreferencesHistory"],
         });
-        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "foodPreferences"],
+        });
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -132,7 +139,9 @@ export function FoodPreferencesHistoryPage() {
         await queryClient.invalidateQueries({
           queryKey: ["person", customerId, "foodPreferencesHistory"],
         });
-        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "foodPreferences"],
+        });
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -148,7 +157,9 @@ export function FoodPreferencesHistoryPage() {
         await queryClient.invalidateQueries({
           queryKey: ["person", customerId, "foodPreferencesHistory"],
         });
-        await queryClient.invalidateQueries({ queryKey: ["person", customerId, "foodPreferences"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["person", customerId, "foodPreferences"],
+        });
         toast.success(m.notes_delete_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -232,6 +243,7 @@ export function FoodPreferencesHistoryPage() {
           <NotesPopover
             notes={row.original.notes}
             currentUserId={user?.id ?? undefined}
+            currentUserName={user?.name ?? undefined}
             {...makeNoteHandlers(row.original.id, row.original.notes)}
           />
           <Button

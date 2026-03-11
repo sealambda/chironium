@@ -1,4 +1,5 @@
 import { graphql, type ResultOf } from "@/graphql";
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import * as m from "@/paraglide/messages";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -12,7 +13,12 @@ const ListObservationsQuery = graphql(`
     $first: Int
     $after: String
   ) {
-    listObservations(filter: $filter, sort: $sort, first: $first, after: $after) {
+    listObservations(
+      filter: $filter
+      sort: $sort
+      first: $first
+      after: $after
+    ) {
       count
       results {
         id
@@ -162,7 +168,13 @@ export async function createMenstrualCycleObservation(
         status: "FINAL",
         code: { coding: [{ system: SNOMED_SYSTEM, code: "364307006" }] },
         valueString: noteText,
-        note: [{ text: noteText, authorString: userName, authorReference: userId, time: new Date().toISOString() }],
+        note: [
+          {
+            text: noteText,
+            ...(userId ? { authorReference: userId } : { authorString: userName }),
+            time: new Date().toISOString(),
+          },
+        ],
         subjectId,
       },
     },
@@ -416,8 +428,7 @@ export async function updateObservationNotes(
       input: {
         note: notes.map((n) => ({
           text: n.text,
-          authorReference: n.authorReference ?? undefined,
-          authorString: n.authorString ?? undefined,
+          ...toAuthorInput(n),
           time: n.time ?? undefined,
         })),
       },

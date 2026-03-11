@@ -1,18 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import {
   type ObservationItem,
   updateClinicalNoteObservation,
 } from "@/features/customers/api/observations-api";
+import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { MarkdownToolbar } from "@/shared/ui/markdown-toolbar";
-import { Textarea } from "@/shared/ui/textarea";
 
 interface EditObservationDialogProps {
   observation: ObservationItem;
@@ -29,7 +25,6 @@ export function EditObservationDialog({
 }: Readonly<EditObservationDialogProps>) {
   const [saving, setSaving] = useState(false);
   const [body, setBody] = useState("");
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
@@ -40,10 +35,8 @@ export function EditObservationDialog({
     }
   }, [open, observation]);
 
-  const hasContent = body.trim();
-
   const handleSubmit = async () => {
-    if (!hasContent) return;
+    if (!body.trim()) return;
     setSaving(true);
     try {
       await updateClinicalNoteObservation(
@@ -65,39 +58,15 @@ export function EditObservationDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{m.observations_edit_title()}</DialogTitle>
-        </DialogHeader>
-
-        <FieldGroup>
-          <Field>
-            <FieldLabel>{m.field_observation_body()}</FieldLabel>
-            <div>
-              <MarkdownToolbar textareaRef={bodyRef} value={body} onChange={(v) => setBody(v)} />
-              <Textarea
-                ref={bodyRef}
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder={m.field_observation_body_placeholder()}
-                rows={4}
-                disabled={saving}
-                className="rounded-t-none border-t-0"
-              />
-            </div>
-          </Field>
-        </FieldGroup>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            {m.common_cancel()}
-          </Button>
-          <Button onClick={handleSubmit} disabled={saving || !hasContent}>
-            {saving ? m.common_saving() : m.common_save()}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ObservationDialog
+      title={m.observations_edit_title()}
+      submitLabel={m.common_save()}
+      open={open}
+      onOpenChange={onOpenChange}
+      body={body}
+      onBodyChange={setBody}
+      onSubmit={handleSubmit}
+      saving={saving}
+    />
   );
 }

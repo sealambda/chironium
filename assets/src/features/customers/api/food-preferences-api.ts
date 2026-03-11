@@ -1,6 +1,7 @@
 import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 
 import type { AnnotationInput } from "./observations-api";
 
@@ -204,12 +205,14 @@ export async function fetchFoodPreferencesHistory(
         | { system: string; code: string; version?: string | null; display?: string | null }[]
         | null;
     } | null;
-    note?: {
-      text?: string | null;
-      authorReference?: string | null;
-      authorString?: string | null;
-      time?: string | null;
-    }[] | null;
+    note?:
+      | {
+          text?: string | null;
+          authorReference?: string | null;
+          authorString?: string | null;
+          time?: string | null;
+        }[]
+      | null;
   };
 
   const toHistoryItem = (
@@ -329,8 +332,7 @@ export async function createFoodObservations(
               note: [
                 {
                   text: includedCsv,
-                  authorString: userName,
-                  authorReference: userId,
+                  ...(userId ? { authorReference: userId } : { authorString: userName }),
                   time: new Date().toISOString(),
                 },
               ],
@@ -355,8 +357,7 @@ export async function createFoodObservations(
               note: [
                 {
                   text: excludedCsv,
-                  authorString: userName,
-                  authorReference: userId,
+                  ...(userId ? { authorReference: userId } : { authorString: userName }),
                   time: new Date().toISOString(),
                 },
               ],
@@ -389,8 +390,7 @@ export async function updateFoodObservationNotes(
       input: {
         note: notes.map((n) => ({
           text: n.text,
-          authorReference: n.authorReference ?? undefined,
-          authorString: n.authorString ?? undefined,
+          ...toAuthorInput(n),
           time: n.time ?? undefined,
         })),
       },

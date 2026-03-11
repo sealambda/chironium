@@ -33,6 +33,8 @@ interface NotesPopoverProps {
   hoverOnly?: boolean;
   /** When provided, edit and delete actions are restricted to notes authored by this user. */
   currentUserId?: string;
+  /** Optional display name used when authorString is missing for current user's notes. */
+  currentUserName?: string;
 }
 
 // ─── Edit form ───────────────────────────────────────────────────────
@@ -72,13 +74,28 @@ function EditNoteForm({ value, saving, onChange, onSave, onCancel }: EditNoteFor
 
 interface NoteItemProps {
   note: Annotation;
+  currentUserId?: string;
+  currentUserName?: string;
   canEdit: boolean;
   saving: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-function NoteItem({ note, canEdit, saving, onEdit, onDelete }: NoteItemProps) {
+function NoteItem({
+  note,
+  currentUserId,
+  currentUserName,
+  canEdit,
+  saving,
+  onEdit,
+  onDelete,
+}: NoteItemProps) {
+  const authorLabel =
+    note.authorString ??
+    (currentUserId && note.authorReference === currentUserId ? currentUserName : null) ??
+    m.notes_popover_no_author();
+
   return (
     <div className="group">
       <div className="flex items-start justify-between gap-2">
@@ -108,7 +125,7 @@ function NoteItem({ note, canEdit, saving, onEdit, onDelete }: NoteItemProps) {
         ) : null}
       </div>
       <p className="mt-1 text-muted-foreground text-xs">
-        {note.authorString ?? m.notes_popover_no_author()}
+        {authorLabel}
         {note.time ? (
           <>
             {" · "}
@@ -132,6 +149,7 @@ function NotesPopover({
   onDeleteNote,
   hoverOnly,
   currentUserId,
+  currentUserName,
 }: NotesPopoverProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -211,6 +229,8 @@ function NotesPopover({
             ) : (
               <NoteItem
                 note={note}
+                currentUserId={currentUserId}
+                currentUserName={currentUserName}
                 canEdit={canEditNote(note)}
                 saving={saving}
                 onEdit={() => startEdit(index)}

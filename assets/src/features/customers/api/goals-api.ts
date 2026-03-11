@@ -114,7 +114,13 @@ export async function createGoal({
       input: {
         lifecycleStatus: "ACTIVE",
         description: { text: description },
-        note: [{ text: description, authorString: userName, authorReference: userId, time: new Date().toISOString() }],
+        note: [
+          {
+            text: description,
+            ...(userId ? { authorReference: userId } : { authorString: userName }),
+            time: new Date().toISOString(),
+          },
+        ],
         subjectId,
         ...(priority && { priority }),
         ...(category?.length && { category }),

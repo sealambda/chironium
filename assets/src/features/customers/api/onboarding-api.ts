@@ -47,7 +47,7 @@ function hasFoodData(d: FoodFormData): boolean {
 }
 
 function hasNoteData(notes: ClinicalNoteFormData[]): boolean {
-  return notes.some((n) => n.title.trim() || n.body.trim());
+  return notes.some((n) => n.body.trim());
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
@@ -76,12 +76,24 @@ export async function submitOnboarding(
   }
   if (draft.objective) {
     concurrent.push(
-      createGoal({ description: draft.objective, subjectId: patientId, organizationId, userId, userName }),
+      createGoal({
+        description: draft.objective,
+        subjectId: patientId,
+        organizationId,
+        userId,
+        userName,
+      }),
     );
   }
   if (draft.menstrualCycle && hasCycleData(draft.menstrualCycle)) {
     concurrent.push(
-      createMenstrualCycleObservation(draft.menstrualCycle, patientId, organizationId, userId, userName),
+      createMenstrualCycleObservation(
+        draft.menstrualCycle,
+        patientId,
+        organizationId,
+        userId,
+        userName,
+      ),
     );
   }
   if (draft.anthropometry && hasAnthropometryData(draft.anthropometry)) {
@@ -91,7 +103,9 @@ export async function submitOnboarding(
     concurrent.push(createAllergiesAndIntolerances(draft.allergies, patientId, organizationId));
   }
   if (draft.food && hasFoodData(draft.food)) {
-    concurrent.push(createFoodObservations(draft.food, patientId, organizationId, userId, userName));
+    concurrent.push(
+      createFoodObservations(draft.food, patientId, organizationId, userId, userName),
+    );
   }
   if (draft.notes && hasNoteData(draft.notes)) {
     concurrent.push(createClinicalNoteObservations(draft.notes, patientId, organizationId));

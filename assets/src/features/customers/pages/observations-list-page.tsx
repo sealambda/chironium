@@ -17,6 +17,7 @@ import { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
 import { EditObservationDialog } from "@/features/customers/ui/detail/edit-observation-dialog";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -67,8 +68,12 @@ export function ObservationsListPage() {
 
   const invalidate = () =>
     Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["person", customerId, "observationsList"] }),
-      queryClient.invalidateQueries({ queryKey: ["person", customerId, "observations"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["person", customerId, "observationsList"],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["person", customerId, "observations"],
+      }),
     ]);
 
   const buildUpdatedNotes = (
@@ -80,17 +85,19 @@ export function ObservationsListPage() {
   ) => {
     const base = current.map((n) => ({
       text: n.text ?? "",
-      authorReference: n.authorReference ?? undefined,
-      authorString: n.authorString ?? undefined,
+      ...toAuthorInput(n),
       time: n.time ?? undefined,
     }));
     if (action.kind === "add") {
+      const authorInput = toAuthorInput({
+        authorReference: user?.id,
+        authorString: user?.name,
+      });
       return [
         ...base,
         {
           text: action.text,
-          authorReference: user?.id ?? undefined,
-          authorString: user?.name ?? undefined,
+          ...authorInput,
           time: new Date().toISOString(),
         },
       ];
@@ -189,11 +196,16 @@ export function ObservationsListPage() {
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-0.5">
           {isClinicalNote(row.original) ? (
-            <NotesPopover notes={row.original.note ?? []} currentUserId={user?.id ?? undefined} />
+            <NotesPopover
+              notes={row.original.note ?? []}
+              currentUserId={user?.id ?? undefined}
+              currentUserName={user?.name ?? undefined}
+            />
           ) : (
             <NotesPopover
               notes={row.original.note ?? []}
               currentUserId={user?.id ?? undefined}
+              currentUserName={user?.name ?? undefined}
               {...makeNoteHandlers(row.original)}
             />
           )}
