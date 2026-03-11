@@ -11,7 +11,6 @@ import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cyc
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
 import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
 import { PersonProfileCard } from "@/features/customers/ui/detail/person-profile-card";
-import { SubscriptionCard } from "@/features/customers/ui/detail/subscription-card";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -29,9 +28,7 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
     person,
     hasPatient,
     patientId,
-    currentSubscription,
     activeNutritionPlan,
-    subscriptions,
     anthropometry,
     nutritionPlans,
     goals,
@@ -115,10 +112,6 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
             />
           </div>
 
-          <SubscriptionCard
-            subscription={currentSubscription}
-            isLoading={subscriptions.isLoading}
-          />
         </>
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border border-dashed p-8 text-center">
