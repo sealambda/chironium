@@ -122,11 +122,13 @@ export function ObservationsCard({
   return (
     <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-1 sm:gap-2">
           <p className="font-bold text-foreground text-xl uppercase tracking-wide leading-none">
             {m.observations_last_title()}
           </p>
-          {timeAgo ? <span className="text-foreground/50 text-xs leading-none">{timeAgo}</span> : null}
+          {timeAgo ? (
+            <span className="shrink-0 text-foreground/50 text-sm leading-none">{timeAgo}</span>
+          ) : null}
         </div>
         <AddObservationDialog personId={personId} patientId={patientId}>
           <CardAddButton label={m.observations_add()} />
