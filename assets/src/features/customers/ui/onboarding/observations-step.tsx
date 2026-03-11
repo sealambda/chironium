@@ -15,10 +15,7 @@ interface ObservationsStepProps {
   readonly isSubmitting?: boolean;
   readonly onSubmit: (notes: ClinicalNoteFormData[]) => void;
   readonly onBack: () => void;
-  readonly onSaveDraft?: (
-    notes: ClinicalNoteFormData[],
-    pending?: ClinicalNoteFormData,
-  ) => void;
+  readonly onSaveDraft?: (notes: ClinicalNoteFormData[], pending?: ClinicalNoteFormData) => void;
 }
 
 interface ObservationEntry extends ClinicalNoteFormData {
@@ -63,9 +60,7 @@ export function ObservationsStep({
   };
 
   const handleSubmit = () => {
-    const pending: ClinicalNoteFormData[] = noteBody.trim()
-      ? [{ body: noteBody.trim() }]
-      : [];
+    const pending: ClinicalNoteFormData[] = noteBody.trim() ? [{ body: noteBody.trim() }] : [];
     onSubmit([...addedNotes, ...pending]);
   };
 
@@ -123,9 +118,7 @@ interface ObservationListProps {
 function ObservationList({ notes, onRemove }: ObservationListProps) {
   if (notes.length === 0) {
     return (
-      <p className="py-2 text-center text-muted-foreground text-sm">
-        {m.observation_empty_hint()}
-      </p>
+      <p className="py-2 text-center text-muted-foreground text-sm">{m.observation_empty_hint()}</p>
     );
   }
 

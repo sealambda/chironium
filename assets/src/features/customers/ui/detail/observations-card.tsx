@@ -4,8 +4,6 @@ import { ChevronRight, ClipboardList, PlusIcon } from "lucide-react";
 
 import {
   getObservationDisplayValue,
-  getObservationLabel,
-  isClinicalNote,
   type ObservationItem,
   type ObservationsPage,
 } from "@/features/customers/api/observations-api";
@@ -31,11 +29,7 @@ interface ObservationRowProps {
 }
 
 function ObservationRow({ item }: Readonly<ObservationRowProps>) {
-  const label = getObservationLabel(item.code);
-  const title = isClinicalNote(item)
-    ? // Show the first non-empty line, stripping any leading markdown heading markers.
-      ((item.valueString ?? "").split("\n").find((l) => l.trim()) ?? "").replace(/^#+\s*/, "")
-    : getObservationDisplayValue(item);
+  const title = getObservationDisplayValue(item);
   const timeAgo = item.effectiveDateTime
     ? formatDistanceToNowStrict(new Date(item.effectiveDateTime), {
         addSuffix: true,
@@ -47,7 +41,6 @@ function ObservationRow({ item }: Readonly<ObservationRowProps>) {
     <div className="group py-2.5">
       <div className="flex items-baseline gap-2">
         <span className="truncate font-medium text-foreground text-sm">{title}</span>
-        <span className="shrink-0 text-foreground/40 text-xs">{label}</span>
         <div className="ml-auto flex shrink-0 items-center gap-1">
           {timeAgo ? <span className="text-foreground/50 text-xs">{timeAgo}</span> : null}
         </div>

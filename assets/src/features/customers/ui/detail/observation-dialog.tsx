@@ -55,17 +55,10 @@ export function ObservationDialog({
         />
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             {m.common_cancel()}
           </Button>
-          <Button
-            onClick={() => void onSubmit()}
-            disabled={saving || !hasContent}
-          >
+          <Button onClick={() => void onSubmit()} disabled={saving || !hasContent}>
             {saving ? m.common_saving() : submitLabel}
           </Button>
         </DialogFooter>

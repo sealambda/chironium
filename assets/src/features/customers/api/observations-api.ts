@@ -1,8 +1,26 @@
 import { graphql, type ResultOf } from "@/graphql";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
-import * as m from "@/paraglide/messages";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+
+const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
+
+type CodeTypes =
+  | "clinicalNote"
+  | "dietInclusion"
+  | "dietExclusion"
+  | "menstrualCycle"
+  | "bodyWeight"
+  | "bodyHeight";
+
+const CODES: Record<CodeTypes, string> = {
+  clinicalNote: "clinical-note",
+  dietInclusion: "diet-inclusion",
+  dietExclusion: "diet-exclusion",
+  menstrualCycle: "364307006",
+  bodyWeight: "29463-7",
+  bodyHeight: "8302-2",
+};
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
@@ -98,11 +116,6 @@ const DeleteObservationMutation = graphql(`
   }
 `);
 
-const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
-
-/** Code text values used for diet observations — excluded from the general observations list. */
-export const DIET_CODES = ["diet-inclusion", "diet-exclusion"] as const;
-
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** Form data for the menstrual cycle onboarding step. */
@@ -166,7 +179,9 @@ export async function createMenstrualCycleObservation(
     variables: {
       input: {
         status: "FINAL",
-        code: { coding: [{ system: SNOMED_SYSTEM, code: "364307006" }] },
+        code: {
+          coding: [{ system: SNOMED_SYSTEM, code: CODES.menstrualCycle }],
+        },
         valueString: noteText,
         note: [
           {
@@ -201,7 +216,7 @@ export async function createClinicalNoteObservations(
         variables: {
           input: {
             status: "FINAL",
-            code: { text: "clinical-note" },
+            code: { text: CODES.clinicalNote },
             valueString: note.body.trim(),
             subjectId,
           },
@@ -217,8 +232,8 @@ export async function createClinicalNoteObservations(
 
 const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
 
-function isDietObservation(item: ObservationItem): boolean {
-  return DIET_CODES.includes(item.code?.text as (typeof DIET_CODES)[number]);
+function isDisplayable(item: ObservationItem): boolean {
+  return !item.code || item.code.text === CODES.clinicalNote;
 }
 
 function buildSubjectFilter(personId: string) {
@@ -250,7 +265,7 @@ export async function fetchObservationsSummary(
   });
 
   const page = result.listObservations;
-  const items = (page?.results ?? []).filter((item) => !isDietObservation(item));
+  const items = (page?.results ?? []).filter((item) => isDisplayable(item));
   return {
     items,
     count: items.length,
@@ -280,76 +295,12 @@ export async function fetchObservationsList(
   });
 
   const page = result.listObservations;
-  const items = (page?.results ?? []).filter((item) => !isDietObservation(item));
+  const items = (page?.results ?? []).filter((item) => isDisplayable(item));
   return {
     items,
     count: items.length,
     endKeyset: page?.endKeyset ?? null,
   };
-}
-
-/**
- * Fetch raw diet observations (diet-inclusion / diet-exclusion) for the history table.
- */
-export async function fetchDietObservationsList(
-  personId: string,
-  organizationId: string,
-): Promise<ObservationItem[]> {
-  if (!personId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql({
-    document: ListObservationsQuery,
-    variables: {
-      filter: buildSubjectFilter(personId),
-      sort: SORT_NEWEST_FIRST,
-      first: 250,
-    },
-    organizationId,
-  });
-
-  const allItems = result.listObservations?.results ?? [];
-  return allItems.filter((item) =>
-    DIET_CODES.includes(item.code?.text as (typeof DIET_CODES)[number]),
-  );
-}
-
-// ─── Label helpers ───────────────────────────────────────────────────
-
-const CODE_TEXT_LABELS: Record<string, () => string> = {
-  "clinical-note": m.observations_type_clinical_note,
-  "diet-inclusion": m.observations_type_diet_inclusion,
-  "diet-exclusion": m.observations_type_diet_exclusion,
-};
-
-const CODING_LABELS: Record<string, () => string> = {
-  "29463-7": m.observations_type_body_weight,
-  "8302-2": m.observations_type_body_height,
-  "364307006": m.observations_type_menstrual_cycle,
-};
-
-/** Derive a human-readable label from an observation's code. */
-export function getObservationLabel(code: ObservationItem["code"]): string {
-  if (!code) {
-    return m.observations_type_default();
-  }
-
-  if (code.text && CODE_TEXT_LABELS[code.text]) {
-    return CODE_TEXT_LABELS[code.text]();
-  }
-
-  const firstCoding = code.coding?.[0];
-  if (firstCoding?.code && CODING_LABELS[firstCoding.code]) {
-    return CODING_LABELS[firstCoding.code]();
-  }
-
-  return code.text ?? firstCoding?.display ?? m.observations_type_default();
-}
-
-/** Whether an observation is a clinical note (has title/body split and markdown body). */
-export function isClinicalNote(obs: ObservationItem): boolean {
-  return obs.code?.text === "clinical-note";
 }
 
 /** Parsed title + body from a clinical-note observation's valueString. */
@@ -367,7 +318,7 @@ export function parseClinicalNote(obs: ObservationItem): ParsedClinicalNote {
   const raw = obs.valueString ?? "";
 
   // Current format: "# Title\n\nBody"
-  const mdMatch = raw.match(/^#\s+(.+?)\n+([\s\S]*)$/);
+  const mdMatch = /^#\s+(.+?)\n+([\s\S]*)$/.exec(raw);
   if (mdMatch) {
     return { title: mdMatch[1].trim(), body: mdMatch[2].trim() };
   }

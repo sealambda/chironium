@@ -9,7 +9,6 @@ import {
   deleteObservation,
   fetchObservationsList,
   getObservationDisplayValue,
-  isClinicalNote,
   type ObservationItem,
   updateObservationNotes,
 } from "@/features/customers/api/observations-api";
@@ -184,41 +183,28 @@ export function ObservationsListPage() {
       header: ({ column }) => (
         <SortableHeader column={column}>{m.observations_col_value()}</SortableHeader>
       ),
-      cell: ({ row, getValue }) =>
-        isClinicalNote(row.original) ? (
-          <MarkdownContent content={row.original.valueString ?? ""} className="[&_h1]:mt-0" />
-        ) : (
-          <p className="wrap-break-word text-sm">{getValue() as string}</p>
-        ),
+      cell: ({ row }) => (
+        <MarkdownContent content={row.original.valueString ?? ""} className="[&_h1]:mt-0" />
+      ),
     },
     {
       id: "actions",
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-0.5">
-          {isClinicalNote(row.original) ? (
-            <NotesPopover
-              notes={row.original.note ?? []}
-              currentUserId={user?.id ?? undefined}
-              currentUserName={user?.name ?? undefined}
-            />
-          ) : (
-            <NotesPopover
-              notes={row.original.note ?? []}
-              currentUserId={user?.id ?? undefined}
-              currentUserName={user?.name ?? undefined}
-              {...makeNoteHandlers(row.original)}
-            />
-          )}
-          {isClinicalNote(row.original) ? (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => setEditTarget(row.original)}
-              aria-label={m.observations_edit_title()}
-            >
-              <PencilIcon className="size-3.5" />
-            </Button>
-          ) : null}
+          <NotesPopover
+            notes={row.original.note ?? []}
+            currentUserId={user?.id ?? undefined}
+            currentUserName={user?.name ?? undefined}
+            {...makeNoteHandlers(row.original)}
+          />
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => setEditTarget(row.original)}
+            aria-label={m.observations_edit_title()}
+          >
+            <PencilIcon className="size-3.5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon-xs"
