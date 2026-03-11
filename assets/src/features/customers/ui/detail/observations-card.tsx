@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { formatDistanceToNowStrict } from "date-fns";
-import { ChevronRight, ClipboardList, PencilIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, ClipboardList, PlusIcon } from "lucide-react";
 
 import {
   getObservationDisplayValue,
@@ -11,7 +10,6 @@ import {
   type ObservationsPage,
 } from "@/features/customers/api/observations-api";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
-import { EditObservationDialog } from "@/features/customers/ui/detail/edit-observation-dialog";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -30,10 +28,9 @@ interface ObservationsCardProps {
 
 interface ObservationRowProps {
   item: ObservationItem;
-  onEdit: (item: ObservationItem) => void;
 }
 
-function ObservationRow({ item, onEdit }: Readonly<ObservationRowProps>) {
+function ObservationRow({ item }: Readonly<ObservationRowProps>) {
   const label = getObservationLabel(item.code);
   const title = isClinicalNote(item)
     ? // Show the first non-empty line, stripping any leading markdown heading markers.
@@ -53,17 +50,6 @@ function ObservationRow({ item, onEdit }: Readonly<ObservationRowProps>) {
         <span className="shrink-0 text-foreground/40 text-xs">{label}</span>
         <div className="ml-auto flex shrink-0 items-center gap-1">
           {timeAgo ? <span className="text-foreground/50 text-xs">{timeAgo}</span> : null}
-          {isClinicalNote(item) ? (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onEdit(item)}
-              aria-label={m.observations_edit_title()}
-              className="opacity-0 text-foreground/40 transition-opacity hover:text-foreground group-hover:opacity-100"
-            >
-              <PencilIcon className="size-3.5" />
-            </Button>
-          ) : null}
         </div>
       </div>
     </div>
@@ -105,8 +91,6 @@ export function ObservationsCard({
   observations,
   isLoading,
 }: Readonly<ObservationsCardProps>) {
-  const [editTarget, setEditTarget] = useState<ObservationItem | null>(null);
-
   if (isLoading) {
     return <ObservationsCardSkeleton />;
   }
@@ -165,9 +149,7 @@ export function ObservationsCard({
       </div>
 
       <div className="mt-1 divide-y divide-neutral-200/60">
-        {items.map((item) => (
-          <ObservationRow key={item.id} item={item} onEdit={setEditTarget} />
-        ))}
+        {items.map((item) => <ObservationRow key={item.id} item={item} />)}
       </div>
 
       <div className="mt-auto border-neutral-200 border-t pt-3">
@@ -180,17 +162,6 @@ export function ObservationsCard({
           <ChevronRight className="size-4" />
         </Link>
       </div>
-
-      {editTarget ? (
-        <EditObservationDialog
-          observation={editTarget}
-          personId={personId}
-          open={editTarget !== null}
-          onOpenChange={(open) => {
-            if (!open) setEditTarget(null);
-          }}
-        />
-      ) : null}
     </div>
   );
 }
