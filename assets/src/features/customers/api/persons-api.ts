@@ -83,10 +83,10 @@ export async function fetchPersons(organizationId: string): Promise<Person[]> {
 }
 
 /**
- * Merge a flat persons list with a flat subscriptions list.
- * Persons with a subscription appear first, then the rest sorted
- * alphabetically by family name. Where a person has multiple subscriptions,
- * the most-recent one (first in list when sorted START_DATE DESC) is kept.
+ * Merge a flat persons list with a flat subscriptions list while preserving
+ * the original persons ordering from the backend. Where a person has multiple
+ * subscriptions, the most-recent one (first in list when sorted START_DATE DESC)
+ * is kept.
  */
 export function mergePersonsWithSubscriptions(
   persons: Person[],
@@ -100,22 +100,10 @@ export function mergePersonsWithSubscriptions(
     }
   }
 
-  const items: CustomerListItem[] = persons.map((person) => ({
+  return persons.map((person) => ({
     person,
     subscription: subsByPersonId.get(person.id),
   }));
-
-  // Sort: subscribed persons first, then by family name ascending.
-  return items.sort((a, b) => {
-    const aHasSub = Boolean(a.subscription);
-    const bHasSub = Boolean(b.subscription);
-    if (aHasSub !== bHasSub) {
-      return aHasSub ? -1 : 1;
-    }
-    const aName = a.person.name?.[0]?.family ?? "";
-    const bName = b.person.name?.[0]?.family ?? "";
-    return aName.localeCompare(bName);
-  });
 }
 
 /** Update a person's demographics and contact info. */
