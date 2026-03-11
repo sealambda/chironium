@@ -103,7 +103,14 @@ function useOnboardingDraft(
       setIsSubmitting(true);
       try {
         await submitOnboarding(finalDraft, organizationId, userId, userName);
-        await queryClient.invalidateQueries({ queryKey: ["customers", "list"] });
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ["customers", "persons", organizationId],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["customers", "subscriptions", organizationId],
+          }),
+        ]);
         toast.success(m.onboarding_success());
         onCloseRef.current();
       } catch (err) {
