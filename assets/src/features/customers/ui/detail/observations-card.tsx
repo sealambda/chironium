@@ -1,15 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { formatDistanceToNowStrict } from "date-fns";
-import { ChevronRight, ClipboardList, PlusIcon } from "lucide-react";
+import { ChevronRight, ClipboardList } from "lucide-react";
 
 import {
-  getObservationDisplayValue,
   type ObservationItem,
   type ObservationsPage,
 } from "@/features/customers/api/observations-api";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
 import * as m from "@/paraglide/messages";
-import { Button } from "@/shared/ui/button";
+import { CardAddButton } from "@/shared/ui/card-add-button";
+import { MarkdownContent } from "@/shared/ui/markdown-content";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 
@@ -29,22 +29,12 @@ interface ObservationRowProps {
 }
 
 function ObservationRow({ item }: Readonly<ObservationRowProps>) {
-  const title = getObservationDisplayValue(item);
-  const timeAgo = item.effectiveDateTime
-    ? formatDistanceToNowStrict(new Date(item.effectiveDateTime), {
-        addSuffix: true,
-        locale: getDateLocale(),
-      })
-    : null;
-
   return (
-    <div className="group py-2.5">
-      <div className="flex items-baseline gap-2">
-        <span className="truncate font-medium text-foreground text-sm">{title}</span>
-        <div className="ml-auto flex shrink-0 items-center gap-1">
-          {timeAgo ? <span className="text-foreground/50 text-xs">{timeAgo}</span> : null}
-        </div>
-      </div>
+    <div>
+      <MarkdownContent
+        content={item.valueString ?? ""}
+        className="text-foreground/70 text-xl italic [&_h1]:mt-0 [&_p:first-child]:mt-0 [&_p]:mb-0"
+      />
     </div>
   );
 }
@@ -89,20 +79,23 @@ export function ObservationsCard({
   }
 
   const items = observations?.items ?? [];
-  const totalCount = observations?.count ?? 0;
+  const latestObservation = items[0] ?? null;
+  const timeAgo = latestObservation?.effectiveDateTime
+    ? formatDistanceToNowStrict(new Date(latestObservation.effectiveDateTime), {
+        addSuffix: true,
+        locale: getDateLocale(),
+      })
+    : null;
 
-  if (items.length === 0) {
+  if (!latestObservation) {
     return (
       <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-between">
           <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
-            {m.observations_title()}
+            {m.observations_last_title()}
           </h3>
           <AddObservationDialog personId={personId} patientId={patientId}>
-            <Button variant="outline" size="sm">
-              <PlusIcon className="size-4" data-icon="inline-start" />
-              {m.observations_add()}
-            </Button>
+            <CardAddButton label={m.observations_add()} />
           </AddObservationDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
@@ -112,7 +105,7 @@ export function ObservationsCard({
             <p className="mt-0.5 text-foreground/65 text-xs">{m.observations_empty_desc()}</p>
           </div>
         </div>
-        <div className="mt-auto border-neutral-200 border-t pt-3">
+        <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
           <Link
             to="/customers/$customerId/observations"
             params={{ customerId: personId }}
@@ -129,27 +122,22 @@ export function ObservationsCard({
   return (
     <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
-          {m.observations_title()}
-          {totalCount > 0 ? (
-            <span className="ml-1.5 font-normal text-foreground/50 text-sm">({totalCount})</span>
-          ) : null}
-        </h3>
+        <div className="flex items-end gap-2">
+          <p className="font-bold text-foreground text-xl uppercase tracking-wide leading-none">
+            {m.observations_last_title()}
+          </p>
+          {timeAgo ? <span className="text-foreground/50 text-xs leading-none">{timeAgo}</span> : null}
+        </div>
         <AddObservationDialog personId={personId} patientId={patientId}>
-          <Button variant="outline" size="sm">
-            <PlusIcon className="size-4" data-icon="inline-start" />
-            {m.observations_add()}
-          </Button>
+          <CardAddButton label={m.observations_add()} />
         </AddObservationDialog>
       </div>
 
-      <div className="mt-1 divide-y divide-neutral-200/60">
-        {items.map((item) => (
-          <ObservationRow key={item.id} item={item} />
-        ))}
+      <div className="mt-3">
+        <ObservationRow item={latestObservation} />
       </div>
 
-      <div className="mt-auto border-neutral-200 border-t pt-3">
+      <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
         <Link
           to="/customers/$customerId/observations"
           params={{ customerId: personId }}

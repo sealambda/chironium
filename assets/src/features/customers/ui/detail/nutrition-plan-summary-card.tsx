@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Beef, ChevronRight, Droplet, LeafIcon, PlusIcon, Wheat } from "lucide-react";
+import { Beef, ChevronRight, Droplet, LeafIcon, Wheat } from "lucide-react";
 
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import { NutritionPlanDialog } from "@/features/customers/ui/detail/nutrition-plan-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { CardAddButton } from "@/shared/ui/card-add-button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/utils/utils";
 
@@ -172,10 +172,7 @@ export function NutritionPlanSummaryCard({
             birthDate={birthDate}
             gender={gender}
           >
-            <Button variant="outline" size="sm">
-              <PlusIcon className="size-4" data-icon="inline-start" />
-              {m.nutrition_plan_add()}
-            </Button>
+            <CardAddButton label={m.nutrition_plan_add()} />
           </NutritionPlanDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
@@ -202,10 +199,7 @@ export function NutritionPlanSummaryCard({
           birthDate={birthDate}
           gender={gender}
         >
-          <Button variant="outline" size="sm">
-            <PlusIcon className="size-4" data-icon="inline-start" />
-            {m.nutrition_plan_add()}
-          </Button>
+          <CardAddButton label={m.nutrition_plan_add()} />
         </NutritionPlanDialog>
       </div>
 

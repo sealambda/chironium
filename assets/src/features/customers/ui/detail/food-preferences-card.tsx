@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, PlusIcon, Utensils } from "lucide-react";
+import { ChevronRight, Utensils } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import { createFoodObservations } from "@/features/customers/api/food-preference
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
+import { CardAddButton } from "@/shared/ui/card-add-button";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -223,10 +224,7 @@ export function FoodPreferencesCard({
       <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
-            <Button variant="outline" size="sm">
-              <PlusIcon className="size-4" data-icon="inline-start" />
-              {m.food_preferences_add()}
-            </Button>
+            <CardAddButton label={m.food_preferences_add()} />
           </AddFoodPreferenceDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
@@ -244,10 +242,10 @@ export function FoodPreferencesCard({
   return (
     <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
-        <Button variant="outline" size="sm" className="absolute top-4 right-4 lg:top-5 lg:right-5">
-          <PlusIcon className="size-4" data-icon="inline-start" />
-          {m.food_preferences_add()}
-        </Button>
+        <CardAddButton
+          label={m.food_preferences_add()}
+          className="absolute top-4 right-4 lg:top-5 lg:right-5"
+        />
       </AddFoodPreferenceDialog>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -1,12 +1,12 @@
 // biome-ignore-all lint/style/useNamingConvention: keys match GraphQL enum values
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, PlusIcon, Target } from "lucide-react";
+import { ChevronRight, Target } from "lucide-react";
 
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { CardAddButton } from "@/shared/ui/card-add-button";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 // ─── Props ───────────────────────────────────────────────────────────
@@ -97,10 +97,7 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
       <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AddGoalDialog personId={personId} patientId={patientId}>
-            <Button variant="outline" size="sm">
-              <PlusIcon className="size-4" data-icon="inline-start" />
-              {m.goals_add()}
-            </Button>
+            <CardAddButton label={m.goals_add()} />
           </AddGoalDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
@@ -120,10 +117,7 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
   return (
     <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <AddGoalDialog personId={personId} patientId={patientId}>
-        <Button variant="outline" size="sm" className="absolute top-4 right-4 lg:top-5 lg:right-5">
-          <PlusIcon className="size-4" data-icon="inline-start" />
-          {m.goals_add()}
-        </Button>
+        <CardAddButton label={m.goals_add()} className="absolute top-4 right-4 lg:top-5 lg:right-5" />
       </AddGoalDialog>
 
       <div className="space-y-3">

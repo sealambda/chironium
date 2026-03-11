@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, ChevronRight, PlusIcon } from "lucide-react";
+import { AlertTriangle, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ import {
 } from "@/features/customers/api/allergy-intolerance-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { CardAddButton } from "@/shared/ui/card-add-button";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -235,10 +236,7 @@ export function AllergyIntoleranceCard({
       <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
-            <Button variant="outline" size="sm">
-              <PlusIcon className="size-4" data-icon="inline-start" />
-              {m.allergy_intolerance_add()}
-            </Button>
+            <CardAddButton label={m.allergy_intolerance_add()} />
           </AddAllergyIntoleranceDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
@@ -256,10 +254,10 @@ export function AllergyIntoleranceCard({
   return (
     <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
       <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
-        <Button variant="outline" size="sm" className="absolute top-4 right-4 lg:top-5 lg:right-5">
-          <PlusIcon className="size-4" data-icon="inline-start" />
-          {m.allergy_intolerance_add()}
-        </Button>
+        <CardAddButton
+          label={m.allergy_intolerance_add()}
+          className="absolute top-4 right-4 lg:top-5 lg:right-5"
+        />
       </AddAllergyIntoleranceDialog>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

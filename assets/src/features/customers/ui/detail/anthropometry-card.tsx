@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { differenceInDays } from "date-fns";
 import type { LucideIcon } from "lucide-react";
-import { ChevronRight, DumbbellIcon, PlusIcon, ScaleIcon, ShirtIcon } from "lucide-react";
+import { ChevronRight, DumbbellIcon, ScaleIcon, ShirtIcon } from "lucide-react";
 
 import type {
   AnthropometricSnapshot,
@@ -10,7 +10,7 @@ import type {
 import { AnthropometryDialog } from "@/features/customers/ui/detail/anthropometry-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { CardAddButton } from "@/shared/ui/card-add-button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
   classifyBmi,
@@ -329,10 +329,7 @@ export function AnthropometryCard({
       <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AnthropometryDialog personId={personId} patientId={patientId}>
-            <Button variant="outline" size="sm">
-              <PlusIcon className="size-4" data-icon="inline-start" />
-              {m.anthropometry_add()}
-            </Button>
+            <CardAddButton label={m.anthropometry_add()} />
           </AnthropometryDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
@@ -363,10 +360,7 @@ export function AnthropometryCard({
       <div className="flex items-start justify-between">
         <HeroSection latest={latest} weightDelta={weightDelta} />
         <AnthropometryDialog personId={personId} patientId={patientId}>
-          <Button variant="outline" size="sm">
-            <PlusIcon className="size-4" data-icon="inline-start" />
-            {m.anthropometry_add()}
-          </Button>
+          <CardAddButton label={m.anthropometry_add()} />
         </AnthropometryDialog>
       </div>
 
