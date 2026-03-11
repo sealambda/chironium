@@ -1,7 +1,13 @@
 import { SiGmail, SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons";
 
 import { Button } from "@/shared/ui/button";
-import { getEmailUrl, getInstagramUrl, getWhatsAppUrl } from "@/shared/utils/contact-utils";
+import {
+  formatInstagramDisplay,
+  getEmailUrl,
+  getInstagramUrl,
+  getWhatsAppUrl,
+} from "@/shared/utils/contact-utils";
+import { formatPhoneDisplay } from "@/shared/utils/phone-utils";
 
 interface ContactButtonGroupProps {
   email?: string;
@@ -23,6 +29,9 @@ export function ContactButtonGroup({
   personName,
   stopPropagation = false,
 }: Readonly<ContactButtonGroupProps>) {
+  const phoneDisplay = phone ? formatPhoneDisplay(phone) : undefined;
+  const instagramDisplay = instagram ? formatInstagramDisplay(instagram) : undefined;
+
   const handleClick = (url: string) => (e: React.MouseEvent) => {
     if (stopPropagation) {
       e.preventDefault();
@@ -40,6 +49,7 @@ export function ContactButtonGroup({
         disabled={!email}
         onClick={email ? handleClick(getEmailUrl(email)) : undefined}
         aria-label={`Email ${personName}`}
+        title={email}
       >
         <SiGmail size={20} />
       </Button>
@@ -50,6 +60,7 @@ export function ContactButtonGroup({
         disabled={!phone}
         onClick={phone ? handleClick(getWhatsAppUrl(phone)) : undefined}
         aria-label={`WhatsApp ${personName}`}
+        title={phoneDisplay}
       >
         <SiWhatsapp size={20} />
       </Button>
@@ -60,6 +71,7 @@ export function ContactButtonGroup({
         disabled={!instagram}
         onClick={instagram ? handleClick(getInstagramUrl(instagram)) : undefined}
         aria-label={`Instagram ${personName}`}
+        title={instagramDisplay}
       >
         <SiInstagram size={20} />
       </Button>
