@@ -1,4 +1,4 @@
-import { useRef, type ReactElement } from "react";
+import type { ReactElement } from "react";
 
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -11,8 +11,7 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { MarkdownToolbar } from "@/shared/ui/markdown-toolbar";
-import { Textarea } from "@/shared/ui/textarea";
+import { MarkdownEditor } from "@/shared/ui/markdown-editor";
 
 interface ObservationDialogProps {
   title: string;
@@ -37,7 +36,6 @@ export function ObservationDialog({
   saving,
   trigger,
 }: Readonly<ObservationDialogProps>) {
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const hasContent = body.trim();
 
   return (
@@ -48,24 +46,26 @@ export function ObservationDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <div>
-          <MarkdownToolbar textareaRef={bodyRef} value={body} onChange={onBodyChange} />
-          <Textarea
-            ref={bodyRef}
-            value={body}
-            onChange={(e) => onBodyChange(e.target.value)}
-            placeholder={m.field_observation_body_placeholder()}
-            rows={4}
-            disabled={saving}
-            className="rounded-t-none border-t-0"
-          />
-        </div>
+        <MarkdownEditor
+          value={body}
+          onChange={onBodyChange}
+          placeholder={m.field_observation_body_placeholder()}
+          rows={4}
+          disabled={saving}
+        />
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
             {m.common_cancel()}
           </Button>
-          <Button onClick={() => void onSubmit()} disabled={saving || !hasContent}>
+          <Button
+            onClick={() => void onSubmit()}
+            disabled={saving || !hasContent}
+          >
             {saving ? m.common_saving() : submitLabel}
           </Button>
         </DialogFooter>

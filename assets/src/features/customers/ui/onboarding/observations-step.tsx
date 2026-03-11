@@ -5,8 +5,7 @@ import type { ClinicalNoteFormData } from "@/features/customers/api/observations
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { MarkdownToolbar } from "@/shared/ui/markdown-toolbar";
-import { Textarea } from "@/shared/ui/textarea";
+import { MarkdownEditor } from "@/shared/ui/markdown-editor";
 
 import { StepLayout } from "./step-layout";
 
@@ -16,7 +15,10 @@ interface ObservationsStepProps {
   readonly isSubmitting?: boolean;
   readonly onSubmit: (notes: ClinicalNoteFormData[]) => void;
   readonly onBack: () => void;
-  readonly onSaveDraft?: (notes: ClinicalNoteFormData[], pending?: ClinicalNoteFormData) => void;
+  readonly onSaveDraft?: (
+    notes: ClinicalNoteFormData[],
+    pending?: ClinicalNoteFormData,
+  ) => void;
 }
 
 interface ObservationEntry extends ClinicalNoteFormData {
@@ -27,7 +29,6 @@ interface ObservationEntry extends ClinicalNoteFormData {
  * Step 8: Capture one or more clinical note observations, each with a title and body.
  * Uses the same add-to-list pattern as the org plans step: a single form
  * at the top, an "Add" button, and a compact summary list below.
- * The body field includes a markdown toolbar for formatting.
  */
 export function ObservationsStep({
   initialData,
@@ -40,8 +41,6 @@ export function ObservationsStep({
   const idPrefix = useId();
   const counterRef = useRef(0);
   const nextId = () => `${idPrefix}-${++counterRef.current}`;
-  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
-
   const [addedNotes, setAddedNotes] = useState<ObservationEntry[]>(() =>
     (initialData ?? []).map((n) => ({ ...n, id: nextId() })),
   );
@@ -64,12 +63,16 @@ export function ObservationsStep({
   };
 
   const handleSubmit = () => {
-    const pending: ClinicalNoteFormData[] = noteBody.trim() ? [{ body: noteBody.trim() }] : [];
+    const pending: ClinicalNoteFormData[] = noteBody.trim()
+      ? [{ body: noteBody.trim() }]
+      : [];
     onSubmit([...addedNotes, ...pending]);
   };
 
   const handleBack = () => {
-    const notes: ClinicalNoteFormData[] = addedNotes.map((n) => ({ body: n.body }));
+    const notes: ClinicalNoteFormData[] = addedNotes.map((n) => ({
+      body: n.body,
+    }));
     const pending: ClinicalNoteFormData | undefined = noteBody.trim()
       ? { body: noteBody.trim() }
       : undefined;
@@ -87,27 +90,13 @@ export function ObservationsStep({
       onBack={handleBack}
     >
       <div className="space-y-4">
-        <FieldGroup>
-          <Field>
-            <FieldLabel>{m.field_observation_body()}</FieldLabel>
-            <div>
-              <MarkdownToolbar
-                textareaRef={bodyTextareaRef}
-                value={noteBody}
-                onChange={(v) => setNoteBody(v)}
-              />
-              <Textarea
-                ref={bodyTextareaRef}
-                value={noteBody}
-                onChange={(e) => setNoteBody(e.target.value)}
-                placeholder={m.field_observation_body_placeholder()}
-                rows={3}
-                disabled={submitting}
-                className="rounded-t-none border-t-0"
-              />
-            </div>
-          </Field>
-        </FieldGroup>
+        <MarkdownEditor
+          value={noteBody}
+          onChange={setNoteBody}
+          placeholder={m.field_observation_body_placeholder()}
+          rows={3}
+          disabled={submitting}
+        />
 
         <Button
           variant="outline"
@@ -134,7 +123,9 @@ interface ObservationListProps {
 function ObservationList({ notes, onRemove }: ObservationListProps) {
   if (notes.length === 0) {
     return (
-      <p className="py-2 text-center text-muted-foreground text-sm">{m.observation_empty_hint()}</p>
+      <p className="py-2 text-center text-muted-foreground text-sm">
+        {m.observation_empty_hint()}
+      </p>
     );
   }
 
@@ -149,10 +140,7 @@ function ObservationList({ notes, onRemove }: ObservationListProps) {
           className="flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2"
         >
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium text-sm">{note.title || note.body}</p>
-            {note.title && note.body ? (
-              <p className="truncate text-muted-foreground text-xs">{note.body}</p>
-            ) : null}
+            <p className="truncate font-medium text-sm">{note.body}</p>
           </div>
           <Button
             variant="ghost"
