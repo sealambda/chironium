@@ -22,7 +22,10 @@ export const personSchema = z.object({
   givenName: nameField,
   familyName: nameField,
   birthDate: z.string().default(""),
-  gender: z.enum(["MALE", "FEMALE", "OTHER", "UNKNOWN"]).optional(),
+  gender: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.enum(["MALE", "FEMALE", "OTHER", "UNKNOWN"]).optional(),
+  ),
   phone: z
     .string()
     .default("")
