@@ -15,6 +15,7 @@ import {
   type CustomerListItem,
   fetchPersons,
   mergePersonsWithSubscriptions,
+  type PersonListSortOption,
 } from "@/features/customers/api/persons-api";
 import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
@@ -44,16 +45,17 @@ export function CustomersPage() {
   const { setHeaderContent } = useDetailMode();
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
+  const [sortOption, setSortOption] = useState<PersonListSortOption>("moreRecent");
 
   const {
-    data: persons = [],
+    data: persons,
     isLoading: personsLoading,
     error: personsError,
   } = useQuery({
-    queryKey: ["customers", "persons", selectedOrg?.id],
-    queryFn: () => fetchPersons(selectedOrg?.id ?? ""),
+    queryKey: ["customers", "persons", selectedOrg?.id, sortOption],
+    queryFn: () => fetchPersons(selectedOrg?.id ?? "", sortOption),
     enabled: Boolean(selectedOrg),
+    placeholderData: (previousData) => previousData,
   });
 
   const {
@@ -66,11 +68,11 @@ export function CustomersPage() {
     enabled: Boolean(selectedOrg),
   });
 
-  const isLoading = personsLoading || subscriptionsLoading;
+  const isLoading = (personsLoading && !persons) || subscriptionsLoading;
   const error = personsError ?? subscriptionsError;
 
   const customers = useMemo(
-    () => mergePersonsWithSubscriptions(persons, subscriptions),
+    () => mergePersonsWithSubscriptions(persons ?? [], subscriptions),
     [persons, subscriptions],
   );
 
@@ -81,18 +83,6 @@ export function CustomersPage() {
     }
     return customers.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
   }, [customers, search]);
-
-  const sortedCustomers = useMemo(() => {
-    if (!sortDir) {
-      return filtered;
-    }
-    return [...filtered].sort((a, b) => {
-      const aName = formatPersonName(a.person.name).toLowerCase();
-      const bName = formatPersonName(b.person.name).toLowerCase();
-      const cmp = aName.localeCompare(bName);
-      return sortDir === "desc" ? -cmp : cmp;
-    });
-  }, [filtered, sortDir]);
 
   useEffect(() => {
     if (!selectedOrg || isLoading || Boolean(error)) {
@@ -172,7 +162,10 @@ export function CustomersPage() {
         </div>
         {customers.length > 0 ? (
           <div className="flex items-center">
-            <CustomerSortDropdown sortDir={sortDir} onSortDirChange={setSortDir} />
+            <CustomerSortDropdown
+              sortOption={sortOption}
+              onSortOptionChange={setSortOption}
+            />
           </div>
         ) : null}
       </header>
@@ -184,7 +177,7 @@ export function CustomersPage() {
       ) : null}
 
       <CustomerList
-        items={sortedCustomers}
+        items={filtered}
         isEmpty={customers.length === 0}
         onAdd={() => setOnboardingOpen(true)}
       />
@@ -265,17 +258,18 @@ function CustomerList({
 }
 
 function CustomerSortDropdown({
-  sortDir,
-  onSortDirChange,
+  sortOption,
+  onSortOptionChange,
 }: Readonly<{
-  sortDir: "asc" | "desc" | null;
-  onSortDirChange: (dir: "asc" | "desc" | null) => void;
+  sortOption: PersonListSortOption;
+  onSortOptionChange: (sort: PersonListSortOption) => void;
 }>) {
+  const selectedSortLabel = getSortOptionLabel(sortOption);
   let SortIcon: typeof ArrowUpDownIcon;
-  if (sortDir === "asc") {
-    SortIcon = ArrowUpIcon;
-  } else if (sortDir === "desc") {
+  if (sortOption === "moreRecent") {
     SortIcon = ArrowDownIcon;
+  } else if (sortOption === "lessRecent") {
+    SortIcon = ArrowUpIcon;
   } else {
     SortIcon = ArrowUpDownIcon;
   }
@@ -284,26 +278,70 @@ function CustomerSortDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" size="sm" type="button" />}>
         <SortIcon className="size-4" />
-        {m.customers_sort()}
+        {selectedSortLabel}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>{m.customers_sort_by()}</DropdownMenuLabel>
         <DropdownMenuItem
-          closeOnClick={false}
-          onClick={() => {
-            if (!sortDir) {
-              onSortDirChange("asc");
-            } else if (sortDir === "asc") {
-              onSortDirChange("desc");
-            } else {
-              onSortDirChange(null);
-            }
-          }}
+          onClick={() => onSortOptionChange(getNextRecentSort(sortOption))}
         >
-          {m.customers_col_name()}
-          <SortIcon className="ml-auto size-4 opacity-60" />
+          {m.customers_sort_recent()}
+          <RecentSortIcon sortOption={sortOption} />
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onSortOptionChange(getNextNameSort(sortOption))}
+        >
+          {m.customers_sort_name()}
+          <NameSortIcon sortOption={sortOption} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+function RecentSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
+  if (sortOption === "moreRecent") {
+    return <ArrowDownIcon className="ml-auto size-4 opacity-60" />;
+  }
+  if (sortOption === "lessRecent") {
+    return <ArrowUpIcon className="ml-auto size-4 opacity-60" />;
+  }
+  return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
+}
+
+function NameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
+  if (sortOption === "nameDesc") {
+    return <ArrowDownIcon className="ml-auto size-4 opacity-60" />;
+  }
+  if (sortOption === "nameAsc") {
+    return <ArrowUpIcon className="ml-auto size-4 opacity-60" />;
+  }
+  return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
+}
+
+function getSortOptionLabel(sortOption: PersonListSortOption): string {
+  if (sortOption === "moreRecent") {
+    return m.customers_sort_more_recent();
+  }
+  if (sortOption === "lessRecent") {
+    return m.customers_sort_less_recent();
+  }
+  if (sortOption === "nameAsc") {
+    return m.customers_sort_name_asc();
+  }
+  return m.customers_sort_name_desc();
+}
+
+function getNextRecentSort(sortOption: PersonListSortOption): PersonListSortOption {
+  if (sortOption === "moreRecent") {
+    return "lessRecent";
+  }
+  return "moreRecent";
+}
+
+function getNextNameSort(sortOption: PersonListSortOption): PersonListSortOption {
+  if (sortOption === "nameAsc") {
+    return "nameDesc";
+  }
+  return "nameAsc";
 }

@@ -1,6 +1,7 @@
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import { formatPersonName } from "@/shared/utils/person-utils";
 
 import type { PersonFormData } from "./patients-api";
 import type { SubscriptionListItem } from "./subscriptions-api";
@@ -8,8 +9,8 @@ import type { SubscriptionListItem } from "./subscriptions-api";
 // ─── Queries ─────────────────────────────────────────────────────────
 
 const ListPersonsQuery = graphql(`
-  query ListPersons($first: Int) {
-    listPersons(first: $first) {
+  query ListPersons($first: Int, $sort: [PersonSortInput]) {
+    listPersons(first: $first, sort: $sort) {
       results {
         id
         name {
@@ -26,6 +27,29 @@ const ListPersonsQuery = graphql(`
     }
   }
 `);
+
+export type PersonListSortOption = "moreRecent" | "lessRecent" | "nameAsc" | "nameDesc";
+
+const SORT_MORE_RECENT_FIRST = [{ field: "ID" as const, order: "DESC" as const }];
+const SORT_LESS_RECENT_FIRST = [{ field: "ID" as const, order: "ASC" as const }];
+
+function getPersonApiSort(sort: PersonListSortOption) {
+  if (sort === "lessRecent") {
+    return SORT_LESS_RECENT_FIRST;
+  }
+  return SORT_MORE_RECENT_FIRST;
+}
+
+function sortPersonsByName(persons: Person[], sort: PersonListSortOption): Person[] {
+  if (sort === "nameAsc") {
+    return [...persons].sort((a, b) =>
+      formatPersonName(a.name).toLowerCase().localeCompare(formatPersonName(b.name).toLowerCase()),
+    );
+  }
+  return [...persons].sort((a, b) =>
+    formatPersonName(b.name).toLowerCase().localeCompare(formatPersonName(a.name).toLowerCase()),
+  );
+}
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -68,18 +92,28 @@ export interface CustomerListItem {
 // ─── Functions ───────────────────────────────────────────────────────
 
 /** Fetch all persons for the organization. */
-export async function fetchPersons(organizationId: string): Promise<Person[]> {
+export async function fetchPersons(
+  organizationId: string,
+  sort: PersonListSortOption = "moreRecent",
+): Promise<Person[]> {
   if (!organizationId) {
     return [];
   }
 
   const result = await requestGraphql({
     document: ListPersonsQuery,
-    variables: { first: 250 },
+    variables: {
+      first: 250,
+      sort: getPersonApiSort(sort),
+    },
     organizationId,
   });
 
-  return result.listPersons?.results ?? [];
+  const persons = result.listPersons?.results ?? [];
+  if (sort === "nameAsc" || sort === "nameDesc") {
+    return sortPersonsByName(persons, sort);
+  }
+  return persons;
 }
 
 /**
