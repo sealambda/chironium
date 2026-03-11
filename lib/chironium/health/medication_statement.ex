@@ -54,6 +54,8 @@ defmodule Chironium.Health.MedicationStatement do
       public? true
     end
 
+    # TODO Dosage and effective period/timing
+
     attribute :code, Chironium.Datatypes.CodeableConcept do
       public? true
     end

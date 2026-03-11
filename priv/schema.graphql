@@ -4,6 +4,18 @@ schema {
   subscription: Subscription
 }
 
+input SubscriptionPlanDurationInput {
+  code: DurationUnit
+  system: String
+  value: Decimal
+}
+
+type Duration {
+  system: String
+  code: DurationUnit
+  value: Decimal
+}
+
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
@@ -120,7 +132,6 @@ input CodeableConceptCodingInput {
   code: String
   system: String
   version: String
-  display: String
   userSelected: Boolean
 }
 
@@ -138,20 +149,8 @@ type Coding {
   system: String!
   version: String
   code: String!
-  display: String
   userSelected: Boolean
-}
-
-input SubscriptionPlanDurationInput {
-  code: DurationUnit
-  system: String
-  value: Decimal
-}
-
-type Duration {
-  system: String
-  code: DurationUnit
-  value: Decimal
+  display: String
 }
 
 input ContactPointPeriodInput {
@@ -257,6 +256,46 @@ type HumanName {
 type Period {
   start: Date
   end: Date
+}
+
+enum PublicationStatus {
+  "This resource is ready for normal use."
+  ACTIVE
+
+  "This resource is still under development and is not yet considered to be ready for normal use."
+  DRAFT
+
+  "This resource has been withdrawn or superseded and should no longer be used."
+  RETIRED
+
+  "The authoring system does not know which of the status values currently applies for this resource. Note: This concept is not to be used for 'other' - one of the listed statuses is presumed to apply, it's just not known which one."
+  UNKNOWN
+}
+
+enum DurationUnit {
+  "years"
+  A
+
+  "days"
+  D
+
+  "hours"
+  H
+
+  "minutes"
+  MIN
+
+  "months"
+  MO
+
+  "milliseconds"
+  MS
+
+  "seconds"
+  S
+
+  "weeks"
+  WK
 }
 
 enum ObservationStatus {
@@ -448,32 +487,6 @@ enum AllergyIntoleranceClinicalStatus {
 
   "A reaction to the identified substance has been clinically reassessed by testing or re-exposure and is considered no longer to be present. Re-exposure could be accidental, unplanned, or outside of any clinical setting."
   RESOLVED
-}
-
-enum DurationUnit {
-  "years"
-  A
-
-  "days"
-  D
-
-  "hours"
-  H
-
-  "minutes"
-  MIN
-
-  "months"
-  MO
-
-  "milliseconds"
-  MS
-
-  "seconds"
-  S
-
-  "weeks"
-  WK
 }
 
 enum AdministrativeGender {
@@ -997,251 +1010,6 @@ type PersonVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Person!
-}
-
-"The result of the :create_subscription mutation"
-type CreateSubscriptionResult {
-  "The successful result of the mutation"
-  result: Subscription
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateSubscriptionInput {
-  startDate: Date
-  subscriberId: ID!
-  planId: ID!
-}
-
-enum SubscriptionSortField {
-  ID
-  START_DATE
-  STATE
-  SUBSCRIBER_ID
-  PLAN_ID
-}
-
-"A keyset page of :subscription"
-type KeysetPageOfSubscription {
-  "Total count on all pages"
-  count: Int
-
-  "The records contained in the page"
-  results: [Subscription!]
-
-  "The first keyset in the results"
-  startKeyset: String
-
-  "The last keyset in the results"
-  endKeyset: String
-}
-
-input SubscriptionFilterPlanId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input SubscriptionFilterSubscriberId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input SubscriptionFilterState {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String!]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-}
-
-input SubscriptionFilterStartDate {
-  isNil: Boolean
-  eq: Date
-  notEq: Date
-  in: [Date!]
-  lessThan: Date
-  greaterThan: Date
-  lessThanOrEqual: Date
-  greaterThanOrEqual: Date
-}
-
-input SubscriptionFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input SubscriptionFilterInput {
-  and: [SubscriptionFilterInput!]
-  or: [SubscriptionFilterInput!]
-  not: [SubscriptionFilterInput!]
-  id: SubscriptionFilterId
-  startDate: SubscriptionFilterStartDate
-  state: SubscriptionFilterState
-  subscriberId: SubscriptionFilterSubscriberId
-  planId: SubscriptionFilterPlanId
-  subscriber: PersonFilterInput
-  plan: SubscriptionPlanFilterInput
-}
-
-input SubscriptionSortInput {
-  order: SortOrder
-  field: SubscriptionSortField!
-}
-
-type Subscription {
-  id: ID!
-  startDate: Date!
-  state: String!
-  subscriberId: ID!
-  planId: ID!
-  paperTrailVersions(
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [SubscriptionVersion!]!
-  subscriber: Person!
-  plan: SubscriptionPlan!
-}
-
-"The result of the :create_subscription_plan mutation"
-type CreateSubscriptionPlanResult {
-  "The successful result of the mutation"
-  result: SubscriptionPlan
-
-  "Any errors generated, if the mutation failed"
-  errors: [MutationError!]!
-}
-
-input CreateSubscriptionPlanInput {
-  name: String
-  duration: SubscriptionPlanDurationInput
-  priceAmount: MoneyInput
-}
-
-enum SubscriptionPlanSortField {
-  ID
-  NAME
-  PRICE_AMOUNT
-}
-
-"A keyset page of :subscription_plan"
-type KeysetPageOfSubscriptionPlan {
-  "Total count on all pages"
-  count: Int
-
-  "The records contained in the page"
-  results: [SubscriptionPlan!]
-
-  "The first keyset in the results"
-  startKeyset: String
-
-  "The last keyset in the results"
-  endKeyset: String
-}
-
-input SubscriptionPlanFilterPriceAmount {
-  isNil: Boolean
-  eq: MoneyInput
-  notEq: MoneyInput
-  in: [MoneyInput]
-  lessThan: MoneyInput
-  greaterThan: MoneyInput
-  lessThanOrEqual: MoneyInput
-  greaterThanOrEqual: MoneyInput
-}
-
-input SubscriptionPlanFilterName {
-  isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
-  like: String
-  ilike: String
-}
-
-input SubscriptionPlanFilterId {
-  isNil: Boolean
-  eq: ID
-  notEq: ID
-  in: [ID!]
-  lessThan: ID
-  greaterThan: ID
-  lessThanOrEqual: ID
-  greaterThanOrEqual: ID
-}
-
-input SubscriptionPlanFilterInput {
-  and: [SubscriptionPlanFilterInput!]
-  or: [SubscriptionPlanFilterInput!]
-  not: [SubscriptionPlanFilterInput!]
-  id: SubscriptionPlanFilterId
-  name: SubscriptionPlanFilterName
-  priceAmount: SubscriptionPlanFilterPriceAmount
-}
-
-input SubscriptionPlanSortInput {
-  order: SortOrder
-  field: SubscriptionPlanSortField!
-}
-
-type SubscriptionPlan {
-  id: ID!
-  name: String
-  duration: Duration
-  priceAmount: Money
-  paperTrailVersions(
-    "The number of records to return."
-    limit: Int
-
-    "The number of records to skip."
-    offset: Int
-  ): [SubscriptionPlanVersion!]!
-}
-
-type SubscriptionPlanVersion {
-  id: ID!
-  versionActionType: String!
-  versionActionName: String!
-  versionSourceId: ID!
-  changes: JsonString
-  versionSource: SubscriptionPlan!
-}
-
-type SubscriptionVersion {
-  id: ID!
-  versionActionType: String!
-  versionActionName: String!
-  versionSourceId: ID!
-  changes: JsonString
-  versionSource: Subscription!
 }
 
 input PatientCreatePatientWithPersonPersonInput {
@@ -2909,9 +2677,786 @@ type PractitionerVersion {
   versionSource: Practitioner!
 }
 
+"The result of the :create_subscription mutation"
+type CreateSubscriptionResult {
+  "The successful result of the mutation"
+  result: Subscription
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateSubscriptionInput {
+  startDate: Date
+  subscriberId: ID!
+  planId: ID!
+}
+
+enum SubscriptionSortField {
+  ID
+  START_DATE
+  STATE
+  SUBSCRIBER_ID
+  PLAN_ID
+}
+
+"A keyset page of :subscription"
+type KeysetPageOfSubscription {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Subscription!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input SubscriptionFilterPlanId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionFilterSubscriberId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionFilterState {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input SubscriptionFilterStartDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date!]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+}
+
+input SubscriptionFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionFilterInput {
+  and: [SubscriptionFilterInput!]
+  or: [SubscriptionFilterInput!]
+  not: [SubscriptionFilterInput!]
+  id: SubscriptionFilterId
+  startDate: SubscriptionFilterStartDate
+  state: SubscriptionFilterState
+  subscriberId: SubscriptionFilterSubscriberId
+  planId: SubscriptionFilterPlanId
+  subscriber: PersonFilterInput
+  plan: SubscriptionPlanFilterInput
+}
+
+input SubscriptionSortInput {
+  order: SortOrder
+  field: SubscriptionSortField!
+}
+
+type Subscription {
+  id: ID!
+  startDate: Date!
+  state: String!
+  subscriberId: ID!
+  planId: ID!
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [SubscriptionVersion!]!
+  subscriber: Person!
+  plan: SubscriptionPlan!
+}
+
+"The result of the :create_subscription_plan mutation"
+type CreateSubscriptionPlanResult {
+  "The successful result of the mutation"
+  result: SubscriptionPlan
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateSubscriptionPlanInput {
+  name: String
+  duration: SubscriptionPlanDurationInput
+  priceAmount: MoneyInput
+}
+
+enum SubscriptionPlanSortField {
+  ID
+  NAME
+  PRICE_AMOUNT
+}
+
+"A keyset page of :subscription_plan"
+type KeysetPageOfSubscriptionPlan {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [SubscriptionPlan!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input SubscriptionPlanFilterPriceAmount {
+  isNil: Boolean
+  eq: MoneyInput
+  notEq: MoneyInput
+  in: [MoneyInput]
+  lessThan: MoneyInput
+  greaterThan: MoneyInput
+  lessThanOrEqual: MoneyInput
+  greaterThanOrEqual: MoneyInput
+}
+
+input SubscriptionPlanFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input SubscriptionPlanFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input SubscriptionPlanFilterInput {
+  and: [SubscriptionPlanFilterInput!]
+  or: [SubscriptionPlanFilterInput!]
+  not: [SubscriptionPlanFilterInput!]
+  id: SubscriptionPlanFilterId
+  name: SubscriptionPlanFilterName
+  priceAmount: SubscriptionPlanFilterPriceAmount
+}
+
+input SubscriptionPlanSortInput {
+  order: SortOrder
+  field: SubscriptionPlanSortField!
+}
+
+type SubscriptionPlan {
+  id: ID!
+  name: String
+  duration: Duration
+  priceAmount: Money
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [SubscriptionPlanVersion!]!
+}
+
+type SubscriptionPlanVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: SubscriptionPlan!
+}
+
+type SubscriptionVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Subscription!
+}
+
+enum DesignationSortField {
+  ID
+  LANGUAGE
+  VALUE
+  USE
+  CONCEPT_ID
+}
+
+input DesignationFilterConceptId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input DesignationFilterUse {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input DesignationFilterValue {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input DesignationFilterLanguage {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input DesignationFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input DesignationFilterInput {
+  and: [DesignationFilterInput!]
+
+  or: [DesignationFilterInput!]
+
+  not: [DesignationFilterInput!]
+
+  id: DesignationFilterId
+
+  "BCP 47 tag, e.g. 'en', 'de', 'fr'"
+  language: DesignationFilterLanguage
+
+  "The actual display text"
+  value: DesignationFilterValue
+
+  "The use of the designation"
+  use: DesignationFilterUse
+
+  conceptId: DesignationFilterConceptId
+
+  "Concept this designation belongs to"
+  concept: ConceptFilterInput
+}
+
+input DesignationSortInput {
+  order: SortOrder
+  field: DesignationSortField!
+}
+
+type Designation {
+  id: ID!
+
+  "BCP 47 tag, e.g. 'en', 'de', 'fr'"
+  language: String!
+
+  "The actual display text"
+  value: String!
+
+  "The use of the designation"
+  use: String!
+
+  conceptId: ID!
+
+  "Concept this designation belongs to"
+  concept: Concept!
+}
+
+enum ConceptSortField {
+  ID
+  CODE
+  ACTIVE
+  CODE_SYSTEM_ID
+}
+
+"A keyset page of :concept"
+type KeysetPageOfConcept {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Concept!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input ConceptFilterCodeSystemId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ConceptFilterActive {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+}
+
+input ConceptFilterCode {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input ConceptFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input ConceptFilterInput {
+  and: [ConceptFilterInput!]
+
+  or: [ConceptFilterInput!]
+
+  not: [ConceptFilterInput!]
+
+  id: ConceptFilterId
+
+  "Terminology-native identifier, e.g. '763158003'"
+  code: ConceptFilterCode
+
+  "Whether the concept is active in the source terminology release"
+  active: ConceptFilterActive
+
+  codeSystemId: ConceptFilterCodeSystemId
+
+  "Code system this concept belongs to"
+  codeSystem: CodeSystemFilterInput
+
+  "Designations for the concept"
+  designations: DesignationFilterInput
+}
+
+input ConceptSortInput {
+  order: SortOrder
+  field: ConceptSortField!
+}
+
+type Concept {
+  id: ID!
+
+  "Terminology-native identifier, e.g. '763158003'"
+  code: String!
+
+  "Whether the concept is active in the source terminology release"
+  active: Boolean!
+
+  codeSystemId: ID!
+
+  "Code system this concept belongs to"
+  codeSystem: CodeSystem!
+
+  "Designations for the concept"
+  designations(
+    "How to sort the records in the response"
+    sort: [DesignationSortInput]
+
+    "A filter to limit the results"
+    filter: DesignationFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Designation!]!
+}
+
+input CodeSystemFilterContent {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+}
+
+input CodeSystemFilterDescription {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CodeSystemFilterStatus {
+  isNil: Boolean
+  eq: PublicationStatus
+  notEq: PublicationStatus
+  in: [PublicationStatus!]
+  lessThan: PublicationStatus
+  greaterThan: PublicationStatus
+  lessThanOrEqual: PublicationStatus
+  greaterThanOrEqual: PublicationStatus
+}
+
+input CodeSystemFilterTitle {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CodeSystemFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CodeSystemFilterVersion {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CodeSystemFilterUrl {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input CodeSystemFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+}
+
+input CodeSystemFilterInput {
+  and: [CodeSystemFilterInput!]
+
+  or: [CodeSystemFilterInput!]
+
+  not: [CodeSystemFilterInput!]
+
+  id: CodeSystemFilterId
+
+  "Canonical identifier for this code system, represented as a URI (globally unique) (Coding.system)"
+  url: CodeSystemFilterUrl
+
+  "Business version of the code system (Coding.version)"
+  version: CodeSystemFilterVersion
+
+  "Name for this code system (computer friendly)"
+  name: CodeSystemFilterName
+
+  "Name for this code system (human friendly)"
+  title: CodeSystemFilterTitle
+
+  "Lifecycle status aligned with FHIR-style CodeSystem metadata"
+  status: CodeSystemFilterStatus
+
+  "Natural language description of the code system"
+  description: CodeSystemFilterDescription
+
+  "How complete this code system version is, e.g. complete or fragment"
+  content: CodeSystemFilterContent
+
+  "Concepts in the code system"
+  concepts: ConceptFilterInput
+}
+
+type CodeSystem {
+  id: ID!
+
+  "Canonical identifier for this code system, represented as a URI (globally unique) (Coding.system)"
+  url: String!
+
+  "Business version of the code system (Coding.version)"
+  version: String
+
+  "Name for this code system (computer friendly)"
+  name: String
+
+  "Name for this code system (human friendly)"
+  title: String
+
+  "Lifecycle status aligned with FHIR-style CodeSystem metadata"
+  status: PublicationStatus!
+
+  "Natural language description of the code system"
+  description: String
+
+  "How complete this code system version is, e.g. complete or fragment"
+  content: String!
+
+  "Concepts in the code system"
+  concepts(
+    "How to sort the records in the response"
+    sort: [ConceptSortInput]
+
+    "A filter to limit the results"
+    filter: ConceptFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [Concept!]!
+}
+
 type RootQueryType {
   "Retrieve the info for the actor that is currently signed in."
   currentActor: User
+
+  listConcepts(
+    "How to sort the records in the response"
+    sort: [ConceptSortInput]
+
+    "A filter to limit the results"
+    filter: ConceptFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfConcept
+
+  getConcept(
+    "A filter to limit the results"
+    filter: ConceptFilterInput
+  ): Concept
+
+  "Search active concepts by designation text and optional system filters."
+  searchConcepts(
+    "How to sort the records in the response"
+    sort: [ConceptSortInput]
+
+    "A filter to limit the results"
+    filter: ConceptFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+
+    text: String!
+  ): KeysetPageOfConcept
+
+  "Search active concepts by designation text constrained by an ancestor code."
+  searchConceptsInClosure(
+    "How to sort the records in the response"
+    sort: [ConceptSortInput]
+
+    "A filter to limit the results"
+    filter: ConceptFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+
+    text: String!
+
+    ancestorCode: String!
+
+    system: String
+
+    version: String
+  ): KeysetPageOfConcept
+
+  listSubscriptionPlans(
+    "How to sort the records in the response"
+    sort: [SubscriptionPlanSortInput]
+
+    "A filter to limit the results"
+    filter: SubscriptionPlanFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfSubscriptionPlan
+
+  listSubscriptions(
+    "How to sort the records in the response"
+    sort: [SubscriptionSortInput]
+
+    "A filter to limit the results"
+    filter: SubscriptionFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfSubscription
 
   listNutritionPlans(
     "How to sort the records in the response"
@@ -3214,46 +3759,6 @@ type RootQueryType {
     id: ID!
   ): Patient
 
-  listSubscriptionPlans(
-    "How to sort the records in the response"
-    sort: [SubscriptionPlanSortInput]
-
-    "A filter to limit the results"
-    filter: SubscriptionPlanFilterInput
-
-    "The number of records to return from the beginning. Maximum 250"
-    first: Int
-
-    "Show records before the specified keyset."
-    before: String
-
-    "Show records after the specified keyset."
-    after: String
-
-    "The number of records to return to the end. Maximum 250"
-    last: Int
-  ): KeysetPageOfSubscriptionPlan
-
-  listSubscriptions(
-    "How to sort the records in the response"
-    sort: [SubscriptionSortInput]
-
-    "A filter to limit the results"
-    filter: SubscriptionFilterInput
-
-    "The number of records to return from the beginning. Maximum 250"
-    first: Int
-
-    "Show records before the specified keyset."
-    before: String
-
-    "Show records after the specified keyset."
-    after: String
-
-    "The number of records to return to the end. Maximum 250"
-    last: Int
-  ): KeysetPageOfSubscription
-
   getPerson(
     "A filter to limit the results"
     filter: PersonFilterInput
@@ -3312,6 +3817,10 @@ input MoneyInput {
 }
 
 type RootMutationType {
+  createSubscriptionPlan(input: CreateSubscriptionPlanInput): CreateSubscriptionPlanResult!
+
+  createSubscription(input: CreateSubscriptionInput!): CreateSubscriptionResult!
+
   createAllergyIntolerance(input: CreateAllergyIntoleranceInput!): CreateAllergyIntoleranceResult!
 
   updateAllergyIntolerance(id: ID!, input: UpdateAllergyIntoleranceInput): UpdateAllergyIntoleranceResult!
@@ -3389,10 +3898,6 @@ type RootMutationType {
   updatePractitioner(id: ID!, input: UpdatePractitionerInput): UpdatePractitionerResult!
 
   deletePractitioner(id: ID!): DeletePractitionerResult!
-
-  createSubscriptionPlan(input: CreateSubscriptionPlanInput): CreateSubscriptionPlanResult!
-
-  createSubscription(input: CreateSubscriptionInput!): CreateSubscriptionResult!
 
   createPerson(input: CreatePersonInput): CreatePersonResult!
 
