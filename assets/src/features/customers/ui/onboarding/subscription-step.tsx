@@ -75,8 +75,11 @@ function PlanSelector({ plans, loading, value, onChange }: PlanSelectorProps) {
   return (
     <Select
       value={value}
-      onValueChange={(v) => onChange(v ?? "")}
-      items={plans.map((plan) => ({ value: plan.id, label: formatPlanLabel(plan) }))}
+      onValueChange={(nextValue) => onChange(nextValue ?? "")}
+      items={plans.map((plan) => ({
+        value: plan.id,
+        label: formatPlanLabel(plan),
+      }))}
     >
       <SelectTrigger className="w-full">
         <SelectValue placeholder={m.plan_placeholder()} />
@@ -143,7 +146,7 @@ export function SubscriptionStep({
         <form.Field
           name="planId"
           validators={{
-            onBlur: ({ value }) => {
+            onChange: ({ value }) => {
               if (!value) {
                 return m.validation_plan_required();
               }
