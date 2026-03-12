@@ -17,6 +17,10 @@ import {
   mergePersonsWithSubscriptions,
   type PersonListSortOption,
 } from "@/features/customers/api/persons-api";
+import {
+  getStoredPersonSortPreference,
+  storePersonSortPreference,
+} from "@/features/customers/model/person-sort-preferences";
 import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
@@ -45,7 +49,9 @@ export function CustomersPage() {
   const { setHeaderContent } = useDetailMode();
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [sortOption, setSortOption] = useState<PersonListSortOption>("moreRecent");
+  const [sortOption, setSortOption] = useState<PersonListSortOption>(
+    () => getStoredPersonSortPreference() ?? "moreRecent",
+  );
 
   const {
     data: persons,
@@ -83,6 +89,11 @@ export function CustomersPage() {
     }
     return customers.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
   }, [customers, search]);
+
+  const handleSortOptionChange = (nextSortOption: PersonListSortOption) => {
+    storePersonSortPreference(nextSortOption);
+    setSortOption(nextSortOption);
+  };
 
   useEffect(() => {
     if (!selectedOrg || isLoading || Boolean(error)) {
@@ -162,7 +173,10 @@ export function CustomersPage() {
         </div>
         {customers.length > 0 ? (
           <div className="flex items-center">
-            <CustomerSortDropdown sortOption={sortOption} onSortOptionChange={setSortOption} />
+            <CustomerSortDropdown
+              sortOption={sortOption}
+              onSortOptionChange={handleSortOptionChange}
+            />
           </div>
         ) : null}
       </header>

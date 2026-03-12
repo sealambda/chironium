@@ -27,13 +27,15 @@ const ListPersonsQuery = graphql(`
   }
 `);
 
-export type PersonListSortOption =
-  | "moreRecent"
-  | "lessRecent"
-  | "givenNameAsc"
-  | "givenNameDesc"
-  | "familyNameAsc"
-  | "familyNameDesc";
+export const personListSortOption = [
+  "moreRecent",
+  "lessRecent",
+  "givenNameAsc",
+  "givenNameDesc",
+  "familyNameAsc",
+  "familyNameDesc",
+] as const;
+export type PersonListSortOption = (typeof personListSortOption)[number];
 
 const SORT_MORE_RECENT_FIRST = [{ field: "ID" as const, order: "DESC" as const }];
 const SORT_LESS_RECENT_FIRST = [{ field: "ID" as const, order: "ASC" as const }];
