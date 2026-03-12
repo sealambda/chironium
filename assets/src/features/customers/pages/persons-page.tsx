@@ -283,9 +283,13 @@ function CustomerSortDropdown({
           {m.customers_sort_recent()}
           <RecentSortIcon sortOption={sortOption} />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSortOptionChange(getNextNameSort(sortOption))}>
-          {m.customers_sort_name()}
-          <NameSortIcon sortOption={sortOption} />
+        <DropdownMenuItem onClick={() => onSortOptionChange(getNextGivenNameSort(sortOption))}>
+          {m.customers_sort_given_name()}
+          <GivenNameSortIcon sortOption={sortOption} />
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onSortOptionChange(getNextFamilyNameSort(sortOption))}>
+          {m.customers_sort_family_name()}
+          <FamilyNameSortIcon sortOption={sortOption} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -302,11 +306,21 @@ function RecentSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOpt
   return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
 }
 
-function NameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
-  if (sortOption === "nameDesc") {
+function GivenNameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
+  if (sortOption === "givenNameDesc") {
     return <ArrowDownIcon className="ml-auto size-4 opacity-60" />;
   }
-  if (sortOption === "nameAsc") {
+  if (sortOption === "givenNameAsc") {
+    return <ArrowUpIcon className="ml-auto size-4 opacity-60" />;
+  }
+  return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
+}
+
+function FamilyNameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
+  if (sortOption === "familyNameDesc") {
+    return <ArrowDownIcon className="ml-auto size-4 opacity-60" />;
+  }
+  if (sortOption === "familyNameAsc") {
     return <ArrowUpIcon className="ml-auto size-4 opacity-60" />;
   }
   return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
@@ -319,10 +333,16 @@ function getSortOptionLabel(sortOption: PersonListSortOption): string {
   if (sortOption === "lessRecent") {
     return m.customers_sort_less_recent();
   }
-  if (sortOption === "nameAsc") {
-    return m.customers_sort_name_asc();
+  if (sortOption === "givenNameAsc") {
+    return m.customers_sort_given_name_asc();
   }
-  return m.customers_sort_name_desc();
+  if (sortOption === "givenNameDesc") {
+    return m.customers_sort_given_name_desc();
+  }
+  if (sortOption === "familyNameAsc") {
+    return m.customers_sort_family_name_asc();
+  }
+  return m.customers_sort_family_name_desc();
 }
 
 function getNextRecentSort(sortOption: PersonListSortOption): PersonListSortOption {
@@ -332,9 +352,16 @@ function getNextRecentSort(sortOption: PersonListSortOption): PersonListSortOpti
   return "moreRecent";
 }
 
-function getNextNameSort(sortOption: PersonListSortOption): PersonListSortOption {
-  if (sortOption === "nameAsc") {
-    return "nameDesc";
+function getNextGivenNameSort(sortOption: PersonListSortOption): PersonListSortOption {
+  if (sortOption === "givenNameAsc") {
+    return "givenNameDesc";
   }
-  return "nameAsc";
+  return "givenNameAsc";
+}
+
+function getNextFamilyNameSort(sortOption: PersonListSortOption): PersonListSortOption {
+  if (sortOption === "familyNameAsc") {
+    return "familyNameDesc";
+  }
+  return "familyNameAsc";
 }

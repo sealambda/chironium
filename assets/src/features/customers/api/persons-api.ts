@@ -1,7 +1,6 @@
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
-import { formatPersonName } from "@/shared/utils/person-utils";
 
 import type { PersonFormData } from "./patients-api";
 import type { SubscriptionListItem } from "./subscriptions-api";
@@ -28,27 +27,38 @@ const ListPersonsQuery = graphql(`
   }
 `);
 
-export type PersonListSortOption = "moreRecent" | "lessRecent" | "nameAsc" | "nameDesc";
+export type PersonListSortOption =
+  | "moreRecent"
+  | "lessRecent"
+  | "givenNameAsc"
+  | "givenNameDesc"
+  | "familyNameAsc"
+  | "familyNameDesc";
 
 const SORT_MORE_RECENT_FIRST = [{ field: "ID" as const, order: "DESC" as const }];
 const SORT_LESS_RECENT_FIRST = [{ field: "ID" as const, order: "ASC" as const }];
+const SORT_GIVEN_NAME_ASC = [{ field: "GIVEN_NAME_SORT_KEY" as const, order: "ASC" as const }];
+const SORT_GIVEN_NAME_DESC = [{ field: "GIVEN_NAME_SORT_KEY" as const, order: "DESC" as const }];
+const SORT_FAMILY_NAME_ASC = [{ field: "FAMILY_NAME_SORT_KEY" as const, order: "ASC" as const }];
+const SORT_FAMILY_NAME_DESC = [{ field: "FAMILY_NAME_SORT_KEY" as const, order: "DESC" as const }];
 
 function getPersonApiSort(sort: PersonListSortOption) {
+  if (sort === "givenNameAsc") {
+    return SORT_GIVEN_NAME_ASC;
+  }
+  if (sort === "givenNameDesc") {
+    return SORT_GIVEN_NAME_DESC;
+  }
+  if (sort === "familyNameAsc") {
+    return SORT_FAMILY_NAME_ASC;
+  }
+  if (sort === "familyNameDesc") {
+    return SORT_FAMILY_NAME_DESC;
+  }
   if (sort === "lessRecent") {
     return SORT_LESS_RECENT_FIRST;
   }
   return SORT_MORE_RECENT_FIRST;
-}
-
-function sortPersonsByName(persons: Person[], sort: PersonListSortOption): Person[] {
-  if (sort === "nameAsc") {
-    return [...persons].sort((a, b) =>
-      formatPersonName(a.name).toLowerCase().localeCompare(formatPersonName(b.name).toLowerCase()),
-    );
-  }
-  return [...persons].sort((a, b) =>
-    formatPersonName(b.name).toLowerCase().localeCompare(formatPersonName(a.name).toLowerCase()),
-  );
 }
 
 // ─── Mutations ───────────────────────────────────────────────────────
@@ -109,11 +119,7 @@ export async function fetchPersons(
     organizationId,
   });
 
-  const persons = result.listPersons?.results ?? [];
-  if (sort === "nameAsc" || sort === "nameDesc") {
-    return sortPersonsByName(persons, sort);
-  }
-  return persons;
+  return result.listPersons?.results ?? [];
 }
 
 /**
