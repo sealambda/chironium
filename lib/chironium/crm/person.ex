@@ -8,6 +8,10 @@ defmodule Chironium.CRM.Person do
 
   postgres do
     table "persons"
+
+    custom_indexes do
+      index :name, using: "gin"
+    end
   end
 
   graphql do
@@ -65,5 +69,21 @@ defmodule Chironium.CRM.Person do
 
     # TODO: active - should it be based on AshArchival status actually?
     # TODO: deceased, address, maritalStatus, photo, communication.language
+  end
+
+  calculations do
+    calculate :given_name_sort_key,
+              :string,
+              expr(fragment("lower((?)[1]->'given'->>0)", name)) do
+      description "Lowercased key used to sort people by given name."
+      public? true
+    end
+
+    calculate :family_name_sort_key,
+              :string,
+              expr(fragment("lower((?)[1]->>'family')", name)) do
+      description "Lowercased key used to sort people by family name."
+      public? true
+    end
   end
 end

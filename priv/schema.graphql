@@ -8,8 +8,8 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come before the name
@@ -17,8 +17,8 @@ input PractitionerNameInput {
   """
   prefix: [String!]
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -196,8 +196,8 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come before the name
@@ -205,8 +205,8 @@ input PersonNameInput {
   """
   prefix: [String!]
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -855,6 +855,8 @@ enum PersonSortField {
   ID
   GENDER
   BIRTH_DATE
+  GIVEN_NAME_SORT_KEY
+  FAMILY_NAME_SORT_KEY
 }
 
 "A keyset page of :person"
@@ -870,6 +872,32 @@ type KeysetPageOfPerson {
 
   "The last keyset in the results"
   endKeyset: String
+}
+
+input PersonFilterFamilyNameSortKey {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
+}
+
+input PersonFilterGivenNameSortKey {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  like: String
+  ilike: String
 }
 
 input PersonFilterBirthDate {
@@ -919,6 +947,12 @@ input PersonFilterInput {
 
   "The date on which the person was born"
   birthDate: PersonFilterBirthDate
+
+  "Lowercased key used to sort people by given name."
+  givenNameSortKey: PersonFilterGivenNameSortKey
+
+  "Lowercased key used to sort people by family name."
+  familyNameSortKey: PersonFilterFamilyNameSortKey
 }
 
 input PersonSortInput {
@@ -948,6 +982,12 @@ type Person {
     "The number of records to skip."
     offset: Int
   ): [PersonVersion!]!
+
+  "Lowercased key used to sort people by given name."
+  givenNameSortKey: String
+
+  "Lowercased key used to sort people by family name."
+  familyNameSortKey: String
 }
 
 type PersonVersion {
@@ -1208,14 +1248,14 @@ input PatientCreatePatientWithPersonPersonInput {
   "A name associated with the person"
   name: [PersonNameInput!]
 
-  "A contact detail for the person (e.g. email, phone, etc.)"
-  telecom: [PersonTelecomInput!]
+  "The date on which the person was born"
+  birthDate: Date
 
   "The gender of a person used for administrative purposes."
   gender: AdministrativeGender
 
-  "The date on which the person was born"
-  birthDate: Date
+  "A contact detail for the person (e.g. email, phone, etc.)"
+  telecom: [PersonTelecomInput!]
 }
 
 "The result of the :delete_practitioner mutation"
