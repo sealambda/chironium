@@ -219,7 +219,7 @@ function GroupedCircumferences({
   }
 
   return (
-    <div className="h-full rounded-xl bg-white/80 p-3">
+    <div className="h-full rounded-xl bg-muted/30 p-3">
       <div className="grid grid-cols-2 gap-x-4">
         {visibleGroups.flatMap((group, groupIndex) => {
           const groupId = group.keys[0];
@@ -240,7 +240,7 @@ function GroupedCircumferences({
               <Icon className="size-3.5" />
               <span className="font-medium text-xs">{group.labelKey()}</span>
             </div>,
-            <div key={`hsep-${groupId}`} className="col-span-2 h-px bg-neutral-200/50" />,
+            <div key={`hsep-${groupId}`} className="col-span-2 h-px bg-border/60" />,
           );
 
           elements.push(...buildCircumferenceCells(visibleKeys, latest, previous));
@@ -256,7 +256,7 @@ function GroupedCircumferences({
 
 export function AnthropometryCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="min-h-19 space-y-1.5">
         <div className="flex items-baseline gap-2">
           <Skeleton className="h-9 w-20" />
@@ -267,7 +267,7 @@ export function AnthropometryCardSkeleton() {
         <Skeleton className="h-3.5 w-32" />
       </div>
 
-      <div className="my-4 h-px bg-neutral-200" />
+      <div className="my-4 h-px bg-border" />
 
       <div className="grid grid-cols-2 text-center">
         <div className="flex flex-col items-center gap-1">
@@ -280,7 +280,7 @@ export function AnthropometryCardSkeleton() {
         </div>
       </div>
 
-      <div className="mt-4 flex-1 space-y-3 rounded-xl bg-white/80 p-3">
+      <div className="mt-4 flex-1 space-y-3 rounded-xl bg-muted/30 p-3">
         {Array.from({ length: 2 }, (_g, g) => (
           <div key={`grp-${String(g)}`} className="space-y-2">
             <Skeleton className="h-3.5 w-16" />
@@ -302,7 +302,7 @@ export function AnthropometryCardSkeleton() {
         ))}
       </div>
 
-      <div className="mt-auto border-neutral-200 border-t pt-3">
+      <div className="mt-auto border-border border-t pt-3">
         <Skeleton className="h-4 w-52" />
       </div>
     </div>
@@ -326,20 +326,20 @@ export function AnthropometryCard({
 
   if (!latest) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AnthropometryDialog personId={personId} patientId={patientId}>
             <CardAddButton label={m.anthropometry_add()} />
           </AnthropometryDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
-          <ScaleIcon className="size-10 text-neutral-300" />
+          <ScaleIcon className="size-10 text-muted-foreground/60" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.anthropometry_no_records()}</p>
             <p className="mt-0.5 text-foreground/65 text-xs">{m.anthropometry_no_records_desc()}</p>
           </div>
         </div>
-        <div className="mt-auto border-neutral-200 border-t pt-3">
+        <div className="mt-auto border-border border-t pt-3">
           <Link
             to="/customers/$customerId/anthropometry"
             params={{ customerId: personId }}
@@ -356,7 +356,7 @@ export function AnthropometryCard({
   const weightDelta = computeDelta(latest.weight, previous?.weight);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-start justify-between">
         <HeroSection latest={latest} weightDelta={weightDelta} />
         <AnthropometryDialog personId={personId} patientId={patientId}>
@@ -364,7 +364,7 @@ export function AnthropometryCard({
         </AnthropometryDialog>
       </div>
 
-      <div className="my-4 h-px bg-neutral-200" />
+      <div className="my-4 h-px bg-border" />
 
       <MetabolicIndicatorsRow
         bmi={latest.bmi}
@@ -377,7 +377,7 @@ export function AnthropometryCard({
         <GroupedCircumferences latest={latest} previous={previous} />
       </div>
 
-      <div className="mt-auto border-neutral-200 border-t pt-3">
+      <div className="mt-auto border-border border-t pt-3">
         <Link
           to="/customers/$customerId/anthropometry"
           params={{ customerId: personId }}

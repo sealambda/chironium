@@ -111,7 +111,7 @@ function MacroIndicatorsRow({
 
 export function NutritionPlanSummaryCardSkeleton() {
   return (
-    <div className="flex h-fit flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+    <div className="flex h-fit flex-col rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
       {/* Hero: kcal, recency */}
       <div className="min-h-19 space-y-1.5">
         <div className="flex items-baseline gap-2">
@@ -121,7 +121,7 @@ export function NutritionPlanSummaryCardSkeleton() {
         <Skeleton className="h-3.5 w-32" />
       </div>
 
-      <div className="my-4 h-px bg-neutral-200" />
+      <div className="my-4 h-px bg-border" />
 
       {/* Macro indicators — fills remaining space */}
       <div className="flex flex-1 items-center pb-4">
@@ -137,7 +137,7 @@ export function NutritionPlanSummaryCardSkeleton() {
       </div>
 
       {/* Footer — pinned to bottom */}
-      <div className="mt-auto border-neutral-200 border-t pt-3">
+      <div className="mt-auto border-border border-t pt-3">
         <Skeleton className="h-4 w-56" />
       </div>
     </div>
@@ -162,7 +162,7 @@ export function NutritionPlanSummaryCard({
 
   if (!plan) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
         <div className="flex items-start justify-end">
           <NutritionPlanDialog
             personId={personId}
@@ -176,7 +176,7 @@ export function NutritionPlanSummaryCard({
           </NutritionPlanDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
-          <LeafIcon className="size-8 text-neutral-400" />
+          <LeafIcon className="size-8 text-muted-foreground/70" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.nutrition_no_plan()}</p>
             <p className="text-foreground/65 text-xs">{m.nutrition_no_plan_desc()}</p>
@@ -187,7 +187,7 @@ export function NutritionPlanSummaryCard({
   }
 
   return (
-    <div className="flex h-fit flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm">
+    <div className="flex h-fit flex-col rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
       {/* Section A: Hero — kcal, recency */}
       <div className="flex items-start justify-between">
         <HeroSection plan={plan} />
@@ -203,7 +203,7 @@ export function NutritionPlanSummaryCard({
         </NutritionPlanDialog>
       </div>
 
-      <div className="my-4 h-px bg-neutral-200" />
+      <div className="my-4 h-px bg-border" />
 
       {/* Section B: Macro Indicators — fills remaining space */}
       <div className="flex flex-1 items-center pb-4">
@@ -216,7 +216,7 @@ export function NutritionPlanSummaryCard({
       </div>
 
       {/* Footer action — pinned to bottom */}
-      <div className="mt-auto border-neutral-200 border-t pt-3">
+      <div className="mt-auto border-border border-t pt-3">
         <Link
           to="/customers/$customerId/nutrition"
           params={{ customerId: personId }}

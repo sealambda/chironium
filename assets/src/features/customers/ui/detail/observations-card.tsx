@@ -43,12 +43,12 @@ function ObservationRow({ item }: Readonly<ObservationRowProps>) {
 
 function ObservationsCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-center justify-between">
         <Skeleton className="h-5 w-28" />
         <Skeleton className="h-8 w-24 rounded-md" />
       </div>
-      <div className="mt-3 divide-y divide-neutral-200/60">
+      <div className="mt-3 divide-y divide-border/60">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={String(i)} className="py-2.5">
             <div className="flex items-baseline gap-2">
@@ -59,7 +59,7 @@ function ObservationsCardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="mt-auto border-neutral-200 border-t pt-3">
+      <div className="mt-auto border-border border-t pt-3">
         <Skeleton className="h-4 w-40" />
       </div>
     </div>
@@ -89,7 +89,7 @@ export function ObservationsCard({
 
   if (!latestObservation) {
     return (
-      <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-between">
           <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
             {m.observations_last_title()}
@@ -99,13 +99,13 @@ export function ObservationsCard({
           </AddObservationDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
-          <ClipboardList className="size-10 text-neutral-300" />
+          <ClipboardList className="size-10 text-muted-foreground/60" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.observations_empty()}</p>
             <p className="mt-0.5 text-foreground/65 text-xs">{m.observations_empty_desc()}</p>
           </div>
         </div>
-        <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+        <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
           <Link
             to="/customers/$customerId/observations"
             params={{ customerId: personId }}
@@ -120,7 +120,7 @@ export function ObservationsCard({
   }
 
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-end gap-1 sm:gap-2">
           <p className="font-bold text-foreground text-xl uppercase tracking-wide leading-none">
@@ -139,7 +139,7 @@ export function ObservationsCard({
         <ObservationRow item={latestObservation} />
       </div>
 
-      <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+      <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
         <Link
           to="/customers/$customerId/observations"
           params={{ customerId: personId }}

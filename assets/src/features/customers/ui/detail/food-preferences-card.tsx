@@ -168,7 +168,7 @@ function AddFoodPreferenceDialog({
 
 function FoodPreferencesCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Skeleton className="mx-auto h-4 w-16" />
@@ -207,7 +207,7 @@ export function FoodPreferencesCard({
   const isEmpty = included.length === 0 && excluded.length === 0;
 
   const viewHistoryLink = (
-    <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+    <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
       <Link
         to="/customers/$customerId/food-preferences"
         params={{ customerId: personId }}
@@ -221,14 +221,14 @@ export function FoodPreferencesCard({
 
   if (isEmpty) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
             <CardAddButton label={m.food_preferences_add()} />
           </AddFoodPreferenceDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
-          <Utensils className="size-8 text-neutral-400" />
+          <Utensils className="size-8 text-muted-foreground/70" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.food_preferences_empty()}</p>
             <p className="text-foreground/65 text-xs">{m.food_preferences_empty_desc()}</p>
@@ -240,7 +240,7 @@ export function FoodPreferencesCard({
   }
 
   return (
-    <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="relative flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
         <CardAddButton
           label={m.food_preferences_add()}
@@ -260,7 +260,7 @@ export function FoodPreferencesCard({
           tags={included}
           tagClassName="border-emerald-200 bg-emerald-50 text-emerald-800"
           emptyText={m.food_preferences_none_included()}
-          className="sm:border-neutral-200 sm:border-l sm:pl-4"
+          className="sm:border-border sm:border-l sm:pl-4"
         />
       </div>
 

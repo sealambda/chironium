@@ -179,7 +179,7 @@ function AddAllergyIntoleranceDialog({
 
 function AllergyIntoleranceCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Skeleton className="mx-auto h-4 w-20" />
@@ -219,7 +219,7 @@ export function AllergyIntoleranceCard({
   const isEmpty = allergyTags.length === 0 && intoleranceTags.length === 0;
 
   const viewHistoryLink = (
-    <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+    <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
       <Link
         to="/customers/$customerId/allergies"
         params={{ customerId: personId }}
@@ -233,14 +233,14 @@ export function AllergyIntoleranceCard({
 
   if (isEmpty) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
             <CardAddButton label={m.allergy_intolerance_add()} />
           </AddAllergyIntoleranceDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
-          <AlertTriangle className="size-8 text-neutral-400" />
+          <AlertTriangle className="size-8 text-muted-foreground/70" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.allergy_intolerance_empty()}</p>
             <p className="text-foreground/65 text-xs">{m.allergy_intolerance_empty_desc()}</p>
@@ -252,7 +252,7 @@ export function AllergyIntoleranceCard({
   }
 
   return (
-    <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="relative flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
         <CardAddButton
           label={m.allergy_intolerance_add()}
@@ -272,7 +272,7 @@ export function AllergyIntoleranceCard({
           tags={intoleranceTags}
           tagClassName="border-amber-200 bg-amber-50 text-amber-800"
           emptyText={m.allergy_intolerance_none_intolerances()}
-          className="sm:border-neutral-200 sm:border-l sm:pl-4"
+          className="sm:border-border sm:border-l sm:pl-4"
         />
       </div>
 

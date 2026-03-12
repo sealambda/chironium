@@ -55,7 +55,7 @@ function AchievementBadge({ status }: Readonly<{ status: string }>) {
 
 function GoalsCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <Skeleton className="mb-3 h-6 w-20" />
       <div className="space-y-3">
         {Array.from({ length: 3 }, (_, i) => (
@@ -65,7 +65,7 @@ function GoalsCardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+      <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
         <Skeleton className="h-4 w-32" />
       </div>
     </div>
@@ -80,7 +80,7 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
   }
 
   const viewHistoryLink = (
-    <div className="mt-auto border-neutral-200 border-t pt-3" style={{ marginTop: "1rem" }}>
+    <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
       <Link
         to="/customers/$customerId/goals"
         params={{ customerId: personId }}
@@ -94,14 +94,14 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
 
   if (goals.length === 0) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
           <AddGoalDialog personId={personId} patientId={patientId}>
             <CardAddButton label={m.goals_add()} />
           </AddGoalDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
-          <Target className="size-8 text-neutral-400" />
+          <Target className="size-8 text-muted-foreground/70" />
           <div className="text-center">
             <p className="font-medium text-foreground text-sm">{m.goals_no_goals()}</p>
             <p className="text-foreground/65 text-xs">{m.goals_no_goals_desc()}</p>
@@ -115,7 +115,7 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
   const lastGoal = goals.at(-1);
 
   return (
-    <div className="relative flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm lg:p-5">
+    <div className="relative flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <AddGoalDialog personId={personId} patientId={patientId}>
         <CardAddButton
           label={m.goals_add()}
