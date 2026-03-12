@@ -1,3 +1,4 @@
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -18,6 +19,12 @@ const AnthropometryLatestQuery = graphql(`
         valueQuantity {
           value
         }
+        note {
+          text
+          time
+          authorReference
+          authorString
+        }
       }
     }
     height: listBodyHeightObservations(filter: $filter, sort: $sort, first: $first) {
@@ -26,6 +33,12 @@ const AnthropometryLatestQuery = graphql(`
         effectiveDateTime
         valueQuantity {
           value
+        }
+        note {
+          text
+          time
+          authorReference
+          authorString
         }
       }
     }
@@ -36,6 +49,12 @@ const AnthropometryLatestQuery = graphql(`
         valueQuantity {
           value
         }
+        note {
+          text
+          time
+          authorReference
+          authorString
+        }
       }
     }
     chest: listChestCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
@@ -44,6 +63,12 @@ const AnthropometryLatestQuery = graphql(`
         effectiveDateTime
         valueQuantity {
           value
+        }
+        note {
+          text
+          time
+          authorReference
+          authorString
         }
       }
     }
@@ -54,6 +79,12 @@ const AnthropometryLatestQuery = graphql(`
         valueQuantity {
           value
         }
+        note {
+          text
+          time
+          authorReference
+          authorString
+        }
       }
     }
     hip: listHipCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
@@ -62,6 +93,12 @@ const AnthropometryLatestQuery = graphql(`
         effectiveDateTime
         valueQuantity {
           value
+        }
+        note {
+          text
+          time
+          authorReference
+          authorString
         }
       }
     }
@@ -72,6 +109,12 @@ const AnthropometryLatestQuery = graphql(`
         valueQuantity {
           value
         }
+        note {
+          text
+          time
+          authorReference
+          authorString
+        }
       }
     }
     thigh: listThighCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
@@ -81,6 +124,12 @@ const AnthropometryLatestQuery = graphql(`
         valueQuantity {
           value
         }
+        note {
+          text
+          time
+          authorReference
+          authorString
+        }
       }
     }
     whr: listWaistHipRatioObservations(filter: $filter, sort: $sort, first: $first) {
@@ -89,6 +138,12 @@ const AnthropometryLatestQuery = graphql(`
         effectiveDateTime
         valueQuantity {
           value
+        }
+        note {
+          text
+          time
+          authorReference
+          authorString
         }
       }
     }
@@ -195,9 +250,58 @@ const LogThighCircumferenceMutation = graphql(`
   }
 `);
 
+const UpdateObservationMutation = graphql(`
+  mutation UpdateObservation($id: ID!, $input: UpdateObservationInput) {
+    updateObservation(id: $id, input: $input) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const DeleteObservationMutation = graphql(`
+  mutation DeleteObservation($id: ID!) {
+    deleteObservation(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** A point-in-time snapshot of all anthropometric measurements for a person. */
+export interface AnthropometryAnnotation {
+  text?: string | null;
+  authorReference?: string | null;
+  authorString?: string | null;
+  time?: string | null;
+}
+
+export type AnthropometryObservationKey =
+  | "weight"
+  | "height"
+  | "bmi"
+  | "whr"
+  | "chest"
+  | "waist"
+  | "hip"
+  | "arm"
+  | "thigh";
+
+export interface AnthropometryObservationRef {
+  id: string;
+  note: AnthropometryAnnotation[];
+}
+
 export interface AnthropometricSnapshot {
   date: string;
   weight?: number;
@@ -209,6 +313,9 @@ export interface AnthropometricSnapshot {
   hip?: number;
   arm?: number;
   thigh?: number;
+  observations?: Partial<Record<AnthropometryObservationKey, AnthropometryObservationRef>>;
+  primaryObservationId?: string;
+  notes?: AnthropometryAnnotation[];
 }
 
 /** Keys for circumference measurement fields on an anthropometric snapshot. */
@@ -227,6 +334,25 @@ export interface AnthropometryFormData {
   thighCm: number | null;
 }
 
+export interface AnthropometryUpdateInput {
+  effectiveDate?: string | null;
+  effectiveTime?: string | null;
+  weightKg: number | null;
+  heightCm: number | null;
+  chestCm: number | null;
+  waistCm: number | null;
+  hipCm: number | null;
+  armCm: number | null;
+  thighCm: number | null;
+}
+
+export interface AnthropometryAnnotationInput {
+  text: string;
+  authorReference?: string | null;
+  authorString?: string | null;
+  time?: string | null;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 type AnthropometryResult = ResultOf<typeof AnthropometryLatestQuery>;
@@ -238,12 +364,59 @@ export function extractValue(obs: ObservationRecord | undefined): number | undef
   if (!obs?.valueQuantity?.value) {
     return undefined;
   }
-  const n = parseFloat(obs.valueQuantity.value);
+  const n = Number.parseFloat(obs.valueQuantity.value);
   return Number.isNaN(n) ? undefined : n;
 }
 
 export function extractDate(obs: ObservationRecord | undefined): string {
   return obs?.effectiveDateTime ?? "";
+}
+
+function extractNote(obs: ObservationRecord | undefined): AnthropometryAnnotation[] {
+  return obs?.note ?? [];
+}
+
+function getObservationRef(
+  obs: ObservationRecord | undefined,
+): AnthropometryObservationRef | undefined {
+  if (!obs?.id) {
+    return undefined;
+  }
+  return {
+    id: obs.id,
+    note: extractNote(obs),
+  };
+}
+
+function pickPrimaryObservation(records: Array<ObservationRecord | undefined>): {
+  id?: string;
+  notes: AnthropometryAnnotation[];
+} {
+  for (const record of records) {
+    if (record?.id) {
+      return {
+        id: record.id,
+        notes: extractNote(record),
+      };
+    }
+  }
+  return { id: undefined, notes: [] };
+}
+
+function buildObservationRefs(
+  records: Partial<Record<AnthropometryObservationKey, ObservationRecord | undefined>>,
+): Partial<Record<AnthropometryObservationKey, AnthropometryObservationRef>> {
+  const refs: Partial<Record<AnthropometryObservationKey, AnthropometryObservationRef>> = {};
+  for (const [key, record] of Object.entries(records) as [
+    AnthropometryObservationKey,
+    ObservationRecord | undefined,
+  ][]) {
+    const ref = getObservationRef(record);
+    if (ref) {
+      refs[key] = ref;
+    }
+  }
+  return refs;
 }
 
 /**
@@ -288,6 +461,18 @@ function buildSnapshot(
     return null;
   }
 
+  const primary = pickPrimaryObservation([
+    weightRecord,
+    heightRecord,
+    chestRecord,
+    waistRecord,
+    hipRecord,
+    armRecord,
+    thighRecord,
+    bmiRecord,
+    whrRecord,
+  ]);
+
   return {
     date,
     weight: extractValue(weightRecord),
@@ -299,6 +484,19 @@ function buildSnapshot(
     hip: extractValue(hipRecord),
     arm: extractValue(armRecord),
     thigh: extractValue(thighRecord),
+    observations: buildObservationRefs({
+      weight: weightRecord,
+      height: heightRecord,
+      bmi: bmiRecord,
+      whr: whrRecord,
+      chest: chestRecord,
+      waist: waistRecord,
+      hip: hipRecord,
+      arm: armRecord,
+      thigh: thighRecord,
+    }),
+    primaryObservationId: primary.id,
+    notes: primary.notes,
   };
 }
 
@@ -393,21 +591,43 @@ export async function fetchAnthropometryHistory(
   // Accumulate one snapshot per calendar date.
   const byDate = new Map<string, AnthropometricSnapshot>();
 
-  const merge = (page: ObservationPage, field: keyof Omit<AnthropometricSnapshot, "date">) => {
+  const mergeObservation = (
+    snapshot: AnthropometricSnapshot,
+    field: AnthropometryObservationKey,
+    obs: ObservationRecord,
+    dateTime: string,
+  ) => {
+    if (dateTime > snapshot.date) {
+      snapshot.date = dateTime;
+    }
+    snapshot.observations ??= {};
+    const observationRef = getObservationRef(obs);
+    if (observationRef) {
+      snapshot.observations[field] = observationRef;
+      if (!snapshot.primaryObservationId) {
+        snapshot.primaryObservationId = observationRef.id;
+        snapshot.notes = observationRef.note;
+      }
+    }
+    const value = extractValue(obs);
+    if (value !== undefined) {
+      snapshot[field] = value;
+    }
+  };
+
+  const merge = (page: ObservationPage, field: AnthropometryObservationKey) => {
     for (const obs of page?.results ?? []) {
       const dt = obs?.effectiveDateTime;
-      if (!dt) continue;
+      if (!dt) {
+        continue;
+      }
       const key = toDateKey(dt);
-      if (!byDate.has(key)) {
-        byDate.set(key, { date: dt });
+      let snapshot = byDate.get(key);
+      if (!snapshot) {
+        snapshot = { date: dt };
+        byDate.set(key, snapshot);
       }
-      const snapshot = byDate.get(key)!;
-      // Keep the most precise datetime seen for this date.
-      if (dt > snapshot.date) snapshot.date = dt;
-      const value = extractValue(obs);
-      if (value !== undefined) {
-        (snapshot[field] as number | undefined) = value;
-      }
+      mergeObservation(snapshot, field, obs, dt);
     }
   };
 
@@ -534,4 +754,123 @@ export async function logAnthropometry(
   }
 
   await Promise.all(promises);
+}
+
+function normalizeQuantity(value: number) {
+  return Number.isInteger(value) ? value : Number(value.toFixed(2));
+}
+
+async function updateQuantityObservation(
+  id: string,
+  value: number,
+  effectiveDateTime: string,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateObservationMutation,
+    variables: {
+      id,
+      input: {
+        effectiveDateTime,
+        valueQuantity: { value: normalizeQuantity(value) },
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateObservation, "Failed to update anthropometry value.");
+}
+
+/**
+ * Update editable anthropometry observations linked to the history snapshot.
+ * Only existing observations are updated; missing observations are ignored.
+ */
+export async function updateAnthropometryEntry(
+  snapshot: AnthropometricSnapshot,
+  data: AnthropometryUpdateInput,
+  organizationId: string,
+): Promise<void> {
+  const effectiveDateTime =
+    toDateTimeInput(data.effectiveDate, data.effectiveTime) ||
+    snapshot.date ||
+    new Date().toISOString();
+  const updates: Promise<void>[] = [];
+  const observations = snapshot.observations ?? {};
+
+  const editableFields = [
+    { observationKey: "weight", inputKey: "weightKg" },
+    { observationKey: "height", inputKey: "heightCm" },
+    { observationKey: "chest", inputKey: "chestCm" },
+    { observationKey: "waist", inputKey: "waistCm" },
+    { observationKey: "hip", inputKey: "hipCm" },
+    { observationKey: "arm", inputKey: "armCm" },
+    { observationKey: "thigh", inputKey: "thighCm" },
+  ] as const;
+
+  for (const field of editableFields) {
+    const id = observations[field.observationKey]?.id;
+    const value = data[field.inputKey];
+    if (!id || value === null || value <= 0) {
+      continue;
+    }
+    updates.push(updateQuantityObservation(id, value, effectiveDateTime, organizationId));
+  }
+
+  await Promise.all(updates);
+}
+
+/**
+ * Replace annotation notes for the snapshot primary observation.
+ */
+export async function updateAnthropometryNotes(
+  snapshot: AnthropometricSnapshot,
+  notes: AnthropometryAnnotationInput[],
+  organizationId: string,
+): Promise<void> {
+  const observationId = snapshot.primaryObservationId;
+  if (!observationId) {
+    throw new Error("Anthropometry note update failed: missing observation id.");
+  }
+
+  const result = await requestGraphql({
+    document: UpdateObservationMutation,
+    variables: {
+      id: observationId,
+      input: {
+        note: notes.map((note) => ({
+          text: note.text,
+          ...toAuthorInput(note),
+          time: note.time ?? undefined,
+        })),
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateObservation, "Failed to update anthropometry notes.");
+}
+
+/**
+ * Delete all observations associated with a history snapshot row.
+ */
+export async function deleteAnthropometryEntry(
+  snapshot: AnthropometricSnapshot,
+  organizationId: string,
+): Promise<void> {
+  const ids = Array.from(
+    new Set(
+      Object.values(snapshot.observations ?? {})
+        .map((observation) => observation?.id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  await Promise.all(
+    ids.map(async (id) => {
+      const result = await requestGraphql({
+        document: DeleteObservationMutation,
+        variables: { id },
+        organizationId,
+      });
+      unwrapMutationResult(result.deleteObservation, "Failed to delete anthropometry observation.");
+    }),
+  );
 }

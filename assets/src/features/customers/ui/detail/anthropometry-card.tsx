@@ -6,8 +6,8 @@ import type {
   AnthropometricSnapshot,
   CircumferenceKey,
 } from "@/features/customers/api/anthropometry-api";
+import { AddAnthropometryDialog } from "@/features/customers/ui/detail/add-anthropometry-dialog";
 import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
-import { AnthropometryDialog } from "@/features/customers/ui/detail/anthropometry-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { CardAddButton } from "@/shared/ui/card-add-button";
@@ -353,9 +353,9 @@ export function AnthropometryCard({
     return (
       <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
         <div className="flex items-start justify-end">
-          <AnthropometryDialog personId={personId} patientId={patientId}>
+          <AddAnthropometryDialog personId={personId} patientId={patientId}>
             <CardAddButton label={m.anthropometry_add()} />
-          </AnthropometryDialog>
+          </AddAnthropometryDialog>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
           <ScaleIcon className="size-10 text-muted-foreground/60" />
@@ -379,9 +379,9 @@ export function AnthropometryCard({
     <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-start justify-between">
         <HeroSection latest={latest} weightDelta={weightDelta} />
-        <AnthropometryDialog personId={personId} patientId={patientId}>
+        <AddAnthropometryDialog personId={personId} patientId={patientId}>
           <CardAddButton label={m.anthropometry_add()} />
-        </AnthropometryDialog>
+        </AddAnthropometryDialog>
       </div>
 
       <div className="my-4 h-px bg-border" />
