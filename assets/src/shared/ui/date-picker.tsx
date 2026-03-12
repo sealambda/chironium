@@ -1,3 +1,5 @@
+"use client";
+
 import { format, isValid, parse, parseISO } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -6,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Calendar } from "@/shared/ui/calendar";
 import { Input } from "@/shared/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
+import { getDatePickerDisplayFormat, toDateInput } from "@/shared/utils/date-time-input";
 import { cn } from "@/shared/utils/utils";
 
 interface DatePickerProps {
@@ -27,8 +30,9 @@ function DatePicker({
   endMonth,
   startMonth,
 }: DatePickerProps) {
+  const displayFormat = getDatePickerDisplayFormat();
   const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState(() => (value ? format(value, "dd/MM/yyyy") : ""));
+  const [inputValue, setInputValue] = useState(() => (value ? format(value, displayFormat) : ""));
   const [calendarMonth, setCalendarMonth] = useState<Date>(value ?? new Date());
 
   // Sync calendar month when value changes (e.g., typing a date)
@@ -40,8 +44,8 @@ function DatePicker({
 
   // Sync input when value changes externally (e.g., calendar pick)
   useEffect(() => {
-    setInputValue(value ? format(value, "dd/MM/yyyy") : "");
-  }, [value]);
+    setInputValue(value ? format(value, displayFormat) : "");
+  }, [value, displayFormat]);
 
   function handleSelect(date: Date | undefined) {
     onChange?.(date);
@@ -50,10 +54,10 @@ function DatePicker({
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      let raw = e.target.value.replace(/[^\d/]/g, "");
+      let raw = e.target.value.replaceAll(/[^\d/]/g, "");
 
       // Auto-insert slashes
-      const digits = raw.replace(/\//g, "");
+      const digits = raw.replaceAll("/", "");
       if (digits.length >= 4) {
         raw = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
       } else if (digits.length >= 2) {
@@ -64,13 +68,13 @@ function DatePicker({
 
       // Try parsing when we have a full date string
       if (raw.length === 10) {
-        const parsed = parse(raw, "dd/MM/yyyy", new Date());
+        const parsed = parse(raw, displayFormat, new Date());
         if (isValid(parsed)) {
           onChange?.(parsed);
         }
       }
     },
-    [onChange],
+    [onChange, displayFormat],
   );
 
   return (
@@ -78,7 +82,7 @@ function DatePicker({
       <Input
         value={inputValue}
         onChange={handleInputChange}
-        placeholder={placeholder ?? "dd/mm/yyyy"}
+        placeholder={placeholder ?? displayFormat.toLowerCase()}
         disabled={disabled}
         className={cn("flex-1", className)}
         maxLength={10}
@@ -118,6 +122,7 @@ interface DatePickerStringProps {
 function DatePickerString({
   value,
   onChange,
+  disabled,
   endMonth,
   startMonth,
   ...rest
@@ -125,13 +130,14 @@ function DatePickerString({
   const dateValue = value ? parseISO(value) : undefined;
 
   function handleChange(date: Date | undefined) {
-    onChange?.(date ? format(date, "yyyy-MM-dd") : "");
+    onChange?.(date ? toDateInput(date) : "");
   }
 
   return (
     <DatePicker
       value={dateValue}
       onChange={handleChange}
+      disabled={disabled}
       endMonth={endMonth}
       startMonth={startMonth}
       {...rest}
@@ -139,4 +145,4 @@ function DatePickerString({
   );
 }
 
-export { DatePicker, DatePickerString };
+export { DatePickerString };

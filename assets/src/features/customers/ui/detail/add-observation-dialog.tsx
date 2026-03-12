@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, type ReactElement, type ReactNode } from "react";
+import { type ReactElement, type ReactNode, useState } from "react";
 import { toast } from "sonner";
 
 import { createClinicalNoteObservations } from "@/features/customers/api/observations-api";
@@ -21,6 +21,8 @@ export function AddObservationDialog({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [body, setBody] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState("");
+  const [effectiveTime, setEffectiveTime] = useState("");
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
@@ -35,7 +37,7 @@ export function AddObservationDialog({
     setSaving(true);
     try {
       await createClinicalNoteObservations(
-        [{ body: body.trim() }],
+        [{ body: body.trim(), effectiveDate, effectiveTime }],
         patientId,
         selectedOrg?.id ?? "",
       );
@@ -50,6 +52,8 @@ export function AddObservationDialog({
       toast.success(m.observations_add_success());
       setOpen(false);
       setBody("");
+      setEffectiveDate("");
+      setEffectiveTime("");
     } catch {
       toast.error(m.onboarding_error());
     } finally {
@@ -65,6 +69,10 @@ export function AddObservationDialog({
       onOpenChange={setOpen}
       body={body}
       onBodyChange={setBody}
+      effectiveDate={effectiveDate}
+      onEffectiveDateChange={setEffectiveDate}
+      effectiveTime={effectiveTime}
+      onEffectiveTimeChange={setEffectiveTime}
       onSubmit={handleSubmit}
       saving={saving}
       trigger={children as ReactElement}

@@ -2,9 +2,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useId, useRef, useState } from "react";
 
 import type { ClinicalNoteFormData } from "@/features/customers/api/observations-api";
+import { ObservationForm } from "@/features/customers/ui/observation-form";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-import { MarkdownEditor } from "@/shared/ui/markdown-editor";
 
 import { StepLayout } from "./step-layout";
 
@@ -22,7 +22,7 @@ interface ObservationEntry extends ClinicalNoteFormData {
 }
 
 /**
- * Step 8: Capture one or more clinical note observations, each with a title and body.
+ * Step 8: Capture one or more clinical note observations with datetime and body.
  * Uses the same add-to-list pattern as the org plans step: a single form
  * at the top, an "Add" button, and a compact summary list below.
  */
@@ -42,6 +42,8 @@ export function ObservationsStep({
   );
 
   const [noteBody, setNoteBody] = useState(initialPending?.body ?? "");
+  const [effectiveDate, setEffectiveDate] = useState(initialPending?.effectiveDate ?? "");
+  const [effectiveTime, setEffectiveTime] = useState(initialPending?.effectiveTime ?? "");
 
   const submitting = isSubmitting ?? false;
   const hasInput = noteBody.trim();
@@ -54,21 +56,35 @@ export function ObservationsStep({
     if (!noteBody.trim()) {
       return;
     }
-    setAddedNotes((prev) => [...prev, { id: nextId(), body: noteBody.trim() }]);
+    setAddedNotes((prev) => [
+      ...prev,
+      {
+        id: nextId(),
+        body: noteBody.trim(),
+        effectiveDate,
+        effectiveTime,
+      },
+    ]);
     setNoteBody("");
+    setEffectiveDate("");
+    setEffectiveTime("");
   };
 
   const handleSubmit = () => {
-    const pending: ClinicalNoteFormData[] = noteBody.trim() ? [{ body: noteBody.trim() }] : [];
+    const pending: ClinicalNoteFormData[] = noteBody.trim()
+      ? [{ body: noteBody.trim(), effectiveDate, effectiveTime }]
+      : [];
     onSubmit([...addedNotes, ...pending]);
   };
 
   const handleBack = () => {
     const notes: ClinicalNoteFormData[] = addedNotes.map((n) => ({
       body: n.body,
+      effectiveDate: n.effectiveDate,
+      effectiveTime: n.effectiveTime,
     }));
     const pending: ClinicalNoteFormData | undefined = noteBody.trim()
-      ? { body: noteBody.trim() }
+      ? { body: noteBody.trim(), effectiveDate, effectiveTime }
       : undefined;
     onSaveDraft?.(notes, pending);
     onBack();
@@ -84,10 +100,13 @@ export function ObservationsStep({
       onBack={handleBack}
     >
       <div className="space-y-4">
-        <MarkdownEditor
-          value={noteBody}
-          onChange={setNoteBody}
-          placeholder={m.field_observation_body_placeholder()}
+        <ObservationForm
+          body={noteBody}
+          onBodyChange={setNoteBody}
+          effectiveDate={effectiveDate}
+          onEffectiveDateChange={setEffectiveDate}
+          effectiveTime={effectiveTime}
+          onEffectiveTimeChange={setEffectiveTime}
           rows={3}
           disabled={submitting}
         />

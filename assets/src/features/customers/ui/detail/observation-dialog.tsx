@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 
+import { ObservationForm } from "@/features/customers/ui/observation-form";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
@@ -10,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
-import { MarkdownEditor } from "@/shared/ui/markdown-editor";
 
 interface ObservationDialogProps {
   title: string;
@@ -19,6 +19,10 @@ interface ObservationDialogProps {
   onOpenChange: (open: boolean) => void;
   body: string;
   onBodyChange: (value: string) => void;
+  effectiveDate: string;
+  onEffectiveDateChange: (value: string) => void;
+  effectiveTime: string;
+  onEffectiveTimeChange: (value: string) => void;
   onSubmit: () => Promise<void>;
   saving: boolean;
   trigger?: ReactElement;
@@ -31,6 +35,10 @@ export function ObservationDialog({
   onOpenChange,
   body,
   onBodyChange,
+  effectiveDate,
+  onEffectiveDateChange,
+  effectiveTime,
+  onEffectiveTimeChange,
   onSubmit,
   saving,
   trigger,
@@ -45,12 +53,15 @@ export function ObservationDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <MarkdownEditor
-          value={body}
-          onChange={onBodyChange}
-          placeholder={m.field_observation_body_placeholder()}
-          rows={4}
+        <ObservationForm
+          body={body}
+          onBodyChange={onBodyChange}
+          effectiveDate={effectiveDate}
+          onEffectiveDateChange={onEffectiveDateChange}
+          effectiveTime={effectiveTime}
+          onEffectiveTimeChange={onEffectiveTimeChange}
           disabled={saving}
+          rows={4}
         />
 
         <DialogFooter>

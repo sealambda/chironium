@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -82,7 +81,7 @@ function NumberField({
   label,
   placeholder,
   fieldName,
-}: {
+}: Readonly<{
   field: {
     state: { value: string; meta: { errors: unknown[] } };
     handleChange: (v: string) => void;
@@ -91,7 +90,7 @@ function NumberField({
   label: string;
   placeholder: string;
   fieldName?: string;
-}) {
+}>) {
   const numValue = field.state.value ? Number(field.state.value) : 0;
 
   const limits = fieldName ? HARD_LIMITS[fieldName] : undefined;
@@ -163,9 +162,9 @@ function NumberField({
 // ─── Dialog component ───────────────────────────────────────────────
 
 interface AnthropometryDialogProps {
-  personId: string;
-  patientId: string | null;
-  children: React.ReactNode;
+  readonly personId: string;
+  readonly patientId: string | null;
+  readonly children: React.ReactNode;
 }
 
 export function AnthropometryDialog({ personId, patientId, children }: AnthropometryDialogProps) {
@@ -177,7 +176,8 @@ export function AnthropometryDialog({ personId, patientId, children }: Anthropom
 
   const form = useForm({
     defaultValues: {
-      effectiveDateTime: format(new Date(), "yyyy-MM-dd"),
+      effectiveDateTime: "",
+      effectiveTime: "",
       weightKg: "",
       heightCm: "",
       chestCm: "",
@@ -189,6 +189,8 @@ export function AnthropometryDialog({ personId, patientId, children }: Anthropom
     onSubmit: async ({ value }) => {
       const toNum = (v: string) => (v ? Number(v) : null);
       const data: AnthropometryFormData = {
+        effectiveDate: value.effectiveDateTime,
+        effectiveTime: value.effectiveTime,
         weightKg: toNum(value.weightKg),
         heightCm: toNum(value.heightCm),
         chestCm: toNum(value.chestCm),
@@ -199,7 +201,15 @@ export function AnthropometryDialog({ personId, patientId, children }: Anthropom
       };
 
       // At least one field must be filled
-      const hasValue = Object.values(data).some((v) => v !== null && v > 0);
+      const hasValue = [
+        data.weightKg,
+        data.heightCm,
+        data.chestCm,
+        data.waistCm,
+        data.hipCm,
+        data.armCm,
+        data.thighCm,
+      ].some((v) => v !== null && v > 0);
       if (!hasValue) {
         return;
       }
@@ -235,19 +245,33 @@ export function AnthropometryDialog({ personId, patientId, children }: Anthropom
         </DialogHeader>
 
         <FieldGroup>
-          {/* Date picker */}
-          <form.Field name="effectiveDateTime">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.anthropometry_date()}</FieldLabel>
-                <DatePickerString
-                  value={field.state.value}
-                  onChange={(v) => field.handleChange(v)}
-                  endMonth={new Date()}
-                />
-              </Field>
-            )}
-          </form.Field>
+          <div className="grid grid-cols-2 gap-3">
+            <form.Field name="effectiveDateTime">
+              {(field) => (
+                <Field>
+                  <FieldLabel>{m.anthropometry_date()}</FieldLabel>
+                  <DatePickerString
+                    value={field.state.value}
+                    onChange={(v) => field.handleChange(v)}
+                    disabled={saving}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="effectiveTime">
+              {(field) => (
+                <Field>
+                  <FieldLabel>{m.common_time()}</FieldLabel>
+                  <Input
+                    type="time"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    disabled={saving}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </div>
 
           {/* Row 1: Weight + Height */}
           <div className="grid grid-cols-2 gap-4">

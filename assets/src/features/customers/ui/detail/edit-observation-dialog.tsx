@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { isValid, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -9,6 +10,7 @@ import {
 import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { toDateInput, toTimeInput } from "@/shared/utils/date-time-input";
 
 interface EditObservationDialogProps {
   observation: ObservationItem;
@@ -25,6 +27,8 @@ export function EditObservationDialog({
 }: Readonly<EditObservationDialogProps>) {
   const [saving, setSaving] = useState(false);
   const [body, setBody] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState("");
+  const [effectiveTime, setEffectiveTime] = useState("");
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
@@ -32,6 +36,16 @@ export function EditObservationDialog({
   useEffect(() => {
     if (open) {
       setBody(observation.valueString ?? "");
+      const parsedDateTime = observation.effectiveDateTime
+        ? parseISO(observation.effectiveDateTime)
+        : null;
+      if (parsedDateTime && isValid(parsedDateTime)) {
+        setEffectiveDate(toDateInput(parsedDateTime));
+        setEffectiveTime(toTimeInput(parsedDateTime));
+      } else {
+        setEffectiveDate("");
+        setEffectiveTime("");
+      }
     }
   }, [open, observation]);
 
@@ -44,7 +58,7 @@ export function EditObservationDialog({
     try {
       await updateClinicalNoteObservation(
         observation.id,
-        { body: body.trim() },
+        { body: body.trim(), effectiveDate, effectiveTime },
         selectedOrg?.id ?? "",
       );
       await Promise.all([
@@ -72,6 +86,10 @@ export function EditObservationDialog({
       onOpenChange={onOpenChange}
       body={body}
       onBodyChange={setBody}
+      effectiveDate={effectiveDate}
+      onEffectiveDateChange={setEffectiveDate}
+      effectiveTime={effectiveTime}
+      onEffectiveTimeChange={setEffectiveTime}
       onSubmit={handleSubmit}
       saving={saving}
     />

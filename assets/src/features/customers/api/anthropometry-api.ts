@@ -1,6 +1,7 @@
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import { toDateTimeInput } from "@/shared/utils/date-time-input";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
@@ -215,6 +216,8 @@ export type CircumferenceKey = "chest" | "waist" | "hip" | "arm" | "thigh";
 
 /** Form data for logging body measurements during onboarding. */
 export interface AnthropometryFormData {
+  effectiveDate?: string | null;
+  effectiveTime?: string | null;
   heightCm: number | null;
   weightKg: number | null;
   chestCm: number | null;
@@ -429,6 +432,7 @@ export async function logAnthropometry(
   subjectId: string,
   organizationId: string,
 ): Promise<void> {
+  const effectiveDateTime = toDateTimeInput(data.effectiveDate, data.effectiveTime);
   const promises: Promise<void>[] = [];
 
   if (data.heightCm && data.heightCm > 0) {
@@ -437,7 +441,7 @@ export async function logAnthropometry(
       (async () => {
         const result = await requestGraphql({
           document: LogBodyHeightMutation,
-          variables: { input: { subjectId, heightCm } },
+          variables: { input: { subjectId, heightCm, effectiveDateTime } },
           organizationId,
         });
         unwrapMutationResult(result.logBodyHeight, "Failed to log body height.");
@@ -451,7 +455,7 @@ export async function logAnthropometry(
       (async () => {
         const result = await requestGraphql({
           document: LogBodyWeightMutation,
-          variables: { input: { subjectId, weightKg } },
+          variables: { input: { subjectId, weightKg, effectiveDateTime } },
           organizationId,
         });
         unwrapMutationResult(result.logBodyWeight, "Failed to log body weight.");
@@ -465,7 +469,7 @@ export async function logAnthropometry(
       (async () => {
         const result = await requestGraphql({
           document: LogChestCircumferenceMutation,
-          variables: { input: { subjectId, chestCircumferenceCm } },
+          variables: { input: { subjectId, chestCircumferenceCm, effectiveDateTime } },
           organizationId,
         });
         unwrapMutationResult(result.logChestCircumference, "Failed to log chest circumference.");
@@ -479,7 +483,7 @@ export async function logAnthropometry(
       (async () => {
         const result = await requestGraphql({
           document: LogWaistCircumferenceMutation,
-          variables: { input: { subjectId, waistCircumferenceCm } },
+          variables: { input: { subjectId, waistCircumferenceCm, effectiveDateTime } },
           organizationId,
         });
         unwrapMutationResult(result.logWaistCircumference, "Failed to log waist circumference.");
@@ -493,7 +497,7 @@ export async function logAnthropometry(
       (async () => {
         const result = await requestGraphql({
           document: LogHipCircumferenceMutation,
-          variables: { input: { subjectId, hipCircumferenceCm } },
+          variables: { input: { subjectId, hipCircumferenceCm, effectiveDateTime } },
           organizationId,
         });
         unwrapMutationResult(result.logHipCircumference, "Failed to log hip circumference.");
@@ -507,7 +511,7 @@ export async function logAnthropometry(
       (async () => {
         const result = await requestGraphql({
           document: LogArmCircumferenceMutation,
-          variables: { input: { subjectId, armCircumferenceCm } },
+          variables: { input: { subjectId, armCircumferenceCm, effectiveDateTime } },
           organizationId,
         });
         unwrapMutationResult(result.logArmCircumference, "Failed to log arm circumference.");
@@ -521,7 +525,7 @@ export async function logAnthropometry(
       (async () => {
         const result = await requestGraphql({
           document: LogThighCircumferenceMutation,
-          variables: { input: { subjectId, thighCircumferenceCm } },
+          variables: { input: { subjectId, thighCircumferenceCm, effectiveDateTime } },
           organizationId,
         });
         unwrapMutationResult(result.logThighCircumference, "Failed to log thigh circumference.");

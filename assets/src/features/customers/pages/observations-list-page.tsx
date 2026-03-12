@@ -169,9 +169,7 @@ export function ObservationsListPage() {
     {
       id: "date",
       accessorKey: "effectiveDateTime",
-      header: ({ column }) => (
-        <SortableHeader column={column}>{m.observations_col_date()}</SortableHeader>
-      ),
+      header: ({ column }) => <SortableHeader column={column}>{m.common_date()}</SortableHeader>,
       cell: ({ getValue }) => (
         <span className="whitespace-nowrap">{formatDate(getValue() as string | null)}</span>
       ),

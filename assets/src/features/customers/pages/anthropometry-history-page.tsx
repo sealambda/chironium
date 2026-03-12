@@ -29,9 +29,7 @@ function formatNumber(value: number | undefined): string {
 const columns: ColumnDef<AnthropometricSnapshot, unknown>[] = [
   {
     accessorKey: "date",
-    header: ({ column }) => (
-      <SortableHeader column={column}>{m.anthropometry_history_col_date()}</SortableHeader>
-    ),
+    header: ({ column }) => <SortableHeader column={column}>{m.common_date()}</SortableHeader>,
     cell: ({ getValue }) => formatDate(getValue() as string),
     sortingFn: "datetime",
   },

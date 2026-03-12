@@ -2,6 +2,7 @@ import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import { toDateTimeInput } from "@/shared/utils/date-time-input";
 
 const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
 
@@ -128,6 +129,8 @@ export interface MenstrualCycleFormData {
 /** Form data for creating or editing a clinical note observation. */
 export interface ClinicalNoteFormData {
   body: string;
+  effectiveDate?: string | null;
+  effectiveTime?: string | null;
 }
 
 /** Input for adding or replacing annotation notes on a resource. */
@@ -224,6 +227,7 @@ export async function createClinicalNoteObservations(
             status: "FINAL",
             code: { text: CODES.clinicalNote },
             valueString: note.body.trim(),
+            effectiveDateTime: toDateTimeInput(note.effectiveDate, note.effectiveTime),
             subjectId,
           },
         },
@@ -428,7 +432,13 @@ export async function updateClinicalNoteObservation(
 ): Promise<void> {
   const result = await requestGraphql({
     document: UpdateObservationMutation,
-    variables: { id, input: { valueString: data.body.trim() } },
+    variables: {
+      id,
+      input: {
+        valueString: data.body.trim(),
+        effectiveDateTime: toDateTimeInput(data.effectiveDate, data.effectiveTime),
+      },
+    },
     organizationId,
   });
   unwrapMutationResult(result.updateObservation, "Failed to update clinical note.");
