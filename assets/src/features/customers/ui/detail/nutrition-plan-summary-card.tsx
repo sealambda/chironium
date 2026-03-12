@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { Beef, ChevronRight, Droplet, LeafIcon, Wheat } from "lucide-react";
+import { Beef, Droplet, LeafIcon, Wheat } from "lucide-react";
 
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
+import { CardFooter, CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
 import { NutritionPlanDialog } from "@/features/customers/ui/detail/nutrition-plan-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
@@ -137,9 +137,9 @@ export function NutritionPlanSummaryCardSkeleton() {
       </div>
 
       {/* Footer — pinned to bottom */}
-      <div className="mt-auto border-border border-t pt-3">
+      <CardFooter>
         <Skeleton className="h-4 w-56" />
-      </div>
+      </CardFooter>
     </div>
   );
 }
@@ -216,16 +216,11 @@ export function NutritionPlanSummaryCard({
       </div>
 
       {/* Footer action — pinned to bottom */}
-      <div className="mt-auto border-border border-t pt-3">
-        <Link
-          to="/customers/$customerId/nutrition"
-          params={{ customerId: personId }}
-          className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-        >
-          <span>{m.nutrition_view_history()}</span>
-          <ChevronRight className="size-4" />
-        </Link>
-      </div>
+      <CardHistoryLinkFooter
+        customerId={personId}
+        to="/customers/$customerId/nutrition"
+        label={m.nutrition_view_history()}
+      />
     </div>
   );
 }

@@ -22,6 +22,7 @@
   "anthropometry_arm": "Brazo",
   "anthropometry_bmi": "IMC",
   "anthropometry_chest": "Pecho",
+  "anthropometry_calculation_unavailable": "Faltan datos suficientes para mostrar cálculos adicionales.",
   "anthropometry_history_col_arm": "Brazo (cm)",
   "anthropometry_history_col_bmi": "IMC",
   "anthropometry_history_col_chest": "Pecho (cm)",

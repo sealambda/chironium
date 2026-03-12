@@ -1,6 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { AlertTriangle, ChevronRight } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +7,7 @@ import {
   type AllergyIntoleranceItem,
   createAllergiesAndIntolerances,
 } from "@/features/customers/api/allergy-intolerance-api";
+import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { CardAddButton } from "@/shared/ui/card-add-button";
@@ -219,16 +219,11 @@ export function AllergyIntoleranceCard({
   const isEmpty = allergyTags.length === 0 && intoleranceTags.length === 0;
 
   const viewHistoryLink = (
-    <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
-      <Link
-        to="/customers/$customerId/allergies"
-        params={{ customerId: personId }}
-        className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-      >
-        <span>{m.allergy_intolerance_view_history()}</span>
-        <ChevronRight className="size-4" />
-      </Link>
-    </div>
+    <CardHistoryLinkFooter
+      customerId={personId}
+      to="/customers/$customerId/allergies"
+      label={m.allergy_intolerance_view_history()}
+    />
   );
 
   if (isEmpty) {

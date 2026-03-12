@@ -1,10 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { ChevronRight, Utensils } from "lucide-react";
+import { Utensils } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { createFoodObservations } from "@/features/customers/api/food-preferences-api";
+import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -207,16 +207,11 @@ export function FoodPreferencesCard({
   const isEmpty = included.length === 0 && excluded.length === 0;
 
   const viewHistoryLink = (
-    <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
-      <Link
-        to="/customers/$customerId/food-preferences"
-        params={{ customerId: personId }}
-        className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-      >
-        <span>{m.food_preferences_view_history()}</span>
-        <ChevronRight className="size-4" />
-      </Link>
-    </div>
+    <CardHistoryLinkFooter
+      customerId={personId}
+      to="/customers/$customerId/food-preferences"
+      label={m.food_preferences_view_history()}
+    />
   );
 
   if (isEmpty) {

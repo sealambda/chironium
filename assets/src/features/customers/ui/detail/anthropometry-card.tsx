@@ -1,12 +1,12 @@
-import { Link } from "@tanstack/react-router";
 import { differenceInDays } from "date-fns";
 import type { LucideIcon } from "lucide-react";
-import { ChevronRight, DumbbellIcon, ScaleIcon, ShirtIcon } from "lucide-react";
+import { DumbbellIcon, ScaleIcon, ShirtIcon } from "lucide-react";
 
 import type {
   AnthropometricSnapshot,
   CircumferenceKey,
 } from "@/features/customers/api/anthropometry-api";
+import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
 import { AnthropometryDialog } from "@/features/customers/ui/detail/anthropometry-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
@@ -108,26 +108,18 @@ function HeroSection({
 
 function MetabolicIndicatorsRow({
   bmi,
-  whr: backendWhr,
-  waist,
-  hip,
-}: Readonly<{ bmi?: number; whr?: number; waist?: number; hip?: number }>) {
-  const bmiClass = bmi !== undefined ? classifyBmi(bmi) : null;
-  // Prefer backend-computed WHR; fall back to client-side calculation.
-  const whr = backendWhr ?? computeWaistToHipRatio(waist, hip);
-  const whrClass = whr !== null ? classifyWhr(whr) : null;
+  whr,
+}: Readonly<{ bmi: number | null; whr: number | null }>) {
+  const hasBmi = bmi !== null;
+  const hasWhr = whr !== null;
+  const bmiClass = hasBmi ? classifyBmi(bmi) : null;
+  const whrClass = hasWhr ? classifyWhr(whr) : null;
 
-  if (bmiClass === null && whrClass === null) {
-    return null;
-  }
-
-  const hasBmi = bmi !== undefined && bmiClass !== null;
-  const hasWhr = whr !== null && whrClass !== null;
-  const cols = hasBmi && hasWhr ? "grid-cols-2" : "grid-cols-1";
+  const cols = !!bmiClass && !!whrClass ? "grid-cols-2" : "grid-cols-1";
 
   return (
     <div className={cn("grid text-center", cols)}>
-      {bmi !== undefined && bmiClass !== null ? (
+      {hasBmi && bmiClass !== null ? (
         <div>
           <p className="text-foreground/65 text-xs">{m.anthropometry_bmi()}</p>
           <p className="inline-flex items-center gap-1.5 font-semibold text-foreground text-lg tabular-nums">
@@ -137,7 +129,7 @@ function MetabolicIndicatorsRow({
         </div>
       ) : null}
 
-      {whr !== null && whrClass !== null ? (
+      {hasWhr && whrClass !== null ? (
         <div>
           <p className="text-foreground/65 text-xs">{m.anthropometry_whr()}</p>
           <p className="inline-flex items-center gap-1.5 font-semibold text-foreground text-lg tabular-nums">
@@ -206,18 +198,12 @@ function buildCircumferenceCells(
 function GroupedCircumferences({
   latest,
   previous,
+  visibleGroups,
 }: Readonly<{
   latest: AnthropometricSnapshot;
   previous: AnthropometricSnapshot | undefined;
+  visibleGroups: CircumferenceGroupDef[];
 }>) {
-  const visibleGroups = CIRCUMFERENCE_GROUPS.filter((group) =>
-    group.keys.some((key) => latest[key] !== undefined),
-  );
-
-  if (visibleGroups.length === 0) {
-    return null;
-  }
-
   return (
     <div className="h-full rounded-xl bg-muted/30 p-3">
       <div className="grid grid-cols-2 gap-x-4">
@@ -241,14 +227,53 @@ function GroupedCircumferences({
               <span className="font-medium text-xs">{group.labelKey()}</span>
             </div>,
             <div key={`hsep-${groupId}`} className="col-span-2 h-px bg-border/60" />,
+            ...buildCircumferenceCells(visibleKeys, latest, previous),
           );
-
-          elements.push(...buildCircumferenceCells(visibleKeys, latest, previous));
 
           return elements;
         })}
       </div>
     </div>
+  );
+}
+
+function MeasurementDetailsSection({
+  latest,
+  previous,
+}: Readonly<{
+  latest: AnthropometricSnapshot;
+  previous: AnthropometricSnapshot | undefined;
+}>) {
+  const bmi = latest.bmi ?? null;
+  const whr = latest.whr ?? computeWaistToHipRatio(latest.waist, latest.hip);
+  const visibleGroups = CIRCUMFERENCE_GROUPS.filter((group) =>
+    group.keys.some((key) => latest[key] !== undefined),
+  );
+
+  const canShowMetabolicIndicators = bmi !== null || whr !== null;
+  const canShowCircumferences = visibleGroups.length > 0;
+
+  if (!canShowMetabolicIndicators && !canShowCircumferences) {
+    return (
+      <div className="flex-1 px-3 py-5 text-center text-foreground/65 text-sm">
+        {m.anthropometry_calculation_unavailable()}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {canShowMetabolicIndicators ? <MetabolicIndicatorsRow bmi={bmi} whr={whr} /> : null}
+      {canShowCircumferences ? (
+        <div className={cn("flex-1", canShowMetabolicIndicators ? "mt-4" : "mt-0")}>
+          <GroupedCircumferences
+            latest={latest}
+            previous={previous}
+            visibleGroups={visibleGroups}
+          />
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -339,16 +364,11 @@ export function AnthropometryCard({
             <p className="mt-0.5 text-foreground/65 text-xs">{m.anthropometry_no_records_desc()}</p>
           </div>
         </div>
-        <div className="mt-auto border-border border-t pt-3">
-          <Link
-            to="/customers/$customerId/anthropometry"
-            params={{ customerId: personId }}
-            className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-          >
-            <span>{m.anthropometry_view_history()}</span>
-            <ChevronRight className="size-4" />
-          </Link>
-        </div>
+        <CardHistoryLinkFooter
+          customerId={personId}
+          to="/customers/$customerId/anthropometry"
+          label={m.anthropometry_view_history()}
+        />
       </div>
     );
   }
@@ -366,27 +386,13 @@ export function AnthropometryCard({
 
       <div className="my-4 h-px bg-border" />
 
-      <MetabolicIndicatorsRow
-        bmi={latest.bmi}
-        whr={latest.whr}
-        waist={latest.waist}
-        hip={latest.hip}
+      <MeasurementDetailsSection latest={latest} previous={previous} />
+
+      <CardHistoryLinkFooter
+        customerId={personId}
+        to="/customers/$customerId/anthropometry"
+        label={m.anthropometry_view_history()}
       />
-
-      <div className="mt-4 flex-1">
-        <GroupedCircumferences latest={latest} previous={previous} />
-      </div>
-
-      <div className="mt-auto border-border border-t pt-3">
-        <Link
-          to="/customers/$customerId/anthropometry"
-          params={{ customerId: personId }}
-          className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-        >
-          <span>{m.anthropometry_view_history()}</span>
-          <ChevronRight className="size-4" />
-        </Link>
-      </div>
     </div>
   );
 }

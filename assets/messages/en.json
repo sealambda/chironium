@@ -22,6 +22,7 @@
   "anthropometry_arm": "Arm",
   "anthropometry_bmi": "BMI",
   "anthropometry_chest": "Chest",
+  "anthropometry_calculation_unavailable": "Missing enough data to show additional calculations.",
   "anthropometry_history_col_arm": "Arm (cm)",
   "anthropometry_history_col_bmi": "BMI",
   "anthropometry_history_col_chest": "Chest (cm)",

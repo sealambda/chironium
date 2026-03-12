@@ -1,12 +1,12 @@
-import { Link } from "@tanstack/react-router";
 import { formatDistanceToNowStrict } from "date-fns";
-import { ChevronRight, ClipboardList } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
 import {
   type ObservationItem,
   type ObservationsPage,
 } from "@/features/customers/api/observations-api";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
+import { CardFooter, CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
 import * as m from "@/paraglide/messages";
 import { CardAddButton } from "@/shared/ui/card-add-button";
 import { MarkdownContent } from "@/shared/ui/markdown-content";
@@ -59,9 +59,9 @@ function ObservationsCardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="mt-auto border-border border-t pt-3">
+      <CardFooter>
         <Skeleton className="h-4 w-40" />
-      </div>
+      </CardFooter>
     </div>
   );
 }
@@ -105,16 +105,11 @@ export function ObservationsCard({
             <p className="mt-0.5 text-foreground/65 text-xs">{m.observations_empty_desc()}</p>
           </div>
         </div>
-        <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
-          <Link
-            to="/customers/$customerId/observations"
-            params={{ customerId: personId }}
-            className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-          >
-            <span>{m.observations_view_all()}</span>
-            <ChevronRight className="size-4" />
-          </Link>
-        </div>
+        <CardHistoryLinkFooter
+          customerId={personId}
+          to="/customers/$customerId/observations"
+          label={m.observations_view_all()}
+        />
       </div>
     );
   }
@@ -139,16 +134,11 @@ export function ObservationsCard({
         <ObservationRow item={latestObservation} />
       </div>
 
-      <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
-        <Link
-          to="/customers/$customerId/observations"
-          params={{ customerId: personId }}
-          className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-        >
-          <span>{m.observations_view_all()}</span>
-          <ChevronRight className="size-4" />
-        </Link>
-      </div>
+      <CardHistoryLinkFooter
+        customerId={personId}
+        to="/customers/$customerId/observations"
+        label={m.observations_view_all()}
+      />
     </div>
   );
 }

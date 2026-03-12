@@ -1,9 +1,9 @@
 // biome-ignore-all lint/style/useNamingConvention: keys match GraphQL enum values
-import { Link } from "@tanstack/react-router";
-import { ChevronRight, Target } from "lucide-react";
+import { Target } from "lucide-react";
 
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
+import { CardFooter, CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { CardAddButton } from "@/shared/ui/card-add-button";
@@ -65,9 +65,9 @@ function GoalsCardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
+      <CardFooter style={{ marginTop: "1rem" }}>
         <Skeleton className="h-4 w-32" />
-      </div>
+      </CardFooter>
     </div>
   );
 }
@@ -80,16 +80,11 @@ export function GoalsCard({ personId, patientId, goals, isLoading }: Readonly<Go
   }
 
   const viewHistoryLink = (
-    <div className="mt-auto border-border border-t pt-3" style={{ marginTop: "1rem" }}>
-      <Link
-        to="/customers/$customerId/goals"
-        params={{ customerId: personId }}
-        className="flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-      >
-        <span>{m.goals_view_history()}</span>
-        <ChevronRight className="size-4" />
-      </Link>
-    </div>
+    <CardHistoryLinkFooter
+      customerId={personId}
+      to="/customers/$customerId/goals"
+      label={m.goals_view_history()}
+    />
   );
 
   if (goals.length === 0) {
