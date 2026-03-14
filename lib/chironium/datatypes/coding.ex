@@ -12,6 +12,8 @@ defmodule Chironium.Datatypes.Coding do
 
   alias Chironium.Terminology.Service
 
+  require Logger
+
   defmodule DisplayCalculation do
     @moduledoc false
     use Ash.Resource.Calculation
@@ -20,21 +22,36 @@ defmodule Chironium.Datatypes.Coding do
     def load(_query, _opts, _context), do: [:system, :code, :version]
 
     @impl true
-    def calculate(records, _opts, _context) do
+    def calculate(records, _opts, context) do
+      locale =
+        context |> extract_locale()
+
       Enum.map(records, fn record ->
-        resolve_display(record)
+        resolve_display(record, locale)
       end)
     end
 
-    defp resolve_display(%{system: system, code: code, version: version})
+    defp resolve_display(%{system: system, code: code, version: version} = record, locale)
          when is_binary(system) and is_binary(code) do
-      case Service.resolve_display(system, code, version) do
-        {:ok, display} -> display
-        {:error, _reason} -> nil
+      case Service.resolve_display(system, code, version, locale) do
+        {:ok, display} ->
+          display
+
+        {:error, reason} ->
+          Logger.warning(
+            "Failed to resolve display for #{system}/#{code}/#{version} with locale #{locale}: #{reason}"
+          )
+
+          record
       end
     end
 
-    defp resolve_display(_record), do: nil
+    defp resolve_display(record, _locale), do: record
+
+    defp extract_locale(%{arguments: %{locale: locale}}) when is_binary(locale), do: locale
+
+    # TODO Can we extract the locale from the context/connection at all?
+    defp extract_locale(_context), do: nil
   end
 
   graphql do
@@ -63,6 +80,7 @@ defmodule Chironium.Datatypes.Coding do
 
   calculations do
     calculate :display, :string, DisplayCalculation do
+      argument :locale, :string, default: nil
       public? true
       allow_nil? true
     end
