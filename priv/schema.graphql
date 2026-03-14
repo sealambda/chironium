@@ -20,14 +20,14 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -150,7 +150,7 @@ type Coding {
   version: String
   code: String!
   userSelected: Boolean
-  display: String
+  display(locale: String): String
 }
 
 input ContactPointPeriodInput {
@@ -195,14 +195,14 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
