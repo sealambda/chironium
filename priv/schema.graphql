@@ -166,7 +166,7 @@ type Coding {
   version: String
   code: String!
   userSelected: Boolean
-  display: String
+  display(locale: String): String
 }
 
 input ContactPointPeriodInput {
