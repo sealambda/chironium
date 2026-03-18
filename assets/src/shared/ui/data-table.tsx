@@ -36,6 +36,8 @@ export interface DataTableProps<TData> {
   className?: string;
   /** Optional: Render function for expanded row content */
   renderExpandedRow?: (row: Row<TData>) => React.ReactNode;
+  /** Optional: Initial sorting state for uncontrolled mode */
+  initialSorting?: SortingState;
   /** Optional: Controlled sorting state */
   sorting?: SortingState;
   /** Optional: Callback when sorting changes */
@@ -109,6 +111,7 @@ function DataTable<TData>({
   data,
   className,
   renderExpandedRow,
+  initialSorting,
   sorting: controlledSorting,
   onSortingChange,
   expanded: controlledExpanded,
@@ -119,7 +122,7 @@ function DataTable<TData>({
   pinFirstColumn,
 }: DataTableProps<TData>) {
   // Internal state fallback for uncontrolled mode
-  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
+  const [internalSorting, setInternalSorting] = useState<SortingState>(initialSorting ?? []);
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
 
   const sorting = controlledSorting ?? internalSorting;

@@ -283,7 +283,7 @@ export function AnthropometryHistoryPage() {
           <DataTable
             columns={columns}
             data={data ?? []}
-            sorting={[{ id: "date", desc: true }]}
+            initialSorting={[{ id: "date", desc: true }]}
             getRowId={(row) =>
               row.primaryObservationId ??
               row.observations?.weight?.id ??

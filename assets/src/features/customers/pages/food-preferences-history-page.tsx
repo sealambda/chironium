@@ -273,7 +273,7 @@ export function FoodPreferencesHistoryPage() {
         <DataTable
           columns={columns}
           data={data ?? []}
-          sorting={[{ id: "date", desc: true }]}
+          initialSorting={[{ id: "date", desc: true }]}
           getRowId={(row) => row.id}
           pinFirstColumn
         />
