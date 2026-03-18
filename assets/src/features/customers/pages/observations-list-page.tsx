@@ -240,7 +240,7 @@ export function ObservationsListPage() {
           <DataTable
             columns={columns}
             data={data?.items ?? []}
-            sorting={[{ id: "date", desc: true }]}
+            initialSorting={[{ id: "date", desc: true }]}
             pinFirstColumn
           />
         )}
