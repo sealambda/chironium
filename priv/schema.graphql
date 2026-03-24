@@ -4,10 +4,6 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-}
-
 input TaskNoteInput {
   time: DateTime
   text: String
@@ -20,12 +16,32 @@ input TaskRequestedPeriodInput {
   end: DateTime
 }
 
+input ServiceRequestNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input ServiceRequestOccurrencePeriodInput {
+  start: DateTime
+  end: DateTime
+}
+
+input ServiceRequestCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -49,6 +65,51 @@ input PractitionerNameInput {
   This repeating element order: Given Names appear in the correct order for presenting the name
   """
   given: [String!]
+}
+
+input PlanDefinitionActionTimingDurationInput {
+  code: DurationUnit
+  system: String
+  value: Decimal
+}
+
+input PlanDefinitionActionCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input PlanDefinitionActionInput {
+  "Code representing the meaning of the action or sub-actions"
+  code: PlanDefinitionActionCodeInput
+
+  "Brief description of the action"
+  description: String
+
+  "User-visible title"
+  title: String
+
+  "When the action should take place (as a duration)"
+  timingDuration: PlanDefinitionActionTimingDurationInput
+
+  "Reference to an ActivityDefinition, Questionnaire, or PlanDefinition by URI"
+  definitionUri: String
+}
+
+type PlanDefinitionAction {
+  "User-visible title"
+  title: String
+
+  "Brief description of the action"
+  description: String
+
+  "Code representing the meaning of the action or sub-actions"
+  code: CodeableConcept
+
+  "When the action should take place (as a duration)"
+  timingDuration: Duration
+
+  "Reference to an ActivityDefinition, Questionnaire, or PlanDefinition by URI"
+  definitionUri: String
 }
 
 input ObservationNoteInput {
@@ -118,6 +179,18 @@ input ConditionCodeInput {
   coding: [CodeableConceptCodingInput!]
 }
 
+input CarePlanNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input CarePlanPeriodInput {
+  start: DateTime
+  end: DateTime
+}
+
 input AllergyIntoleranceNoteInput {
   time: DateTime
   text: String
@@ -132,6 +205,17 @@ type Annotation {
   text: String
 }
 
+input AllergyIntoleranceCodeInput {
+  text: String
+  coding: [CodeableConceptCodingInput!]
+}
+
+input ActivityDefinitionTimingDurationInput {
+  code: DurationUnit
+  system: String
+  value: Decimal
+}
+
 input CodeableConceptCodingInput {
   code: String
   system: String
@@ -140,7 +224,7 @@ input CodeableConceptCodingInput {
   userSelected: Boolean
 }
 
-input AllergyIntoleranceCodeInput {
+input ActivityDefinitionCodeInput {
   text: String
   coding: [CodeableConceptCodingInput!]
 }
@@ -215,6 +299,9 @@ input PersonNameInput {
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
+  "Text representation of the full name"
+  text: String
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
@@ -273,20 +360,6 @@ type HumanName {
 type Period {
   start: DateTime
   end: DateTime
-}
-
-enum RequestPriority {
-  "The request should be actioned as soon as possible - higher priority than urgent."
-  ASAP
-
-  "The request has normal priority."
-  ROUTINE
-
-  "The request should be actioned immediately - highest possible priority. E.g. an emergency."
-  STAT
-
-  "The request should be actioned promptly - higher priority than routine."
-  URGENT
 }
 
 enum TaskIntent {
@@ -354,6 +427,29 @@ enum TaskStatus {
 
   "The task is ready to be acted upon and action is sought."
   REQUESTED
+}
+
+enum ServiceRequestStatus {
+  "The request is in force and ready to be acted upon."
+  ACTIVE
+
+  "The activity described by the request has been fully performed. No further activity will occur."
+  COMPLETED
+
+  "The request has been created but is not yet complete or ready for action."
+  DRAFT
+
+  "This request should never have existed and should be considered void."
+  ENTERED_IN_ERROR
+
+  "The request (and any implicit authorization to act) has been temporarily withdrawn but is expected to resume in the future."
+  ON_HOLD
+
+  "The request (and any implicit authorization to act) has been terminated prior to the known full completion of the intended actions."
+  REVOKED
+
+  "The authoring\/source system does not know which of the status values currently applies for this request."
+  UNKNOWN
 }
 
 enum ObservationStatus {
@@ -511,6 +607,46 @@ enum ConditionClinicalStatus {
   UNKNOWN
 }
 
+enum CarePlanIntent {
+  "The request represents a legally binding instruction authored by a Patient or RelatedPerson."
+  DIRECTIVE
+
+  "The request represents a component or option for a RequestOrchestration that establishes timing, currentCondition and\/or other aspects of a subject's care plan."
+  OPTION
+
+  "The request represents a request\/demand and authorization for action by the requestor."
+  ORDER
+
+  "The request represents an intention to ensure something occurs without providing an authorization for others to act."
+  PLAN
+
+  "The request is a suggestion made by someone\/something that does not have an intention to ensure it occurs and without providing an authorization to act."
+  PROPOSAL
+}
+
+enum RequestStatus {
+  "The request is in force and ready to be acted upon."
+  ACTIVE
+
+  "The activity described by the request has been fully performed. No further activity will occur."
+  COMPLETED
+
+  "The request has been created but is not yet complete or ready for action."
+  DRAFT
+
+  "This request should never have existed and should be considered void."
+  ENTERED_IN_ERROR
+
+  "The request (and any implicit authorization to act) has been temporarily withdrawn but is expected to resume in the future."
+  ON_HOLD
+
+  "The request (and any implicit authorization to act) has been terminated prior to the known full completion of the intended actions."
+  REVOKED
+
+  "The authoring\/source system does not know which of the status values currently applies for this request."
+  UNKNOWN
+}
+
 enum AllergyIntoleranceType {
   "A propensity for hypersensitive reaction(s) to a substance. These reactions are most typically type I hypersensitivity, plus other 'allergy-like' reactions, including pseudoallergy."
   ALLERGY
@@ -545,6 +681,116 @@ enum AllergyIntoleranceClinicalStatus {
 
   "A reaction to the identified substance has been clinically reassessed by testing or re-exposure and is considered no longer to be present. Re-exposure could be accidental, unplanned, or outside of any clinical setting."
   RESOLVED
+}
+
+enum RequestPriority {
+  "The request should be actioned as soon as possible - higher priority than urgent."
+  ASAP
+
+  "The request has normal priority."
+  ROUTINE
+
+  "The request should be actioned immediately - highest possible priority. E.g. an emergency."
+  STAT
+
+  "The request should be actioned promptly - higher priority than routine."
+  URGENT
+}
+
+enum RequestIntent {
+  "The request represents a legally binding instruction authored by a Patient or RelatedPerson."
+  DIRECTIVE
+
+  "The request represents the view of an authorization instantiated by a fulfilling system representing the details of the fulfiller's intention to act upon a submitted order."
+  FILLER_ORDER
+
+  "An order created in fulfillment of a broader order that represents the authorization for a single activity occurrence. E.g. The administration of a single dose of a drug."
+  INSTANCE_ORDER
+
+  "The request represents a component or option for a RequestOrchestration that establishes timing, conditionality and\/or other constraints among a set of requests."
+  OPTION
+
+  "The request represents a request\/demand and authorization for action by the requestor."
+  ORDER
+
+  "The request represents an original authorization for action."
+  ORIGINAL_ORDER
+
+  "The request represents an intention to ensure something occurs without providing an authorization for others to act."
+  PLAN
+
+  "The request is a suggestion made by someone\/something that does not have an intention to ensure it occurs and without providing an authorization to act."
+  PROPOSAL
+
+  "The request represents an automatically generated supplemental authorization for action based on a parent authorization together with initial results of the action taken against that parent authorization."
+  REFLEX_ORDER
+}
+
+enum RequestResourceType {
+  "A booking of a healthcare event among patient(s), practitioner(s), related person(s) and\/or device(s) for a specific date\/time."
+  APPOINTMENT
+
+  "A reply to an appointment request for a patient and\/or practitioner(s), such as a confirmation or rejection."
+  APPOINTMENT_RESPONSE
+
+  "Describes the intention of how one or more practitioners intend to deliver care for a particular patient, group or community for a period of time, possibly limited to care for a specific condition or set of conditions."
+  CARE_PLAN
+
+  "A provider issued list of professional services and products which have been provided, or are to be provided, to a patient which is sent to an insurer for reimbursement."
+  CLAIM
+
+  "A request to convey information; e.g. the CDS system proposes that an alert be sent to a responsible provider, the CDS system proposes that the public health agency be notified about a reportable condition."
+  COMMUNICATION_REQUEST
+
+  "The CoverageEligibilityRequest provides patient and insurance coverage information to an insurer for them to respond with information regarding whether the stated coverage is valid and in-force."
+  COVERAGE_ELIGIBILITY_REQUEST
+
+  "Represents a request a device to be provided to a specific patient."
+  DEVICE_REQUEST
+
+  "This resource provides the insurance enrollment details to the insurer regarding a specified coverage."
+  ENROLLMENT_REQUEST
+
+  "A patient's point-in-time set of recommendations (i.e. forecasting) according to a published schedule with optional supporting justification."
+  IMMUNIZATION_RECOMMENDATION
+
+  "An order or request for both supply of the medication and the instructions for administration of the medication to a patient."
+  MEDICATION_REQUEST
+
+  "A request to supply a diet, formula feeding (enteral) or oral nutritional supplement to a patient\/resident."
+  NUTRITION_ORDER
+
+  "A set of related requests that can be used to capture intended activities that have inter-dependencies such as \"give this medication after that one\"."
+  REQUEST_ORCHESTRATION
+
+  "A record of a request for service such as diagnostic investigations, treatments, or operations to be performed."
+  SERVICE_REQUEST
+
+  "A record of a non-patient specific request for a medication, substance, device, certain types of biologically derived product, and nutrition product used in the healthcare setting."
+  SUPPLY_REQUEST
+
+  "A task to be performed."
+  TASK
+
+  "Record of transport."
+  TRANSPORT
+
+  "An authorization for the provision of glasses and\/or contact lenses to a patient."
+  VISION_PRESCRIPTION
+}
+
+enum PublicationStatus {
+  "This resource is ready for normal use."
+  ACTIVE
+
+  "This resource is still under development and is not yet considered to be ready for normal use."
+  DRAFT
+
+  "This resource has been withdrawn or superseded and should no longer be used."
+  RETIRED
+
+  "The authoring system does not know which of the status values currently applies for this resource. Note: This concept is not to be used for \"other\" - one of the listed statuses is presumed to apply, it's just not known which one."
+  UNKNOWN
 }
 
 enum DurationUnit {
@@ -1262,6 +1508,357 @@ type MutationError {
   path: [String!]
 }
 
+"The result of the :delete_automation_execution_log mutation"
+type DeleteAutomationExecutionLogResult {
+  "The record that was successfully deleted"
+  result: AutomationExecutionLog
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_automation_execution_log mutation"
+type UpdateAutomationExecutionLogResult {
+  "The successful result of the mutation"
+  result: AutomationExecutionLog
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateAutomationExecutionLogInput {
+  ruleId: ID
+  status: String
+  errorDetails: String
+}
+
+"The result of the :create_automation_execution_log mutation"
+type CreateAutomationExecutionLogResult {
+  "The successful result of the mutation"
+  result: AutomationExecutionLog
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateAutomationExecutionLogInput {
+  ruleId: ID!
+  status: String
+  errorDetails: String
+}
+
+enum AutomationExecutionLogSortField {
+  ID
+  RULE_ID
+  STATUS
+  ERROR_DETAILS
+}
+
+"A keyset page of :automation_execution_log"
+type KeysetPageOfAutomationExecutionLog {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [AutomationExecutionLog!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input AutomationExecutionLogFilterErrorDetails {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input AutomationExecutionLogFilterStatus {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationExecutionLogFilterRuleId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationExecutionLogFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationExecutionLogFilterInput {
+  and: [AutomationExecutionLogFilterInput!]
+  or: [AutomationExecutionLogFilterInput!]
+  not: [AutomationExecutionLogFilterInput!]
+  id: AutomationExecutionLogFilterId
+  ruleId: AutomationExecutionLogFilterRuleId
+  status: AutomationExecutionLogFilterStatus
+  errorDetails: AutomationExecutionLogFilterErrorDetails
+}
+
+input AutomationExecutionLogSortInput {
+  order: SortOrder
+  field: AutomationExecutionLogSortField!
+}
+
+type AutomationExecutionLog {
+  id: ID!
+  ruleId: ID!
+  status: String!
+  errorDetails: String
+}
+
+"The result of the :delete_automation_rule mutation"
+type DeleteAutomationRuleResult {
+  "The record that was successfully deleted"
+  result: AutomationRule
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_automation_rule mutation"
+type UpdateAutomationRuleResult {
+  "The successful result of the mutation"
+  result: AutomationRule
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateAutomationRuleInput {
+  tenantId: String
+  triggerType: String
+  triggerTopic: String
+  conditions: JsonString
+  actionType: String
+  actionPayload: JsonString
+  isActive: Boolean
+}
+
+"The result of the :create_automation_rule mutation"
+type CreateAutomationRuleResult {
+  "The successful result of the mutation"
+  result: AutomationRule
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateAutomationRuleInput {
+  tenantId: String!
+  triggerType: String!
+  triggerTopic: String!
+  conditions: JsonString
+  actionType: String!
+  actionPayload: JsonString
+  isActive: Boolean
+}
+
+enum AutomationRuleSortField {
+  ID
+  TENANT_ID
+  TRIGGER_TYPE
+  TRIGGER_TOPIC
+  CONDITIONS
+  ACTION_TYPE
+  ACTION_PAYLOAD
+  IS_ACTIVE
+}
+
+"A keyset page of :automation_rule"
+type KeysetPageOfAutomationRule {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [AutomationRule!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input AutomationRuleFilterIsActive {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationRuleFilterActionPayload {
+  isNil: Boolean
+  eq: JsonString
+  notEq: JsonString
+  in: [JsonString!]
+  lessThan: JsonString
+  greaterThan: JsonString
+  lessThanOrEqual: JsonString
+  greaterThanOrEqual: JsonString
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationRuleFilterActionType {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationRuleFilterConditions {
+  isNil: Boolean
+  eq: JsonString
+  notEq: JsonString
+  in: [JsonString!]
+  lessThan: JsonString
+  greaterThan: JsonString
+  lessThanOrEqual: JsonString
+  greaterThanOrEqual: JsonString
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationRuleFilterTriggerTopic {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input AutomationRuleFilterTriggerType {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationRuleFilterTenantId {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input AutomationRuleFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input AutomationRuleFilterInput {
+  and: [AutomationRuleFilterInput!]
+  or: [AutomationRuleFilterInput!]
+  not: [AutomationRuleFilterInput!]
+  id: AutomationRuleFilterId
+  tenantId: AutomationRuleFilterTenantId
+  triggerType: AutomationRuleFilterTriggerType
+  triggerTopic: AutomationRuleFilterTriggerTopic
+  conditions: AutomationRuleFilterConditions
+  actionType: AutomationRuleFilterActionType
+  actionPayload: AutomationRuleFilterActionPayload
+  isActive: AutomationRuleFilterIsActive
+}
+
+input AutomationRuleSortInput {
+  order: SortOrder
+  field: AutomationRuleSortField!
+}
+
+type AutomationRule {
+  id: ID!
+  tenantId: String!
+  triggerType: String!
+  triggerTopic: String!
+  conditions: JsonString!
+  actionType: String!
+  actionPayload: JsonString!
+  isActive: Boolean!
+}
+
 "The result of the :delete_person mutation"
 type DeletePersonResult {
   "The record that was successfully deleted"
@@ -1739,6 +2336,10 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+}
+
 input PatientCreatePatientWithPersonPersonInput {
   "The date on which the person was born"
   birthDate: Date
@@ -2033,6 +2634,296 @@ type Task {
   requestedPeriodStartSortKey: DateTime
 }
 
+"The result of the :delete_service_request mutation"
+type DeleteServiceRequestResult {
+  "The record that was successfully deleted"
+  result: ServiceRequest
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_service_request mutation"
+type UpdateServiceRequestResult {
+  "The successful result of the mutation"
+  result: ServiceRequest
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateServiceRequestInput {
+  "Lifecycle status of the request"
+  status: ServiceRequestStatus
+
+  "Whether the request is a proposal, plan, or order"
+  intent: RequestIntent
+
+  "Urgency of the request"
+  priority: RequestPriority
+
+  "What is being requested\/ordered"
+  code: ServiceRequestCodeInput
+
+  "When service should occur"
+  occurrencePeriod: ServiceRequestOccurrencePeriodInput
+
+  "Date request signed"
+  authoredOn: DateTime
+
+  "Comments about the service request"
+  note: [ServiceRequestNoteInput!]
+
+  subjectId: ID
+
+  carePlanId: ID
+
+  requesterId: ID
+}
+
+"The result of the :create_service_request mutation"
+type CreateServiceRequestResult {
+  "The successful result of the mutation"
+  result: ServiceRequest
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateServiceRequestInput {
+  "Lifecycle status of the request"
+  status: ServiceRequestStatus
+
+  "Whether the request is a proposal, plan, or order"
+  intent: RequestIntent
+
+  "Urgency of the request"
+  priority: RequestPriority
+
+  "What is being requested\/ordered"
+  code: ServiceRequestCodeInput
+
+  "When service should occur"
+  occurrencePeriod: ServiceRequestOccurrencePeriodInput
+
+  "Date request signed"
+  authoredOn: DateTime
+
+  "Comments about the service request"
+  note: [ServiceRequestNoteInput!]
+
+  subjectId: ID!
+
+  carePlanId: ID
+
+  requesterId: ID
+}
+
+enum ServiceRequestSortField {
+  ID
+  STATUS
+  INTENT
+  PRIORITY
+  AUTHORED_ON
+  SUBJECT_ID
+  CARE_PLAN_ID
+  REQUESTER_ID
+}
+
+input ServiceRequestFilterRequesterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterCarePlanId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterAuthoredOn {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterPriority {
+  isNil: Boolean
+  eq: RequestPriority
+  notEq: RequestPriority
+  in: [RequestPriority]
+  lessThan: RequestPriority
+  greaterThan: RequestPriority
+  lessThanOrEqual: RequestPriority
+  greaterThanOrEqual: RequestPriority
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterIntent {
+  isNil: Boolean
+  eq: RequestIntent
+  notEq: RequestIntent
+  in: [RequestIntent!]
+  lessThan: RequestIntent
+  greaterThan: RequestIntent
+  lessThanOrEqual: RequestIntent
+  greaterThanOrEqual: RequestIntent
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterStatus {
+  isNil: Boolean
+  eq: ServiceRequestStatus
+  notEq: ServiceRequestStatus
+  in: [ServiceRequestStatus!]
+  lessThan: ServiceRequestStatus
+  greaterThan: ServiceRequestStatus
+  lessThanOrEqual: ServiceRequestStatus
+  greaterThanOrEqual: ServiceRequestStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input ServiceRequestFilterInput {
+  and: [ServiceRequestFilterInput!]
+
+  or: [ServiceRequestFilterInput!]
+
+  not: [ServiceRequestFilterInput!]
+
+  id: ServiceRequestFilterId
+
+  "Lifecycle status of the request"
+  status: ServiceRequestFilterStatus
+
+  "Whether the request is a proposal, plan, or order"
+  intent: ServiceRequestFilterIntent
+
+  "Urgency of the request"
+  priority: ServiceRequestFilterPriority
+
+  "Date request signed"
+  authoredOn: ServiceRequestFilterAuthoredOn
+
+  subjectId: ServiceRequestFilterSubjectId
+
+  carePlanId: ServiceRequestFilterCarePlanId
+
+  requesterId: ServiceRequestFilterRequesterId
+
+  "Individual the service is ordered for"
+  subject: PatientFilterInput
+
+  "CarePlan this request fulfills (basedOn)"
+  carePlan: CarePlanFilterInput
+
+  "Who is requesting the service"
+  requester: PractitionerFilterInput
+}
+
+input ServiceRequestSortInput {
+  order: SortOrder
+  field: ServiceRequestSortField!
+}
+
+type ServiceRequest {
+  id: ID!
+
+  "Lifecycle status of the request"
+  status: ServiceRequestStatus!
+
+  "Whether the request is a proposal, plan, or order"
+  intent: RequestIntent!
+
+  "Urgency of the request"
+  priority: RequestPriority
+
+  "What is being requested\/ordered"
+  code: CodeableConcept
+
+  "When service should occur"
+  occurrencePeriod: Period
+
+  "Date request signed"
+  authoredOn: DateTime
+
+  "Comments about the service request"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  carePlanId: ID
+
+  requesterId: ID
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ServiceRequestVersion!]!
+
+  "Individual the service is ordered for"
+  subject: Patient!
+
+  "CarePlan this request fulfills (basedOn)"
+  carePlan: CarePlan
+
+  "Who is requesting the service"
+  requester: Practitioner
+}
+
 "The result of the :delete_practitioner mutation"
 type DeletePractitionerResult {
   "The record that was successfully deleted"
@@ -2078,6 +2969,60 @@ input CreatePractitionerInput {
   birthDate: Date
 }
 
+input PractitionerFilterBirthDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PractitionerFilterActive {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PractitionerFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PractitionerFilterInput {
+  and: [PractitionerFilterInput!]
+
+  or: [PractitionerFilterInput!]
+
+  not: [PractitionerFilterInput!]
+
+  id: PractitionerFilterId
+
+  "Whether this practitioner's record is in active use"
+  active: PractitionerFilterActive
+
+  birthDate: PractitionerFilterBirthDate
+}
+
 type Practitioner {
   id: ID!
 
@@ -2095,6 +3040,94 @@ type Practitioner {
     "The number of records to skip."
     offset: Int
   ): [PractitionerVersion!]!
+}
+
+"The result of the :delete_plan_definition mutation"
+type DeletePlanDefinitionResult {
+  "The record that was successfully deleted"
+  result: PlanDefinition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_plan_definition mutation"
+type UpdatePlanDefinitionResult {
+  "The successful result of the mutation"
+  result: PlanDefinition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdatePlanDefinitionInput {
+  "Computer-friendly name for this plan definition"
+  name: String
+
+  "Human-friendly name for this plan definition"
+  title: String
+
+  "Publication status of the plan definition"
+  status: PublicationStatus
+
+  "Natural language description of the plan definition"
+  description: String
+
+  "Actions defined by the plan"
+  action: [PlanDefinitionActionInput!]
+}
+
+"The result of the :create_plan_definition mutation"
+type CreatePlanDefinitionResult {
+  "The successful result of the mutation"
+  result: PlanDefinition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePlanDefinitionInput {
+  "Computer-friendly name for this plan definition"
+  name: String
+
+  "Human-friendly name for this plan definition"
+  title: String
+
+  "Publication status of the plan definition"
+  status: PublicationStatus
+
+  "Natural language description of the plan definition"
+  description: String
+
+  "Actions defined by the plan"
+  action: [PlanDefinitionActionInput!]
+}
+
+type PlanDefinition {
+  id: ID!
+
+  "Computer-friendly name for this plan definition"
+  name: String
+
+  "Human-friendly name for this plan definition"
+  title: String
+
+  "Publication status of the plan definition"
+  status: PublicationStatus!
+
+  "Natural language description of the plan definition"
+  description: String
+
+  "Actions defined by the plan"
+  action: [PlanDefinitionAction!]
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PlanDefinitionVersion!]!
 }
 
 "The result of the :delete_patient mutation"
@@ -3555,6 +4588,241 @@ type Condition {
   subject: Patient!
 }
 
+"The result of the :delete_care_plan mutation"
+type DeleteCarePlanResult {
+  "The record that was successfully deleted"
+  result: CarePlan
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_care_plan mutation"
+type UpdateCarePlanResult {
+  "The successful result of the mutation"
+  result: CarePlan
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateCarePlanInput {
+  "Lifecycle status of the care plan"
+  status: RequestStatus
+
+  "Level of authority\/intentionality associated with this care plan"
+  intent: CarePlanIntent
+
+  "Human-friendly name for the care plan"
+  title: String
+
+  "Summary of nature of plan"
+  description: String
+
+  "Time period plan covers"
+  period: CarePlanPeriodInput
+
+  "Comments about the plan"
+  note: [CarePlanNoteInput!]
+
+  subjectId: ID
+}
+
+"The result of the :create_care_plan mutation"
+type CreateCarePlanResult {
+  "The successful result of the mutation"
+  result: CarePlan
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateCarePlanInput {
+  "Lifecycle status of the care plan"
+  status: RequestStatus
+
+  "Level of authority\/intentionality associated with this care plan"
+  intent: CarePlanIntent
+
+  "Human-friendly name for the care plan"
+  title: String
+
+  "Summary of nature of plan"
+  description: String
+
+  "Time period plan covers"
+  period: CarePlanPeriodInput
+
+  "Comments about the plan"
+  note: [CarePlanNoteInput!]
+
+  subjectId: ID!
+}
+
+input CarePlanFilterSubjectId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CarePlanFilterDescription {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input CarePlanFilterTitle {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input CarePlanFilterIntent {
+  isNil: Boolean
+  eq: CarePlanIntent
+  notEq: CarePlanIntent
+  in: [CarePlanIntent!]
+  lessThan: CarePlanIntent
+  greaterThan: CarePlanIntent
+  lessThanOrEqual: CarePlanIntent
+  greaterThanOrEqual: CarePlanIntent
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CarePlanFilterStatus {
+  isNil: Boolean
+  eq: RequestStatus
+  notEq: RequestStatus
+  in: [RequestStatus!]
+  lessThan: RequestStatus
+  greaterThan: RequestStatus
+  lessThanOrEqual: RequestStatus
+  greaterThanOrEqual: RequestStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CarePlanFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CarePlanFilterInput {
+  and: [CarePlanFilterInput!]
+
+  or: [CarePlanFilterInput!]
+
+  not: [CarePlanFilterInput!]
+
+  id: CarePlanFilterId
+
+  "Lifecycle status of the care plan"
+  status: CarePlanFilterStatus
+
+  "Level of authority\/intentionality associated with this care plan"
+  intent: CarePlanFilterIntent
+
+  "Human-friendly name for the care plan"
+  title: CarePlanFilterTitle
+
+  "Summary of nature of plan"
+  description: CarePlanFilterDescription
+
+  subjectId: CarePlanFilterSubjectId
+
+  "Who the care plan is for"
+  subject: PatientFilterInput
+
+  "Service requests fulfilling this care plan"
+  serviceRequests: ServiceRequestFilterInput
+}
+
+type CarePlan {
+  id: ID!
+
+  "Lifecycle status of the care plan"
+  status: RequestStatus!
+
+  "Level of authority\/intentionality associated with this care plan"
+  intent: CarePlanIntent!
+
+  "Human-friendly name for the care plan"
+  title: String
+
+  "Summary of nature of plan"
+  description: String
+
+  "Time period plan covers"
+  period: Period
+
+  "Comments about the plan"
+  note: [Annotation!]
+
+  subjectId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [CarePlanVersion!]!
+
+  "Who the care plan is for"
+  subject: Patient!
+
+  "Service requests fulfilling this care plan"
+  serviceRequests(
+    "How to sort the records in the response"
+    sort: [ServiceRequestSortInput]
+
+    "A filter to limit the results"
+    filter: ServiceRequestFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ServiceRequest!]!
+}
+
 "The result of the :delete_allergy_intolerance mutation"
 type DeleteAllergyIntoleranceResult {
   "The record that was successfully deleted"
@@ -3729,6 +4997,148 @@ type AllergyIntolerance {
   patient: Patient!
 }
 
+"The result of the :delete_activity_definition mutation"
+type DeleteActivityDefinitionResult {
+  "The record that was successfully deleted"
+  result: ActivityDefinition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_activity_definition mutation"
+type UpdateActivityDefinitionResult {
+  "The successful result of the mutation"
+  result: ActivityDefinition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateActivityDefinitionInput {
+  "Computer-friendly name for this activity definition"
+  name: String
+
+  "Human-friendly name for this activity definition"
+  title: String
+
+  "Publication status"
+  status: PublicationStatus
+
+  "Natural language description of the activity definition"
+  description: String
+
+  "Kind of resource to create when the activity definition is applied"
+  kind: RequestResourceType
+
+  "Detail type of activity"
+  code: ActivityDefinitionCodeInput
+
+  "Default intent for the resulting resource"
+  intent: RequestIntent
+
+  "Default priority for the resulting resource"
+  priority: RequestPriority
+
+  "When true, the activity should not be performed"
+  doNotPerform: Boolean
+
+  "When activity is to occur (as a duration)"
+  timingDuration: ActivityDefinitionTimingDurationInput
+}
+
+"The result of the :create_activity_definition mutation"
+type CreateActivityDefinitionResult {
+  "The successful result of the mutation"
+  result: ActivityDefinition
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateActivityDefinitionInput {
+  "Computer-friendly name for this activity definition"
+  name: String
+
+  "Human-friendly name for this activity definition"
+  title: String
+
+  "Publication status"
+  status: PublicationStatus
+
+  "Natural language description of the activity definition"
+  description: String
+
+  "Kind of resource to create when the activity definition is applied"
+  kind: RequestResourceType
+
+  "Detail type of activity"
+  code: ActivityDefinitionCodeInput
+
+  "Default intent for the resulting resource"
+  intent: RequestIntent
+
+  "Default priority for the resulting resource"
+  priority: RequestPriority
+
+  "When true, the activity should not be performed"
+  doNotPerform: Boolean
+
+  "When activity is to occur (as a duration)"
+  timingDuration: ActivityDefinitionTimingDurationInput
+}
+
+type ActivityDefinition {
+  id: ID!
+
+  "Computer-friendly name for this activity definition"
+  name: String
+
+  "Human-friendly name for this activity definition"
+  title: String
+
+  "Publication status"
+  status: PublicationStatus!
+
+  "Natural language description of the activity definition"
+  description: String
+
+  "Kind of resource to create when the activity definition is applied"
+  kind: RequestResourceType
+
+  "Detail type of activity"
+  code: CodeableConcept
+
+  "Default intent for the resulting resource"
+  intent: RequestIntent
+
+  "Default priority for the resulting resource"
+  priority: RequestPriority
+
+  "When true, the activity should not be performed"
+  doNotPerform: Boolean
+
+  "When activity is to occur (as a duration)"
+  timingDuration: Duration
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [ActivityDefinitionVersion!]!
+}
+
+type ActivityDefinitionVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: ActivityDefinition!
+}
+
 type AllergyIntoleranceVersion {
   id: ID!
   versionActionType: String!
@@ -3736,6 +5146,15 @@ type AllergyIntoleranceVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: AllergyIntolerance!
+}
+
+type CarePlanVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: CarePlan!
 }
 
 type ConditionVersion {
@@ -3800,6 +5219,15 @@ type PatientVersion {
   versionSource: Patient!
 }
 
+type PlanDefinitionVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: PlanDefinition!
+}
+
 type PractitionerVersion {
   id: ID!
   versionActionType: String!
@@ -3807,6 +5235,15 @@ type PractitionerVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Practitioner!
+}
+
+type ServiceRequestVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: ServiceRequest!
 }
 
 type TaskVersion {
@@ -4213,6 +5650,56 @@ type RootQueryType {
     last: Int
   ): KeysetPageOfPerson
 
+  getAutomationRule(
+    "A filter to limit the results"
+    filter: AutomationRuleFilterInput
+  ): AutomationRule
+
+  listAutomationRules(
+    "How to sort the records in the response"
+    sort: [AutomationRuleSortInput]
+
+    "A filter to limit the results"
+    filter: AutomationRuleFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfAutomationRule
+
+  getAutomationExecutionLog(
+    "A filter to limit the results"
+    filter: AutomationExecutionLogFilterInput
+  ): AutomationExecutionLog
+
+  listAutomationExecutionLogs(
+    "How to sort the records in the response"
+    sort: [AutomationExecutionLogSortInput]
+
+    "A filter to limit the results"
+    filter: AutomationExecutionLogFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfAutomationExecutionLog
+
   "Find invitation for the current email address"
   findCurrentEmailInvitations(
     "How to sort the records in the response"
@@ -4264,11 +5751,23 @@ input MoneyInput {
 }
 
 type RootMutationType {
+  createActivityDefinition(input: CreateActivityDefinitionInput): CreateActivityDefinitionResult!
+
+  updateActivityDefinition(id: ID!, input: UpdateActivityDefinitionInput): UpdateActivityDefinitionResult!
+
+  deleteActivityDefinition(id: ID!): DeleteActivityDefinitionResult!
+
   createAllergyIntolerance(input: CreateAllergyIntoleranceInput!): CreateAllergyIntoleranceResult!
 
   updateAllergyIntolerance(id: ID!, input: UpdateAllergyIntoleranceInput): UpdateAllergyIntoleranceResult!
 
   deleteAllergyIntolerance(id: ID!): DeleteAllergyIntoleranceResult!
+
+  createCarePlan(input: CreateCarePlanInput!): CreateCarePlanResult!
+
+  updateCarePlan(id: ID!, input: UpdateCarePlanInput): UpdateCarePlanResult!
+
+  deleteCarePlan(id: ID!): DeleteCarePlanResult!
 
   createCondition(input: CreateConditionInput!): CreateConditionResult!
 
@@ -4340,11 +5839,23 @@ type RootMutationType {
 
   deletePatient(id: ID!): DeletePatientResult!
 
+  createPlanDefinition(input: CreatePlanDefinitionInput): CreatePlanDefinitionResult!
+
+  updatePlanDefinition(id: ID!, input: UpdatePlanDefinitionInput): UpdatePlanDefinitionResult!
+
+  deletePlanDefinition(id: ID!): DeletePlanDefinitionResult!
+
   createPractitioner(input: CreatePractitionerInput!): CreatePractitionerResult!
 
   updatePractitioner(id: ID!, input: UpdatePractitionerInput): UpdatePractitionerResult!
 
   deletePractitioner(id: ID!): DeletePractitionerResult!
+
+  createServiceRequest(input: CreateServiceRequestInput!): CreateServiceRequestResult!
+
+  updateServiceRequest(id: ID!, input: UpdateServiceRequestInput): UpdateServiceRequestResult!
+
+  deleteServiceRequest(id: ID!): DeleteServiceRequestResult!
 
   createTask(input: CreateTaskInput!): CreateTaskResult!
 
@@ -4365,6 +5876,18 @@ type RootMutationType {
   updatePerson(id: ID!, input: UpdatePersonInput): UpdatePersonResult!
 
   deletePerson(id: ID!): DeletePersonResult!
+
+  createAutomationRule(input: CreateAutomationRuleInput!): CreateAutomationRuleResult!
+
+  updateAutomationRule(id: ID!, input: UpdateAutomationRuleInput): UpdateAutomationRuleResult!
+
+  deleteAutomationRule(id: ID!): DeleteAutomationRuleResult!
+
+  createAutomationExecutionLog(input: CreateAutomationExecutionLogInput!): CreateAutomationExecutionLogResult!
+
+  updateAutomationExecutionLog(id: ID!, input: UpdateAutomationExecutionLogInput): UpdateAutomationExecutionLogResult!
+
+  deleteAutomationExecutionLog(id: ID!): DeleteAutomationExecutionLogResult!
 
   "Accept an invitation to join an organization"
   acceptInvitation(inviteCode: String!): AcceptInvitationResult!

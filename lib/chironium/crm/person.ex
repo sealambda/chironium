@@ -4,6 +4,7 @@ defmodule Chironium.CRM.Person do
     domain: Chironium.CRM,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
+    notifiers: [Ash.Notifier.PubSub],
     extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
@@ -33,6 +34,13 @@ defmodule Chironium.CRM.Person do
 
   paper_trail do
     mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:person]}
+  end
+
+  pub_sub do
+    module ChironiumWeb.Endpoint
+
+    prefix "automation"
+    publish :create, "events", event: "crm.person.created"
   end
 
   actions do

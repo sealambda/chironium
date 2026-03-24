@@ -17,6 +17,7 @@ defmodule Chironium.Application do
          Application.fetch_env!(:chironium, Oban)
        )},
       {Phoenix.PubSub, name: Chironium.PubSub},
+      Chironium.Automation.EventListener,
       # Start a worker by calling: Chironium.Worker.start_link(arg)
       # {Chironium.Worker, arg},
       # Start to serve requests, typically the last entry

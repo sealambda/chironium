@@ -62,7 +62,7 @@ defmodule Chironium.MixProject do
       {:ash_paper_trail, "~> 0.5"},
       {:live_debugger, "~> 0.5", only: [:dev]},
       {:ash_state_machine, "~> 0.2"},
-      {:oban_web, "~> 2.0"},
+      {:oban_web, "2.11.4"}, # https://github.com/oban-bg/oban_web/issues/171
       {:ash_oban, "~> 0.7"},
       {:ash_admin, "~> 0.13"},
       {:ash_archival, "~> 2.0.3"},

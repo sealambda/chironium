@@ -4,6 +4,7 @@ defmodule ChironiumWeb.GraphqlSchema do
   use AshGraphql,
     domains: [
       Chironium.Accounts,
+      Chironium.Automation,
       Chironium.CRM,
       Chironium.Subscriptions,
       Chironium.Health

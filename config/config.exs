@@ -104,6 +104,7 @@ config :chironium,
   allowed_app_origins: [],
   ash_domains: [
     Chironium.Accounts,
+    Chironium.Automation,
     Chironium.CRM,
     Chironium.Health,
     Chironium.Subscriptions
