@@ -90,6 +90,7 @@ defmodule Chironium.Accounts.Organization do
     belongs_to :owner, Chironium.Accounts.User do
       description "The organization must belong to an owner, usually who created it"
       allow_nil? false
+      public? true
     end
 
     many_to_many :users, Chironium.Accounts.User do
@@ -97,6 +98,7 @@ defmodule Chironium.Accounts.Organization do
       through Chironium.Accounts.OrganizationUsers
       source_attribute_on_join_resource :organization_id
       destination_attribute_on_join_resource :user_id
+      public? true
     end
 
     has_many :invitations, Chironium.Accounts.Invitation do

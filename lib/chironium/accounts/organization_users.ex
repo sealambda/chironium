@@ -25,6 +25,12 @@ defmodule Chironium.Accounts.OrganizationUsers do
     bypass AshAuthentication.Checks.AshAuthenticationInteraction do
       authorize_if always()
     end
+
+    policy action(:read) do
+      authorize_if accessing_from(Chironium.Accounts.Organization, :users)
+      authorize_if relates_to_actor_via([:organization, :owner])
+      authorize_if relates_to_actor_via(:user)
+    end
   end
 
   relationships do
