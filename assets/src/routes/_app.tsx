@@ -4,11 +4,11 @@ import { Suspense, useState } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import { OrgStoreSync } from "@/features/org/store/org-store-sync";
-import { PendingInvitationsDialog } from "@/features/org/ui/pending-invitations-dialog";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
+import { PendingInvitationsDialog } from "@/features/org/ui/pending-invitations-dialog";
 import * as m from "@/paraglide/messages";
 import { AppShell } from "@/shared/layout/app-shell";
-import { AuthLoading } from "@/shared/ui/auth-loading";
+import { Loading } from "@/shared/ui/loading";
 import { EmptyState } from "@/shared/ui/empty-state";
 
 /**
@@ -57,7 +57,7 @@ function AppContent() {
   }
 
   return (
-    <Suspense fallback={<AuthLoading />}>
+    <Suspense fallback={<Loading />}>
       <Outlet />
     </Suspense>
   );
