@@ -3,7 +3,7 @@ import { useId, useRef, useState } from "react";
 
 import type { PlanFormData } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
-import { supportedDurationUnits, type DurationUnit } from "@/shared/types/schema-enums";
+import { type DurationUnit, supportedDurationUnits } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import { DialogFooter } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";

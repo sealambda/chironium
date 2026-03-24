@@ -364,11 +364,6 @@ export function AnthropometryCard({
             <p className="mt-0.5 text-foreground/65 text-xs">{m.anthropometry_no_records_desc()}</p>
           </div>
         </div>
-        <CardHistoryLinkFooter
-          customerId={personId}
-          to="/customers/$customerId/anthropometry"
-          label={m.anthropometry_view_history()}
-        />
       </div>
     );
   }
