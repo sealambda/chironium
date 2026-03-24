@@ -17,6 +17,36 @@ const ListOrganizationsQuery = graphql(`
   }
 `);
 
+const GetOrganizationSettingsQuery = graphql(`
+  query GetOrganizationSettings {
+    getOrganization {
+      id
+      name
+      slug
+      invitations {
+        id
+        email
+        invitedBy {
+          id
+          email
+          name
+        }
+      }
+    }
+  }
+`);
+
+const FindCurrentEmailInvitationsQuery = graphql(`
+  query FindCurrentEmailInvitations {
+    findCurrentEmailInvitations {
+      id
+      email
+      inviteCode
+      organizationId
+    }
+  }
+`);
+
 // ─── Mutations ───────────────────────────────────────────────────────
 
 const CreateOrganizationMutation = graphql(`
@@ -48,6 +78,32 @@ const CreateSubscriptionPlanMutation = graphql(`
           amount
           currency
         }
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const InviteUsersToOrganizationMutation = graphql(`
+  mutation InviteUsersToOrganization($id: ID!, $input: InviteUsersToOrganizationInput) {
+    inviteUsersToOrganization(id: $id, input: $input) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const AcceptInvitationMutation = graphql(`
+  mutation AcceptInvitation($inviteCode: String!) {
+    acceptInvitation(inviteCode: $inviteCode) {
+      result {
+        id
       }
       errors {
         message
@@ -88,6 +144,29 @@ export interface OrgCreationDraft {
   plans: PlanFormData[];
 }
 
+/** Organization settings data including pending invitations. */
+export interface OrganizationSettingsData {
+  id: string;
+  name: string;
+  slug: string;
+  invitations: Array<{
+    id: string;
+    email: string | null;
+    invitedBy: {
+      id: string;
+      email: string;
+      name: string | null;
+    } | null;
+  }>;
+}
+
+export interface PendingInvitation {
+  id: string;
+  email: string | null;
+  inviteCode: string | null;
+  organizationId: string;
+}
+
 // ─── Functions ───────────────────────────────────────────────────────
 
 /** Fetch all organizations the current user has access to. */
@@ -97,6 +176,51 @@ export async function fetchAccessibleOrganizations(): Promise<OrganizationRecord
     variables: { first: 10 },
   });
   return data.listOrganizations?.results ?? [];
+}
+
+/** Fetch selected organization metadata and invitations. */
+export async function fetchOrganizationSettings(
+  organizationId: string,
+): Promise<OrganizationSettingsData | null> {
+  const data = await requestGraphql({
+    document: GetOrganizationSettingsQuery,
+    organizationId,
+  });
+
+  if (!data.getOrganization) {
+    return null;
+  }
+
+  return {
+    id: data.getOrganization.id,
+    name: data.getOrganization.name,
+    slug: data.getOrganization.slug,
+    invitations: data.getOrganization.invitations.map((invitation) => ({
+      id: invitation.id,
+      email: invitation.email ?? null,
+      invitedBy: invitation.invitedBy
+        ? {
+            id: invitation.invitedBy.id,
+            email: invitation.invitedBy.email,
+            name: invitation.invitedBy.name ?? null,
+          }
+        : null,
+    })),
+  };
+}
+
+/** Fetch invitations matching the current user's email address. */
+export async function fetchCurrentEmailInvitations(): Promise<PendingInvitation[]> {
+  const data = await requestGraphql({
+    document: FindCurrentEmailInvitationsQuery,
+  });
+
+  return data.findCurrentEmailInvitations.map((invitation) => ({
+    id: invitation.id,
+    email: invitation.email ?? null,
+    inviteCode: invitation.inviteCode ?? null,
+    organizationId: invitation.organizationId,
+  }));
 }
 
 /** Create a new organization with the given name and slug. */
@@ -148,6 +272,41 @@ export async function createSubscriptionPlan(
     priceAmount: plan.priceAmount?.amount ?? null,
     currency: plan.priceAmount?.currency ?? null,
   };
+}
+
+/** Invite a user by email to the given organization. */
+export async function inviteUserToOrganization(params: {
+  organizationId: string;
+  email: string;
+}): Promise<void> {
+  const result = await requestGraphql({
+    document: InviteUsersToOrganizationMutation,
+    variables: {
+      id: params.organizationId,
+      input: {
+        invitations: [{ email: params.email }],
+      },
+    },
+    organizationId: params.organizationId,
+  });
+
+  unwrapMutationResult(
+    result.inviteUsersToOrganization as { result?: { id: string } | null; errors?: { message?: string | null }[] },
+    "Failed to invite member.",
+  );
+}
+
+/** Accept a pending invitation using its invite code. */
+export async function acceptInvitation(inviteCode: string): Promise<void> {
+  const result = await requestGraphql({
+    document: AcceptInvitationMutation,
+    variables: { inviteCode },
+  });
+
+  unwrapMutationResult(
+    result.acceptInvitation as { result?: { id: string } | null; errors?: { message?: string | null }[] },
+    "Failed to accept invitation.",
+  );
 }
 
 /**
