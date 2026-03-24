@@ -2,6 +2,7 @@ import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import type { TerminologyTag } from "@/shared/types/terminology";
 
 import type { AnnotationInput } from "./observations-api";
 
@@ -117,8 +118,8 @@ const UpdateFoodObservationMutation = graphql(`
 
 /** Form data for included and excluded foods in the diet step. */
 export interface FoodFormData {
-  included: string[];
-  excluded: string[];
+  included: TerminologyTag[];
+  excluded: TerminologyTag[];
 }
 
 /** Aggregated food preference labels for the summary card. */
@@ -321,8 +322,13 @@ export async function createFoodObservations(
   userName: string,
 ): Promise<void> {
   const promises: Promise<void>[] = [];
-  const includedCsv = data.included.filter((s) => s.trim()).join(",");
-  const excludedCsv = data.excluded.filter((s) => s.trim()).join(",");
+  const includedText = data.included.filter((entry) => !entry.coding).map((entry) => entry.label);
+  const excludedText = data.excluded.filter((entry) => !entry.coding).map((entry) => entry.label);
+  const includedCoded = data.included.filter((entry) => Boolean(entry.coding));
+  const excludedCoded = data.excluded.filter((entry) => Boolean(entry.coding));
+
+  const includedCsv = includedText.filter((s) => s.trim()).join(",");
+  const excludedCsv = excludedText.filter((s) => s.trim()).join(",");
 
   if (includedCsv) {
     promises.push(
@@ -373,6 +379,50 @@ export async function createFoodObservations(
       })(),
     );
   }
+
+  const createCodedObservation = (type: "inclusion" | "exclusion", entry: TerminologyTag) =>
+    (async () => {
+      if (!entry.coding) {
+        return;
+      }
+      const result = await requestGraphql({
+        document: type === "inclusion" ? LogFoodPreferenceMutation : LogFoodAversionMutation,
+        variables: {
+          input: {
+            valueCodeableConcept: {
+              text: entry.label,
+              coding: [
+                {
+                  system: entry.coding.system,
+                  code: entry.coding.code,
+                  version: entry.coding.version ?? undefined,
+                  display: entry.coding.display ?? entry.label,
+                },
+              ],
+            },
+            note: [
+              {
+                text: entry.label,
+                ...(userId ? { authorReference: userId } : { authorString: userName }),
+                time: new Date().toISOString(),
+              },
+            ],
+            subjectId,
+          },
+        },
+        organizationId,
+      });
+      if (type === "inclusion") {
+        unwrapMutationResult(result.logFoodPreference, "Failed to log food preference.");
+      } else {
+        unwrapMutationResult(result.logFoodAversion, "Failed to log food aversion.");
+      }
+    })();
+
+  promises.push(
+    ...includedCoded.map((entry) => createCodedObservation("inclusion", entry)),
+    ...excludedCoded.map((entry) => createCodedObservation("exclusion", entry)),
+  );
 
   await Promise.all(promises);
 }

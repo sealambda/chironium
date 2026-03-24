@@ -9,6 +9,7 @@ import { TagColumn } from "@/features/customers/ui/detail/tag-column";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
+import type { TerminologyTag } from "@/shared/types/terminology";
 import { Button } from "@/shared/ui/button";
 import { CardAddButton } from "@/shared/ui/card-add-button";
 import {
@@ -20,7 +21,7 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { TagInput } from "@/shared/ui/tag-input";
+import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -47,8 +48,8 @@ function AddFoodPreferenceDialog({
 }: Readonly<AddFoodPreferenceDialogProps>) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [included, setIncluded] = useState<string[]>([]);
-  const [excluded, setExcluded] = useState<string[]>([]);
+  const [included, setIncluded] = useState<TerminologyTag[]>([]);
+  const [excluded, setExcluded] = useState<TerminologyTag[]>([]);
   const { selectedOrg } = useOrg();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
@@ -101,21 +102,23 @@ function AddFoodPreferenceDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <TagInput
+          <TerminologyTagInput
             label={m.food_preferences_includes_label()}
             placeholder={m.field_food_included_placeholder()}
             tags={included}
             onAdd={(tag) => setIncluded((prev) => [...prev, tag])}
             onRemove={(i) => setIncluded((prev) => prev.filter((_, idx) => idx !== i))}
+            organizationId={selectedOrg?.id ?? ""}
             addLabel={m.common_add()}
             disabled={saving}
           />
-          <TagInput
+          <TerminologyTagInput
             label={m.food_preferences_avoids_label()}
             placeholder={m.field_food_excluded_placeholder()}
             tags={excluded}
             onAdd={(tag) => setExcluded((prev) => [...prev, tag])}
             onRemove={(i) => setExcluded((prev) => prev.filter((_, idx) => idx !== i))}
+            organizationId={selectedOrg?.id ?? ""}
             addLabel={m.common_add()}
             disabled={saving}
           />
