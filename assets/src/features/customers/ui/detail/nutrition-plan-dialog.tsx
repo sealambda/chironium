@@ -1,14 +1,30 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Lock, Minus, Plus, Unlock } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import {
   createNutritionPlan,
   type NutritionPlanFormData,
 } from "@/features/customers/api/nutrition-plans-api";
+import {
+  ageFromBirthDate,
+  computeBmr,
+  computeMacroPct,
+  formatMacroUnitDisplay,
+  getMacroUnitSelectItems,
+  gramsFromUnitValue,
+  KCAL_PER_G,
+  type MacroKey,
+  type MacroUnit,
+  macroUnitsAllPreferred,
+  nutritionPlanFormSchema,
+  pickPreferredMacroUnit,
+  TOLERANCE_KCAL,
+  totalKcalFromMacroGrams,
+  tryRedistributeMacros,
+} from "@/features/customers/ui/detail/nutrition-plan-dialog-utils";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -22,48 +38,29 @@ import {
 } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPositioner,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { cn } from "@/shared/utils/utils";
 
-// ─── Atwater constants & helpers ────────────────────────────────────
-
-const KCAL_PER_G = { protein: 4, carbs: 4, fat: 9 } as const;
-const TOLERANCE_KCAL = 10;
-
-function computeMacroPct(grams: number, kcalPerG: number, totalKcal: number): number {
-  if (totalKcal <= 0 || !Number.isFinite(grams) || grams <= 0) {
-    return 0;
+function toastMacroUnitMissingInputs(unit: MacroUnit, missingInputToastId: string) {
+  if (unit === "gkg") {
+    toast.warning(m.nutrition_macro_unit_requires_weight(), {
+      id: `${missingInputToastId}-weight`,
+    });
+    return;
   }
-  return Math.round((grams * kcalPerG * 100) / totalKcal);
+  if (unit === "percent") {
+    toast.warning(m.nutrition_macro_unit_requires_target_kcal(), {
+      id: `${missingInputToastId}-target-kcal`,
+    });
+  }
 }
-
-// ─── Zod schema ─────────────────────────────────────────────────────
-
-const positiveIntString = z
-  .string()
-  .trim()
-  .refine((value) => /^\d+$/.test(value) && Number(value) > 0, {
-    message: m.validation_positive_number(),
-  });
-
-const nutritionPlanSchema = z
-  .object({
-    targetKcal: positiveIntString,
-    proteinG: positiveIntString,
-    carbsG: positiveIntString,
-    fatG: positiveIntString,
-  })
-  .refine(
-    (d) => {
-      const macroKcal =
-        Number(d.proteinG) * KCAL_PER_G.protein +
-        Number(d.carbsG) * KCAL_PER_G.carbs +
-        Number(d.fatG) * KCAL_PER_G.fat;
-      return Math.abs(macroKcal - Number(d.targetKcal)) <= TOLERANCE_KCAL;
-    },
-    { message: m.validation_macro_balance() },
-  );
-
-// ─── IntegerField component ─────────────────────────────────────────
 
 function IntegerField({
   field,
@@ -83,7 +80,7 @@ function IntegerField({
   label: string;
   placeholder: string;
   step: number;
-  annotation?: React.ReactNode;
+  annotation?: ReactNode;
   incrementDisabled?: boolean;
   locked?: boolean;
   onToggleLock?: () => void;
@@ -91,10 +88,6 @@ function IntegerField({
   const numValue = field.state.value ? Number(field.state.value) : 0;
 
   const handleIncrement = () => {
-    if (incrementDisabled) {
-      toast.warning(m.validation_macro_balance(), { id: "macro-limit" });
-      return;
-    }
     const newVal = numValue + step;
     field.handleChange(String(newVal));
   };
@@ -113,7 +106,7 @@ function IntegerField({
             type="button"
             onClick={onToggleLock}
             className="cursor-pointer text-muted-foreground/50 transition-colors hover:text-foreground"
-            title={locked ? "Unlock" : "Lock"}
+            title={locked ? m.nutrition_macro_unlock() : m.nutrition_macro_lock()}
           >
             {locked ? <Lock className="size-3 text-pink-500" /> : <Unlock className="size-3" />}
           </button>
@@ -143,6 +136,8 @@ function IntegerField({
         <button
           type="button"
           onClick={handleIncrement}
+          disabled={incrementDisabled}
+          title={incrementDisabled ? m.nutrition_macro_increment_blocked() : undefined}
           className={cn(
             "absolute inset-y-0 right-0 flex items-center px-2.5",
             incrementDisabled
@@ -167,129 +162,174 @@ function IntegerField({
   );
 }
 
-// ─── BMR (Mifflin-St Jeor) ──────────────────────────────────────────
+type MacroFormFieldApi = Readonly<{
+  state: { value: string; meta: { errors: unknown[] } };
+  handleChange: (v: string) => void;
+  handleBlur: () => void;
+}>;
 
-function computeBmr(
-  weightKg: number,
-  heightCm: number,
-  ageYears: number,
-  sex: "MALE" | "FEMALE",
-): number {
-  const base = 10 * weightKg + 6.25 * heightCm - 5 * ageYears;
-  return Math.round(sex === "MALE" ? base + 5 : base - 161);
-}
+function MacroUnitField({
+  label,
+  placeholder,
+  field,
+  macroFieldKey,
+  unit,
+  defaultUnit,
+  onUnitChange,
+  unitSelectItems,
+  kcalPerGram,
+  totalKcal,
+  weightKg,
+  grams,
+  locked,
+  onToggleLock,
+  missingInputToastId,
+  pctAnnotation,
+  onGramsCommitted,
+}: Readonly<{
+  label: string;
+  placeholder: string;
+  field: MacroFormFieldApi;
+  macroFieldKey: MacroKey;
+  unit: MacroUnit;
+  defaultUnit: MacroUnit;
+  onUnitChange: (unit: MacroUnit) => void;
+  unitSelectItems: ReadonlyArray<{ value: MacroUnit; label: string }>;
+  kcalPerGram: number;
+  totalKcal: number;
+  weightKg?: number;
+  grams: number;
+  locked: boolean;
+  onToggleLock: () => void;
+  missingInputToastId: string;
+  pctAnnotation: ReactNode | null;
+  onGramsCommitted?: (args: { macroKey: MacroKey; gramsCommitted: number }) => void;
+}>) {
+  const [macroInputFocused, setMacroInputFocused] = useState(false);
+  const [unitDraft, setUnitDraft] = useState("");
 
-function ageFromBirthDate(birthDate: string): number | null {
-  const birth = new Date(birthDate);
-  if (Number.isNaN(birth.getTime())) {
-    return null;
-  }
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age > 0 ? age : null;
-}
+  const displayFromGrams = formatMacroUnitDisplay({
+    unit,
+    grams,
+    kcalPerGram,
+    totalKcal,
+    weightKg,
+  });
 
-// ─── Macro redistribution ────────────────────────────────────────────
-
-type MacroKey = "proteinG" | "carbsG" | "fatG";
-interface MacroInfo {
-  key: MacroKey;
-  g: number;
-  factor: number;
-}
-
-function getUnlockedMacros(
-  macros: { protein: number; carbs: number; fat: number },
-  lockedFields: Set<string>,
-): MacroInfo[] {
-  const all: MacroInfo[] = [
-    { key: "proteinG", g: macros.protein, factor: KCAL_PER_G.protein },
-    { key: "carbsG", g: macros.carbs, factor: KCAL_PER_G.carbs },
-    { key: "fatG", g: macros.fat, factor: KCAL_PER_G.fat },
-  ];
-  return all.filter((entry) => !lockedFields.has(entry.key));
-}
-
-function computeLockedKcal(
-  macros: { protein: number; carbs: number; fat: number },
-  lockedFields: Set<string>,
-): number {
-  let total = 0;
-  if (lockedFields.has("proteinG")) {
-    total += macros.protein * KCAL_PER_G.protein;
-  }
-  if (lockedFields.has("carbsG")) {
-    total += macros.carbs * KCAL_PER_G.carbs;
-  }
-  if (lockedFields.has("fatG")) {
-    total += macros.fat * KCAL_PER_G.fat;
-  }
-  return total;
-}
-
-function applyDistribution(
-  unlocked: MacroInfo[],
-  remainingKcal: number,
-  setField: (key: MacroKey, value: string) => void,
-  getField: (key: MacroKey) => string,
-) {
-  const oldKcal = unlocked.reduce((sum, entry) => sum + entry.g * entry.factor, 0);
-
-  for (let i = 0; i < unlocked.length; i++) {
-    const entry = unlocked[i];
-    if (!entry) {
-      continue;
+  useEffect(() => {
+    if (!macroInputFocused) {
+      return;
     }
+    setUnitDraft(
+      formatMacroUnitDisplay({
+        unit,
+        grams,
+        kcalPerGram,
+        totalKcal,
+        weightKg,
+      }),
+    );
+  }, [macroInputFocused, unit, grams, kcalPerGram, totalKcal, weightKg]);
 
-    const isLast = i === unlocked.length - 1;
-    let newG: number;
+  const revertDraftToStored = () => {
+    setUnitDraft(displayFromGrams);
+  };
 
-    if (isLast) {
-      const usedKcal = unlocked.slice(0, -1).reduce((sum, u) => {
-        return sum + (Number(getField(u.key)) || 0) * u.factor;
-      }, 0);
-      newG = Math.round((remainingKcal - usedKcal) / entry.factor);
-    } else {
-      const ratio = oldKcal > 0 ? (entry.g * entry.factor) / oldKcal : 1 / unlocked.length;
-      newG = Math.round((ratio * remainingKcal) / entry.factor);
+  const syncDraftFromGrams = () => {
+    setUnitDraft(
+      formatMacroUnitDisplay({
+        unit,
+        grams,
+        kcalPerGram,
+        totalKcal,
+        weightKg,
+      }),
+    );
+  };
+
+  const commitUnitDraft = () => {
+    const trimmed = unitDraft.trim().replaceAll(",", ".");
+    if (trimmed === "" || trimmed === ".") {
+      field.handleChange("");
+      onGramsCommitted?.({ macroKey: macroFieldKey, gramsCommitted: 0 });
+      return;
     }
+    const num = Number(trimmed);
+    if (!Number.isFinite(num) || num < 0) {
+      revertDraftToStored();
+      return;
+    }
+    const nextG = gramsFromUnitValue({
+      unit,
+      value: num,
+      kcalPerGram,
+      totalKcal,
+      weightKg,
+    });
+    if (nextG === null) {
+      toastMacroUnitMissingInputs(unit, missingInputToastId);
+      revertDraftToStored();
+      return;
+    }
+    field.handleChange(nextG > 0 ? String(nextG) : "");
+    onGramsCommitted?.({ macroKey: macroFieldKey, gramsCommitted: nextG });
+  };
 
-    setField(entry.key, newG > 0 ? String(newG) : "");
-  }
+  return (
+    <Field data-invalid={field.state.meta.errors.length > 0}>
+      <div className="flex items-center gap-1">
+        <FieldLabel>{label}</FieldLabel>
+        <button
+          type="button"
+          onClick={onToggleLock}
+          className="cursor-pointer text-muted-foreground/50 transition-colors hover:text-foreground"
+          title={locked ? m.nutrition_macro_unlock() : m.nutrition_macro_lock()}
+        >
+          {locked ? <Lock className="size-3 text-pink-500" /> : <Unlock className="size-3" />}
+        </button>
+      </div>
+      <div className="space-y-2">
+        <Select
+          value={unit}
+          onValueChange={(v) => onUnitChange((v as MacroUnit | undefined) ?? defaultUnit)}
+          items={unitSelectItems.map((i) => ({ value: i.value, label: i.label }))}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectPositioner>
+            <SelectContent>
+              {unitSelectItems.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </SelectPositioner>
+        </Select>
+        <Input
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          value={macroInputFocused ? unitDraft : displayFromGrams}
+          onFocus={() => {
+            setMacroInputFocused(true);
+            syncDraftFromGrams();
+          }}
+          onChange={(e) => setUnitDraft(e.target.value)}
+          onBlur={() => {
+            commitUnitDraft();
+            setMacroInputFocused(false);
+            field.handleBlur();
+          }}
+          placeholder={placeholder}
+          aria-invalid={field.state.meta.errors.length > 0}
+        />
+        {pctAnnotation}
+      </div>
+    </Field>
+  );
 }
-
-function redistributeMacros(
-  newKcal: number,
-  macros: { protein: number; carbs: number; fat: number },
-  lockedFields: Set<string>,
-  setField: (key: MacroKey, value: string) => void,
-  getField: (key: MacroKey) => string,
-) {
-  if (newKcal <= 0) {
-    return;
-  }
-  if (macros.protein === 0 && macros.carbs === 0 && macros.fat === 0) {
-    return;
-  }
-
-  const remainingKcal = newKcal - computeLockedKcal(macros, lockedFields);
-  if (remainingKcal <= 0) {
-    return;
-  }
-
-  const unlocked = getUnlockedMacros(macros, lockedFields);
-  if (unlocked.length === 0) {
-    return;
-  }
-
-  applyDistribution(unlocked, remainingKcal, setField, getField);
-}
-
-// ─── Dialog component ───────────────────────────────────────────────
 
 interface NutritionPlanDialogProps {
   personId: string;
@@ -299,6 +339,12 @@ interface NutritionPlanDialogProps {
   birthDate?: string;
   gender?: string;
   children: React.ReactNode;
+}
+
+function macroValuesSelector(s: {
+  values: { targetKcal: string; proteinG: string; carbsG: string; fatG: string };
+}): string {
+  return JSON.stringify([s.values.targetKcal, s.values.proteinG, s.values.carbsG, s.values.fatG]);
 }
 
 export function NutritionPlanDialog({
@@ -313,39 +359,68 @@ export function NutritionPlanDialog({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [locked, setLocked] = useState<Set<string>>(new Set());
+
+  /** After the coach edits target kcal, stop auto-filling kcal from macro commits. */
+  const targetKcalUserEditedRef = useRef(false);
+  /**
+   * True while we set target kcal from macros so the kcal field onChange does not flip
+   * `targetKcalUserEditedRef`. Cleared on the next microtask so the form finishes its subscriber
+   * pass before user-driven kcal edits count again.
+   */
+  const syncingKcalFromMacrosRef = useRef(false);
+  const lockedRef = useRef(locked);
+  lockedRef.current = locked;
+
+  const [macroUnits, setMacroUnits] = useState<Record<MacroKey, MacroUnit>>(() =>
+    macroUnitsAllPreferred(latestWeight, false),
+  );
+  const setProteinMacroUnit = useCallback((u: MacroUnit) => {
+    setMacroUnits((prev) => ({ ...prev, proteinG: u }));
+  }, []);
+  const setCarbsMacroUnit = useCallback((u: MacroUnit) => {
+    setMacroUnits((prev) => ({ ...prev, carbsG: u }));
+  }, []);
+  const setFatMacroUnit = useCallback((u: MacroUnit) => {
+    setMacroUnits((prev) => ({ ...prev, fatG: u }));
+  }, []);
   const { selectedOrg } = useOrg();
 
-  const toggleLock = (field: string) => {
+  const toggleLock = useCallback((fieldName: string) => {
     setLocked((prev) => {
       const next = new Set(prev);
-      if (next.has(field)) {
-        next.delete(field);
+      if (next.has(fieldName)) {
+        next.delete(fieldName);
       } else {
-        next.add(field);
+        next.add(fieldName);
       }
       return next;
     });
-  };
+  }, []);
+
   const queryClient = useQueryClient();
 
-  // BMR availability check
   const age = birthDate ? ageFromBirthDate(birthDate) : null;
   const bmrSex = gender === "MALE" || gender === "FEMALE" ? gender : null;
   const canComputeBmr = Boolean(latestWeight && latestHeight && age && bmrSex);
 
-  const missingBmrFields: string[] = [];
-  if (!latestWeight) {
-    missingBmrFields.push(m.field_weight_kg());
-  }
-  if (!latestHeight) {
-    missingBmrFields.push(m.field_height_cm());
-  }
-  if (!age) {
-    missingBmrFields.push(m.field_birth_date());
-  }
-  if (!bmrSex) {
-    missingBmrFields.push(m.field_gender());
-  }
+  const missingBmrFields = useMemo(() => {
+    const fields: string[] = [];
+    if (!latestWeight) {
+      fields.push(m.field_weight_kg());
+    }
+    if (!latestHeight) {
+      fields.push(m.field_height_cm());
+    }
+    if (!age) {
+      fields.push(m.field_birth_date());
+    }
+    if (!bmrSex) {
+      fields.push(m.field_gender());
+    }
+    return fields;
+  }, [latestWeight, latestHeight, age, bmrSex]);
+
+  const macroUnitSelectItems = getMacroUnitSelectItems();
 
   const form = useForm({
     defaultValues: {
@@ -354,7 +429,7 @@ export function NutritionPlanDialog({
       carbsG: "",
       fatG: "",
     },
-    validators: { onSubmit: nutritionPlanSchema },
+    validators: { onSubmit: nutritionPlanFormSchema },
     onSubmit: async ({ value }) => {
       const targetKcal = Number(value.targetKcal);
       const proteinG = Number(value.proteinG);
@@ -393,8 +468,51 @@ export function NutritionPlanDialog({
     },
   });
 
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+    }
+  }, [open, form]);
+
+  const syncTargetKcalFromMacrosWhenEmpty = useCallback(
+    (args: { macroKey: MacroKey; gramsCommitted: number }) => {
+      if (targetKcalUserEditedRef.current) {
+        return;
+      }
+      const committed = Math.max(0, Math.round(args.gramsCommitted));
+      const protein =
+        args.macroKey === "proteinG" ? committed : Number(form.getFieldValue("proteinG")) || 0;
+      const carbs =
+        args.macroKey === "carbsG" ? committed : Number(form.getFieldValue("carbsG")) || 0;
+      const fat = args.macroKey === "fatG" ? committed : Number(form.getFieldValue("fatG")) || 0;
+      const macroKcal = totalKcalFromMacroGrams({ protein, carbs, fat });
+      if (macroKcal <= 0) {
+        return;
+      }
+      syncingKcalFromMacrosRef.current = true;
+      form.setFieldValue("targetKcal", String(macroKcal));
+      queueMicrotask(() => {
+        syncingKcalFromMacrosRef.current = false;
+      });
+    },
+    [form],
+  );
+
+  const handleDialogOpenChange = useCallback(
+    (next: boolean) => {
+      setOpen(next);
+      if (next) {
+        targetKcalUserEditedRef.current = false;
+        const hasKcal = Number(form.getFieldValue("targetKcal")) > 0;
+        setMacroUnits(macroUnitsAllPreferred(latestWeight, hasKcal));
+        setLocked(new Set());
+      }
+    },
+    [form, latestWeight],
+  );
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger render={children as React.ReactElement} />
       <DialogContent>
         <DialogHeader>
@@ -402,22 +520,28 @@ export function NutritionPlanDialog({
         </DialogHeader>
 
         <FieldGroup>
-          {/* Row 1: Target Kcal (full width, with auto-recalc listener) */}
           <form.Field
             name="targetKcal"
             listeners={{
               onChange: ({ value }) => {
-                redistributeMacros(
+                if (!syncingKcalFromMacrosRef.current) {
+                  targetKcalUserEditedRef.current = true;
+                }
+                const ok = tryRedistributeMacros(
                   Number(value) || 0,
                   {
                     protein: Number(form.getFieldValue("proteinG")) || 0,
                     carbs: Number(form.getFieldValue("carbsG")) || 0,
                     fat: Number(form.getFieldValue("fatG")) || 0,
                   },
-                  locked,
+                  lockedRef.current,
                   (key, val) => form.setFieldValue(key, val),
-                  (key) => form.getFieldValue(key),
                 );
+                if (!ok) {
+                  toast.warning(m.nutrition_locked_exceeds_kcal(), {
+                    id: "locked-kcal-conflict",
+                  });
+                }
               },
             }}
           >
@@ -459,13 +583,18 @@ export function NutritionPlanDialog({
             )}
           </form.Field>
 
-          {/* Row 2: Protein / Carbs / Fat with live % annotations */}
-          <form.Subscribe selector={(s) => s.values}>
-            {(values) => {
-              const kcal = Number(values.targetKcal) || 0;
-              const protein = Number(values.proteinG) || 0;
-              const carbs = Number(values.carbsG) || 0;
-              const fat = Number(values.fatG) || 0;
+          <form.Subscribe selector={macroValuesSelector}>
+            {(serialized) => {
+              const [targetKcalRaw, proteinRaw, carbsRaw, fatRaw] = JSON.parse(serialized) as [
+                string,
+                string,
+                string,
+                string,
+              ];
+              const kcal = Number(targetKcalRaw) || 0;
+              const protein = Number(proteinRaw) || 0;
+              const carbs = Number(carbsRaw) || 0;
+              const fat = Number(fatRaw) || 0;
 
               const pPct = computeMacroPct(protein, KCAL_PER_G.protein, kcal);
               const cPct = computeMacroPct(carbs, KCAL_PER_G.carbs, kcal);
@@ -474,25 +603,34 @@ export function NutritionPlanDialog({
               const macroKcal =
                 protein * KCAL_PER_G.protein + carbs * KCAL_PER_G.carbs + fat * KCAL_PER_G.fat;
               const hasMacros = protein > 0 || carbs > 0 || fat > 0;
-              const atBudget = kcal > 0 && macroKcal >= kcal;
+              const preferredMacroUnit = pickPreferredMacroUnit(latestWeight, kcal > 0);
 
               return (
                 <>
                   <div className="grid grid-cols-3 gap-4">
                     <form.Field name="proteinG">
                       {(field) => (
-                        <IntegerField
-                          field={field}
-                          label={m.field_protein_g()}
+                        <MacroUnitField
+                          label={m.field_protein()}
                           placeholder={m.field_protein_placeholder()}
-                          step={10}
-                          incrementDisabled={atBudget && !locked.has("proteinG")}
+                          field={field}
+                          macroFieldKey="proteinG"
+                          unit={macroUnits.proteinG}
+                          defaultUnit={preferredMacroUnit}
+                          onUnitChange={setProteinMacroUnit}
+                          unitSelectItems={macroUnitSelectItems}
+                          kcalPerGram={KCAL_PER_G.protein}
+                          totalKcal={kcal}
+                          weightKg={latestWeight}
+                          grams={protein}
                           locked={locked.has("proteinG")}
                           onToggleLock={() => toggleLock("proteinG")}
-                          annotation={
+                          missingInputToastId="macro-unit-missing-input-protein"
+                          onGramsCommitted={syncTargetKcalFromMacrosWhenEmpty}
+                          pctAnnotation={
                             kcal > 0 && protein > 0 ? (
                               <span className="font-medium text-emerald-600 text-xs tabular-nums">
-                                {pPct}% kcal
+                                {m.nutrition_macro_energy_pct({ pct: pPct })}
                               </span>
                             ) : null
                           }
@@ -501,18 +639,27 @@ export function NutritionPlanDialog({
                     </form.Field>
                     <form.Field name="carbsG">
                       {(field) => (
-                        <IntegerField
-                          field={field}
-                          label={m.field_carbs_g()}
+                        <MacroUnitField
+                          label={m.field_carbs()}
                           placeholder={m.field_carbs_placeholder()}
-                          step={10}
-                          incrementDisabled={atBudget && !locked.has("carbsG")}
+                          field={field}
+                          macroFieldKey="carbsG"
+                          unit={macroUnits.carbsG}
+                          defaultUnit={preferredMacroUnit}
+                          onUnitChange={setCarbsMacroUnit}
+                          unitSelectItems={macroUnitSelectItems}
+                          kcalPerGram={KCAL_PER_G.carbs}
+                          totalKcal={kcal}
+                          weightKg={latestWeight}
+                          grams={carbs}
                           locked={locked.has("carbsG")}
                           onToggleLock={() => toggleLock("carbsG")}
-                          annotation={
+                          missingInputToastId="macro-unit-missing-input-carbs"
+                          onGramsCommitted={syncTargetKcalFromMacrosWhenEmpty}
+                          pctAnnotation={
                             kcal > 0 && carbs > 0 ? (
                               <span className="font-medium text-blue-600 text-xs tabular-nums">
-                                {cPct}% kcal
+                                {m.nutrition_macro_energy_pct({ pct: cPct })}
                               </span>
                             ) : null
                           }
@@ -521,18 +668,27 @@ export function NutritionPlanDialog({
                     </form.Field>
                     <form.Field name="fatG">
                       {(field) => (
-                        <IntegerField
-                          field={field}
-                          label={m.field_fat_g()}
+                        <MacroUnitField
+                          label={m.field_fat()}
                           placeholder={m.field_fat_placeholder()}
-                          step={10}
-                          incrementDisabled={atBudget && !locked.has("fatG")}
+                          field={field}
+                          macroFieldKey="fatG"
+                          unit={macroUnits.fatG}
+                          defaultUnit={preferredMacroUnit}
+                          onUnitChange={setFatMacroUnit}
+                          unitSelectItems={macroUnitSelectItems}
+                          kcalPerGram={KCAL_PER_G.fat}
+                          totalKcal={kcal}
+                          weightKg={latestWeight}
+                          grams={fat}
                           locked={locked.has("fatG")}
                           onToggleLock={() => toggleLock("fatG")}
-                          annotation={
+                          missingInputToastId="macro-unit-missing-input-fat"
+                          onGramsCommitted={syncTargetKcalFromMacrosWhenEmpty}
+                          pctAnnotation={
                             kcal > 0 && fat > 0 ? (
                               <span className="font-medium text-amber-600 text-xs tabular-nums">
-                                {fPct}% kcal
+                                {m.nutrition_macro_energy_pct({ pct: fPct })}
                               </span>
                             ) : null
                           }
@@ -541,7 +697,6 @@ export function NutritionPlanDialog({
                     </form.Field>
                   </div>
 
-                  {/* Kcal summary */}
                   {hasMacros && kcal > 0 ? (
                     <p
                       className={cn(
@@ -559,7 +714,6 @@ export function NutritionPlanDialog({
             }}
           </form.Subscribe>
 
-          {/* Form-level validation errors */}
           <form.Subscribe selector={(s) => s.errors}>
             {(errors) =>
               errors.length > 0 ? (
