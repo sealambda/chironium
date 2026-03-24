@@ -1,4 +1,4 @@
-import { Settings, Users } from "lucide-react";
+import { CreditCard, Settings, Users } from "lucide-react";
 import type { ComponentType } from "react";
 
 import * as m from "@/paraglide/messages";
@@ -14,6 +14,11 @@ export const navItems: NavItem[] = [
     to: "/customers",
     label: m.nav_customers,
     icon: Users,
+  },
+  {
+    to: "/subscriptions",
+    label: m.nav_subscriptions,
+    icon: CreditCard,
   },
   {
     to: "/settings",
