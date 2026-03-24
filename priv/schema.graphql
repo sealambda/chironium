@@ -20,17 +20,17 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -195,17 +195,17 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -575,6 +575,9 @@ input UserFilterGivenName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -588,6 +591,9 @@ input UserFilterFamilyName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -601,6 +607,9 @@ input UserFilterName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -614,6 +623,9 @@ input UserFilterPicture {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -627,6 +639,9 @@ input UserFilterEmail {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input UserFilterId {
@@ -638,6 +653,8 @@ input UserFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input UserFilterInput {
@@ -807,6 +824,9 @@ type MutationError {
 
   "The field or fields that produced the error"
   fields: [String!]
+
+  "The path to the field that produced the error"
+  path: [String!]
 }
 
 "The result of the :delete_person mutation"
@@ -896,6 +916,9 @@ input PersonFilterFamilyNameSortKey {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -909,6 +932,9 @@ input PersonFilterGivenNameSortKey {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -922,6 +948,8 @@ input PersonFilterBirthDate {
   greaterThan: Date
   lessThanOrEqual: Date
   greaterThanOrEqual: Date
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input PersonFilterGender {
@@ -933,6 +961,8 @@ input PersonFilterGender {
   greaterThan: AdministrativeGender
   lessThanOrEqual: AdministrativeGender
   greaterThanOrEqual: AdministrativeGender
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input PersonFilterId {
@@ -944,6 +974,8 @@ input PersonFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input PersonFilterInput {
@@ -1013,14 +1045,14 @@ type PersonVersion {
 }
 
 input PatientCreatePatientWithPersonPersonInput {
-  "A name associated with the person"
-  name: [PersonNameInput!]
-
   "The date on which the person was born"
   birthDate: Date
 
   "The gender of a person used for administrative purposes."
   gender: AdministrativeGender
+
+  "A name associated with the person"
+  name: [PersonNameInput!]
 
   "A contact detail for the person (e.g. email, phone, etc.)"
   telecom: [PersonTelecomInput!]
@@ -1167,6 +1199,8 @@ input PatientFilterPersonId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input PatientFilterId {
@@ -1178,6 +1212,8 @@ input PatientFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input PatientFilterInput {
@@ -1634,6 +1670,8 @@ input ObservationFilterSubjectId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ObservationFilterValueString {
@@ -1645,6 +1683,9 @@ input ObservationFilterValueString {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -1658,6 +1699,8 @@ input ObservationFilterEffectiveDateTime {
   greaterThan: DateTime
   lessThanOrEqual: DateTime
   greaterThanOrEqual: DateTime
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ObservationFilterStatus {
@@ -1669,6 +1712,8 @@ input ObservationFilterStatus {
   greaterThan: ObservationStatus
   lessThanOrEqual: ObservationStatus
   greaterThanOrEqual: ObservationStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ObservationFilterId {
@@ -1680,6 +1725,8 @@ input ObservationFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ObservationFilterInput {
@@ -1797,6 +1844,8 @@ input NutritionPlanFilterPatientId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input NutritionPlanFilterFatG {
@@ -1808,6 +1857,8 @@ input NutritionPlanFilterFatG {
   greaterThan: Int
   lessThanOrEqual: Int
   greaterThanOrEqual: Int
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input NutritionPlanFilterCarbsG {
@@ -1819,6 +1870,8 @@ input NutritionPlanFilterCarbsG {
   greaterThan: Int
   lessThanOrEqual: Int
   greaterThanOrEqual: Int
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input NutritionPlanFilterProteinG {
@@ -1830,6 +1883,8 @@ input NutritionPlanFilterProteinG {
   greaterThan: Int
   lessThanOrEqual: Int
   greaterThanOrEqual: Int
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input NutritionPlanFilterTargetKcal {
@@ -1841,6 +1896,8 @@ input NutritionPlanFilterTargetKcal {
   greaterThan: Int
   lessThanOrEqual: Int
   greaterThanOrEqual: Int
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input NutritionPlanFilterId {
@@ -1852,6 +1909,8 @@ input NutritionPlanFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input NutritionPlanFilterInput {
@@ -1958,6 +2017,8 @@ input MedicationStatementFilterSubjectId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input MedicationStatementFilterVerificationStatus {
@@ -1969,6 +2030,8 @@ input MedicationStatementFilterVerificationStatus {
   greaterThan: ConditionVerificationStatus
   lessThanOrEqual: ConditionVerificationStatus
   greaterThanOrEqual: ConditionVerificationStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input MedicationStatementFilterClinicalStatus {
@@ -1980,6 +2043,8 @@ input MedicationStatementFilterClinicalStatus {
   greaterThan: ConditionClinicalStatus
   lessThanOrEqual: ConditionClinicalStatus
   greaterThanOrEqual: ConditionClinicalStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input MedicationStatementFilterId {
@@ -1991,6 +2056,8 @@ input MedicationStatementFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input MedicationStatementFilterInput {
@@ -2098,6 +2165,8 @@ input GoalFilterSubjectId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterStatusReason {
@@ -2109,6 +2178,9 @@ input GoalFilterStatusReason {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -2122,6 +2194,8 @@ input GoalFilterStatusDate {
   greaterThan: Date
   lessThanOrEqual: Date
   greaterThanOrEqual: Date
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterDueDate {
@@ -2133,6 +2207,8 @@ input GoalFilterDueDate {
   greaterThan: Date
   lessThanOrEqual: Date
   greaterThanOrEqual: Date
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterStartDate {
@@ -2144,6 +2220,8 @@ input GoalFilterStartDate {
   greaterThan: Date
   lessThanOrEqual: Date
   greaterThanOrEqual: Date
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterPriority {
@@ -2155,6 +2233,8 @@ input GoalFilterPriority {
   greaterThan: GoalPriority
   lessThanOrEqual: GoalPriority
   greaterThanOrEqual: GoalPriority
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterContinuous {
@@ -2166,6 +2246,8 @@ input GoalFilterContinuous {
   greaterThan: Boolean
   lessThanOrEqual: Boolean
   greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterAchievementStatus {
@@ -2177,6 +2259,8 @@ input GoalFilterAchievementStatus {
   greaterThan: GoalAchievementStatus
   lessThanOrEqual: GoalAchievementStatus
   greaterThanOrEqual: GoalAchievementStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterLifecycleStatus {
@@ -2188,6 +2272,8 @@ input GoalFilterLifecycleStatus {
   greaterThan: GoalLifecycleStatus
   lessThanOrEqual: GoalLifecycleStatus
   greaterThanOrEqual: GoalLifecycleStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterId {
@@ -2199,6 +2285,8 @@ input GoalFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input GoalFilterInput {
@@ -2357,6 +2445,8 @@ input ConditionFilterSubjectId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ConditionFilterVerificationStatus {
@@ -2368,6 +2458,8 @@ input ConditionFilterVerificationStatus {
   greaterThan: ConditionVerificationStatus
   lessThanOrEqual: ConditionVerificationStatus
   greaterThanOrEqual: ConditionVerificationStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ConditionFilterClinicalStatus {
@@ -2379,6 +2471,8 @@ input ConditionFilterClinicalStatus {
   greaterThan: ConditionClinicalStatus
   lessThanOrEqual: ConditionClinicalStatus
   greaterThanOrEqual: ConditionClinicalStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ConditionFilterId {
@@ -2390,6 +2484,8 @@ input ConditionFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ConditionFilterInput {
@@ -2507,6 +2603,8 @@ input AllergyIntoleranceFilterPatientId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input AllergyIntoleranceFilterType {
@@ -2518,6 +2616,8 @@ input AllergyIntoleranceFilterType {
   greaterThan: AllergyIntoleranceType
   lessThanOrEqual: AllergyIntoleranceType
   greaterThanOrEqual: AllergyIntoleranceType
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input AllergyIntoleranceFilterVerificationStatus {
@@ -2529,6 +2629,8 @@ input AllergyIntoleranceFilterVerificationStatus {
   greaterThan: AllergyIntoleranceVerificationStatus
   lessThanOrEqual: AllergyIntoleranceVerificationStatus
   greaterThanOrEqual: AllergyIntoleranceVerificationStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input AllergyIntoleranceFilterClinicalStatus {
@@ -2540,6 +2642,8 @@ input AllergyIntoleranceFilterClinicalStatus {
   greaterThan: AllergyIntoleranceClinicalStatus
   lessThanOrEqual: AllergyIntoleranceClinicalStatus
   greaterThanOrEqual: AllergyIntoleranceClinicalStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input AllergyIntoleranceFilterId {
@@ -2551,6 +2655,8 @@ input AllergyIntoleranceFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input AllergyIntoleranceFilterInput {
@@ -2724,6 +2830,8 @@ input SubscriptionFilterPlanId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input SubscriptionFilterSubscriberId {
@@ -2735,6 +2843,8 @@ input SubscriptionFilterSubscriberId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input SubscriptionFilterState {
@@ -2746,6 +2856,8 @@ input SubscriptionFilterState {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input SubscriptionFilterStartDate {
@@ -2757,6 +2869,8 @@ input SubscriptionFilterStartDate {
   greaterThan: Date
   lessThanOrEqual: Date
   greaterThanOrEqual: Date
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input SubscriptionFilterId {
@@ -2768,6 +2882,8 @@ input SubscriptionFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input SubscriptionFilterInput {
@@ -2850,6 +2966,8 @@ input SubscriptionPlanFilterPriceAmount {
   greaterThan: MoneyInput
   lessThanOrEqual: MoneyInput
   greaterThanOrEqual: MoneyInput
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input SubscriptionPlanFilterName {
@@ -2861,6 +2979,9 @@ input SubscriptionPlanFilterName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -2874,6 +2995,8 @@ input SubscriptionPlanFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input SubscriptionPlanFilterInput {
@@ -2939,6 +3062,8 @@ input DesignationFilterConceptId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input DesignationFilterUse {
@@ -2950,6 +3075,9 @@ input DesignationFilterUse {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -2963,6 +3091,9 @@ input DesignationFilterValue {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -2976,6 +3107,9 @@ input DesignationFilterLanguage {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -2989,6 +3123,8 @@ input DesignationFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input DesignationFilterInput {
@@ -3069,6 +3205,8 @@ input ConceptFilterCodeSystemId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ConceptFilterActive {
@@ -3080,6 +3218,8 @@ input ConceptFilterActive {
   greaterThan: Boolean
   lessThanOrEqual: Boolean
   greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ConceptFilterCode {
@@ -3091,6 +3231,9 @@ input ConceptFilterCode {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -3104,6 +3247,8 @@ input ConceptFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input ConceptFilterInput {
@@ -3174,6 +3319,8 @@ input CodeSystemFilterContent {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input CodeSystemFilterDescription {
@@ -3185,6 +3332,9 @@ input CodeSystemFilterDescription {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -3198,6 +3348,8 @@ input CodeSystemFilterStatus {
   greaterThan: PublicationStatus
   lessThanOrEqual: PublicationStatus
   greaterThanOrEqual: PublicationStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input CodeSystemFilterTitle {
@@ -3209,6 +3361,9 @@ input CodeSystemFilterTitle {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -3222,6 +3377,9 @@ input CodeSystemFilterName {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -3235,6 +3393,9 @@ input CodeSystemFilterVersion {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -3248,6 +3409,9 @@ input CodeSystemFilterUrl {
   greaterThan: String
   lessThanOrEqual: String
   greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
   like: String
   ilike: String
 }
@@ -3261,6 +3425,8 @@ input CodeSystemFilterId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input CodeSystemFilterInput {

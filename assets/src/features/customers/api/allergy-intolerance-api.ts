@@ -2,6 +2,7 @@ import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import type { TerminologyTag } from "@/shared/types/terminology";
 
 import type { AnnotationInput } from "./observations-api";
 
@@ -83,8 +84,8 @@ export type AllergyIntoleranceItem = NonNullable<
 
 /** Form data for the allergies and intolerances onboarding step. */
 export interface AllergiesFormData {
-  allergies: string[];
-  intolerances: string[];
+  allergies: TerminologyTag[];
+  intolerances: TerminologyTag[];
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
@@ -117,7 +118,7 @@ export async function createAllergiesAndIntolerances(
   patientId: string,
   organizationId: string,
 ): Promise<void> {
-  const makeRecord = (type: "ALLERGY" | "INTOLERANCE", tag: string) =>
+  const makeRecord = (type: "ALLERGY" | "INTOLERANCE", tag: TerminologyTag) =>
     (async () => {
       const result = await requestGraphql({
         document: CreateAllergyIntoleranceMutation,
@@ -126,7 +127,19 @@ export async function createAllergiesAndIntolerances(
             type,
             clinicalStatus: "ACTIVE",
             verificationStatus: "CONFIRMED",
-            code: { text: tag },
+            code: tag.coding
+              ? {
+                  text: tag.label,
+                  coding: [
+                    {
+                      system: tag.coding.system,
+                      code: tag.coding.code,
+                      version: tag.coding.version ?? undefined,
+                      display: tag.coding.display ?? tag.label,
+                    },
+                  ],
+                }
+              : { text: tag.label },
             patientId,
           },
         },
