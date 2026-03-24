@@ -3,7 +3,7 @@ import { useId, useRef, useState } from "react";
 
 import type { PlanFormData } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
-import { type DurationUnit, durationUnits } from "@/shared/types/schema-enums";
+import { supportedDurationUnits, type DurationUnit } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import { DialogFooter } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
@@ -29,7 +29,7 @@ interface PlansStepProps {
   readonly onBack: () => void;
 }
 
-const DURATION_UNITS = durationUnits.map((unit) => ({
+const DURATION_UNITS = supportedDurationUnits.map((unit) => ({
   value: unit,
   label: getDurationUnitLabel(unit),
 }));
