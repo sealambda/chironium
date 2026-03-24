@@ -16,6 +16,7 @@ import { SubscriptionPlansTable } from "@/features/org/ui/subscription-plans-tab
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
+import { Loading } from "@/shared/ui/loading";
 import { EmptyState } from "@/shared/ui/empty-state";
 
 const PLANS_QUERY_KEY = "subscription-plans";
@@ -65,34 +66,12 @@ export function SubscriptionsPage() {
     };
   }, [plansError, plansLoading, selectedOrg, setHeaderContent]);
 
-  if (orgsLoading) {
-    return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">{m.common_loading()}</div>
-        </div>
-      </div>
-    );
+  if (orgsLoading || (selectedOrg && plansLoading && !plans.length)) {
+    return <Loading />;
   }
 
   if (!selectedOrg) {
-    return (
-      <EmptyState
-        icon={Building2}
-        title={m.no_org()}
-        description={m.no_org_desc()}
-      />
-    );
-  }
-
-  if (plansLoading && !plans.length) {
-    return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">{m.common_loading()}</div>
-        </div>
-      </div>
-    );
+    return <EmptyState icon={Building2} title={m.no_org()} description={m.no_org_desc()} />;
   }
 
   if (plansError) {
