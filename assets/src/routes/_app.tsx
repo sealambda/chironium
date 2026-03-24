@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import { OrgStoreSync } from "@/features/org/store/org-store-sync";
+import { PendingInvitationsDialog } from "@/features/org/ui/pending-invitations-dialog";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import * as m from "@/paraglide/messages";
 import { AppShell } from "@/shared/layout/app-shell";
@@ -69,6 +70,7 @@ function AppLayout() {
   return (
     <>
       <OrgStoreSync />
+      <PendingInvitationsDialog />
       <AppShell>
         <AppContent />
       </AppShell>

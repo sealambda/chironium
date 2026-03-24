@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { Settings, Users } from "lucide-react";
 import type { ComponentType } from "react";
 
 import * as m from "@/paraglide/messages";
@@ -14,5 +14,10 @@ export const navItems: NavItem[] = [
     to: "/customers",
     label: m.nav_customers,
     icon: Users,
+  },
+  {
+    to: "/settings",
+    label: m.nav_settings,
+    icon: Settings,
   },
 ];
