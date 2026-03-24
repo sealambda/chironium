@@ -176,14 +176,6 @@ export function FoodPreferencesCard({
 
   const isEmpty = included.length === 0 && excluded.length === 0;
 
-  const viewHistoryLink = (
-    <CardHistoryLinkFooter
-      customerId={personId}
-      to="/customers/$customerId/food-preferences"
-      label={m.food_preferences_view_history()}
-    />
-  );
-
   if (isEmpty) {
     return (
       <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
@@ -199,7 +191,6 @@ export function FoodPreferencesCard({
             <p className="text-foreground/65 text-xs">{m.food_preferences_empty_desc()}</p>
           </div>
         </div>
-        {viewHistoryLink}
       </div>
     );
   }
@@ -229,7 +220,11 @@ export function FoodPreferencesCard({
         />
       </div>
 
-      {viewHistoryLink}
+      <CardHistoryLinkFooter
+        customerId={personId}
+        to="/customers/$customerId/food-preferences"
+        label={m.food_preferences_view_history()}
+      />
     </div>
   );
 }

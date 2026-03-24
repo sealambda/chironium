@@ -1,6 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { differenceInYears, parseISO } from "date-fns";
-import { ChevronRight, Target } from "lucide-react";
+import { Target } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { Person } from "@/features/customers/api/persons-api";
@@ -17,6 +16,8 @@ import { getInitials } from "@/shared/utils/name-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
 import { getSubscriptionBadgeMetadata } from "@/shared/utils/subscriptions-utils";
 import { cn } from "@/shared/utils/utils";
+
+import { CardHistoryLinkFooter } from "./card-footer";
 
 interface PersonProfileCardProps {
   person: Person;
@@ -177,15 +178,12 @@ export function PersonProfileCard({
 
           {goalContent}
 
-          {patientId ? (
-            <Link
+          {patientId && lastGoal ? (
+            <CardHistoryLinkFooter
+              customerId={personId}
               to="/customers/$customerId/goals"
-              params={{ customerId: personId }}
-              className="mt-auto inline-flex items-center gap-1.5 text-foreground/70 text-sm transition-colors hover:text-foreground"
-            >
-              <span>{m.goals_view_history()}</span>
-              <ChevronRight className="size-4" />
-            </Link>
+              label={m.goals_view_history()}
+            />
           ) : null}
         </div>
       </div>
