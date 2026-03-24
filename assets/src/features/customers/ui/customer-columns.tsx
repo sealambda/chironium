@@ -31,11 +31,17 @@ export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
   {
     id: "plan",
     enableSorting: false,
-    accessorFn: (row) => durationToMonths(row.subscription?.plan?.duration) ?? -1,
+    accessorFn: (row) => {
+      const duration = row.subscription?.plan?.duration;
+      if (!duration?.value || !duration?.code) {
+        return -1;
+      }
+      return durationToMonths(duration);
+    },
     header: () => m.customers_col_plan(),
     cell: ({ row }) => {
       const duration = row.original.subscription?.plan?.duration;
-      const months = durationToMonths(duration);
+      const months = duration?.value && duration?.code ? durationToMonths(duration) : null;
 
       return (
         <span className="text-muted-foreground">
@@ -50,7 +56,9 @@ export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
     header: () => <span className="block min-w-56">{m.customers_col_progress()}</span>,
     cell: ({ row }) => {
       const { subscription } = row.original;
-      const months = subscription ? durationToMonths(subscription.plan?.duration) : null;
+      const duration = subscription?.plan?.duration;
+      const months =
+        subscription && duration?.value && duration?.code ? durationToMonths(duration) : null;
       const endDate =
         subscription && months
           ? formatISO(addMonths(new Date(subscription.startDate), months), {
