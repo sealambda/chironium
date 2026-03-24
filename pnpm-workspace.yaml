@@ -4,3 +4,6 @@ packages:
   - deps/phoenix
   - deps/phoenix_html
   - deps/phoenix_live_view
+
+catalog:
+  '@biomejs/biome': 2.4.2
