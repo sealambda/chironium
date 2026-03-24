@@ -21,26 +21,20 @@ const nameField = z
 export const personSchema = z.object({
   givenName: nameField,
   familyName: nameField,
-  birthDate: z.string().default(""),
-  gender: z.preprocess(
-    (value) => (value === "" ? undefined : value),
-    z.enum(["MALE", "FEMALE", "OTHER", "UNKNOWN"]).optional(),
-  ),
+  birthDate: z.string(),
+  gender: z.union([z.enum(["MALE", "FEMALE", "OTHER", "UNKNOWN"]), z.literal("")]),
   phone: z
     .string()
-    .default("")
     .refine((v) => !v || /^\+\d{7,15}$/.test(v), { message: m.validation_phone_format() }),
-  email: z
-    .union([z.string().email({ message: m.validation_email_format() }), z.literal("")])
-    .default(""),
-  instagram: z.string().default(""),
+  email: z.union([z.string().email({ message: m.validation_email_format() }), z.literal("")]),
+  instagram: z.string(),
 });
 
 export type PersonSchemaData = z.infer<typeof personSchema>;
 
 export const subscriptionSchema = z.object({
   planId: z.string().min(1, { message: m.validation_plan_required() }),
-  startDate: z.string().default(""),
+  startDate: z.string(),
 });
 
 export type SubscriptionSchemaData = z.infer<typeof subscriptionSchema>;
@@ -52,9 +46,9 @@ export const objectiveSchema = z.object({
 export type ObjectiveSchemaData = z.infer<typeof objectiveSchema>;
 
 export const menstrualCycleSchema = z.object({
-  startDate: z.string().default(""),
-  endDate: z.string().default(""),
-  notes: z.string().default(""),
+  startDate: z.string(),
+  endDate: z.string(),
+  notes: z.string(),
 });
 
 export type MenstrualCycleSchemaData = z.infer<typeof menstrualCycleSchema>;

@@ -1,3 +1,5 @@
+import type { SubscriptionFormData } from "@/features/customers/model/subscription-form";
+
 import { type AllergiesFormData, createAllergiesAndIntolerances } from "./allergy-intolerance-api";
 import { type AnthropometryFormData, logAnthropometry } from "./anthropometry-api";
 import { createFoodObservations, type FoodFormData } from "./food-preferences-api";
@@ -9,7 +11,7 @@ import {
   type MenstrualCycleFormData,
 } from "./observations-api";
 import { createPatientWithPerson, type PersonFormData } from "./patients-api";
-import { createSubscription, type SubscriptionFormData } from "./subscriptions-api";
+import { createSubscription } from "./subscriptions-api";
 
 // ─── Types ───────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
-import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 
 import type { AnnotationInput } from "./observations-api";
 
@@ -291,7 +291,7 @@ export async function fetchFoodPreferences(
   ): string[] =>
     results.flatMap((obs) => {
       if ((obs.valueCodeableConcept?.coding?.length ?? 0) > 0) {
-        return obs.valueCodeableConcept!.coding!.flatMap((c) =>
+        return obs.valueCodeableConcept?.coding?.flatMap((c) =>
           c.display ? [c.display.trim()] : [],
         );
       }

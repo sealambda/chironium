@@ -1,7 +1,7 @@
-import { Bold, Heading, Italic, List, ListOrdered } from "lucide-react";
 import { Markdown } from "@tiptap/markdown";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { Bold, Heading, Italic, List, ListOrdered } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { Button } from "@/shared/ui/button";
@@ -113,7 +113,7 @@ export function MarkdownEditor({
   };
 
   return (
-    <div className={className}>
+    <div className={cn(className)}>
       <div className="flex gap-0.5 rounded-t-md border border-input border-b-0 bg-muted/30 px-1.5 py-1">
         {ACTIONS.map(({ action, icon: Icon, label }) => (
           <Button

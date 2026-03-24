@@ -1,7 +1,7 @@
+import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
-import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 
 import type { AnnotationInput } from "./observations-api";
 

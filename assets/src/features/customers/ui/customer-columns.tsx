@@ -6,8 +6,8 @@ import * as m from "@/paraglide/messages";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
-import { durationToMonths } from "@/shared/utils/duration-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
+import { durationToMonths, formatDurationWithUnit } from "@/shared/utils/subscriptions-utils";
 
 export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
   {
@@ -34,8 +34,14 @@ export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
     accessorFn: (row) => durationToMonths(row.subscription?.plan?.duration) ?? -1,
     header: () => m.customers_col_plan(),
     cell: ({ row }) => {
-      const months = durationToMonths(row.original.subscription?.plan?.duration);
-      return <span className="text-muted-foreground">{months ? `${months} mo.` : "—"}</span>;
+      const duration = row.original.subscription?.plan?.duration;
+      const months = durationToMonths(duration);
+
+      return (
+        <span className="text-muted-foreground">
+          {months ? formatDurationWithUnit(months, "MO") : "—"}
+        </span>
+      );
     },
   },
   {

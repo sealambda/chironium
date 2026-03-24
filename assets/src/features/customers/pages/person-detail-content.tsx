@@ -6,7 +6,6 @@ import type { usePersonDetail } from "@/features/customers/hooks/use-person-deta
 import { AllergyIntoleranceCard } from "@/features/customers/ui/detail/allergy-intolerance-card";
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
 import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-preferences-card";
-import { GoalsCard } from "@/features/customers/ui/detail/goals-card";
 import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
 import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
@@ -51,19 +50,19 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      {person ? <PersonProfileCard person={person} /> : null}
+      {person ? (
+        <PersonProfileCard
+          person={person}
+          personId={personId}
+          patientId={patientId}
+          goals={goals.data ?? []}
+          currentSubscription={detail.currentSubscription}
+          isGoalsLoading={goals.isLoading}
+        />
+      ) : null}
 
       {hasPatient ? (
         <>
-          <div className="mx-auto w-full max-w-3xl">
-            <GoalsCard
-              personId={personId}
-              patientId={patientId}
-              goals={goals.data ?? []}
-              isLoading={goals.isLoading}
-            />
-          </div>
-
           <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
             <AnthropometryCard
               personId={personId}

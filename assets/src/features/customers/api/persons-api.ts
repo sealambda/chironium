@@ -1,9 +1,9 @@
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import type { SubscriptionListItem } from "@/shared/types/subscriptions";
 
 import type { PersonFormData } from "./patients-api";
-import type { SubscriptionListItem } from "./subscriptions-api";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 

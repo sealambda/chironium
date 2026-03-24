@@ -1,7 +1,6 @@
-import type { ReactNode } from "react";
-
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { cn } from "@/shared/utils/utils";
 

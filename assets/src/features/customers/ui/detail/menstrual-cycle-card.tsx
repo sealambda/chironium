@@ -92,16 +92,16 @@ export function MenstrualCycleCard({ cycle, isLoading }: Readonly<MenstrualCycle
   return (
     <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-end gap-2">
-        <h3 className="font-bold text-foreground text-xl uppercase tracking-wide leading-none">
+        <h3 className="font-bold text-foreground text-xl uppercase leading-none tracking-wide">
           {m.menstrual_cycle_last_cycle()}
         </h3>
         <span className="text-foreground/50 text-sm leading-none">{duration}</span>
       </div>
 
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-center lg:flex-nowrap">
-        <p className="font-medium text-foreground text-2xl">{start}</p>
+        <p className="font-medium text-2xl text-foreground">{start}</p>
         <MoveRight className="size-9 text-foreground/40" aria-hidden="true" />
-        <p className="font-medium text-foreground text-2xl">{end}</p>
+        <p className="font-medium text-2xl text-foreground">{end}</p>
       </div>
 
       <p className="mt-7 text-foreground/70 text-xl italic leading-relaxed">"{note}"</p>

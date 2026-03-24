@@ -35,11 +35,14 @@ export interface AnthropometryValuesInput {
 }
 
 interface AnthropometryFormApi {
-  Field: <TName extends keyof AnthropometryFormValues>(props: {
-    name: TName;
-    validators?: unknown;
+  // TanStack Form's render helper receives field config plus a render function child.
+  // This narrow shape avoids `any` while matching current usage.
+  // biome-ignore lint/style/useNamingConvention: TanStack Form API uses the Field render helper.
+  Field: (props: {
+    name: string;
+    validators?: { onSubmit: ({ value }: { value: string }) => string | undefined };
     children: (field: AnyFieldApi) => ReactNode;
-  }) => ReactNode;
+  }) => ReactNode | Promise<ReactNode>;
 }
 type FieldName = keyof Omit<AnthropometryFormValues, "effectiveDateTime" | "effectiveTime">;
 
@@ -285,7 +288,7 @@ export function AnthropometryFormFields({
                 />
               )}
             </form.Field>
-            {!withSteppers ? (
+            {withSteppers ? null : (
               <form.Field name="waistCm" validators={getValidators("waistCm")}>
                 {(field: AnyFieldApi) => (
                   <NumericInputField
@@ -297,7 +300,7 @@ export function AnthropometryFormFields({
                   />
                 )}
               </form.Field>
-            ) : null}
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

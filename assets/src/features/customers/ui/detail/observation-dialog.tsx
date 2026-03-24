@@ -44,6 +44,7 @@ export function ObservationDialog({
   trigger,
 }: Readonly<ObservationDialogProps>) {
   const hasContent = body.trim();
+  const submitButtonLabel = saving ? m.common_saving() : submitLabel;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,7 +70,7 @@ export function ObservationDialog({
             {m.common_cancel()}
           </Button>
           <Button onClick={() => void onSubmit()} disabled={saving || !hasContent}>
-            {saving ? m.common_saving() : submitLabel}
+            {submitButtonLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

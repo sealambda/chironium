@@ -5,11 +5,12 @@ import { toast } from "sonner";
 
 import { createFoodObservations } from "@/features/customers/api/food-preferences-api";
 import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
+import { TagColumn } from "@/features/customers/ui/detail/tag-column";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
-import { CardAddButton } from "@/shared/ui/card-add-button";
 import { Button } from "@/shared/ui/button";
+import { CardAddButton } from "@/shared/ui/card-add-button";
 import {
   Dialog,
   DialogContent,
@@ -29,38 +30,6 @@ interface FoodPreferencesCardProps {
   included: string[];
   excluded: string[];
   isLoading?: boolean;
-}
-
-// ─── Tag column ─────────────────────────────────────────────────────
-
-interface TagColumnProps {
-  label: string;
-  tags: string[];
-  tagClassName: string;
-  emptyText: string;
-  className?: string;
-}
-
-function TagColumn({ label, tags, tagClassName, emptyText, className }: Readonly<TagColumnProps>) {
-  return (
-    <div className={`space-y-3 ${className ?? ""}`}>
-      <p className="font-bold text-foreground text-xl uppercase tracking-wide">{label}</p>
-      {tags.length === 0 ? (
-        <p className="text-foreground/40 text-sm italic">{emptyText}</p>
-      ) : (
-        <div className="flex flex-wrap gap-1.5">
-          {tags.map((tag, i) => (
-            <span
-              key={`${tag}-${i}`}
-              className={`inline-flex items-center rounded-full border px-3 py-1 text-sm ${tagClassName}`}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─── Add dialog ──────────────────────────────────────────────────────
@@ -94,7 +63,7 @@ function AddFoodPreferenceDialog({
   const handleSubmit = async () => {
     if (!hasContent || !patientId) {
       if (!patientId) {
-        toast.error(m.customers_detail_missing_patient());
+        toast.error(m.onboarding_error());
       }
       return;
     }
@@ -106,6 +75,7 @@ function AddFoodPreferenceDialog({
         patientId,
         selectedOrg?.id ?? "",
         user?.id ?? "",
+        user?.name ?? "",
       );
 
       await queryClient.invalidateQueries({

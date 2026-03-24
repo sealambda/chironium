@@ -1,7 +1,8 @@
-import type { ComponentPropsWithoutRef } from "react";
 import { PlusIcon } from "lucide-react";
+import type { ComponentPropsWithoutRef } from "react";
 
 import { Button } from "@/shared/ui/button";
+import { cn } from "@/shared/utils/utils";
 
 interface CardAddButtonProps extends Omit<ComponentPropsWithoutRef<typeof Button>, "children"> {
   label: string;
@@ -12,7 +13,7 @@ export function CardAddButton({ label, className, ...props }: Readonly<CardAddBu
     <Button
       variant="outline"
       size="sm"
-      className={className}
+      className={cn(className)}
       aria-label={label}
       type="button"
       {...props}

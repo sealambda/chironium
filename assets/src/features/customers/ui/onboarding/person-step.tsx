@@ -59,12 +59,11 @@ export function PersonStep({
       givenName: initialData?.givenName ?? "",
       familyName: initialData?.familyName ?? "",
       birthDate: initialData?.birthDate ?? "",
-      gender: (initialData?.gender ?? "") as AdministrativeGender | "",
+      gender: initialData?.gender ?? "",
       phone: initialData?.phone ?? "",
       email: initialData?.email ?? "",
       instagram: initialData?.instagram ?? "",
     },
-    // @ts-expect-error ZodDefault input type includes undefined, TanStack Form expects exact match
     validators: { onSubmit: personSchema },
     onSubmit: ({ value }) => {
       onSubmit({

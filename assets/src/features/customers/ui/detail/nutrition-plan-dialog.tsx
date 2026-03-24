@@ -38,23 +38,27 @@ function computeMacroPct(grams: number, kcalPerG: number, totalKcal: number): nu
 
 // ─── Zod schema ─────────────────────────────────────────────────────
 
-const positiveInt = z.coerce
-  .number({ message: m.validation_positive_number() })
-  .int({ message: m.validation_positive_number() })
-  .positive({ message: m.validation_positive_number() });
+const positiveIntString = z
+  .string()
+  .trim()
+  .refine((value) => /^\d+$/.test(value) && Number(value) > 0, {
+    message: m.validation_positive_number(),
+  });
 
 const nutritionPlanSchema = z
   .object({
-    targetKcal: positiveInt,
-    proteinG: positiveInt,
-    carbsG: positiveInt,
-    fatG: positiveInt,
+    targetKcal: positiveIntString,
+    proteinG: positiveIntString,
+    carbsG: positiveIntString,
+    fatG: positiveIntString,
   })
   .refine(
     (d) => {
       const macroKcal =
-        d.proteinG * KCAL_PER_G.protein + d.carbsG * KCAL_PER_G.carbs + d.fatG * KCAL_PER_G.fat;
-      return Math.abs(macroKcal - d.targetKcal) <= TOLERANCE_KCAL;
+        Number(d.proteinG) * KCAL_PER_G.protein +
+        Number(d.carbsG) * KCAL_PER_G.carbs +
+        Number(d.fatG) * KCAL_PER_G.fat;
+      return Math.abs(macroKcal - Number(d.targetKcal)) <= TOLERANCE_KCAL;
     },
     { message: m.validation_macro_balance() },
   );
@@ -70,7 +74,7 @@ function IntegerField({
   incrementDisabled,
   locked,
   onToggleLock,
-}: {
+}: Readonly<{
   field: {
     state: { value: string; meta: { errors: unknown[] } };
     handleChange: (v: string) => void;
@@ -83,7 +87,7 @@ function IntegerField({
   incrementDisabled?: boolean;
   locked?: boolean;
   onToggleLock?: () => void;
-}) {
+}>) {
   const numValue = field.state.value ? Number(field.state.value) : 0;
 
   const handleIncrement = () => {
@@ -305,7 +309,7 @@ export function NutritionPlanDialog({
   birthDate,
   gender,
   children,
-}: NutritionPlanDialogProps) {
+}: Readonly<NutritionPlanDialogProps>) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [locked, setLocked] = useState<Set<string>>(new Set());
@@ -362,7 +366,12 @@ export function NutritionPlanDialog({
         return;
       }
 
-      const data: NutritionPlanFormData = { targetKcal, proteinG, carbsG, fatG };
+      const data: NutritionPlanFormData = {
+        targetKcal,
+        proteinG,
+        carbsG,
+        fatG,
+      };
 
       setSaving(true);
       try {
@@ -438,7 +447,9 @@ export function NutritionPlanDialog({
                   ) : (
                     <span
                       className="cursor-default font-medium text-neutral-400 text-xs"
-                      title={m.nutrition_bmr_missing_data({ fields: missingBmrFields.join(", ") })}
+                      title={m.nutrition_bmr_missing_data({
+                        fields: missingBmrFields.join(", "),
+                      })}
                     >
                       {m.nutrition_set_bmr()}
                     </span>

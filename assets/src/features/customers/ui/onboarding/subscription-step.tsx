@@ -1,13 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 
-import {
-  fetchSubscriptionPlans,
-  type SubscriptionFormData,
-  type SubscriptionPlan,
-} from "@/features/customers/api/subscriptions-api";
+import { fetchSubscriptionPlans } from "@/features/customers/api/subscriptions-api";
 import { subscriptionSchema } from "@/features/customers/model/onboarding-schemas";
+import type { SubscriptionFormData } from "@/features/customers/model/subscription-form";
 import * as m from "@/paraglide/messages";
+import type { SubscriptionPlan } from "@/shared/types/subscriptions";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import {
@@ -19,6 +17,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { getTranslatedPlanLabel } from "@/shared/utils/subscriptions-utils";
 
 import { StepLayout } from "./step-layout";
 
@@ -28,32 +27,6 @@ interface SubscriptionStepProps {
   readonly onSubmit: (data: SubscriptionFormData) => void;
   readonly onBack: () => void;
   readonly onSaveDraft?: (data: SubscriptionFormData) => void;
-}
-
-function ucumLabel(code: string): string {
-  switch (code) {
-    case "MO":
-      return m.duration_months();
-    case "A":
-      return m.duration_years();
-    case "WK":
-      return m.duration_weeks();
-    case "D":
-      return m.duration_days();
-    default:
-      return code;
-  }
-}
-
-function formatPlanLabel(plan: SubscriptionPlan): string {
-  const parts: string[] = [];
-  if (plan.name) {
-    parts.push(plan.name);
-  }
-  if (plan.duration?.value && plan.duration?.code) {
-    parts.push(`(${plan.duration.value} ${ucumLabel(plan.duration.code)})`);
-  }
-  return parts.join(" ") || plan.id;
 }
 
 interface PlanSelectorProps {
@@ -78,7 +51,7 @@ function PlanSelector({ plans, loading, value, onChange }: PlanSelectorProps) {
       onValueChange={(nextValue) => onChange(nextValue ?? "")}
       items={plans.map((plan) => ({
         value: plan.id,
-        label: formatPlanLabel(plan),
+        label: getTranslatedPlanLabel(plan),
       }))}
     >
       <SelectTrigger className="w-full">
@@ -88,7 +61,7 @@ function PlanSelector({ plans, loading, value, onChange }: PlanSelectorProps) {
         <SelectContent>
           {plans.map((plan) => (
             <SelectItem key={plan.id} value={plan.id}>
-              {formatPlanLabel(plan)}
+              {getTranslatedPlanLabel(plan)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -118,7 +91,6 @@ export function SubscriptionStep({
       planId: initialData?.planId ?? "",
       startDate: initialData?.startDate ?? new Date().toISOString().split("T")[0],
     },
-    // @ts-expect-error ZodDefault input type includes undefined, TanStack Form expects exact match
     validators: { onSubmit: subscriptionSchema },
     onSubmit: ({ value }) => {
       onSubmit({

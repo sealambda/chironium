@@ -17,11 +17,11 @@ import {
   mergePersonsWithSubscriptions,
   type PersonListSortOption,
 } from "@/features/customers/api/persons-api";
+import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import {
   getStoredPersonSortPreference,
   storePersonSortPreference,
 } from "@/features/customers/model/person-sort-preferences";
-import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
@@ -166,7 +166,7 @@ export function CustomersPage() {
     <div className="space-y-4 pt-7">
       <header className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
+          <h1 className="font-bold text-foreground text-xl uppercase tracking-wide">
             {m.customers_title()}
           </h1>
           <span className="text-muted-foreground text-sm">({customers.length})</span>

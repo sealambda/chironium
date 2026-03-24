@@ -1,6 +1,6 @@
 import {
-  personListSortOption,
   type PersonListSortOption,
+  personListSortOption,
 } from "@/features/customers/api/persons-api";
 
 const PERSON_SORT_PREFERENCE_KEY = "chironium_customer_sort";
