@@ -1,9 +1,11 @@
 import { useState } from "react";
 
 import type { AllergiesFormData } from "@/features/customers/api/allergy-intolerance-api";
+import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import type { TerminologyTag } from "@/shared/types/terminology";
 import { FieldGroup } from "@/shared/ui/field";
-import { TagInput } from "@/shared/ui/tag-input";
+import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 
 import { StepLayout } from "./step-layout";
 
@@ -19,8 +21,11 @@ interface AllergiesStepProps {
  * Both fields are optional — the user can skip this step.
  */
 export function AllergiesStep({ initialData, onSubmit, onBack, onSaveDraft }: AllergiesStepProps) {
-  const [allergies, setAllergies] = useState<string[]>(initialData?.allergies ?? []);
-  const [intolerances, setIntolerances] = useState<string[]>(initialData?.intolerances ?? []);
+  const { selectedOrg } = useOrg();
+  const [allergies, setAllergies] = useState<TerminologyTag[]>(initialData?.allergies ?? []);
+  const [intolerances, setIntolerances] = useState<TerminologyTag[]>(
+    initialData?.intolerances ?? [],
+  );
   const [allergiesPending, setAllergiesPending] = useState(false);
   const [intolerancesPending, setIntolerancesPending] = useState(false);
   const [pendingError, setPendingError] = useState<string | null>(null);
@@ -47,12 +52,13 @@ export function AllergiesStep({ initialData, onSubmit, onBack, onSaveDraft }: Al
       onBack={handleBack}
     >
       <FieldGroup>
-        <TagInput
+        <TerminologyTagInput
           label={m.field_allergies()}
           placeholder={m.field_allergies_placeholder()}
           tags={allergies}
           onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
           onRemove={(index) => setAllergies((prev) => prev.filter((_, i) => i !== index))}
+          organizationId={selectedOrg?.id ?? ""}
           addLabel={m.common_add()}
           onPendingChange={(pending) => {
             setAllergiesPending(pending);
@@ -62,12 +68,13 @@ export function AllergiesStep({ initialData, onSubmit, onBack, onSaveDraft }: Al
           }}
           error={allergiesPending && pendingError ? pendingError : undefined}
         />
-        <TagInput
+        <TerminologyTagInput
           label={m.field_intolerances()}
           placeholder={m.field_intolerances_placeholder()}
           tags={intolerances}
           onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
           onRemove={(index) => setIntolerances((prev) => prev.filter((_, i) => i !== index))}
+          organizationId={selectedOrg?.id ?? ""}
           addLabel={m.common_add()}
           onPendingChange={(pending) => {
             setIntolerancesPending(pending);

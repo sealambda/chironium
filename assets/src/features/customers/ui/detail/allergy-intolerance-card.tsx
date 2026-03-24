@@ -11,6 +11,7 @@ import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-foote
 import { TagColumn } from "@/features/customers/ui/detail/tag-column";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import type { TerminologyTag } from "@/shared/types/terminology";
 import { Button } from "@/shared/ui/button";
 import { CardAddButton } from "@/shared/ui/card-add-button";
 import {
@@ -22,7 +23,7 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { TagInput } from "@/shared/ui/tag-input";
+import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -59,8 +60,8 @@ function AddAllergyIntoleranceDialog({
 }: Readonly<AddAllergyIntoleranceDialogProps>) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [allergies, setAllergies] = useState<string[]>([]);
-  const [intolerances, setIntolerances] = useState<string[]>([]);
+  const [allergies, setAllergies] = useState<TerminologyTag[]>([]);
+  const [intolerances, setIntolerances] = useState<TerminologyTag[]>([]);
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
@@ -113,21 +114,23 @@ function AddAllergyIntoleranceDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <TagInput
+          <TerminologyTagInput
             label={m.allergy_intolerance_allergies_label()}
             placeholder={m.field_allergies_placeholder()}
             tags={allergies}
             onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
             onRemove={(i) => setAllergies((prev) => prev.filter((_, idx) => idx !== i))}
+            organizationId={selectedOrg?.id ?? ""}
             addLabel={m.common_add()}
             disabled={saving}
           />
-          <TagInput
+          <TerminologyTagInput
             label={m.allergy_intolerance_intolerances_label()}
             placeholder={m.field_intolerances_placeholder()}
             tags={intolerances}
             onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
             onRemove={(i) => setIntolerances((prev) => prev.filter((_, idx) => idx !== i))}
+            organizationId={selectedOrg?.id ?? ""}
             addLabel={m.common_add()}
             disabled={saving}
           />

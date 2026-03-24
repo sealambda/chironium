@@ -31,7 +31,7 @@ defmodule Chironium.Datatypes.Coding do
       end)
     end
 
-    defp resolve_display(%{system: system, code: code, version: version} = record, locale)
+    defp resolve_display(%{system: system, code: code, version: version}, locale)
          when is_binary(system) and is_binary(code) do
       case Service.resolve_display(system, code, version, locale) do
         {:ok, display} ->
@@ -42,11 +42,11 @@ defmodule Chironium.Datatypes.Coding do
             "Failed to resolve display for #{system}/#{code}/#{version} with locale #{locale}: #{reason}"
           )
 
-          record
+          nil
       end
     end
 
-    defp resolve_display(record, _locale), do: record
+    defp resolve_display(_record, _locale), do: nil
 
     defp extract_locale(%{arguments: %{locale: locale}}) when is_binary(locale), do: locale
 
