@@ -4,16 +4,12 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-}
-
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come before the name
@@ -21,8 +17,8 @@ input PractitionerNameInput {
   """
   prefix: [String!]
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -200,8 +196,8 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come before the name
@@ -209,8 +205,8 @@ input PersonNameInput {
   """
   prefix: [String!]
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -557,6 +553,15 @@ enum NameUse {
   USUAL
 }
 
+enum UserSortField {
+  ID
+  EMAIL
+  PICTURE
+  NAME
+  FAMILY_NAME
+  GIVEN_NAME
+}
+
 input UserFilterGivenName {
   isNil: Boolean
   eq: String
@@ -671,6 +676,11 @@ input UserFilterInput {
   givenName: UserFilterGivenName
 }
 
+input UserSortInput {
+  order: SortOrder
+  field: UserSortField!
+}
+
 type User {
   id: ID!
 
@@ -762,6 +772,8 @@ type Organization {
 
   slug: String!
 
+  ownerId: ID!
+
   paperTrailVersions(
     "The number of records to return."
     limit: Int
@@ -769,6 +781,24 @@ type Organization {
     "The number of records to skip."
     offset: Int
   ): [OrganizationVersion!]!
+
+  "The organization must belong to an owner, usually who created it"
+  owner: User!
+
+  "All other users belonging to the organization are defined separately"
+  users(
+    "How to sort the records in the response"
+    sort: [UserSortInput]
+
+    "A filter to limit the results"
+    filter: UserFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [User!]!
 
   "Invitations to join the organization"
   invitations(
@@ -800,6 +830,7 @@ enum InvitationSortField {
   EMAIL
   INVITE_CODE
   EXPIRES_AT
+  STATE
   ORGANIZATION_ID
   INVITED_BY_ID
 }
@@ -824,6 +855,17 @@ input InvitationFilterOrganizationId {
   greaterThan: ID
   lessThanOrEqual: ID
   greaterThanOrEqual: ID
+}
+
+input InvitationFilterState {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
 }
 
 input InvitationFilterExpiresAt {
@@ -886,6 +928,8 @@ input InvitationFilterInput {
 
   expiresAt: InvitationFilterExpiresAt
 
+  state: InvitationFilterState
+
   organizationId: InvitationFilterOrganizationId
 
   invitedById: InvitationFilterInvitedById
@@ -907,6 +951,8 @@ type Invitation {
   inviteCode: String
 
   expiresAt: DateTime
+
+  state: String!
 
   organizationId: ID!
 
@@ -1427,18 +1473,22 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+}
+
 input PatientCreatePatientWithPersonPersonInput {
   "A name associated with the person"
   name: [PersonNameInput!]
-
-  "The date on which the person was born"
-  birthDate: Date
 
   "The gender of a person used for administrative purposes."
   gender: AdministrativeGender
 
   "A contact detail for the person (e.g. email, phone, etc.)"
   telecom: [PersonTelecomInput!]
+
+  "The date on which the person was born"
+  birthDate: Date
 }
 
 "The result of the :delete_practitioner mutation"

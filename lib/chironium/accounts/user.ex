@@ -110,6 +110,11 @@ defmodule Chironium.Accounts.User do
     bypass AshAuthentication.Checks.AshAuthenticationInteraction do
       authorize_if always()
     end
+
+    policy action(:read) do
+      authorize_if accessing_from(Chironium.Accounts.Organization, :owner)
+      authorize_if accessing_from(Chironium.Accounts.Organization, :users)
+    end
   end
 
   attributes do

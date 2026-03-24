@@ -25,6 +25,7 @@ defmodule Chironium.Accounts do
   resources do
     resource Chironium.Accounts.Invitation do
       define :accept_invitation, args: [:invite_code], action: :accept_by_invite_code
+      define :reject_invitation, args: [:invite_code], action: :reject_by_invite_code
       define :find_current_email_invitations, args: [], action: :current_email_invitation
     end
 
