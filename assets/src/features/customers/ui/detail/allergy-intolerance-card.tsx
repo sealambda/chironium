@@ -189,14 +189,6 @@ export function AllergyIntoleranceCard({
   const intoleranceTags = parseItemTags(items, "INTOLERANCE");
   const isEmpty = allergyTags.length === 0 && intoleranceTags.length === 0;
 
-  const viewHistoryLink = (
-    <CardHistoryLinkFooter
-      customerId={personId}
-      to="/customers/$customerId/allergies"
-      label={m.allergy_intolerance_view_history()}
-    />
-  );
-
   if (isEmpty) {
     return (
       <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
@@ -212,7 +204,6 @@ export function AllergyIntoleranceCard({
             <p className="text-foreground/65 text-xs">{m.allergy_intolerance_empty_desc()}</p>
           </div>
         </div>
-        {viewHistoryLink}
       </div>
     );
   }
@@ -242,7 +233,11 @@ export function AllergyIntoleranceCard({
         />
       </div>
 
-      {viewHistoryLink}
+      <CardHistoryLinkFooter
+        customerId={personId}
+        to="/customers/$customerId/allergies"
+        label={m.allergy_intolerance_view_history()}
+      />
     </div>
   );
 }

@@ -102,11 +102,6 @@ export function ObservationsCard({
             <p className="mt-0.5 text-foreground/65 text-xs">{m.observations_empty_desc()}</p>
           </div>
         </div>
-        <CardHistoryLinkFooter
-          customerId={personId}
-          to="/customers/$customerId/observations"
-          label={m.observations_view_all()}
-        />
       </div>
     );
   }
