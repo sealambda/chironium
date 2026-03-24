@@ -18,17 +18,17 @@ interface LanguageToggleProps {
   variant?: "default" | "ghost";
 }
 
-const LOCALE_CONFIG: Record<Locale, { Flag: React.ElementType; label: () => string }> = {
-  en: { Flag: Flags.GB, label: m.nav_lang_en },
-  es: { Flag: Flags.ES, label: m.nav_lang_es },
+const LOCALE_CONFIG: Record<Locale, { flag: React.ElementType; label: () => string }> = {
+  en: { flag: Flags.GB, label: m.nav_lang_en },
+  es: { flag: Flags.ES, label: m.nav_lang_es },
 };
 
 /**
  * Language selector dropdown with country flags and language names.
  */
-export function LanguageToggle({ className, variant = "default" }: LanguageToggleProps) {
+export function LanguageToggle({ className, variant = "default" }: Readonly<LanguageToggleProps>) {
   const { locale: currentLocale, setLocale } = useLocale();
-  const { Flag, label } = LOCALE_CONFIG[currentLocale];
+  const { flag: CurrentFlag, label } = LOCALE_CONFIG[currentLocale];
 
   return (
     <Select value={currentLocale} onValueChange={(val) => setLocale(val as Locale)}>
@@ -41,14 +41,14 @@ export function LanguageToggle({ className, variant = "default" }: LanguageToggl
         )}
       >
         <span className="flex items-center gap-2">
-          <Flag className="h-4 w-6 shrink-0 overflow-hidden rounded-sm" aria-hidden="true" />
+          <CurrentFlag className="h-4 w-6 shrink-0 overflow-hidden rounded-sm" aria-hidden="true" />
           <span>{label()}</span>
         </span>
       </SelectTrigger>
       <SelectPositioner>
         <SelectContent>
           {locales.map((locale) => {
-            const { Flag: LocaleFlag, label: localeLabel } = LOCALE_CONFIG[locale];
+            const { flag: LocaleFlag, label: localeLabel } = LOCALE_CONFIG[locale];
             return (
               <SelectItem key={locale} value={locale}>
                 <span className="flex items-center gap-2">

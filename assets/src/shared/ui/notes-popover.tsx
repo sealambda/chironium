@@ -183,7 +183,9 @@ function NotesPopover({
 
   const handleSave = async () => {
     const text = editText.trim();
-    if (!text || saving) return;
+    if (!text || saving) {
+      return;
+    }
     setSaving(true);
     try {
       if (editingIndex === -1) {
@@ -255,7 +257,7 @@ function NotesPopover({
       </div>
 
       {isEditable && editingIndex === null && (
-        <div className={hasNotes ? "mt-3 border-t border-border pt-3" : ""}>
+        <div className={hasNotes ? "mt-3 border-border border-t pt-3" : ""}>
           <Button
             variant="outline"
             size="sm"
@@ -302,7 +304,7 @@ function NotesPopover({
                 "w-80 origin-(--transform-origin) rounded-md bg-popover p-4 text-popover-foreground text-sm shadow-md outline-hidden ring-1 ring-foreground/10 duration-100 data-closed:animate-out data-open:animate-in",
               )}
             >
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest">
+              <p className="mb-3 font-semibold text-xs uppercase tracking-widest">
                 {m.notes_popover_title()}
               </p>
               {notesList}
@@ -331,7 +333,7 @@ function NotesPopover({
       </PopoverTrigger>
       <PopoverContent side="left" align="start" className="w-80">
         <PopoverHeader>
-          <PopoverTitle className="text-xs font-semibold uppercase tracking-widest">
+          <PopoverTitle className="font-semibold text-xs uppercase tracking-widest">
             {m.notes_popover_title()}
           </PopoverTitle>
         </PopoverHeader>

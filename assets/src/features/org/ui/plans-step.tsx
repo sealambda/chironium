@@ -3,7 +3,7 @@ import { useId, useRef, useState } from "react";
 
 import type { PlanFormData } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
-import type { DurationUnit } from "@/shared/types/schema-enums";
+import { type DurationUnit, durationUnits } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import { DialogFooter } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
@@ -16,7 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { normalizeDuration } from "@/shared/utils/duration-utils";
+import {
+  formatDurationWithUnit,
+  getDurationUnitLabel,
+  normalizeDuration,
+} from "@/shared/utils/subscriptions-utils";
 
 interface PlansStepProps {
   readonly initialData?: PlanFormData[];
@@ -25,17 +29,10 @@ interface PlansStepProps {
   readonly onBack: () => void;
 }
 
-const DURATION_UNITS: { value: DurationUnit; label: () => string }[] = [
-  { value: "D", label: () => m.duration_days() },
-  { value: "WK", label: () => m.duration_weeks() },
-  { value: "MO", label: () => m.duration_months() },
-  { value: "A", label: () => m.duration_years() },
-];
-
-function formatDurationUnit(code: DurationUnit): string {
-  const unit = DURATION_UNITS.find((u) => u.value === code);
-  return unit ? unit.label() : code;
-}
+const DURATION_UNITS = durationUnits.map((unit) => ({
+  value: unit,
+  label: getDurationUnitLabel(unit),
+}));
 
 interface LocalPlan extends PlanFormData {
   localId: string;
@@ -168,16 +165,16 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
                   }
                 }}
                 disabled={submitting}
-                items={DURATION_UNITS.map(({ value, label }) => ({ value, label: label() }))}
+                items={DURATION_UNITS}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={m.duration_placeholder()} />
                 </SelectTrigger>
                 <SelectPositioner>
                   <SelectContent>
-                    {DURATION_UNITS.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label()}
+                    {DURATION_UNITS.map(({ value, label }) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -236,7 +233,7 @@ function PlanList({ plans, onRemove }: PlanListProps) {
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium text-sm">{plan.name}</p>
             <p className="text-muted-foreground text-xs">
-              {plan.durationValue} {formatDurationUnit(plan.durationUnit)}
+              {formatDurationWithUnit(plan.durationValue, plan.durationUnit)}
             </p>
           </div>
           <Button

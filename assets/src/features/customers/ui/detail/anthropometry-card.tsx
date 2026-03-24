@@ -115,7 +115,7 @@ function MetabolicIndicatorsRow({
   const bmiClass = hasBmi ? classifyBmi(bmi) : null;
   const whrClass = hasWhr ? classifyWhr(whr) : null;
 
-  const cols = !!bmiClass && !!whrClass ? "grid-cols-2" : "grid-cols-1";
+  const cols = Boolean(bmiClass) && Boolean(whrClass) ? "grid-cols-2" : "grid-cols-1";
 
   return (
     <div className={cn("grid text-center", cols)}>

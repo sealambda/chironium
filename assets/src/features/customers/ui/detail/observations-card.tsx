@@ -1,10 +1,7 @@
 import { formatDistanceToNowStrict } from "date-fns";
 import { ClipboardList } from "lucide-react";
 
-import {
-  type ObservationItem,
-  type ObservationsPage,
-} from "@/features/customers/api/observations-api";
+import type { ObservationItem, ObservationsPage } from "@/features/customers/api/observations-api";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
 import { CardFooter, CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
 import * as m from "@/paraglide/messages";
@@ -118,7 +115,7 @@ export function ObservationsCard({
     <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-end gap-1 sm:gap-2">
-          <p className="font-bold text-foreground text-xl uppercase tracking-wide leading-none">
+          <p className="font-bold text-foreground text-xl uppercase leading-none tracking-wide">
             {m.observations_last_title()}
           </p>
           {timeAgo ? (

@@ -76,10 +76,12 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
   };
 
   const handleSubmit = async () => {
-    if (!hasContent || !patientId) {
-      if (!patientId) {
-        toast.error(m.onboarding_error());
-      }
+    if (!patientId) {
+      toast.error(m.onboarding_error());
+      return;
+    }
+
+    if (!hasContent) {
       return;
     }
 

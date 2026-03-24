@@ -11,7 +11,6 @@ import type {
 } from "@/features/customers/api/observations-api";
 import { type OnboardingDraft, submitOnboarding } from "@/features/customers/api/onboarding-api";
 import type { PersonFormData } from "@/features/customers/api/patients-api";
-import type { SubscriptionFormData } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -250,7 +249,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
         <SubscriptionStep
           organizationId={organizationId}
           initialData={draft.subscription ?? undefined}
-          onSubmit={(data: SubscriptionFormData) => advance({ subscription: data }, 2)}
+          onSubmit={(data) => advance({ subscription: data }, 2)}
           onBack={() => goBack(0)}
           onSaveDraft={(data) => saveDraft({ subscription: data })}
         />

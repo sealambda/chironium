@@ -44,7 +44,6 @@ export function MenstrualCycleStep({
       endDate: initialData?.endDate ?? "",
       notes: initialData?.notes ?? "",
     },
-    // @ts-expect-error ZodDefault input type includes undefined, TanStack Form expects exact match
     validators: { onSubmit: menstrualCycleSchema },
     onSubmit: ({ value }) => {
       onSubmit(value);

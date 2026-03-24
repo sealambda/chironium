@@ -4,14 +4,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import {
-  type AllergyIntoleranceItem,
+  type AllergyIntoleranceItem as ApiAllergyIntoleranceItem,
   createAllergiesAndIntolerances,
 } from "@/features/customers/api/allergy-intolerance-api";
 import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
+import { TagColumn } from "@/features/customers/ui/detail/tag-column";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import { CardAddButton } from "@/shared/ui/card-add-button";
 import { Button } from "@/shared/ui/button";
+import { CardAddButton } from "@/shared/ui/card-add-button";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,8 @@ interface AllergyIntoleranceCardProps {
   isLoading?: boolean;
 }
 
+type AllergyIntoleranceItem = Pick<ApiAllergyIntoleranceItem, "type" | "code">;
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 function parseItemTags(items: AllergyIntoleranceItem[], type: string): string[] {
@@ -39,38 +42,6 @@ function parseItemTags(items: AllergyIntoleranceItem[], type: string): string[] 
     .filter((item) => item.type === type)
     .map((item) => item.code?.text ?? item.code?.coding?.[0]?.display ?? "")
     .filter(Boolean);
-}
-
-// ─── Tag column ─────────────────────────────────────────────────────
-
-interface TagColumnProps {
-  label: string;
-  tags: string[];
-  tagClassName: string;
-  emptyText: string;
-  className?: string;
-}
-
-function TagColumn({ label, tags, tagClassName, emptyText, className }: Readonly<TagColumnProps>) {
-  return (
-    <div className={`space-y-3 ${className ?? ""}`}>
-      <p className="font-bold text-foreground text-xl uppercase tracking-wide">{label}</p>
-      {tags.length === 0 ? (
-        <p className="text-foreground/40 text-sm italic">{emptyText}</p>
-      ) : (
-        <div className="flex flex-wrap gap-1.5">
-          {tags.map((tag, i) => (
-            <span
-              key={`${tag}-${i}`}
-              className={`inline-flex items-center rounded-full border px-3 py-1 text-sm ${tagClassName}`}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─── Add dialog ──────────────────────────────────────────────────────

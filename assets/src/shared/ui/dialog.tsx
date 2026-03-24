@@ -47,7 +47,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "data-[open]:fade-in-0 data-[open]:zoom-in-95 data-[closed]:fade-out-0 data-[closed]:zoom-out-95 fixed inset-0 z-50 grid h-svh w-full max-w-full content-start translate-x-0 translate-y-0 gap-4 overflow-x-hidden overflow-y-auto border-0 bg-background p-4 pt-safe pb-safe shadow-lg duration-200 *:min-w-0 data-closed:animate-out data-open:animate-in sm:inset-auto sm:top-[50%] sm:left-[50%] sm:h-auto sm:w-full sm:max-h-[calc(100svh-2rem)] sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] sm:overflow-y-auto sm:rounded-lg sm:border sm:p-6",
+          "data-[open]:fade-in-0 data-[open]:zoom-in-95 data-[closed]:fade-out-0 data-[closed]:zoom-out-95 fixed inset-0 z-50 grid h-svh w-full max-w-full translate-x-0 translate-y-0 content-start gap-4 overflow-y-auto overflow-x-hidden border-0 bg-background p-4 pt-safe pb-safe shadow-lg duration-200 *:min-w-0 data-closed:animate-out data-open:animate-in sm:inset-auto sm:top-[50%] sm:left-[50%] sm:h-auto sm:max-h-[calc(100svh-2rem)] sm:w-full sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] sm:overflow-y-auto sm:rounded-lg sm:border sm:p-6",
           className,
         )}
         {...props}

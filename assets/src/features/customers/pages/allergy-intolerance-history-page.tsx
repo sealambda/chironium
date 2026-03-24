@@ -62,7 +62,9 @@ export function AllergyIntoleranceHistoryPage() {
 
   const handleSave = async () => {
     const trimmed = editText.trim();
-    if (!trimmed || !editTarget) return;
+    if (!trimmed || !editTarget) {
+      return;
+    }
     setSaving(true);
     try {
       await updateAllergyIntoleranceCode(editTarget.id, trimmed, selectedOrg?.id ?? "");
@@ -199,8 +201,12 @@ export function AllergyIntoleranceHistoryPage() {
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") void handleSave();
-                  if (e.key === "Escape") setEditTarget(null);
+                  if (e.key === "Enter") {
+                    void handleSave();
+                  }
+                  if (e.key === "Escape") {
+                    setEditTarget(null);
+                  }
                 }}
                 disabled={saving}
               />

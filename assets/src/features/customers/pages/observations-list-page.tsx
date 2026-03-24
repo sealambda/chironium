@@ -150,7 +150,9 @@ export function ObservationsListPage() {
   });
 
   const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
     setDeleting(true);
     try {
       await deleteObservation(deleteTarget.id, selectedOrg?.id ?? "");
@@ -252,7 +254,9 @@ export function ObservationsListPage() {
           personId={customerId}
           open={editTarget !== null}
           onOpenChange={(open) => {
-            if (!open) setEditTarget(null);
+            if (!open) {
+              setEditTarget(null);
+            }
           }}
         />
       ) : null}
@@ -260,7 +264,9 @@ export function ObservationsListPage() {
       <AlertDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
+          if (!open) {
+            setDeleteTarget(null);
+          }
         }}
       >
         <AlertDialogContent>

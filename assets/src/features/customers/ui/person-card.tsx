@@ -5,8 +5,8 @@ import * as m from "@/paraglide/messages";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
-import { durationToMonths } from "@/shared/utils/duration-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
+import { durationToMonths } from "@/shared/utils/subscriptions-utils";
 
 interface PersonCardProps {
   item: CustomerListItem;

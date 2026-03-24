@@ -17,7 +17,9 @@ interface CodingPopoverProps {
 }
 
 export function CodingPopover({ codings }: Readonly<CodingPopoverProps>) {
-  if (codings.length === 0) return null;
+  if (codings.length === 0) {
+    return null;
+  }
 
   return (
     <TooltipPrimitive.Root>
@@ -44,7 +46,7 @@ export function CodingPopover({ codings }: Readonly<CodingPopoverProps>) {
               "w-64 origin-(--transform-origin) rounded-md bg-popover p-4 text-popover-foreground text-sm shadow-md outline-hidden ring-1 ring-foreground/10 duration-100 data-closed:animate-out data-open:animate-in",
             )}
           >
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest">
+            <p className="mb-3 font-semibold text-xs uppercase tracking-widest">
               {m.coding_info_title()}
             </p>
             <div className="space-y-3">
