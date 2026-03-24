@@ -1,14 +1,14 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
-    "includes": ["src/**", "js/**", "*.config.*", "*.jsonc"]
+    "includes": ["**/src/**", "**/js/**", "**/config.*", "**/jsonc"]
   },
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "root": ".."
+    "root": "."
   },
 
   // Default indentWidth (2), lineEnding ("lf"), quoteStyle ("double"), semicolons ("always"),
@@ -230,7 +230,14 @@
 
         // Sort Tailwind utility classes for consistency.
         // https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
-        "useSortedClasses": "warn"
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe",
+          "options": {
+            "attributes": ["className"],
+            "functions": ["clsx", "cva", "twMerge", "cn"]
+          }
+        }
       }
     }
   },
@@ -281,6 +288,7 @@
         "**/vendor/**",
         "**/routeTree.gen.ts",
         "**/graphql-env.d.ts",
+        "**/src/gql/**",
         "**/paraglide/**",
         "**/paraglide.d.ts",
         "**/mocks/**"
@@ -310,7 +318,7 @@
 
     // TanStack Router uses special file-naming conventions (_prefix, $params, dots).
     {
-      "includes": ["src/routes/**"],
+      "includes": ["**/src/routes/**"],
       "linter": {
         "rules": {
           "style": {
@@ -338,7 +346,7 @@
 
     // Long Tailwind utility class strings trigger high-entropy false positives.
     {
-      "includes": ["src/shared/ui/**", "src/shared/layout/**"],
+      "includes": ["**/src/shared/ui/**", "**/src/shared/layout/**"],
       "linter": {
         "rules": {
           "security": {

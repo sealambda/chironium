@@ -8,9 +8,6 @@
     "pnpm": "~>10.30"
   },
   "scripts": {
-    "quality": "./scripts/quality.sh",
-    "quality:fix": "./scripts/fix.sh",
-    "precommit": "./scripts/precommit.sh",
     "assets:dev": "pnpm --filter chironium-assets dev",
     "assets:build": "pnpm --filter chironium-assets build",
     "assets:lint": "pnpm --filter chironium-assets lint",
@@ -20,7 +17,12 @@
     "assets:typecheck": "pnpm --filter chironium-assets typecheck",
     "assets:check": "pnpm --filter chironium-assets check",
     "assets:check:fix": "pnpm --filter chironium-assets check:fix",
-    "assets:codegen": "pnpm --filter chironium-assets gql:generate"
+    "assets:codegen": "pnpm --filter chironium-assets gql:generate",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "husky": "^9.1.7"
   },
   "packageManager": "pnpm@10.30.0"
 }

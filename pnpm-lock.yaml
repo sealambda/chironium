@@ -4,9 +4,22 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@biomejs/biome':
+      specifier: 2.4.2
+      version: 2.4.2
+
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: 'catalog:'
+        version: 2.4.2
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
 
   assets:
     dependencies:
@@ -69,13 +82,13 @@ importers:
         version: 17.0.3
       phoenix:
         specifier: file:../deps/phoenix
-        version: file:deps/phoenix
+        version: link:../deps/phoenix
       phoenix_html:
         specifier: file:../deps/phoenix_html
-        version: file:deps/phoenix_html
+        version: link:../deps/phoenix_html
       phoenix_live_view:
         specifier: file:../deps/phoenix_live_view
-        version: file:deps/phoenix_live_view
+        version: link:../deps/phoenix_live_view
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -108,7 +121,7 @@ importers:
         version: 5.0.11(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
       '@biomejs/biome':
-        specifier: ^2.4.2
+        specifier: 'catalog:'
         version: 2.4.2
       '@tailwindcss/vite':
         specifier: ^4.1.18
@@ -3755,6 +3768,11 @@ packages:
     resolution: {integrity: sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ==}
     engines: {node: '>=18.18.0'}
 
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
     engines: {node: '>=0.10.0'}
@@ -4845,15 +4863,6 @@ packages:
 
   phoenix@1.7.21:
     resolution: {integrity: sha512-8wOvJ8pQXRxNbyFlMI+wQhK3bvX4Ps3FtUX2+0cV6lkcebe9VTIl+xS60FLAeaPieFg80djor5z/AKofnwqAUw==}
-
-  phoenix@file:deps/phoenix:
-    resolution: {directory: deps/phoenix, type: directory}
-
-  phoenix_html@file:deps/phoenix_html:
-    resolution: {directory: deps/phoenix_html, type: directory}
-
-  phoenix_live_view@file:deps/phoenix_live_view:
-    resolution: {directory: deps/phoenix_live_view, type: directory}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -10591,6 +10600,8 @@ snapshots:
 
   human-signals@8.0.1: {}
 
+  husky@9.1.7: {}
+
   iconv-lite@0.6.3:
     dependencies:
       safer-buffer: 2.1.2
@@ -11994,14 +12005,6 @@ snapshots:
   pathe@2.0.3: {}
 
   phoenix@1.7.21: {}
-
-  phoenix@file:deps/phoenix: {}
-
-  phoenix_html@file:deps/phoenix_html: {}
-
-  phoenix_live_view@file:deps/phoenix_live_view:
-    dependencies:
-      morphdom: 2.7.8
 
   picocolors@1.1.1: {}
 
