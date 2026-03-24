@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Lock, Minus, Plus, Unlock } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,9 +21,9 @@ import {
   macroUnitsAllPreferred,
   nutritionPlanFormSchema,
   pickPreferredMacroUnit,
+  redistributeMacrosForTargetKcal,
   TOLERANCE_KCAL,
   totalKcalFromMacroGrams,
-  tryRedistributeMacros,
 } from "@/features/customers/ui/detail/nutrition-plan-dialog-utils";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -69,8 +69,6 @@ function IntegerField({
   step,
   annotation,
   incrementDisabled,
-  locked,
-  onToggleLock,
 }: Readonly<{
   field: {
     state: { value: string; meta: { errors: unknown[] } };
@@ -82,8 +80,6 @@ function IntegerField({
   step: number;
   annotation?: ReactNode;
   incrementDisabled?: boolean;
-  locked?: boolean;
-  onToggleLock?: () => void;
 }>) {
   const numValue = field.state.value ? Number(field.state.value) : 0;
 
@@ -99,19 +95,7 @@ function IntegerField({
 
   return (
     <Field data-invalid={field.state.meta.errors.length > 0}>
-      <div className="flex items-center gap-1">
-        <FieldLabel>{label}</FieldLabel>
-        {onToggleLock ? (
-          <button
-            type="button"
-            onClick={onToggleLock}
-            className="cursor-pointer text-muted-foreground/50 transition-colors hover:text-foreground"
-            title={locked ? m.nutrition_macro_unlock() : m.nutrition_macro_lock()}
-          >
-            {locked ? <Lock className="size-3 text-pink-500" /> : <Unlock className="size-3" />}
-          </button>
-        ) : null}
-      </div>
+      <FieldLabel>{label}</FieldLabel>
       <div className="relative">
         <Input
           type="number"
@@ -181,8 +165,6 @@ function MacroUnitField({
   totalKcal,
   weightKg,
   grams,
-  locked,
-  onToggleLock,
   missingInputToastId,
   pctAnnotation,
   onGramsCommitted,
@@ -199,8 +181,6 @@ function MacroUnitField({
   totalKcal: number;
   weightKg?: number;
   grams: number;
-  locked: boolean;
-  onToggleLock: () => void;
   missingInputToastId: string;
   pctAnnotation: ReactNode | null;
   onGramsCommitted?: (args: { macroKey: MacroKey; gramsCommitted: number }) => void;
@@ -277,17 +257,7 @@ function MacroUnitField({
 
   return (
     <Field data-invalid={field.state.meta.errors.length > 0}>
-      <div className="flex items-center gap-1">
-        <FieldLabel>{label}</FieldLabel>
-        <button
-          type="button"
-          onClick={onToggleLock}
-          className="cursor-pointer text-muted-foreground/50 transition-colors hover:text-foreground"
-          title={locked ? m.nutrition_macro_unlock() : m.nutrition_macro_lock()}
-        >
-          {locked ? <Lock className="size-3 text-pink-500" /> : <Unlock className="size-3" />}
-        </button>
-      </div>
+      <FieldLabel>{label}</FieldLabel>
       <div className="space-y-2">
         <Select
           value={unit}
@@ -358,7 +328,6 @@ export function NutritionPlanDialog({
 }: Readonly<NutritionPlanDialogProps>) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [locked, setLocked] = useState<Set<string>>(new Set());
 
   /** After the coach edits target kcal, stop auto-filling kcal from macro commits. */
   const targetKcalUserEditedRef = useRef(false);
@@ -368,8 +337,6 @@ export function NutritionPlanDialog({
    * pass before user-driven kcal edits count again.
    */
   const syncingKcalFromMacrosRef = useRef(false);
-  const lockedRef = useRef(locked);
-  lockedRef.current = locked;
 
   const [macroUnits, setMacroUnits] = useState<Record<MacroKey, MacroUnit>>(() =>
     macroUnitsAllPreferred(latestWeight, false),
@@ -384,18 +351,6 @@ export function NutritionPlanDialog({
     setMacroUnits((prev) => ({ ...prev, fatG: u }));
   }, []);
   const { selectedOrg } = useOrg();
-
-  const toggleLock = useCallback((fieldName: string) => {
-    setLocked((prev) => {
-      const next = new Set(prev);
-      if (next.has(fieldName)) {
-        next.delete(fieldName);
-      } else {
-        next.add(fieldName);
-      }
-      return next;
-    });
-  }, []);
 
   const queryClient = useQueryClient();
 
@@ -505,7 +460,6 @@ export function NutritionPlanDialog({
         targetKcalUserEditedRef.current = false;
         const hasKcal = Number(form.getFieldValue("targetKcal")) > 0;
         setMacroUnits(macroUnitsAllPreferred(latestWeight, hasKcal));
-        setLocked(new Set());
       }
     },
     [form, latestWeight],
@@ -527,21 +481,15 @@ export function NutritionPlanDialog({
                 if (!syncingKcalFromMacrosRef.current) {
                   targetKcalUserEditedRef.current = true;
                 }
-                const ok = tryRedistributeMacros(
+                redistributeMacrosForTargetKcal(
                   Number(value) || 0,
                   {
                     protein: Number(form.getFieldValue("proteinG")) || 0,
                     carbs: Number(form.getFieldValue("carbsG")) || 0,
                     fat: Number(form.getFieldValue("fatG")) || 0,
                   },
-                  lockedRef.current,
                   (key, val) => form.setFieldValue(key, val),
                 );
-                if (!ok) {
-                  toast.warning(m.nutrition_locked_exceeds_kcal(), {
-                    id: "locked-kcal-conflict",
-                  });
-                }
               },
             }}
           >
@@ -551,8 +499,6 @@ export function NutritionPlanDialog({
                 label={m.field_target_kcal()}
                 placeholder={m.field_target_kcal_placeholder()}
                 step={100}
-                locked={locked.has("targetKcal")}
-                onToggleLock={() => toggleLock("targetKcal")}
                 annotation={
                   canComputeBmr ? (
                     <button
@@ -623,8 +569,6 @@ export function NutritionPlanDialog({
                           totalKcal={kcal}
                           weightKg={latestWeight}
                           grams={protein}
-                          locked={locked.has("proteinG")}
-                          onToggleLock={() => toggleLock("proteinG")}
                           missingInputToastId="macro-unit-missing-input-protein"
                           onGramsCommitted={syncTargetKcalFromMacrosWhenEmpty}
                           pctAnnotation={
@@ -652,8 +596,6 @@ export function NutritionPlanDialog({
                           totalKcal={kcal}
                           weightKg={latestWeight}
                           grams={carbs}
-                          locked={locked.has("carbsG")}
-                          onToggleLock={() => toggleLock("carbsG")}
                           missingInputToastId="macro-unit-missing-input-carbs"
                           onGramsCommitted={syncTargetKcalFromMacrosWhenEmpty}
                           pctAnnotation={
@@ -681,8 +623,6 @@ export function NutritionPlanDialog({
                           totalKcal={kcal}
                           weightKg={latestWeight}
                           grams={fat}
-                          locked={locked.has("fatG")}
-                          onToggleLock={() => toggleLock("fatG")}
                           missingInputToastId="macro-unit-missing-input-fat"
                           onGramsCommitted={syncTargetKcalFromMacrosWhenEmpty}
                           pctAnnotation={

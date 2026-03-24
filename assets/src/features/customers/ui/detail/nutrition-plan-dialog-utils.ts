@@ -97,57 +97,36 @@ interface MacroInfo {
   factor: number;
 }
 
-export function getUnlockedMacros(
-  macros: { protein: number; carbs: number; fat: number },
-  lockedFields: Set<string>,
-): MacroInfo[] {
-  const all: MacroInfo[] = [
+function macroInfosFromGrams(macros: { protein: number; carbs: number; fat: number }): MacroInfo[] {
+  return [
     { key: "proteinG", g: macros.protein, factor: KCAL_PER_G.protein },
     { key: "carbsG", g: macros.carbs, factor: KCAL_PER_G.carbs },
     { key: "fatG", g: macros.fat, factor: KCAL_PER_G.fat },
   ];
-  return all.filter((entry) => !lockedFields.has(entry.key));
-}
-
-export function computeLockedKcal(
-  macros: { protein: number; carbs: number; fat: number },
-  lockedFields: Set<string>,
-): number {
-  let total = 0;
-  if (lockedFields.has("proteinG")) {
-    total += macros.protein * KCAL_PER_G.protein;
-  }
-  if (lockedFields.has("carbsG")) {
-    total += macros.carbs * KCAL_PER_G.carbs;
-  }
-  if (lockedFields.has("fatG")) {
-    total += macros.fat * KCAL_PER_G.fat;
-  }
-  return total;
 }
 
 function applyDistribution(
-  unlocked: MacroInfo[],
-  remainingKcal: number,
+  entries: MacroInfo[],
+  targetKcal: number,
   setField: (key: MacroKey, value: string) => void,
 ): void {
-  const oldKcal = unlocked.reduce((sum, entry) => sum + entry.g * entry.factor, 0);
+  const oldKcal = entries.reduce((sum, entry) => sum + entry.g * entry.factor, 0);
   let distributedKcal = 0;
 
-  for (let i = 0; i < unlocked.length; i++) {
-    const entry = unlocked[i];
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     if (!entry) {
       continue;
     }
 
-    const isLast = i === unlocked.length - 1;
+    const isLast = i === entries.length - 1;
     let newG: number;
 
     if (isLast) {
-      newG = Math.round((remainingKcal - distributedKcal) / entry.factor);
+      newG = Math.round((targetKcal - distributedKcal) / entry.factor);
     } else {
-      const ratio = oldKcal > 0 ? (entry.g * entry.factor) / oldKcal : 1 / unlocked.length;
-      newG = Math.round((ratio * remainingKcal) / entry.factor);
+      const ratio = oldKcal > 0 ? (entry.g * entry.factor) / oldKcal : 1 / entries.length;
+      newG = Math.round((ratio * targetKcal) / entry.factor);
       distributedKcal += newG * entry.factor;
     }
 
@@ -155,32 +134,20 @@ function applyDistribution(
   }
 }
 
-/** When false, the caller should show `nutrition_locked_exceeds_kcal` (or equivalent). */
-export function tryRedistributeMacros(
+/** Scales protein/carbs/fat to match the new target kcal, preserving the current macro mix. */
+export function redistributeMacrosForTargetKcal(
   newKcal: number,
   macros: { protein: number; carbs: number; fat: number },
-  lockedFields: Set<string>,
   setField: (key: MacroKey, value: string) => void,
-): boolean {
+): void {
   if (newKcal <= 0) {
-    return true;
+    return;
   }
   if (macros.protein === 0 && macros.carbs === 0 && macros.fat === 0) {
-    return true;
+    return;
   }
 
-  const remainingKcal = newKcal - computeLockedKcal(macros, lockedFields);
-  if (remainingKcal <= 0) {
-    return false;
-  }
-
-  const unlocked = getUnlockedMacros(macros, lockedFields);
-  if (unlocked.length === 0) {
-    return true;
-  }
-
-  applyDistribution(unlocked, remainingKcal, setField);
-  return true;
+  applyDistribution(macroInfosFromGrams(macros), newKcal, setField);
 }
 
 function roundTo(value: number, digits: number): number {
