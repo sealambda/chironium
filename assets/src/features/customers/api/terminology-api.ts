@@ -34,19 +34,6 @@ function normalizeLocale(locale: string): string {
   return locale.trim().toLowerCase();
 }
 
-function buildLanguageCandidates(locale: string): string[] {
-  const normalized = normalizeLocale(locale);
-  const base = normalized.split("-")[0] ?? normalized;
-  return Array.from(new Set([normalized, base, "en"]));
-}
-
-const USE_PRIORITY = ["display", "fully-specified-name", "synonym", "consumer", "short-name"];
-
-function designationScore(use: string): number {
-  const idx = USE_PRIORITY.indexOf(use);
-  return idx >= 0 ? idx : 999;
-}
-
 export async function searchTerminologySuggestions(
   text: string,
   locale: string,
@@ -57,26 +44,36 @@ export async function searchTerminologySuggestions(
     return [];
   }
 
-  const languageCandidates = buildLanguageCandidates(locale);
+  const language = normalizeLocale(locale);
   const result = await requestGraphql({
     document: SearchConceptsQuery,
     variables: {
       text: term,
       first: 8,
-      languages: languageCandidates,
+      languages: [language],
     },
     organizationId,
   });
 
-  return (result.searchConcepts?.results ?? []).map((concept) => {
-    const bestDesignation = [...(concept.designations ?? [])].sort(
-      (a, b) => designationScore(a.use) - designationScore(b.use),
-    )[0];
-    return {
-      label: bestDesignation?.value ?? concept.code,
+  return (result.searchConcepts?.results ?? []).flatMap((concept) => {
+    const designationSuggestions = (concept.designations ?? []).map((designation) => ({
+      label: designation.value,
       system: concept.codeSystem.url,
       code: concept.code,
       version: concept.codeSystem.version ?? null,
-    };
+    }));
+
+    if (designationSuggestions.length > 0) {
+      return designationSuggestions;
+    }
+
+    return [
+      {
+        label: concept.code,
+        system: concept.codeSystem.url,
+        code: concept.code,
+        version: concept.codeSystem.version ?? null,
+      },
+    ];
   });
 }
