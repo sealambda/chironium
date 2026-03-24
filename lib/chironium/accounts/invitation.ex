@@ -9,7 +9,7 @@ defmodule Chironium.Accounts.Invitation do
     domain: Chironium.Accounts,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource, AshStateMachine]
 
   postgres do
     table "invitations"
@@ -33,13 +33,23 @@ defmodule Chironium.Accounts.Invitation do
     mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:invitation]}
   end
 
+  state_machine do
+    initial_states [:pending]
+    default_initial_state :pending
+
+    transitions do
+      transition :accept, from: :pending, to: :accepted
+      transition :reject, from: :pending, to: :rejected
+    end
+  end
+
   actions do
     defaults [:read, :destroy]
 
     read :current_email_invitation do
       description "Find invitation for the current email address"
 
-      filter expr(email == ^actor(:email) and not is_nil(invite_code))
+      filter expr(email == ^actor(:email) and state == :pending)
     end
 
     read :get_by_invite_code do
@@ -64,6 +74,7 @@ defmodule Chironium.Accounts.Invitation do
 
       accept []
       require_atomic? false
+      change transition_state(:accepted)
       change set_attribute(:invite_code, nil)
 
       change after_action(fn _changeset, result, context ->
@@ -80,6 +91,14 @@ defmodule Chironium.Accounts.Invitation do
 
                {:ok, result}
              end)
+    end
+
+    update :reject do
+      description "Reject an invitation to join an organization"
+
+      accept []
+      change transition_state(:rejected)
+      change set_attribute(:invite_code, nil)
     end
 
     action :accept_by_invite_code, :struct do
@@ -110,6 +129,35 @@ defmodule Chironium.Accounts.Invitation do
         end
       end
     end
+
+    action :reject_by_invite_code, :struct do
+      description "Reject an invitation with only an invite code"
+
+      argument :invite_code, :ci_string do
+        allow_nil? false
+      end
+
+      run fn input, context ->
+        invite_code = input.arguments.invite_code
+
+        invitation_query =
+          __MODULE__
+          |> Ash.Query.for_read(:get_by_invite_code, %{invite_code: invite_code})
+
+        with {:ok, invitation} when not is_nil(invitation) <-
+               Ash.read_one(invitation_query, actor: context.actor) do
+          Ash.update(
+            invitation,
+            %{},
+            action: :reject,
+            actor: context.actor
+          )
+        else
+          {:ok, nil} -> {:error, :invalid_invite_code}
+          error -> error
+        end
+      end
+    end
   end
 
   policies do
@@ -129,6 +177,8 @@ defmodule Chironium.Accounts.Invitation do
     policy action([
              :accept,
              :accept_by_invite_code,
+             :reject,
+             :reject_by_invite_code,
              :current_email_invitation,
              :get_by_invite_code
            ]) do
