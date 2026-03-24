@@ -134,8 +134,8 @@ export function CustomersPage() {
     return (
       <EmptyState
         icon={Building2}
-        title={m.customers_no_org()}
-        description={m.customers_no_org_desc()}
+        title={m.no_org()}
+        description={m.no_org_desc()}
       />
     );
   }

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppSubscriptionsRoute = AppSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/customers': typeof AppCustomersRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
+  '/subscriptions': typeof AppSubscriptionsRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/allergies': typeof AppCustomersCustomerIdAllergiesRoute
   '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/customers': typeof AppCustomersRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
+  '/subscriptions': typeof AppSubscriptionsRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/allergies': typeof AppCustomersCustomerIdAllergiesRoute
   '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_app/customers': typeof AppCustomersRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/subscriptions': typeof AppSubscriptionsRoute
   '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
   '/_app/customers_/$customerId_/allergies': typeof AppCustomersCustomerIdAllergiesRoute
   '/_app/customers_/$customerId_/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/profile'
     | '/settings'
+    | '/subscriptions'
     | '/customers/$customerId'
     | '/customers/$customerId/allergies'
     | '/customers/$customerId/anthropometry'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/profile'
     | '/settings'
+    | '/subscriptions'
     | '/customers/$customerId'
     | '/customers/$customerId/allergies'
     | '/customers/$customerId/anthropometry'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_app/customers'
     | '/_app/profile'
     | '/_app/settings'
+    | '/_app/subscriptions'
     | '/_app/customers_/$customerId'
     | '/_app/customers_/$customerId_/allergies'
     | '/_app/customers_/$customerId_/anthropometry'
@@ -192,6 +204,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/subscriptions': {
+      id: '/_app/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof AppSubscriptionsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/settings': {
       id: '/_app/settings'
@@ -270,6 +289,7 @@ interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
   AppProfileRoute: typeof AppProfileRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppSubscriptionsRoute: typeof AppSubscriptionsRoute
   AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
   AppCustomersCustomerIdAllergiesRoute: typeof AppCustomersCustomerIdAllergiesRoute
   AppCustomersCustomerIdAnthropometryRoute: typeof AppCustomersCustomerIdAnthropometryRoute
@@ -283,6 +303,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
   AppProfileRoute: AppProfileRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppSubscriptionsRoute: AppSubscriptionsRoute,
   AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
   AppCustomersCustomerIdAllergiesRoute: AppCustomersCustomerIdAllergiesRoute,
   AppCustomersCustomerIdAnthropometryRoute:
