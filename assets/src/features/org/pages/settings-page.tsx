@@ -9,6 +9,7 @@ import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Loading } from "@/shared/ui/loading";
 import {
   Dialog,
   DialogContent,
@@ -110,30 +111,12 @@ export function SettingsPage() {
     }
   };
 
-  if (orgLoading) {
-    return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="font-medium text-muted-foreground">{m.common_loading()}</div>
-      </div>
-    );
+  if (orgLoading || isLoading) {
+    return <Loading />;
   }
 
   if (!selectedOrg) {
-    return (
-      <EmptyState
-        icon={Building2}
-        title={m.no_org()}
-        description={m.no_org_desc()}
-      />
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="font-medium text-muted-foreground">{m.common_loading()}</div>
-      </div>
-    );
+    return <EmptyState icon={Building2} title={m.no_org()} description={m.no_org_desc()} />;
   }
 
   return (

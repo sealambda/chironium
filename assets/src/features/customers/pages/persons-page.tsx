@@ -17,11 +17,11 @@ import {
   mergePersonsWithSubscriptions,
   type PersonListSortOption,
 } from "@/features/customers/api/persons-api";
+import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import {
   getStoredPersonSortPreference,
   storePersonSortPreference,
 } from "@/features/customers/model/person-sort-preferences";
-import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
@@ -29,6 +29,7 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
+import { Loading } from "@/shared/ui/loading";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,34 +121,12 @@ export function CustomersPage() {
     };
   }, [customers.length, error, isLoading, search, selectedOrg, setHeaderContent]);
 
-  if (orgsLoading) {
-    return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">{m.common_loading()}</div>
-        </div>
-      </div>
-    );
+  if (orgsLoading || (selectedOrg && isLoading)) {
+    return <Loading />;
   }
 
   if (!selectedOrg) {
-    return (
-      <EmptyState
-        icon={Building2}
-        title={m.no_org()}
-        description={m.no_org_desc()}
-      />
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 font-medium text-muted-foreground">{m.common_loading()}</div>
-        </div>
-      </div>
-    );
+    return <EmptyState icon={Building2} title={m.no_org()} description={m.no_org_desc()} />;
   }
 
   if (error) {
