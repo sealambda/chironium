@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CreditCard, Plus } from "lucide-react";
+import { AlertCircle, Building2, CreditCard, Plus, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -13,11 +13,12 @@ import {
   formatSubscriptionPlanPriceText,
 } from "@/features/org/ui/subscription-plan-columns";
 import { SubscriptionPlansTable } from "@/features/org/ui/subscription-plans-table";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
-import { Loading } from "@/shared/ui/loading";
 import { EmptyState } from "@/shared/ui/empty-state";
+import { Loading } from "@/shared/ui/loading";
 
 const PLANS_QUERY_KEY = "subscription-plans";
 
@@ -27,9 +28,12 @@ const PLANS_QUERY_KEY = "subscription-plans";
  */
 export function SubscriptionsPage() {
   const { selectedOrg, loading: orgsLoading } = useOrg();
+  const { user } = useCurrentUser();
   const { setHeaderContent } = useDetailMode();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
+
+  const isOrgOwner = Boolean(user?.id && selectedOrg && user.id === selectedOrg.ownerId);
 
   const {
     data: plans = [],
@@ -38,7 +42,7 @@ export function SubscriptionsPage() {
   } = useQuery({
     queryKey: [PLANS_QUERY_KEY, selectedOrg?.id],
     queryFn: () => fetchSubscriptionPlans(selectedOrg?.id ?? ""),
-    enabled: Boolean(selectedOrg),
+    enabled: Boolean(selectedOrg) && isOrgOwner,
     placeholderData: (previousData) => previousData,
   });
 
@@ -47,7 +51,7 @@ export function SubscriptionsPage() {
   };
 
   useEffect(() => {
-    if (!selectedOrg || plansLoading || Boolean(plansError)) {
+    if (!selectedOrg || !isOrgOwner || plansLoading || Boolean(plansError)) {
       setHeaderContent(null);
       return;
     }
@@ -64,9 +68,9 @@ export function SubscriptionsPage() {
     return () => {
       setHeaderContent(null);
     };
-  }, [plansError, plansLoading, selectedOrg, setHeaderContent]);
+  }, [isOrgOwner, plansError, plansLoading, selectedOrg, setHeaderContent]);
 
-  if (orgsLoading || (selectedOrg && plansLoading && !plans.length)) {
+  if (orgsLoading || plansLoading) {
     return <Loading />;
   }
 
@@ -74,15 +78,20 @@ export function SubscriptionsPage() {
     return <EmptyState icon={Building2} title={m.no_org()} description={m.no_org_desc()} />;
   }
 
+  if (!isOrgOwner) {
+    return (
+      <EmptyState
+        icon={ShieldOff}
+        title={m.subscriptions_not_owner()}
+        description={m.subscriptions_not_owner_desc()}
+      />
+    );
+  }
+
   if (plansError) {
     const message = plansError instanceof Error ? plansError.message : String(plansError);
     return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 font-medium text-destructive">{m.subscriptions_error()}</div>
-          <div className="text-muted-foreground text-sm">{message}</div>
-        </div>
-      </div>
+      <EmptyState icon={AlertCircle} title={m.subscriptions_error()} description={message} />
     );
   }
 
