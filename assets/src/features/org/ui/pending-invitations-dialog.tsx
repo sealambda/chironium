@@ -2,9 +2,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { acceptInvitation, fetchCurrentEmailInvitations } from "@/features/org/api/org-api";
-import { ORG_QUERY_KEY } from "@/features/org/store/org-store";
+import {
+  acceptInvitation,
+  fetchCurrentEmailInvitations,
+  rejectInvitation,
+} from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { ORG_QUERY_KEY } from "@/features/org/store/org-store";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
@@ -17,37 +21,10 @@ import {
 } from "@/shared/ui/dialog";
 
 const INVITATIONS_QUERY_KEY = ["org", "pending-invitations"] as const;
-const DISMISSED_INVITES_STORAGE_KEY = "org.dismissed-invitation-ids";
-
-function readDismissedInviteIds(): string[] {
-  if (globalThis.window === undefined) {
-    return [];
-  }
-
-  try {
-    const raw = globalThis.window.localStorage.getItem(DISMISSED_INVITES_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeDismissedInviteIds(inviteIds: string[]): void {
-  if (globalThis.window === undefined) {
-    return;
-  }
-
-  globalThis.window.localStorage.setItem(DISMISSED_INVITES_STORAGE_KEY, JSON.stringify(inviteIds));
-}
 
 export function PendingInvitationsDialog() {
   const queryClient = useQueryClient();
   const { refreshOrgs } = useOrg();
-  const [dismissedInviteIds, setDismissedInviteIds] = useState<string[]>(() => readDismissedInviteIds());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: invitations = [] } = useQuery({
@@ -55,47 +32,58 @@ export function PendingInvitationsDialog() {
     queryFn: fetchCurrentEmailInvitations,
   });
 
-  const visibleInvitations = useMemo(
-    () => invitations.filter((invitation) => !dismissedInviteIds.includes(invitation.id)),
-    [dismissedInviteIds, invitations],
-  );
+  const currentInvitation = useMemo(() => invitations[0] ?? null, [invitations]);
 
-  const currentInvitation = visibleInvitations[0] ?? null;
-
-  const handleReject = () => {
-    if (!currentInvitation) {
-      return;
-    }
-
-    const nextIds = [...dismissedInviteIds, currentInvitation.id];
-    setDismissedInviteIds(nextIds);
-    writeDismissedInviteIds(nextIds);
-  };
-
-  const handleAccept = async () => {
-    if (!currentInvitation?.inviteCode) {
-      toast.error(m.org_invitation_accept_unavailable());
-      return;
-    }
-
+  const submitInvitationAction = async (params: {
+    inviteCode: string;
+    mutate: (inviteCode: string) => Promise<void>;
+    successMessage: string;
+    errorFallbackMessage: string;
+  }) => {
     setIsSubmitting(true);
     try {
-      await acceptInvitation(currentInvitation.inviteCode);
-      toast.success(m.org_invitation_accept_success());
-
-      const nextIds = dismissedInviteIds.filter((id) => id !== currentInvitation.id);
-      setDismissedInviteIds(nextIds);
-      writeDismissedInviteIds(nextIds);
+      await params.mutate(params.inviteCode);
+      toast.success(params.successMessage);
 
       await queryClient.invalidateQueries({ queryKey: INVITATIONS_QUERY_KEY });
       await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
       await refreshOrgs();
     } catch (error) {
-      const message = error instanceof Error ? error.message : m.org_invitation_accept_error();
+      const message = error instanceof Error ? error.message : params.errorFallbackMessage;
       toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleReject = async () => {
+    const inviteCode = currentInvitation?.inviteCode;
+    if (!inviteCode) {
+      toast.error(m.org_invitation_reject_unavailable());
+      return;
+    }
+
+    await submitInvitationAction({
+      inviteCode,
+      mutate: rejectInvitation,
+      successMessage: m.org_invitation_reject_success(),
+      errorFallbackMessage: m.org_invitation_reject_error(),
+    });
+  };
+
+  const handleAccept = async () => {
+    const inviteCode = currentInvitation?.inviteCode;
+    if (!inviteCode) {
+      toast.error(m.org_invitation_accept_unavailable());
+      return;
+    }
+
+    await submitInvitationAction({
+      inviteCode,
+      mutate: acceptInvitation,
+      successMessage: m.org_invitation_accept_success(),
+      errorFallbackMessage: m.org_invitation_accept_error(),
+    });
   };
 
   return (
@@ -109,7 +97,12 @@ export function PendingInvitationsDialog() {
         </DialogHeader>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={handleReject} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => void handleReject()}
+            disabled={isSubmitting}
+          >
             {m.org_invitation_reject()}
           </Button>
           <Button type="button" onClick={() => void handleAccept()} disabled={isSubmitting}>

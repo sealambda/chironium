@@ -5,6 +5,7 @@
 import { z } from "zod";
 
 import * as m from "@/paraglide/messages";
+import { emailOptionalSchema } from "@/shared/utils/email-validation";
 
 // Unicode-aware name pattern: letters, spaces, hyphens, apostrophes, dots.
 // No consecutive specials, no leading/trailing specials (except trailing dot).
@@ -30,9 +31,7 @@ export const personSchema = z.object({
     .string()
     .default("")
     .refine((v) => !v || /^\+\d{7,15}$/.test(v), { message: m.validation_phone_format() }),
-  email: z
-    .union([z.string().email({ message: m.validation_email_format() }), z.literal("")])
-    .default(""),
+  email: emailOptionalSchema,
   instagram: z.string().default(""),
 });
 
