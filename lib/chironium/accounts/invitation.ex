@@ -26,6 +26,10 @@ defmodule Chironium.Accounts.Invitation do
       update :accept_invitation, :accept,
         identity: false,
         read_action: :get_by_invite_code
+
+      update :reject_invitation, :reject,
+        identity: false,
+        read_action: :get_by_invite_code
     end
   end
 
@@ -110,23 +114,7 @@ defmodule Chironium.Accounts.Invitation do
 
       run fn input, context ->
         invite_code = input.arguments.invite_code
-
-        invitation_query =
-          __MODULE__
-          |> Ash.Query.for_read(:get_by_invite_code, %{invite_code: invite_code})
-
-        with {:ok, invitation} when not is_nil(invitation) <-
-               Ash.read_one(invitation_query, actor: context.actor) do
-          Ash.update(
-            invitation,
-            %{},
-            action: :accept,
-            actor: context.actor
-          )
-        else
-          {:ok, nil} -> {:error, :invalid_invite_code}
-          error -> error
-        end
+        update_invitation_by_invite_code(invite_code, :accept, context)
       end
     end
 
@@ -139,23 +127,7 @@ defmodule Chironium.Accounts.Invitation do
 
       run fn input, context ->
         invite_code = input.arguments.invite_code
-
-        invitation_query =
-          __MODULE__
-          |> Ash.Query.for_read(:get_by_invite_code, %{invite_code: invite_code})
-
-        with {:ok, invitation} when not is_nil(invitation) <-
-               Ash.read_one(invitation_query, actor: context.actor) do
-          Ash.update(
-            invitation,
-            %{},
-            action: :reject,
-            actor: context.actor
-          )
-        else
-          {:ok, nil} -> {:error, :invalid_invite_code}
-          error -> error
-        end
+        update_invitation_by_invite_code(invite_code, :reject, context)
       end
     end
   end
@@ -219,5 +191,19 @@ defmodule Chironium.Accounts.Invitation do
   identities do
     identity :unique_invitation, [:organization_id, :email]
     identity :unique_invite_code, [:invite_code]
+  end
+
+  defp update_invitation_by_invite_code(invite_code, ash_action, context) do
+    invitation_query =
+      __MODULE__
+      |> Ash.Query.for_read(:get_by_invite_code, %{invite_code: invite_code})
+
+    with {:ok, invitation} when not is_nil(invitation) <-
+           Ash.read_one(invitation_query, actor: context.actor) do
+      Ash.update(invitation, %{}, action: ash_action, actor: context.actor)
+    else
+      {:ok, nil} -> {:error, :invalid_invite_code}
+      error -> error
+    end
   end
 end

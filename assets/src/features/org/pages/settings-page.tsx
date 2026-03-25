@@ -5,11 +5,9 @@ import { toast } from "sonner";
 
 import { fetchOrganizationSettings, inviteUserToOrganization } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Loading } from "@/shared/ui/loading";
 import {
   Dialog,
   DialogContent,
@@ -21,16 +19,27 @@ import {
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { Loading } from "@/shared/ui/loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { emailRequiredSchema } from "@/shared/utils/email-validation";
 
 const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+type MemberRow = {
+  key: string;
+  primary: string;
+  secondary: string | null;
+  role: string;
+  status: string;
+};
+
+function isPendingInvitationState(state: string): boolean {
+  return state.toLowerCase() === "pending";
+}
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
   const { selectedOrg, loading: orgLoading } = useOrg();
-  const { user } = useCurrentUser();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
@@ -42,37 +51,89 @@ export function SettingsPage() {
     enabled: Boolean(selectedOrg?.id),
   });
 
-  const memberRows = useMemo(() => {
-    const members = new Map<string, { email: string; status: string }>();
-
-    if (user?.email) {
-      members.set(user.email.toLowerCase(), {
-        email: user.email,
-        status: m.settings_member_status_active(),
-      });
+  const memberRows = useMemo((): MemberRow[] => {
+    if (!organization) {
+      return [];
     }
 
-    for (const invitation of organization?.invitations ?? []) {
-      const inviterEmail = invitation.invitedBy?.email?.trim();
-      if (inviterEmail) {
-        members.set(inviterEmail.toLowerCase(), {
-          email: inviterEmail,
-          status: m.settings_member_status_active(),
-        });
+    const pendingByEmail = new Set<string>();
+    for (const invitation of organization.invitations) {
+      if (!isPendingInvitationState(invitation.state)) {
+        continue;
       }
+      const inviteEmail = invitation.email?.trim();
+      if (!inviteEmail) {
+        continue;
+      }
+      pendingByEmail.add(inviteEmail.toLowerCase());
     }
 
-    const pendingRows = (organization?.invitations ?? [])
-      .map((invitation) => invitation.email?.trim() ?? "")
-      .filter(Boolean)
-      .filter((pendingEmail) => !members.has(pendingEmail.toLowerCase()))
-      .map((pendingEmail) => ({
-        email: pendingEmail,
-        status: m.settings_member_status_pending(),
-      }));
+    const activeByEmail = new Map<string, MemberRow>();
 
-    return [...members.values(), ...pendingRows];
-  }, [organization?.invitations, user?.email]);
+    const addActiveMember = (
+      member: { id: string; email: string; name: string | null },
+      role: string,
+    ) => {
+      const trimmedEmail = member.email.trim();
+      if (!trimmedEmail) {
+        return;
+      }
+
+      const lowerEmail = trimmedEmail.toLowerCase();
+      if (activeByEmail.has(lowerEmail)) {
+        return;
+      }
+
+      const displayName = member.name?.trim() ?? "";
+      const primary = displayName || trimmedEmail;
+      const secondary = displayName ? trimmedEmail : null;
+
+      activeByEmail.set(lowerEmail, {
+        key: member.id,
+        primary,
+        secondary,
+        role,
+        status: pendingByEmail.has(lowerEmail)
+          ? m.settings_member_status_pending()
+          : m.settings_member_status_active(),
+      });
+    };
+
+    addActiveMember(organization.owner, m.settings_member_status_owner());
+    for (const member of organization.users) {
+      addActiveMember(member, m.settings_member_status_member());
+    }
+
+    const activeRows = [...activeByEmail.values()];
+
+    const pendingRows = organization.invitations.flatMap((invitation) => {
+      if (!isPendingInvitationState(invitation.state)) {
+        return [];
+      }
+
+      const inviteEmail = invitation.email?.trim() ?? "";
+      if (!inviteEmail) {
+        return [];
+      }
+
+      const lowerEmail = inviteEmail.toLowerCase();
+      if (activeByEmail.has(lowerEmail)) {
+        return [];
+      }
+
+      return [
+        {
+          key: invitation.id,
+          primary: inviteEmail,
+          secondary: null,
+          role: m.settings_member_status_member(),
+          status: m.settings_member_status_pending(),
+        } satisfies MemberRow,
+      ];
+    });
+
+    return [...activeRows, ...pendingRows];
+  }, [organization]);
 
   const handleOpenInvite = () => {
     setInviteError(null);
@@ -86,8 +147,9 @@ export function SettingsPage() {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail)) {
-      setInviteError(m.validation_email_format());
+    const parsedEmail = emailRequiredSchema.safeParse(normalizedEmail);
+    if (!parsedEmail.success) {
+      setInviteError(parsedEmail.error.issues[0]?.message ?? m.validation_email_format());
       return;
     }
 
@@ -155,13 +217,22 @@ export function SettingsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{m.settings_members_user_col()}</TableHead>
+                <TableHead>{m.settings_members_role_col()}</TableHead>
                 <TableHead>{m.settings_members_status_col()}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {memberRows.map((row) => (
-                <TableRow key={`${row.email}-${row.status}`}>
-                  <TableCell>{row.email}</TableCell>
+                <TableRow key={row.key}>
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">{row.primary}</span>
+                      {row.secondary ? (
+                        <span className="text-muted-foreground text-sm">{row.secondary}</span>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell>{row.role}</TableCell>
                   <TableCell>{row.status}</TableCell>
                 </TableRow>
               ))}
