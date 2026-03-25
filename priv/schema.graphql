@@ -4,9 +4,16 @@ schema {
   subscription: Subscription
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+}
+
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
+
+  "Text representation of the full name"
+  text: String
 
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
@@ -16,9 +23,6 @@ input PractitionerNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -196,6 +200,9 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -204,9 +211,6 @@ input PersonNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -814,6 +818,15 @@ type Organization {
     "The number of records to skip."
     offset: Int
   ): [Invitation!]!
+}
+
+"The result of the :reject_invitation mutation"
+type RejectInvitationResult {
+  "The successful result of the mutation"
+  result: Invitation
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
 }
 
 "The result of the :accept_invitation mutation"
@@ -1473,22 +1486,18 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-}
-
 input PatientCreatePatientWithPersonPersonInput {
   "A name associated with the person"
   name: [PersonNameInput!]
+
+  "The date on which the person was born"
+  birthDate: Date
 
   "The gender of a person used for administrative purposes."
   gender: AdministrativeGender
 
   "A contact detail for the person (e.g. email, phone, etc.)"
   telecom: [PersonTelecomInput!]
-
-  "The date on which the person was born"
-  birthDate: Date
 }
 
 "The result of the :delete_practitioner mutation"
@@ -3644,6 +3653,9 @@ type RootMutationType {
 
   "Accept an invitation to join an organization"
   acceptInvitation(inviteCode: String!): AcceptInvitationResult!
+
+  "Reject an invitation to join an organization"
+  rejectInvitation(inviteCode: String!): RejectInvitationResult!
 
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 

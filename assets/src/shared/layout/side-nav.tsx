@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import { OrgSelector } from "@/features/org/ui/org-selector";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Sheet, SheetContent } from "@/shared/ui/sheet";
@@ -15,6 +16,16 @@ import { NavUser } from "./nav-user";
 type NavItem = (typeof navItems)[number];
 type NavVariant = "desktop" | "mobile";
 
+function getVisibleNavItems(params: Readonly<{ userId?: string; selectedOrg: { ownerId: string } | null }>) {
+  if (!params.selectedOrg) {
+    return [];
+  }
+
+  const isOrgOwner = Boolean(params.userId && params.userId === params.selectedOrg.ownerId);
+
+  return navItems.filter((item) => !item.requiresOrgOwner || isOrgOwner);
+}
+
 /**
  * Side navigation for tablet and desktop layouts.
  */
@@ -22,6 +33,9 @@ export function SideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick: () =>
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
+  const { user } = useCurrentUser();
+
+  const visibleNavItems = getVisibleNavItems({ userId: user?.id, selectedOrg });
 
   return (
     <nav
@@ -43,7 +57,7 @@ export function SideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick: () =>
       </div>
 
       <div className="flex flex-1 flex-col gap-1 px-2 pt-4 md:px-4">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavItemLink key={item.to} item={item} currentPath={currentPath} variant="desktop" />
         ))}
       </div>
@@ -62,7 +76,10 @@ export function MobileSideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick:
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
+  const { user } = useCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
+
+  const visibleNavItems = getVisibleNavItems({ userId: user?.id, selectedOrg });
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -115,7 +132,7 @@ export function MobileSideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick:
             </div>
 
             <div className="flex flex-1 flex-col gap-1 px-3 pt-0">
-              {navItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <NavItemLink
                   key={item.to}
                   item={item}
