@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2 } from "lucide-react";
+import { AlertCircle, Building2, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { fetchOrganizationSettings, inviteUserToOrganization } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -40,15 +41,18 @@ function isPendingInvitationState(state: string): boolean {
 export function SettingsPage() {
   const queryClient = useQueryClient();
   const { selectedOrg, loading: orgLoading } = useOrg();
+  const { user } = useCurrentUser();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
-  const { data: organization, isLoading } = useQuery({
+  const isOrgOwner = Boolean(user?.id && selectedOrg && user.id === selectedOrg.ownerId);
+
+  const { data: organization, isLoading, error: settingsError } = useQuery({
     queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg?.id],
     queryFn: () => fetchOrganizationSettings(selectedOrg?.id ?? ""),
-    enabled: Boolean(selectedOrg?.id),
+    enabled: Boolean(selectedOrg?.id) && isOrgOwner,
   });
 
   const memberRows = useMemo((): MemberRow[] => {
@@ -179,6 +183,23 @@ export function SettingsPage() {
 
   if (!selectedOrg) {
     return <EmptyState icon={Building2} title={m.no_org()} description={m.no_org_desc()} />;
+  }
+
+  if (!isOrgOwner) {
+    return (
+      <EmptyState
+        icon={ShieldOff}
+        title={m.settings_not_owner()}
+        description={m.settings_not_owner_desc()}
+      />
+    );
+  }
+
+  if (settingsError) {
+    const message = settingsError instanceof Error ? settingsError.message : String(settingsError);
+    return (
+      <EmptyState icon={AlertCircle} title={m.settings_error()} description={message} />
+    );
   }
 
   return (
