@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { normalizeDuration } from "@/shared/utils/duration-utils";
+import { normalizeDuration } from "@/shared/utils/subscriptions-utils";
 
 interface AddSubscriptionPlanDialogProps {
   readonly open: boolean;

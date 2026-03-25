@@ -32,8 +32,17 @@ const PatientDetailByPersonQuery = graphql(`
           code {
             text
             coding {
+              system
+              code
+              version
               display
             }
+          }
+          note {
+            text
+            time
+            authorReference
+            authorString
           }
         }
         goals(

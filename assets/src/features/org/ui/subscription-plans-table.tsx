@@ -1,4 +1,4 @@
-import type { SubscriptionPlan } from "@/features/customers/api/subscriptions-api";
+import type { SubscriptionPlan } from "@/shared/types/subscriptions";
 import { DataTable } from "@/shared/ui/data-table";
 
 import { subscriptionPlanColumns } from "./subscription-plan-columns";
