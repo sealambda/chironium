@@ -49,7 +49,11 @@ export function SettingsPage() {
 
   const isOrgOwner = Boolean(user?.id && selectedOrg && user.id === selectedOrg.ownerId);
 
-  const { data: organization, isLoading, error: settingsError } = useQuery({
+  const {
+    data: organization,
+    isLoading,
+    error: settingsError,
+  } = useQuery({
     queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg?.id],
     queryFn: () => fetchOrganizationSettings(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg?.id) && isOrgOwner,
@@ -197,9 +201,7 @@ export function SettingsPage() {
 
   if (settingsError) {
     const message = settingsError instanceof Error ? settingsError.message : String(settingsError);
-    return (
-      <EmptyState icon={AlertCircle} title={m.settings_error()} description={message} />
-    );
+    return <EmptyState icon={AlertCircle} title={m.settings_error()} description={message} />;
   }
 
   return (

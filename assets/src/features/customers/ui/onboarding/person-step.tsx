@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { emailOptionalSchema } from "@/shared/utils/email-validation";
 
 import { StepLayout } from "./step-layout";
 
@@ -113,8 +114,8 @@ export function PersonStep({
                   maxLength={50}
                   value={field.state.value}
                   onChange={(e) => {
-                    let filtered = e.target.value.replace(/[^\p{L}\s'.-]/gu, "");
-                    filtered = filtered.replace(/([\s'.-])([\s'.-]+)/gu, "$1");
+                    let filtered = e.target.value.replaceAll(/[^\p{L}\s'.-]/gu, "");
+                    filtered = filtered.replaceAll(/([\s'.-])([\s'.-]+)/gu, "$1");
                     filtered = filtered.replace(/^[\s'.-]+/, "");
                     filtered = filtered.slice(0, 50);
                     field.handleChange(filtered);
@@ -163,8 +164,8 @@ export function PersonStep({
                   maxLength={50}
                   value={field.state.value}
                   onChange={(e) => {
-                    let filtered = e.target.value.replace(/[^\p{L}\s'.-]/gu, "");
-                    filtered = filtered.replace(/([\s'.-])([\s'.-]+)/gu, "$1");
+                    let filtered = e.target.value.replaceAll(/[^\p{L}\s'.-]/gu, "");
+                    filtered = filtered.replaceAll(/([\s'.-])([\s'.-]+)/gu, "$1");
                     filtered = filtered.replace(/^[\s'.-]+/, "");
                     filtered = filtered.slice(0, 50);
                     field.handleChange(filtered);
@@ -243,7 +244,8 @@ export function PersonStep({
           name="email"
           validators={{
             onBlur: ({ value }) => {
-              if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+              const parsed = emailOptionalSchema.safeParse(value ?? "");
+              if (!parsed.success) {
                 return m.validation_email_format();
               }
               return undefined;
@@ -257,7 +259,7 @@ export function PersonStep({
                 type="email"
                 value={field.state.value}
                 onChange={(e) => {
-                  const filtered = e.target.value.replace(/[^a-zA-Z0-9.@_+-]/g, "");
+                  const filtered = e.target.value.replaceAll(/[^a-zA-Z0-9.@_+-]/g, "");
                   field.handleChange(filtered);
                 }}
                 onBlur={field.handleBlur}
@@ -287,7 +289,7 @@ export function PersonStep({
                   onChange={(e) => {
                     const sanitized = e.target.value
                       .toLowerCase()
-                      .replace(/[^a-z0-9._]/g, "")
+                      .replaceAll(/[^a-z0-9._]/g, "")
                       .slice(0, 30);
                     field.handleChange(sanitized);
                   }}

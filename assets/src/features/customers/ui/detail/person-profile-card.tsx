@@ -11,6 +11,7 @@ import { Badge } from "@/shared/ui/badge";
 import { CardAddButton } from "@/shared/ui/card-add-button";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { Separator } from "@/shared/ui/separator";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
 import { getInitials } from "@/shared/utils/name-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
@@ -99,6 +100,15 @@ function getAgeLabel(birthDate?: string | null): string {
   return ` (${age})`;
 }
 
+function PersonProfileCardGoalsSkeleton() {
+  return (
+    <div className="space-y-3">
+      <Skeleton className="h-4 w-28" />
+      <Skeleton className="h-6 w-full rounded-md" />
+    </div>
+  );
+}
+
 export function PersonProfileCard({
   person,
   personId,
@@ -115,11 +125,11 @@ export function PersonProfileCard({
   const planBadgeLabel = badgeMetadata.statusLabel
     ? `${badgeMetadata.planLabel} - ${badgeMetadata.statusLabel}`
     : badgeMetadata.planLabel;
-  const lastGoal = goals.at(-1);
+  const lastGoal = isGoalsLoading ? null : goals.at(-1);
 
   let goalContent: ReactNode;
   if (isGoalsLoading) {
-    goalContent = <p className="text-base text-foreground/65">{m.common_loading()}</p>;
+    goalContent = <PersonProfileCardGoalsSkeleton />;
   } else if (lastGoal) {
     goalContent = (
       <p className="text-foreground/75 text-lg italic">"{lastGoal.description?.text ?? ""}"</p>

@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { SubscriptionPlan } from "@/features/customers/api/subscriptions-api";
 import * as m from "@/paraglide/messages";
+import type { SubscriptionPlan } from "@/shared/types/subscriptions";
 
 function formatDurationCode(code: string | null | undefined): string {
   if (!code) {

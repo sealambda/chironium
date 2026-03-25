@@ -2,10 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Building2, CreditCard, Plus, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import {
-  fetchSubscriptionPlans,
-  type SubscriptionPlan,
-} from "@/features/customers/api/subscriptions-api";
+import { fetchSubscriptionPlans } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { AddSubscriptionPlanDialog } from "@/features/org/ui/add-subscription-plan-dialog";
 import {
@@ -16,6 +13,7 @@ import { SubscriptionPlansTable } from "@/features/org/ui/subscription-plans-tab
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
+import type { SubscriptionPlan } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
@@ -90,9 +88,7 @@ export function SubscriptionsPage() {
 
   if (plansError) {
     const message = plansError instanceof Error ? plansError.message : String(plansError);
-    return (
-      <EmptyState icon={AlertCircle} title={m.subscriptions_error()} description={message} />
-    );
+    return <EmptyState icon={AlertCircle} title={m.subscriptions_error()} description={message} />;
   }
 
   return (

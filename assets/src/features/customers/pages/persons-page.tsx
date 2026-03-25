@@ -29,7 +29,6 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
-import { Loading } from "@/shared/ui/loading";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +38,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
+import { Loading } from "@/shared/ui/loading";
 import { formatPersonName } from "@/shared/utils/person-utils";
 
 /**

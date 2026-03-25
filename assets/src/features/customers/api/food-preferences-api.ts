@@ -290,15 +290,18 @@ export async function fetchFoodPreferences(
     }[],
   ): string[] =>
     results.flatMap((obs) => {
-      if ((obs.valueCodeableConcept?.coding?.length ?? 0) > 0) {
-        return obs.valueCodeableConcept?.coding?.flatMap((c) =>
-          c.display ? [c.display.trim()] : [],
-        );
+      const coding = obs.valueCodeableConcept?.coding ?? [];
+      if (coding.length > 0) {
+        return coding.flatMap((c) => {
+          const label = c.display?.trim();
+          return label ? [label] : [];
+        });
       }
+
       return (obs.valueString ?? "")
         .split(",")
         .map((s) => s.trim())
-        .filter(Boolean);
+        .filter((s): s is string => s.length > 0);
     });
 
   return {

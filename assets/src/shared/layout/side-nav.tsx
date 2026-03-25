@@ -16,7 +16,9 @@ import { NavUser } from "./nav-user";
 type NavItem = (typeof navItems)[number];
 type NavVariant = "desktop" | "mobile";
 
-function getVisibleNavItems(params: Readonly<{ userId?: string; selectedOrg: { ownerId: string } | null }>) {
+function getVisibleNavItems(
+  params: Readonly<{ userId?: string; selectedOrg: { ownerId: string } | null }>,
+) {
   if (!params.selectedOrg) {
     return [];
   }

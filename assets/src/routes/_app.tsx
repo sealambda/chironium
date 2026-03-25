@@ -8,8 +8,8 @@ import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { PendingInvitationsDialog } from "@/features/org/ui/pending-invitations-dialog";
 import * as m from "@/paraglide/messages";
 import { AppShell } from "@/shared/layout/app-shell";
-import { Loading } from "@/shared/ui/loading";
 import { EmptyState } from "@/shared/ui/empty-state";
+import { Loading } from "@/shared/ui/loading";
 
 /**
  * App layout route.
