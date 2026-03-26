@@ -23,6 +23,10 @@ defmodule Chironium.Health.Goal do
 
     mutations do
       create :create_goal, :create
+
+      update :update_goal, :update
+
+      destroy :delete_goal, :destroy
     end
   end
 
