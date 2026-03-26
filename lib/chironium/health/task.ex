@@ -23,6 +23,10 @@ defmodule Chironium.Health.Task do
 
   postgres do
     table "tasks"
+
+    custom_indexes do
+      index :requested_period, using: "gin"
+    end
   end
 
   graphql do
@@ -184,6 +188,15 @@ defmodule Chironium.Health.Task do
     # TODO: This reference should not be directly public, but rather use a union type on "for" that includes Patient and Practitioner (and potentially others in the future)
     belongs_to :for_patient, Chironium.Health.Patient do
       description "Beneficiary of the Task"
+      public? true
+    end
+  end
+
+  calculations do
+    calculate :requested_period_start_sort_key,
+              :datetime,
+              expr(fragment("(?->>'start')::timestamp", requested_period)) do
+      description "Helper calculation to sort by requested_period.start"
       public? true
     end
   end
