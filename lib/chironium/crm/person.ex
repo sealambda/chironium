@@ -26,7 +26,7 @@ defmodule Chironium.CRM.Person do
     end
 
     queries do
-      read_one :get_person, :read
+      get :get_person, :read
       list :list_persons, :read
     end
   end

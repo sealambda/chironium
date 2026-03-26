@@ -21,11 +21,9 @@ defmodule Chironium.Accounts.Organization do
 
   graphql do
     type :organization
-    derive_filter? false
-    derive_sort? false
 
     queries do
-      read_one :get_organization, :read
+      get :get_organization, :read
       list :list_organizations, :read
     end
 
