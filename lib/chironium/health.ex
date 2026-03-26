@@ -18,7 +18,8 @@ defmodule Chironium.Health do
       Chironium.Health.NutritionPlan,
       Chironium.Health.Observation,
       Chironium.Health.Patient,
-      Chironium.Health.Practitioner
+      Chironium.Health.Practitioner,
+      Chironium.Health.Task
     ]
   end
 
@@ -35,5 +36,6 @@ defmodule Chironium.Health do
     resource Chironium.Health.Observation
     resource Chironium.Health.Patient
     resource Chironium.Health.Practitioner
+    resource Chironium.Health.Task
   end
 end

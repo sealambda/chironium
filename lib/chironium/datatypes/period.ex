@@ -17,11 +17,11 @@ defmodule Chironium.Datatypes.Period do
   end
 
   attributes do
-    attribute :start, :date do
+    attribute :start, :datetime do
       public? true
     end
 
-    attribute :end, :date do
+    attribute :end, :datetime do
       public? true
     end
   end
