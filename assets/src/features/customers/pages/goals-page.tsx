@@ -60,7 +60,7 @@ export function GoalsPage() {
   const { customerId } = Route.useParams();
   const { selectedOrg } = useOrg();
 
-  useDetailModeEffect(<HistoryDetailHeader customerId={customerId} />, "goals");
+  useDetailModeEffect(<HistoryDetailHeader />, "goals");
 
   const { data, isLoading } = useQuery({
     queryKey: ["person", customerId, "goals", selectedOrg?.id],

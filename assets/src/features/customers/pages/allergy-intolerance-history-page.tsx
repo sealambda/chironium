@@ -52,7 +52,7 @@ export function AllergyIntoleranceHistoryPage() {
   const [editText, setEditText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useDetailModeEffect(<HistoryDetailHeader customerId={customerId} />, "allergies-history");
+  useDetailModeEffect(<HistoryDetailHeader />, "allergies-history");
 
   const { data, isLoading } = useQuery({
     queryKey: ["person", customerId, "allergyIntolerances", selectedOrg?.id],

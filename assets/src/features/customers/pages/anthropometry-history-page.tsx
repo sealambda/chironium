@@ -55,7 +55,7 @@ export function AnthropometryHistoryPage() {
   const [deleteTarget, setDeleteTarget] = useState<AnthropometricSnapshot | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useDetailModeEffect(<HistoryDetailHeader customerId={customerId} />, "anthropometry-history");
+  useDetailModeEffect(<HistoryDetailHeader />, "anthropometry-history");
 
   const { data, isLoading } = useQuery({
     queryKey: ["person", customerId, "anthropometryHistory", selectedOrg?.id],

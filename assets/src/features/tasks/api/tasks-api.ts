@@ -7,15 +7,17 @@ const ListTasksQuery = graphql(`
     listTasks(first: $first, sort: $sort) {
       results {
         id
-        description
+        intent
         status
         priority
+        description
         requestedPeriod {
           start
           end
         }
         forPatient {
           id
+          personId
           person {
             name {
               given
@@ -33,7 +35,7 @@ const ListPlanReviewTasksForPatientQuery = graphql(`
   query ListPlanReviewTasksForPatient($patientId: ID!) {
     listTasks(
       first: 250
-      sort: [{ field: PRIORITY, order: DESC }]
+      sort: [{ field: REQUESTED_PERIOD_START_SORT_KEY, order: ASC }]
       filter: {
         intent: { eq: PLAN }
         forPatientId: { eq: $patientId }
@@ -42,7 +44,6 @@ const ListPlanReviewTasksForPatientQuery = graphql(`
     ) {
       results {
         id
-        description
         requestedPeriod {
           start
           end
@@ -111,7 +112,9 @@ export type PendingPlanReviewTask = NonNullable<
   NonNullable<ResultOf<typeof ListPlanReviewTasksForPatientQuery>["listTasks"]>["results"]
 >[number];
 
-const SORT_BY_ID = [{ field: "ID" as const, order: "DESC" as const }];
+const SORT_BY_REQUESTED_PERIOD_START = [
+  { field: "REQUESTED_PERIOD_START_SORT_KEY" as const, order: "ASC" as const },
+];
 
 export async function fetchTasks(organizationId: string): Promise<Task[]> {
   if (!organizationId) {
@@ -122,7 +125,7 @@ export async function fetchTasks(organizationId: string): Promise<Task[]> {
     document: ListTasksQuery,
     variables: {
       first: 250,
-      sort: SORT_BY_ID,
+      sort: SORT_BY_REQUESTED_PERIOD_START,
     },
     organizationId,
   });
@@ -145,18 +148,7 @@ export async function fetchPendingPlanReviewTasksForPatient(
     organizationId,
   });
 
-  const now = Date.now();
-  const tasks = result.listTasks?.results ?? [];
-
-  return tasks.filter((task) => {
-    const start = task.requestedPeriod?.start;
-    if (!start) {
-      return false;
-    }
-
-    const startAt = Date.parse(start);
-    return Number.isFinite(startAt) && startAt > now;
-  });
+  return result.listTasks?.results ?? [];
 }
 
 export interface CreateTaskParams {
