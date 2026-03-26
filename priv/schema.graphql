@@ -24,14 +24,14 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -212,14 +212,14 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -3076,6 +3076,57 @@ type MedicationStatement {
   subject: Patient!
 }
 
+"The result of the :delete_goal mutation"
+type DeleteGoalResult {
+  "The record that was successfully deleted"
+  result: Goal
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_goal mutation"
+type UpdateGoalResult {
+  "The successful result of the mutation"
+  result: Goal
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateGoalInput {
+  lifecycleStatus: GoalLifecycleStatus
+
+  achievementStatus: GoalAchievementStatus
+
+  category: [GoalCategory!]
+
+  "After meeting the goal, ongoing activity is needed to sustain the goal objective"
+  continuous: Boolean
+
+  priority: GoalPriority
+
+  "Code or text describing goal"
+  description: GoalDescriptionInput
+
+  "When goal pursuit begins"
+  startDate: Date
+
+  "Reach goal on or before"
+  dueDate: Date
+
+  "When goal status took effect"
+  statusDate: Date
+
+  "Reason for current status"
+  statusReason: String
+
+  "Comments about the goal"
+  note: [GoalNoteInput!]
+
+  subjectId: ID
+}
+
 "The result of the :create_goal mutation"
 type CreateGoalResult {
   "The successful result of the mutation"
@@ -4226,6 +4277,10 @@ type RootMutationType {
   deleteCondition(id: ID!): DeleteConditionResult!
 
   createGoal(input: CreateGoalInput!): CreateGoalResult!
+
+  updateGoal(id: ID!, input: UpdateGoalInput): UpdateGoalResult!
+
+  deleteGoal(id: ID!): DeleteGoalResult!
 
   createMedicationStatement(input: CreateMedicationStatementInput!): CreateMedicationStatementResult!
 
