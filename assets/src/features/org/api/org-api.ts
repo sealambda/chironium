@@ -19,8 +19,8 @@ const ListOrganizationsQuery = graphql(`
 `);
 
 const GetOrganizationSettingsQuery = graphql(`
-  query GetOrganizationSettings {
-    getOrganization {
+  query GetOrganizationSettings($id: ID!) {
+    getOrganization(id: $id) {
       id
       name
       slug
@@ -210,7 +210,7 @@ export async function fetchOrganizationSettings(
 ): Promise<OrganizationSettingsData | null> {
   const data = await requestGraphql({
     document: GetOrganizationSettingsQuery,
-    organizationId,
+    variables: { id: organizationId },
   });
 
   if (!data.getOrganization) {

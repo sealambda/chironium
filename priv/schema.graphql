@@ -4,16 +4,9 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-}
-
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
-
-  "Text representation of the full name"
-  text: String
 
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
@@ -23,6 +16,9 @@ input PractitionerNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -200,9 +196,6 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -211,6 +204,9 @@ input PersonNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -771,6 +767,13 @@ input CreateOrganizationInput {
   slug: String!
 }
 
+enum OrganizationSortField {
+  ID
+  NAME
+  SLUG
+  OWNER_ID
+}
+
 "A keyset page of :organization"
 type KeysetPageOfOrganization {
   "Total count on all pages"
@@ -784,6 +787,92 @@ type KeysetPageOfOrganization {
 
   "The last keyset in the results"
   endKeyset: String
+}
+
+input OrganizationFilterOwnerId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input OrganizationFilterSlug {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input OrganizationFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input OrganizationFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input OrganizationFilterInput {
+  and: [OrganizationFilterInput!]
+
+  or: [OrganizationFilterInput!]
+
+  not: [OrganizationFilterInput!]
+
+  id: OrganizationFilterId
+
+  name: OrganizationFilterName
+
+  slug: OrganizationFilterSlug
+
+  ownerId: OrganizationFilterOwnerId
+
+  "The organization must belong to an owner, usually who created it"
+  owner: UserFilterInput
+
+  "All other users belonging to the organization are defined separately"
+  users: UserFilterInput
+
+  "Invitations to join the organization"
+  invitations: InvitationFilterInput
+}
+
+input OrganizationSortInput {
+  order: SortOrder
+  field: OrganizationSortField!
 }
 
 type Organization {
@@ -979,6 +1068,8 @@ input InvitationFilterInput {
   organizationId: InvitationFilterOrganizationId
 
   invitedById: InvitationFilterInvitedById
+
+  organization: OrganizationFilterInput
 
   invitedBy: UserFilterInput
 }
@@ -1549,6 +1640,10 @@ type SubscriptionVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Subscription!
+}
+
+input OrganizationInviteUsersInvitationsInput {
+  email: String
 }
 
 input PatientCreatePatientWithPersonPersonInput {
@@ -3636,8 +3731,8 @@ type RootQueryType {
   ): KeysetPageOfSubscription
 
   getPerson(
-    "A filter to limit the results"
-    filter: PersonFilterInput
+    "The id of the record"
+    id: ID!
   ): Person
 
   listPersons(
@@ -3669,9 +3764,18 @@ type RootQueryType {
     filter: InvitationFilterInput
   ): [Invitation!]!
 
-  getOrganization: Organization
+  getOrganization(
+    "The id of the record"
+    id: ID!
+  ): Organization
 
   listOrganizations(
+    "How to sort the records in the response"
+    sort: [OrganizationSortInput]
+
+    "A filter to limit the results"
+    filter: OrganizationFilterInput
+
     "The number of records to return from the beginning. Maximum 250"
     first: Int
 
