@@ -57,7 +57,7 @@ export function ObservationsListPage() {
   const [deleteTarget, setDeleteTarget] = useState<ObservationItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useDetailModeEffect(<HistoryDetailHeader customerId={customerId} />, "observations-history");
+  useDetailModeEffect(<HistoryDetailHeader />, "observations-history");
 
   const { data, isLoading } = useQuery({
     queryKey: ["person", customerId, "observationsList", selectedOrg?.id],

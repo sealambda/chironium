@@ -45,7 +45,7 @@ export function NutritionPlansPage() {
   const { customerId } = Route.useParams();
   const { selectedOrg } = useOrg();
 
-  useDetailModeEffect(<HistoryDetailHeader customerId={customerId} />, "nutrition-plans");
+  useDetailModeEffect(<HistoryDetailHeader />, "nutrition-plans");
 
   const { data, isLoading } = useQuery({
     queryKey: ["person", customerId, "nutritionPlans", selectedOrg?.id],

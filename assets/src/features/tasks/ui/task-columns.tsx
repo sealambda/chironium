@@ -9,74 +9,60 @@ import { formatPersonName } from "@/shared/utils/person-utils";
 function formatPeriod(period: Task["requestedPeriod"]): string {
   const locale = getDateLocale();
   const start = period?.start ? new Date(period.start) : null;
-  const end = period?.end ? new Date(period.end) : null;
-
-  const startLabel = start ? format(start, "PPp", { locale }) : null;
-  const endLabel = end ? format(end, "PPp", { locale }) : null;
-
-  if (startLabel && endLabel) {
-    return `${startLabel} – ${endLabel}`;
-  }
-  if (startLabel) {
-    return startLabel;
-  }
-  if (endLabel) {
-    return endLabel;
-  }
-  return "—";
+  return start ? format(start, "PP", { locale }) : "—";
 }
 
-function formatStatus(status: Task["status"]): string {
-  if (status === "ACCEPTED") {
-    return m.tasks_status_accepted();
-  }
-  if (status === "CANCELLED") {
-    return m.tasks_status_cancelled();
-  }
-  if (status === "COMPLETED") {
-    return m.tasks_status_completed();
-  }
-  if (status === "DRAFT") {
-    return m.tasks_status_draft();
-  }
-  if (status === "ENTERED_IN_ERROR") {
-    return m.tasks_status_entered_in_error();
-  }
-  if (status === "FAILED") {
-    return m.tasks_status_failed();
-  }
-  if (status === "IN_PROGRESS") {
-    return m.tasks_status_in_progress();
-  }
-  if (status === "ON_HOLD") {
-    return m.tasks_status_on_hold();
-  }
-  if (status === "READY") {
-    return m.tasks_status_ready();
-  }
-  if (status === "RECEIVED") {
-    return m.tasks_status_received();
-  }
-  if (status === "REJECTED") {
-    return m.tasks_status_rejected();
-  }
-  if (status === "REQUESTED") {
-    return m.tasks_status_requested();
-  }
-  if (status === "UNKNOWN") {
-    return m.tasks_status_unknown();
-  }
-  return m.common_unknown();
+const intentLabelEntries: [NonNullable<Task["intent"]>, () => string][] = [
+  ["FILLER_ORDER", m.tasks_intent_filler_order],
+  ["INSTANCE_ORDER", m.tasks_intent_instance_order],
+  ["OPTION", m.tasks_intent_option],
+  ["ORDER", m.tasks_intent_order],
+  ["ORIGINAL_ORDER", m.tasks_intent_original_order],
+  ["PLAN", m.tasks_intent_plan],
+  ["PROPOSAL", m.tasks_intent_proposal],
+  ["REFLEX_ORDER", m.tasks_intent_reflex_order],
+  ["UNKNOWN", m.tasks_intent_unknown],
+];
+const intentLabels = Object.fromEntries(intentLabelEntries) as Record<
+  NonNullable<Task["intent"]>,
+  () => string
+>;
+
+function formatIntent(intent: Task["intent"]): string {
+  return intentLabels[intent]?.() ?? m.common_unknown();
+}
+
+const statusLabelEntries: [NonNullable<Task["status"]>, () => string][] = [
+  ["ACCEPTED", m.tasks_status_accepted],
+  ["CANCELLED", m.tasks_status_cancelled],
+  ["COMPLETED", m.tasks_status_completed],
+  ["DRAFT", m.tasks_status_draft],
+  ["ENTERED_IN_ERROR", m.tasks_status_entered_in_error],
+  ["FAILED", m.tasks_status_failed],
+  ["IN_PROGRESS", m.tasks_status_in_progress],
+  ["ON_HOLD", m.tasks_status_on_hold],
+  ["READY", m.tasks_status_ready],
+  ["RECEIVED", m.tasks_status_received],
+  ["REJECTED", m.tasks_status_rejected],
+  ["REQUESTED", m.tasks_status_requested],
+];
+const statusLabels = Object.fromEntries(statusLabelEntries) as Record<
+  NonNullable<Task["status"]>,
+  () => string
+>;
+
+export function formatStatus(status: Task["status"]): string {
+  return statusLabels[status]?.() ?? m.common_unknown();
 }
 
 export const taskColumns: ColumnDef<Task, unknown>[] = [
   {
-    id: "description",
+    id: "intent",
     enableSorting: false,
-    accessorKey: "description",
-    header: () => m.tasks_col_description(),
+    accessorKey: "intent",
+    header: () => m.tasks_col_intent(),
     cell: ({ getValue }) => (
-      <span className="line-clamp-2 font-medium">{(getValue() as string | null) || "—"}</span>
+      <span className="font-medium">{formatIntent(getValue() as Task["intent"])}</span>
     ),
   },
   {
@@ -92,7 +78,7 @@ export const taskColumns: ColumnDef<Task, unknown>[] = [
     id: "requestedPeriod",
     enableSorting: false,
     accessorFn: (row) => row.requestedPeriod?.start ?? null,
-    header: () => m.tasks_col_requested_period(),
+    header: () => m.common_date(),
     cell: ({ row }) => (
       <span className="text-muted-foreground">{formatPeriod(row.original.requestedPeriod)}</span>
     ),
@@ -103,5 +89,16 @@ export const taskColumns: ColumnDef<Task, unknown>[] = [
     accessorFn: (row) => formatPersonName(row.forPatient?.person?.name),
     header: () => m.tasks_col_patient(),
     cell: ({ getValue }) => <span className="text-muted-foreground">{getValue() as string}</span>,
+  },
+  {
+    id: "description",
+    enableSorting: false,
+    accessorKey: "description",
+    header: () => m.tasks_col_description(),
+    cell: ({ getValue }) => (
+      <div className="max-w-3xs truncate text-muted-foreground">
+        {(getValue() as string) || "—"}
+      </div>
+    ),
   },
 ];

@@ -49,7 +49,7 @@ export function FoodPreferencesHistoryPage() {
   const [editText, setEditText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useDetailModeEffect(<HistoryDetailHeader customerId={customerId} />, "food-preferences-history");
+  useDetailModeEffect(<HistoryDetailHeader />, "food-preferences-history");
 
   const { data, isLoading } = useQuery({
     queryKey: ["person", customerId, "foodPreferencesHistory", selectedOrg?.id],

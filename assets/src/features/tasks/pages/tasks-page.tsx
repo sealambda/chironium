@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { format, parseISO, startOfDay } from "date-fns";
 import { Building2, ClipboardList } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import { fetchTasks } from "@/features/tasks/api/tasks-api";
+import { formatStatus } from "@/features/tasks/ui/task-columns";
 import { TaskTable } from "@/features/tasks/ui/task-table";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
+import { getDateLocale } from "@/shared/utils/date-locale";
 import { formatPersonName } from "@/shared/utils/person-utils";
 
 export function TasksPage() {
+  const navigate = useNavigate();
   const { selectedOrg, loading: orgsLoading } = useOrg();
   const { setHeaderContent } = useDetailMode();
 
@@ -78,17 +83,39 @@ export function TasksPage() {
           {/* Mobile: stacked cards */}
           <div className="space-y-3 lg:hidden">
             {items.map((task) => (
-              <div key={task.id} className="rounded-lg border bg-card p-4">
+              <button
+                key={task.id}
+                type="button"
+                className="w-full cursor-pointer rounded-lg border bg-card p-4 text-left active:bg-muted/50"
+                onClick={() => {
+                  const personId = task.forPatient?.personId;
+                  if (!personId) {
+                    return;
+                  }
+                  void navigate({ to: "/customers/$customerId", params: { customerId: personId } });
+                }}
+              >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate font-medium">{task.description || "—"}</div>
-                    <div className="mt-1 text-muted-foreground text-sm">
-                      {m.tasks_col_patient()}: {formatPersonName(task.forPatient?.person?.name)}
-                    </div>
+                  <div className="font-semibold">
+                    {task.requestedPeriod?.start
+                      ? format(startOfDay(parseISO(task.requestedPeriod.start)), "PP", {
+                          locale: getDateLocale(),
+                        })
+                      : "—"}
                   </div>
-                  <div className="shrink-0 text-muted-foreground text-sm">{task.status}</div>
+                  <div className="shrink-0 text-muted-foreground text-sm">
+                    {formatStatus(task.status)}
+                  </div>
                 </div>
-              </div>
+                <div className="truncate text-sm">
+                  {formatPersonName(task.forPatient?.person?.name)}
+                </div>
+                {task.description ? (
+                  <div className="mt-1 truncate text-muted-foreground text-sm">
+                    {task.description}
+                  </div>
+                ) : null}
+              </button>
             ))}
           </div>
 
