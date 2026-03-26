@@ -4,12 +4,31 @@ schema {
   subscription: Subscription
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+}
+
+input TaskNoteInput {
+  time: DateTime
+  text: String
+  authorReference: String
+  authorString: String
+}
+
+input TaskRequestedPeriodInput {
+  start: DateTime
+  end: DateTime
+}
+
 input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -155,8 +174,8 @@ type Duration {
 }
 
 input ContactPointPeriodInput {
-  start: Date
-  end: Date
+  start: DateTime
+  end: DateTime
 }
 
 input PersonTelecomInput {
@@ -188,8 +207,8 @@ type ContactPoint {
 }
 
 input HumanNamePeriodInput {
-  start: Date
-  end: Date
+  start: DateTime
+  end: DateTime
 }
 
 input PersonNameInput {
@@ -198,6 +217,9 @@ input PersonNameInput {
 
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -255,8 +277,89 @@ type HumanName {
 }
 
 type Period {
-  start: Date
-  end: Date
+  start: DateTime
+  end: DateTime
+}
+
+enum RequestPriority {
+  "The request should be actioned as soon as possible - higher priority than urgent."
+  ASAP
+
+  "The request has normal priority."
+  ROUTINE
+
+  "The request should be actioned immediately - highest possible priority. E.g. an emergency."
+  STAT
+
+  "The request should be actioned promptly - higher priority than routine."
+  URGENT
+}
+
+enum TaskIntent {
+  "The request represents the view of an authorization instantiated by a fulfilling system representing the details of the fulfiller's intention to act upon a submitted order."
+  FILLER_ORDER
+
+  "An order created in fulfillment of a broader order that represents the authorization for a single activity occurrence. E.g. The administration of a single dose of a drug."
+  INSTANCE_ORDER
+
+  "The request represents a component or option for a RequestOrchestration that establishes timing, conditionality and\/or other constraints among a set of requests. Refer to RequestOrchestration for additional information on how this status is used."
+  OPTION
+
+  "The request represents a request\/demand and authorization for action by the requestor."
+  ORDER
+
+  "The request represents an original authorization for action."
+  ORIGINAL_ORDER
+
+  "The request represents an intention to ensure something occurs without providing an authorization for others to act."
+  PLAN
+
+  "The request is a suggestion made by someone\/something that does not have an intention to ensure it occurs and without providing an authorization to act."
+  PROPOSAL
+
+  "The request represents an automatically generated supplemental authorization for action based on a parent authorization together with initial results of the action taken against that parent authorization."
+  REFLEX_ORDER
+
+  "The intent is not known. When dealing with Task, it's not always known (or relevant) how the task was initiated - i.e. whether it was proposed, planned, ordered or just done spontaneously."
+  UNKNOWN
+}
+
+enum TaskStatus {
+  "The potential performer has agreed to execute the task but has not yet started work."
+  ACCEPTED
+
+  "The task was not completed."
+  CANCELLED
+
+  "The task has been completed."
+  COMPLETED
+
+  "The task is not yet ready to be acted upon."
+  DRAFT
+
+  "The task should never have existed and is retained only because of the possibility it may have been used."
+  ENTERED_IN_ERROR
+
+  "The task was attempted but could not be completed due to some error."
+  FAILED
+
+  "The task has been started but is not yet complete."
+  IN_PROGRESS
+
+  "The task has been started but work has been paused."
+  ON_HOLD
+
+  "The task is ready to be performed, but no action has yet been taken. Used in place of requested\/received\/accepted\/rejected when request assignment and acceptance is a given."
+  READY
+
+  "A potential performer has claimed ownership of the task and is evaluating whether to perform it."
+  RECEIVED
+
+  "The potential performer who claimed ownership of the task has decided not to execute it prior to performing any action."
+  REJECTED
+
+  "The task is ready to be acted upon and action is sought."
+  REQUESTED
 }
 
 enum ObservationStatus {
@@ -1658,6 +1761,266 @@ input PatientCreatePatientWithPersonPersonInput {
 
   "A contact detail for the person (e.g. email, phone, etc.)"
   telecom: [PersonTelecomInput!]
+}
+
+"The result of the :fail_task mutation"
+type FailTaskResult {
+  "The successful result of the mutation"
+  result: Task
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :complete_task mutation"
+type CompleteTaskResult {
+  "The successful result of the mutation"
+  result: Task
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :start_task mutation"
+type StartTaskResult {
+  "The successful result of the mutation"
+  result: Task
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :set_ready_task mutation"
+type SetReadyTaskResult {
+  "The successful result of the mutation"
+  result: Task
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :create_task mutation"
+type CreateTaskResult {
+  "The successful result of the mutation"
+  result: Task
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateTaskInput {
+  "Distinguishes whether the task is a proposal, plan, or full order"
+  intent: TaskIntent!
+
+  "Urgency of the task"
+  priority: RequestPriority
+
+  "True if Task is prohibiting action"
+  doNotPerform: Boolean
+
+  "Human-readable explanation of task"
+  description: String
+
+  "When the task should be performed"
+  requestedPeriod: TaskRequestedPeriodInput
+
+  "Comments made about the task"
+  note: [TaskNoteInput!]
+
+  forPatientId: ID
+}
+
+enum TaskSortField {
+  ID
+  STATUS
+  INTENT
+  PRIORITY
+  DO_NOT_PERFORM
+  DESCRIPTION
+  FOR_PATIENT_ID
+}
+
+"A keyset page of :task"
+type KeysetPageOfTask {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Task!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input TaskFilterForPatientId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input TaskFilterDescription {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input TaskFilterDoNotPerform {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input TaskFilterPriority {
+  isNil: Boolean
+  eq: RequestPriority
+  notEq: RequestPriority
+  in: [RequestPriority]
+  lessThan: RequestPriority
+  greaterThan: RequestPriority
+  lessThanOrEqual: RequestPriority
+  greaterThanOrEqual: RequestPriority
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input TaskFilterIntent {
+  isNil: Boolean
+  eq: TaskIntent
+  notEq: TaskIntent
+  in: [TaskIntent!]
+  lessThan: TaskIntent
+  greaterThan: TaskIntent
+  lessThanOrEqual: TaskIntent
+  greaterThanOrEqual: TaskIntent
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input TaskFilterStatus {
+  isNil: Boolean
+  eq: TaskStatus
+  notEq: TaskStatus
+  in: [TaskStatus!]
+  lessThan: TaskStatus
+  greaterThan: TaskStatus
+  lessThanOrEqual: TaskStatus
+  greaterThanOrEqual: TaskStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input TaskFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input TaskFilterInput {
+  and: [TaskFilterInput!]
+
+  or: [TaskFilterInput!]
+
+  not: [TaskFilterInput!]
+
+  id: TaskFilterId
+
+  status: TaskFilterStatus
+
+  "Distinguishes whether the task is a proposal, plan, or full order"
+  intent: TaskFilterIntent
+
+  "Urgency of the task"
+  priority: TaskFilterPriority
+
+  "True if Task is prohibiting action"
+  doNotPerform: TaskFilterDoNotPerform
+
+  "Human-readable explanation of task"
+  description: TaskFilterDescription
+
+  forPatientId: TaskFilterForPatientId
+
+  "Beneficiary of the Task"
+  forPatient: PatientFilterInput
+}
+
+input TaskSortInput {
+  order: SortOrder
+  field: TaskSortField!
+}
+
+type Task {
+  id: ID!
+
+  status: TaskStatus!
+
+  "Distinguishes whether the task is a proposal, plan, or full order"
+  intent: TaskIntent!
+
+  "Urgency of the task"
+  priority: RequestPriority
+
+  "True if Task is prohibiting action"
+  doNotPerform: Boolean
+
+  "Human-readable explanation of task"
+  description: String
+
+  "When the task should be performed"
+  requestedPeriod: Period
+
+  "Start and end time of execution"
+  executionPeriod: Period
+
+  "Comments made about the task"
+  note: [Annotation!]
+
+  forPatientId: ID
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [TaskVersion!]!
+
+  "Beneficiary of the Task"
+  forPatient: Patient
 }
 
 "The result of the :delete_practitioner mutation"
@@ -3385,6 +3748,15 @@ type PractitionerVersion {
   versionSource: Practitioner!
 }
 
+type TaskVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: Task!
+}
+
 type RootQueryType {
   "Retrieve the info for the actor that is currently signed in."
   currentActor: User
@@ -3690,6 +4062,31 @@ type RootQueryType {
     id: ID!
   ): Patient
 
+  getTask(
+    "A filter to limit the results"
+    filter: TaskFilterInput
+  ): Task
+
+  listTasks(
+    "How to sort the records in the response"
+    sort: [TaskSortInput]
+
+    "A filter to limit the results"
+    filter: TaskFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfTask
+
   listSubscriptionPlans(
     "How to sort the records in the response"
     sort: [SubscriptionPlanSortInput]
@@ -3883,6 +4280,16 @@ type RootMutationType {
   updatePractitioner(id: ID!, input: UpdatePractitionerInput): UpdatePractitionerResult!
 
   deletePractitioner(id: ID!): DeletePractitionerResult!
+
+  createTask(input: CreateTaskInput!): CreateTaskResult!
+
+  setReadyTask(id: ID!): SetReadyTaskResult!
+
+  startTask(id: ID!): StartTaskResult!
+
+  completeTask(id: ID!): CompleteTaskResult!
+
+  failTask(id: ID!): FailTaskResult!
 
   createSubscriptionPlan(input: CreateSubscriptionPlanInput): CreateSubscriptionPlanResult!
 
