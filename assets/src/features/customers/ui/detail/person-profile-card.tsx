@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import type { Person } from "@/features/customers/api/persons-api";
 import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
+import { ReviewTaskDialog } from "@/features/customers/ui/detail/review-task-dialog";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
@@ -146,24 +147,27 @@ export function PersonProfileCard({
   return (
     <div className="rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-        <div className="flex flex-1 items-start gap-4">
-          <Avatar className="size-24">
-            <AvatarFallback className="bg-primary font-semibold text-2xl text-primary-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+        <div className="flex flex-1 items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-4">
+            <Avatar className="size-24">
+              <AvatarFallback className="bg-primary font-semibold text-2xl text-primary-foreground">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
 
-          <div className="min-w-0 space-y-2">
-            <h1 className="font-bold text-foreground text-xl tracking-wide">
-              {name}
-              {ageLabel}
-            </h1>
-            <Badge className={badgeMetadata.badgeClassName}>
-              <span className={cn("size-1.5 rounded-full", badgeMetadata.dotClassName)} />
-              {planBadgeLabel}
-            </Badge>
-            <ContactButtonGroup {...contact} personName={name} />
+            <div className="min-w-0 space-y-2">
+              <h1 className="font-bold text-foreground text-xl tracking-wide">
+                {name}
+                {ageLabel}
+              </h1>
+              <Badge className={badgeMetadata.badgeClassName}>
+                <span className={cn("size-1.5 rounded-full", badgeMetadata.dotClassName)} />
+                {planBadgeLabel}
+              </Badge>
+              <ContactButtonGroup {...contact} personName={name} />
+            </div>
           </div>
+          {patientId ? <ReviewTaskDialog personId={personId} patientId={patientId} /> : null}
         </div>
 
         <Separator orientation="horizontal" className="lg:hidden" />
