@@ -24,17 +24,17 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -212,17 +212,17 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -1828,6 +1828,7 @@ enum TaskSortField {
   DO_NOT_PERFORM
   DESCRIPTION
   FOR_PATIENT_ID
+  REQUESTED_PERIOD_START_SORT_KEY
 }
 
 "A keyset page of :task"
@@ -1843,6 +1844,19 @@ type KeysetPageOfTask {
 
   "The last keyset in the results"
   endKeyset: String
+}
+
+input TaskFilterRequestedPeriodStartSortKey {
+  isNil: Boolean
+  eq: DateTime
+  notEq: DateTime
+  in: [DateTime!]
+  lessThan: DateTime
+  greaterThan: DateTime
+  lessThanOrEqual: DateTime
+  greaterThanOrEqual: DateTime
+  isDistinctFrom: String
+  isNotDistinctFrom: String
 }
 
 input TaskFilterForPatientId {
@@ -1966,6 +1980,9 @@ input TaskFilterInput {
 
   "Beneficiary of the Task"
   forPatient: PatientFilterInput
+
+  "Helper calculation to sort by requested_period.start"
+  requestedPeriodStartSortKey: TaskFilterRequestedPeriodStartSortKey
 }
 
 input TaskSortInput {
@@ -2011,6 +2028,9 @@ type Task {
 
   "Beneficiary of the Task"
   forPatient: Patient
+
+  "Helper calculation to sort by requested_period.start"
+  requestedPeriodStartSortKey: DateTime
 }
 
 "The result of the :delete_practitioner mutation"
