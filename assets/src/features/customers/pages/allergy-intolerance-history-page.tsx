@@ -23,6 +23,7 @@ import { CodingPopover } from "@/shared/ui/coding-popover";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
 
 function getAllergyTypeLabel(type: string): string {
   if (type === "ALLERGY") {
@@ -36,7 +37,7 @@ function getAllergyTypeLabel(type: string): string {
 
 function formatStatus(status: string | null | undefined): string {
   if (!status) {
-    return "\u2014";
+    return EMPTY_VALUE_PLACEHOLDER;
   }
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
@@ -182,13 +183,16 @@ export function AllergyIntoleranceHistoryPage() {
     },
     {
       id: "items",
-      accessorFn: (row) => row.code?.text ?? row.code?.coding?.[0]?.display ?? "\u2014",
+      accessorFn: (row) =>
+        row.code?.text ?? row.code?.coding?.[0]?.display ?? EMPTY_VALUE_PLACEHOLDER,
       header: ({ column }) => (
         <SortableHeader column={column}>{m.allergy_intolerance_history_col_items()}</SortableHeader>
       ),
       cell: ({ row }) => {
         const value =
-          row.original.code?.text ?? row.original.code?.coding?.[0]?.display ?? "\u2014";
+          row.original.code?.text ??
+          row.original.code?.coding?.[0]?.display ??
+          EMPTY_VALUE_PLACEHOLDER;
         const isEditing = editTarget?.id === row.original.id;
 
         if (isEditing) {

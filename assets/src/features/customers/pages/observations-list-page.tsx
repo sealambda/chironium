@@ -38,10 +38,11 @@ import { MarkdownContent } from "@/shared/ui/markdown-content";
 import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) {
-    return "\u2014";
+    return EMPTY_VALUE_PLACEHOLDER;
   }
   return format(new Date(value), "PP", { locale: getDateLocale() });
 }

@@ -34,16 +34,17 @@ import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
 
 function formatDate(value: string): string {
   if (!value) {
-    return "\u2014";
+    return EMPTY_VALUE_PLACEHOLDER;
   }
   return format(new Date(value), "PP", { locale: getDateLocale() });
 }
 
 function formatNumber(value: number | undefined): string {
-  return value !== undefined ? String(value) : "\u2014";
+  return value !== undefined ? String(value) : EMPTY_VALUE_PLACEHOLDER;
 }
 
 export function AnthropometryHistoryPage() {
@@ -198,7 +199,7 @@ export function AnthropometryHistoryPage() {
       ),
       cell: ({ getValue }) => {
         const value = getValue() as number | undefined;
-        return value !== undefined ? value.toFixed(1) : "\u2014";
+        return value !== undefined ? value.toFixed(1) : EMPTY_VALUE_PLACEHOLDER;
       },
     },
     {

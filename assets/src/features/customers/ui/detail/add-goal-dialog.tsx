@@ -1,8 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { createGoal } from "@/features/customers/api/goals-api";
+import {
+  createGoal,
+  type GoalCategory,
+  type GoalPriority,
+  type GoalRecord,
+  updateGoal,
+} from "@/features/customers/api/goals-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -48,13 +54,23 @@ const CATEGORY_OPTIONS = [
 interface AddGoalDialogProps {
   personId: string;
   patientId: string | null;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  editGoal?: GoalRecord | null;
 }
 
 // ─── Component ────────────────────────────────────────────────────────
 
-export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoalDialogProps>) {
-  const [open, setOpen] = useState(false);
+export function AddGoalDialog({
+  personId,
+  patientId,
+  children,
+  open,
+  onOpenChange,
+  editGoal,
+}: Readonly<AddGoalDialogProps>) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("");
@@ -64,6 +80,16 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
   const { selectedOrg } = useOrg();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
+  const isEditing = Boolean(editGoal);
+  const isControlled = open !== undefined;
+  const resolvedOpen = isControlled ? open : internalOpen;
+  let submitLabel = m.common_add();
+  if (isEditing) {
+    submitLabel = m.common_save();
+  }
+  if (saving) {
+    submitLabel = m.common_saving();
+  }
 
   const hasContent = description.trim().length > 0;
 
@@ -73,6 +99,66 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
     setCategory("");
     setStartDate("");
     setDueDate("");
+  };
+
+  useEffect(() => {
+    if (!resolvedOpen) {
+      return;
+    }
+
+    if (!editGoal) {
+      setDescription("");
+      setPriority("");
+      setCategory("");
+      setStartDate("");
+      setDueDate("");
+      return;
+    }
+
+    setDescription(editGoal.description.text ?? "");
+    setPriority(editGoal.priority ?? "");
+    setCategory(editGoal.category?.[0] ?? "");
+    setStartDate(editGoal.startDate ?? "");
+    setDueDate(editGoal.dueDate ?? "");
+  }, [editGoal, resolvedOpen]);
+
+  const setResolvedOpen = (next: boolean) => {
+    onOpenChange?.(next);
+    if (!isControlled) {
+      setInternalOpen(next);
+    }
+  };
+
+  const parsedPriority = priority as GoalPriority;
+  const parsedCategory = category as GoalCategory;
+
+  const submitCreate = async () =>
+    createGoal({
+      description: description.trim(),
+      subjectId: patientId ?? "",
+      organizationId: selectedOrg?.id ?? "",
+      userId: user?.id ?? "",
+      userName: user?.name ?? "",
+      ...(priority && { priority: parsedPriority }),
+      ...(category && { category: [parsedCategory] }),
+      ...(startDate && { startDate }),
+      ...(dueDate && { dueDate }),
+    });
+
+  const submitEdit = async () => {
+    if (!editGoal) {
+      return;
+    }
+
+    await updateGoal({
+      id: editGoal.id,
+      description: description.trim(),
+      organizationId: selectedOrg?.id ?? "",
+      ...(priority && { priority: parsedPriority }),
+      ...(category && { category: [parsedCategory] }),
+      ...(startDate && { startDate }),
+      ...(dueDate && { dueDate }),
+    });
   };
 
   const handleSubmit = async () => {
@@ -87,21 +173,11 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
 
     setSaving(true);
     try {
-      await createGoal({
-        description: description.trim(),
-        subjectId: patientId,
-        organizationId: selectedOrg?.id ?? "",
-        userId: user?.id ?? "",
-        userName: user?.name ?? "",
-        ...(priority && {
-          priority: priority as "HIGH_PRIORITY" | "MEDIUM_PRIORITY" | "LOW_PRIORITY",
-        }),
-        ...(category && {
-          category: [category as "DIETARY" | "BEHAVIORAL" | "NURSING" | "PHYSIOTHERAPY" | "SAFETY"],
-        }),
-        ...(startDate && { startDate }),
-        ...(dueDate && { dueDate }),
-      });
+      if (editGoal) {
+        await submitEdit();
+      } else {
+        await submitCreate();
+      }
 
       await queryClient.invalidateQueries({
         queryKey: ["person", personId, "goals"],
@@ -110,8 +186,8 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
         queryKey: ["person", personId, "patient-detail"],
       });
 
-      toast.success(m.goals_add_success());
-      setOpen(false);
+      toast.success(isEditing ? m.goals_edit_success() : m.goals_add_success());
+      setResolvedOpen(false);
       resetForm();
     } catch {
       toast.error(m.onboarding_error());
@@ -121,11 +197,11 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children as React.ReactElement} />
+    <Dialog open={resolvedOpen} onOpenChange={setResolvedOpen}>
+      {children ? <DialogTrigger render={children as React.ReactElement} /> : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{m.goals_add()}</DialogTitle>
+          <DialogTitle>{isEditing ? m.goals_edit_title() : m.goals_add()}</DialogTitle>
         </DialogHeader>
 
         <FieldGroup>
@@ -203,11 +279,11 @@ export function AddGoalDialog({ personId, patientId, children }: Readonly<AddGoa
         </FieldGroup>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+          <Button variant="outline" onClick={() => setResolvedOpen(false)} disabled={saving}>
             {m.common_cancel()}
           </Button>
           <Button onClick={handleSubmit} disabled={saving || !hasContent}>
-            {saving ? m.common_saving() : m.common_add()}
+            {submitLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
