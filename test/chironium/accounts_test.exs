@@ -200,6 +200,45 @@ defmodule Chironium.AccountsTest do
       end
     end
 
+    test "can be re-invited to the same organization after rejecting" do
+      owner = generate(user())
+      org = generate(organization(actor: owner))
+
+      invite_email = "reinvite@example.com"
+      accepting_user = generate(user())
+
+      # First invitation.
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: invite_email}]},
+        actor: owner
+      )
+      |> Ash.update!()
+
+      [first_invitation] = Ash.load!(org, :invitations, actor: owner).invitations
+
+      # Reject the first invitation.
+      {:ok, _} =
+        Chironium.Accounts.reject_invitation(first_invitation.invite_code, actor: accepting_user)
+
+      # Invite the same email again to the same organization.
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: invite_email}]},
+        actor: owner
+      )
+      |> Ash.update!()
+
+      [second_invitation] = Ash.load!(org, :invitations, actor: owner).invitations
+
+      # Accept the second invitation.
+      assert {:ok, _} =
+               Chironium.Accounts.accept_invitation(second_invitation.invite_code,
+                 actor: accepting_user
+               )
+
+      # Accepting user can now access the organization.
+      Ash.get!(Chironium.Accounts.Organization, org.id, actor: accepting_user)
+    end
+
     test "can accept an invitation with a different email address" do
       actor = generate(user())
       org = generate(organization(actor: actor))
