@@ -36,9 +36,6 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
@@ -47,6 +44,9 @@ input PractitionerNameInput {
 
   "Text representation of the full name"
   text: String
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -211,9 +211,6 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
@@ -222,6 +219,9 @@ input PersonNameInput {
 
   "Text representation of the full name"
   text: String
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -272,6 +272,14 @@ type HumanName {
 type Period {
   start: DateTime
   end: DateTime
+}
+
+enum ConceptContext {
+  ALLERGY_INTOLERANCE
+  CONDITION
+  FOOD
+  LAB_RESULT
+  MEDICATION
 }
 
 enum PublicationStatus {
@@ -4339,35 +4347,9 @@ type RootQueryType {
     last: Int
 
     text: String!
-  ): KeysetPageOfConcept
 
-  "Search active concepts by designation text constrained by an ancestor code."
-  searchConceptsInClosure(
-    "How to sort the records in the response"
-    sort: [ConceptSortInput]
-
-    "A filter to limit the results"
-    filter: ConceptFilterInput
-
-    "The number of records to return from the beginning. Maximum 250"
-    first: Int
-
-    "Show records before the specified keyset."
-    before: String
-
-    "Show records after the specified keyset."
-    after: String
-
-    "The number of records to return to the end. Maximum 250"
-    last: Int
-
-    text: String!
-
-    ancestorCode: String!
-
-    system: String
-
-    version: String
+    "Restricts results to descendants of a well-known root concept (e.g. CONDITION, MEDICATION)."
+    context: ConceptContext
   ): KeysetPageOfConcept
 
   listSubscriptionPlans(

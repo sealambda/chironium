@@ -24,7 +24,6 @@ defmodule Chironium.Terminology.Concept do
       list :list_concepts, :read
       read_one :get_concept, :read
       list :search_concepts, :search
-      list :search_concepts_in_closure, :search_in_closure
     end
   end
 
@@ -38,6 +37,13 @@ defmodule Chironium.Terminology.Concept do
       argument :text, :string do
         allow_nil? false
       end
+
+      argument :context, Chironium.Terminology.Concept.ConceptContext do
+        description "Restricts results to descendants of a well-known root concept (e.g. CONDITION, MEDICATION)."
+        allow_nil? true
+      end
+
+      prepare Chironium.Terminology.Concept.FilterByContext
 
       filter expr(
                active == true and
@@ -53,69 +59,6 @@ defmodule Chironium.Terminology.Concept do
                    id,
                    ^arg(:text)
                  )
-             )
-    end
-
-    read :search_in_closure do
-      description "Search active concepts by designation text constrained by an ancestor code."
-      pagination default_limit: 20, keyset?: true
-
-      argument :text, :string do
-        allow_nil? false
-      end
-
-      argument :ancestor_code, :string do
-        allow_nil? false
-      end
-
-      argument :system, :string do
-        allow_nil? true
-      end
-
-      argument :version, :string do
-        allow_nil? true
-      end
-
-      filter expr(
-               active == true and
-                 fragment(
-                   """
-                   EXISTS (
-                     SELECT 1
-                     FROM designations d
-                     WHERE d.concept_id = ?
-                       AND d.value % ?
-                   )
-                   """,
-                   id,
-                   ^arg(:text)
-                 ) and
-                 fragment(
-                   """
-                   ? IN (
-                     SELECT cc.child_id
-                     FROM concept_closures cc
-                     JOIN concepts ancestor ON ancestor.id = cc.parent_id
-                     WHERE ancestor.code = ?
-                       AND ancestor.code_system_id = ?
-                   )
-                   """,
-                   id,
-                   ^arg(:ancestor_code),
-                   code_system_id
-                 ) and
-                 (is_nil(arg(:system)) or
-                    fragment(
-                      "EXISTS (SELECT 1 FROM code_systems cs WHERE cs.id = ? AND cs.url = ?)",
-                      code_system_id,
-                      ^arg(:system)
-                    )) and
-                 (is_nil(arg(:version)) or
-                    fragment(
-                      "EXISTS (SELECT 1 FROM code_systems cs WHERE cs.id = ? AND cs.version = ?)",
-                      code_system_id,
-                      ^arg(:version)
-                    ))
              )
     end
   end
@@ -152,6 +95,12 @@ defmodule Chironium.Terminology.Concept do
     has_many :designations, Chironium.Terminology.Designation do
       description "Designations for the concept"
       public? true
+    end
+
+    has_many :ancestor_closures, Chironium.Terminology.ConceptClosure do
+      description "Closure rows where this concept is the descendant, enabling ancestor traversal."
+      source_attribute :id
+      destination_attribute :child_id
     end
   end
 
