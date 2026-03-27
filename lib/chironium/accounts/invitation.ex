@@ -9,10 +9,18 @@ defmodule Chironium.Accounts.Invitation do
     domain: Chironium.Accounts,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource, AshStateMachine]
+    extensions: [
+      AshGraphql.Resource,
+      AshPaperTrail.Resource,
+      AshArchival.Resource,
+      AshStateMachine
+    ]
 
   postgres do
     table "invitations"
+    # Needed so the unique indexes become partial (WHERE archived_at IS NULL),
+    # allowing the same email to be re-invited after a rejection or acceptance.
+    base_filter_sql "archived_at IS NULL"
   end
 
   graphql do
@@ -93,6 +101,9 @@ defmodule Chironium.Accounts.Invitation do
                )
                |> Ash.create!()
 
+               # Archive the accepted invitation so the same email can be re-invited later.
+               Ash.destroy!(result, authorize?: false)
+
                {:ok, result}
              end)
     end
@@ -101,8 +112,15 @@ defmodule Chironium.Accounts.Invitation do
       description "Reject an invitation to join an organization"
 
       accept []
+      require_atomic? false
       change transition_state(:rejected)
       change set_attribute(:invite_code, nil)
+
+      # Archive the rejected invitation so the same email can be re-invited later.
+      change after_action(fn _changeset, result, _context ->
+               Ash.destroy!(result, authorize?: false)
+               {:ok, result}
+             end)
     end
 
     action :accept_by_invite_code, :struct do
