@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Building2, CreditCard, Plus, ShieldOff } from "lucide-react";
+import { AlertCircle, Building2, CreditCard, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { fetchSubscriptionPlans } from "@/features/customers/api/subscriptions-api";
@@ -10,7 +10,6 @@ import {
   formatSubscriptionPlanPriceText,
 } from "@/features/org/ui/subscription-plan-columns";
 import { SubscriptionPlansTable } from "@/features/org/ui/subscription-plans-table";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import type { SubscriptionPlan } from "@/shared/types/subscriptions";
@@ -26,12 +25,9 @@ const PLANS_QUERY_KEY = "subscription-plans";
  */
 export function SubscriptionsPage() {
   const { selectedOrg, loading: orgsLoading } = useOrg();
-  const { user } = useCurrentUser();
   const { setHeaderContent } = useDetailMode();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
-
-  const isOrgOwner = Boolean(user?.id && selectedOrg && user.id === selectedOrg.ownerId);
 
   const {
     data: plans = [],
@@ -40,7 +36,7 @@ export function SubscriptionsPage() {
   } = useQuery({
     queryKey: [PLANS_QUERY_KEY, selectedOrg?.id],
     queryFn: () => fetchSubscriptionPlans(selectedOrg?.id ?? ""),
-    enabled: Boolean(selectedOrg) && isOrgOwner,
+    enabled: Boolean(selectedOrg),
     placeholderData: (previousData) => previousData,
   });
 
@@ -49,7 +45,7 @@ export function SubscriptionsPage() {
   };
 
   useEffect(() => {
-    if (!selectedOrg || !isOrgOwner || plansLoading || Boolean(plansError)) {
+    if (!selectedOrg || plansLoading || Boolean(plansError)) {
       setHeaderContent(null);
       return;
     }
@@ -66,7 +62,7 @@ export function SubscriptionsPage() {
     return () => {
       setHeaderContent(null);
     };
-  }, [isOrgOwner, plansError, plansLoading, selectedOrg, setHeaderContent]);
+  }, [plansError, plansLoading, selectedOrg, setHeaderContent]);
 
   if (orgsLoading || plansLoading) {
     return <Loading />;
@@ -74,16 +70,6 @@ export function SubscriptionsPage() {
 
   if (!selectedOrg) {
     return <EmptyState icon={Building2} title={m.no_org()} description={m.no_org_desc()} />;
-  }
-
-  if (!isOrgOwner) {
-    return (
-      <EmptyState
-        icon={ShieldOff}
-        title={m.subscriptions_not_owner()}
-        description={m.subscriptions_not_owner_desc()}
-      />
-    );
   }
 
   if (plansError) {

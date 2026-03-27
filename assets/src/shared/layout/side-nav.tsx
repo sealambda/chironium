@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import { OrgSelector } from "@/features/org/ui/org-selector";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Sheet, SheetContent } from "@/shared/ui/sheet";
@@ -16,16 +15,11 @@ import { NavUser } from "./nav-user";
 type NavItem = (typeof navItems)[number];
 type NavVariant = "desktop" | "mobile";
 
-function getVisibleNavItems(
-  params: Readonly<{ userId?: string; selectedOrg: { ownerId: string } | null }>,
-) {
-  if (!params.selectedOrg) {
+function getVisibleNavItems(hasSelectedOrg: boolean) {
+  if (!hasSelectedOrg) {
     return [];
   }
-
-  const isOrgOwner = Boolean(params.userId && params.userId === params.selectedOrg.ownerId);
-
-  return navItems.filter((item) => !item.requiresOrgOwner || isOrgOwner);
+  return navItems;
 }
 
 /**
@@ -35,9 +29,8 @@ export function SideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick: () =>
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
-  const { user } = useCurrentUser();
 
-  const visibleNavItems = getVisibleNavItems({ userId: user?.id, selectedOrg });
+  const visibleNavItems = getVisibleNavItems(Boolean(selectedOrg));
 
   return (
     <nav
@@ -78,10 +71,9 @@ export function MobileSideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick:
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
-  const { user } = useCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
 
-  const visibleNavItems = getVisibleNavItems({ userId: user?.id, selectedOrg });
+  const visibleNavItems = getVisibleNavItems(Boolean(selectedOrg));
 
   const closeMenu = () => {
     setIsOpen(false);
