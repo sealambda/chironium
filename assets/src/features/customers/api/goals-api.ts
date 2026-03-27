@@ -47,6 +47,35 @@ const CreateGoalMutation = graphql(`
   }
 `);
 
+const UpdateGoalMutation = graphql(`
+  mutation UpdateGoal($id: ID!, $input: UpdateGoalInput) {
+    updateGoal(id: $id, input: $input) {
+      result {
+        id
+        description {
+          text
+        }
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const DeleteGoalMutation = graphql(`
+  mutation DeleteGoal($id: ID!) {
+    deleteGoal(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** A single goal record returned by the list query. */
@@ -55,6 +84,26 @@ export type GoalRecord = NonNullable<
     NonNullable<ResultOf<typeof AllGoalsByPersonQuery>["listPatients"]>["results"]
   >[number]["goals"]
 >[number];
+
+export type GoalPriority = "HIGH_PRIORITY" | "MEDIUM_PRIORITY" | "LOW_PRIORITY";
+export type GoalCategory = "DIETARY" | "BEHAVIORAL" | "NURSING" | "PHYSIOTHERAPY" | "SAFETY";
+
+interface GoalMutationPayload<T> {
+  result?: T | null;
+  errors?: { message?: string | null }[] | null;
+}
+
+interface CreateGoalMutationResult {
+  createGoal: GoalMutationPayload<{ id: string; lifecycleStatus: string }>;
+}
+
+interface UpdateGoalMutationResult {
+  updateGoal: GoalMutationPayload<{ id: string; description?: { text?: string | null } | null }>;
+}
+
+interface DeleteGoalMutationResult {
+  deleteGoal: GoalMutationPayload<{ id: string }>;
+}
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -88,8 +137,18 @@ export interface CreateGoalParams {
   organizationId: string;
   userId: string;
   userName: string;
-  priority?: "HIGH_PRIORITY" | "MEDIUM_PRIORITY" | "LOW_PRIORITY";
-  category?: ("DIETARY" | "BEHAVIORAL" | "NURSING" | "PHYSIOTHERAPY" | "SAFETY")[];
+  priority?: GoalPriority;
+  category?: GoalCategory[];
+  startDate?: string;
+  dueDate?: string;
+}
+
+export interface UpdateGoalParams {
+  id: string;
+  organizationId: string;
+  description: string;
+  priority?: GoalPriority;
+  category?: GoalCategory[];
   startDate?: string;
   dueDate?: string;
 }
@@ -108,7 +167,7 @@ export async function createGoal({
   startDate,
   dueDate,
 }: CreateGoalParams): Promise<void> {
-  const result = await requestGraphql({
+  const result = await requestGraphql<CreateGoalMutationResult>({
     document: CreateGoalMutation,
     variables: {
       input: {
@@ -132,4 +191,47 @@ export async function createGoal({
   });
 
   unwrapMutationResult(result.createGoal, "Failed to create goal.");
+}
+
+/**
+ * Update a goal fields.
+ */
+export async function updateGoal({
+  id,
+  organizationId,
+  description,
+  priority,
+  category,
+  startDate,
+  dueDate,
+}: UpdateGoalParams): Promise<void> {
+  const result = await requestGraphql<UpdateGoalMutationResult>({
+    document: UpdateGoalMutation,
+    variables: {
+      id,
+      input: {
+        description: { text: description },
+        ...(priority ? { priority } : { priority: null }),
+        ...(category?.length ? { category } : { category: [] }),
+        ...(startDate ? { startDate } : { startDate: null }),
+        ...(dueDate ? { dueDate } : { dueDate: null }),
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.updateGoal, "Failed to update goal.");
+}
+
+/**
+ * Delete a goal.
+ */
+export async function deleteGoal(goalId: string, organizationId: string): Promise<void> {
+  const result = await requestGraphql<DeleteGoalMutationResult>({
+    document: DeleteGoalMutation,
+    variables: { id: goalId },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.deleteGoal, "Failed to delete goal.");
 }

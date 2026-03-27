@@ -1,0 +1,1 @@
+export const EMPTY_VALUE_PLACEHOLDER = "\u2014";

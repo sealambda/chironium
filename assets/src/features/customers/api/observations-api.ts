@@ -3,6 +3,7 @@ import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import { toDateTimeInput } from "@/shared/utils/date-time-input";
+import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
 
 const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
 
@@ -416,7 +417,7 @@ export function getObservationDisplayValue(obs: ObservationItem): string {
     const unit = obs.valueQuantity.unit ? ` ${obs.valueQuantity.unit}` : "";
     return `${obs.valueQuantity.value}${unit}`;
   }
-  return "\u2014";
+  return EMPTY_VALUE_PLACEHOLDER;
 }
 
 // ─── Mutation functions ───────────────────────────────────────────────
