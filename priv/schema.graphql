@@ -24,9 +24,6 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
@@ -35,6 +32,9 @@ input PractitionerNameInput {
 
   "Text representation of the full name"
   text: String
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -212,9 +212,6 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
@@ -223,6 +220,9 @@ input PersonNameInput {
 
   "Text representation of the full name"
   text: String
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
