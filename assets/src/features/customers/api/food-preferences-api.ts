@@ -396,7 +396,6 @@ export async function createFoodObservations(
                   system: entry.coding.system,
                   code: entry.coding.code,
                   version: entry.coding.version ?? undefined,
-                  display: entry.coding.display ?? entry.label,
                 },
               ],
             },

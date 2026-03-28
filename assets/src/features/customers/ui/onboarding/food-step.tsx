@@ -57,6 +57,7 @@ export function FoodStep({ initialData, onSubmit, onBack, onSaveDraft }: FoodSte
           onAdd={(tag) => setIncluded((prev) => [...prev, tag])}
           onRemove={(index) => setIncluded((prev) => prev.filter((_, i) => i !== index))}
           organizationId={selectedOrg?.id ?? ""}
+          conceptContext="FOOD"
           addLabel={m.common_add()}
           onPendingChange={(pending) => {
             setIncludedPending(pending);
@@ -74,6 +75,7 @@ export function FoodStep({ initialData, onSubmit, onBack, onSaveDraft }: FoodSte
           onAdd={(tag) => setExcluded((prev) => [...prev, tag])}
           onRemove={(index) => setExcluded((prev) => prev.filter((_, i) => i !== index))}
           organizationId={selectedOrg?.id ?? ""}
+          conceptContext="FOOD"
           addLabel={m.common_add()}
           onPendingChange={(pending) => {
             setExcludedPending(pending);

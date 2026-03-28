@@ -135,7 +135,6 @@ export async function createAllergiesAndIntolerances(
                       system: tag.coding.system,
                       code: tag.coding.code,
                       version: tag.coding.version ?? undefined,
-                      display: tag.coding.display ?? tag.label,
                     },
                   ],
                 }

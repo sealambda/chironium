@@ -109,6 +109,7 @@ function AddFoodPreferenceDialog({
             onAdd={(tag) => setIncluded((prev) => [...prev, tag])}
             onRemove={(i) => setIncluded((prev) => prev.filter((_, idx) => idx !== i))}
             organizationId={selectedOrg?.id ?? ""}
+            conceptContext="FOOD"
             addLabel={m.common_add()}
             disabled={saving}
           />
@@ -119,6 +120,7 @@ function AddFoodPreferenceDialog({
             onAdd={(tag) => setExcluded((prev) => [...prev, tag])}
             onRemove={(i) => setExcluded((prev) => prev.filter((_, idx) => idx !== i))}
             organizationId={selectedOrg?.id ?? ""}
+            conceptContext="FOOD"
             addLabel={m.common_add()}
             disabled={saving}
           />

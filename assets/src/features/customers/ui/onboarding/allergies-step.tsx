@@ -59,6 +59,7 @@ export function AllergiesStep({ initialData, onSubmit, onBack, onSaveDraft }: Al
           onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
           onRemove={(index) => setAllergies((prev) => prev.filter((_, i) => i !== index))}
           organizationId={selectedOrg?.id ?? ""}
+          conceptContext="ALLERGY_INTOLERANCE"
           addLabel={m.common_add()}
           onPendingChange={(pending) => {
             setAllergiesPending(pending);
@@ -75,6 +76,7 @@ export function AllergiesStep({ initialData, onSubmit, onBack, onSaveDraft }: Al
           onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
           onRemove={(index) => setIntolerances((prev) => prev.filter((_, i) => i !== index))}
           organizationId={selectedOrg?.id ?? ""}
+          conceptContext="ALLERGY_INTOLERANCE"
           addLabel={m.common_add()}
           onPendingChange={(pending) => {
             setIntolerancesPending(pending);
