@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
+  type ConceptSearchContext,
   searchTerminologySuggestions,
   type TerminologySuggestion,
 } from "@/features/customers/api/terminology-api";
@@ -21,6 +22,7 @@ interface TerminologyTagInputProps {
   readonly onAdd: (tag: TerminologyTag) => void;
   readonly onRemove: (index: number) => void;
   readonly organizationId: string;
+  readonly conceptContext: ConceptSearchContext;
   readonly maxLength?: number;
   readonly maxTags?: number;
   readonly disabled?: boolean;
@@ -36,6 +38,7 @@ export function TerminologyTagInput({
   onAdd,
   onRemove,
   organizationId,
+  conceptContext,
   maxLength = 50,
   maxTags,
   disabled,
@@ -83,7 +86,12 @@ export function TerminologyTagInput({
     setIsSearching(true);
     const timer = globalThis.setTimeout(async () => {
       try {
-        const next = await searchTerminologySuggestions(inputValue, locale, organizationId);
+        const next = await searchTerminologySuggestions(
+          inputValue,
+          locale,
+          organizationId,
+          conceptContext,
+        );
         if (!cancelled) {
           setSuggestions(next);
         }
@@ -102,7 +110,7 @@ export function TerminologyTagInput({
       cancelled = true;
       globalThis.clearTimeout(timer);
     };
-  }, [disabled, inputValue, locale, organizationId]);
+  }, [conceptContext, disabled, inputValue, locale, organizationId]);
 
   useEffect(() => {
     if (!showMenu) {

@@ -121,6 +121,7 @@ function AddAllergyIntoleranceDialog({
             onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
             onRemove={(i) => setAllergies((prev) => prev.filter((_, idx) => idx !== i))}
             organizationId={selectedOrg?.id ?? ""}
+            conceptContext="ALLERGY_INTOLERANCE"
             addLabel={m.common_add()}
             disabled={saving}
           />
@@ -131,6 +132,7 @@ function AddAllergyIntoleranceDialog({
             onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
             onRemove={(i) => setIntolerances((prev) => prev.filter((_, idx) => idx !== i))}
             organizationId={selectedOrg?.id ?? ""}
+            conceptContext="ALLERGY_INTOLERANCE"
             addLabel={m.common_add()}
             disabled={saving}
           />
