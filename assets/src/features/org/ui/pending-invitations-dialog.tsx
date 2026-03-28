@@ -22,10 +22,12 @@ import {
 
 const INVITATIONS_QUERY_KEY = ["org", "pending-invitations"] as const;
 
+type InvitationSubmitAction = "accept" | "reject";
+
 export function PendingInvitationsDialog() {
   const queryClient = useQueryClient();
   const { refreshOrgs } = useOrg();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<InvitationSubmitAction | null>(null);
 
   const { data: invitations = [] } = useQuery({
     queryKey: INVITATIONS_QUERY_KEY,
@@ -35,12 +37,13 @@ export function PendingInvitationsDialog() {
   const currentInvitation = useMemo(() => invitations[0] ?? null, [invitations]);
 
   const submitInvitationAction = async (params: {
+    action: InvitationSubmitAction;
     inviteCode: string;
     mutate: (inviteCode: string) => Promise<void>;
     successMessage: string;
     errorFallbackMessage: string;
   }) => {
-    setIsSubmitting(true);
+    setSubmittingAction(params.action);
     try {
       await params.mutate(params.inviteCode);
       toast.success(params.successMessage);
@@ -52,7 +55,7 @@ export function PendingInvitationsDialog() {
       const message = error instanceof Error ? error.message : params.errorFallbackMessage;
       toast.error(message);
     } finally {
-      setIsSubmitting(false);
+      setSubmittingAction(null);
     }
   };
 
@@ -64,6 +67,7 @@ export function PendingInvitationsDialog() {
     }
 
     await submitInvitationAction({
+      action: "reject",
       inviteCode,
       mutate: rejectInvitation,
       successMessage: m.org_invitation_reject_success(),
@@ -79,6 +83,7 @@ export function PendingInvitationsDialog() {
     }
 
     await submitInvitationAction({
+      action: "accept",
       inviteCode,
       mutate: acceptInvitation,
       successMessage: m.org_invitation_accept_success(),
@@ -101,12 +106,16 @@ export function PendingInvitationsDialog() {
             type="button"
             variant="ghost"
             onClick={() => void handleReject()}
-            disabled={isSubmitting}
+            disabled={submittingAction !== null}
           >
-            {m.org_invitation_reject()}
+            {submittingAction === "reject" ? m.common_saving() : m.org_invitation_reject()}
           </Button>
-          <Button type="button" onClick={() => void handleAccept()} disabled={isSubmitting}>
-            {isSubmitting ? m.common_saving() : m.org_invitation_accept()}
+          <Button
+            type="button"
+            onClick={() => void handleAccept()}
+            disabled={submittingAction !== null}
+          >
+            {submittingAction === "accept" ? m.common_saving() : m.org_invitation_accept()}
           </Button>
         </DialogFooter>
       </DialogContent>
