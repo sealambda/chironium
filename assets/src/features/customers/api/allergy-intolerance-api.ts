@@ -1,5 +1,6 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql, type ResultOf } from "@/graphql";
+import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
@@ -9,7 +10,7 @@ import type { AnnotationInput } from "./observations-api";
 // ─── Queries ─────────────────────────────────────────────────────────
 
 const GetPatientAllergyIntolerancesQuery = graphql(`
-  query GetPatientAllergyIntolerances($patientId: ID!) {
+  query GetPatientAllergyIntolerances($patientId: ID!, $locale: String) {
     getPatient(id: $patientId) {
       allergyIntolerances {
         id
@@ -21,7 +22,7 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
             system
             code
             version
-            display
+            display(locale: $locale)
           }
         }
         note {
@@ -103,7 +104,7 @@ export async function fetchAllergyIntolerances(
 
   const result = await requestGraphql({
     document: GetPatientAllergyIntolerancesQuery,
-    variables: { patientId },
+    variables: { patientId, locale: getLocale() },
     organizationId,
   });
 

@@ -1,4 +1,5 @@
 import { graphql, type ResultOf } from "@/graphql";
+import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
@@ -6,7 +7,7 @@ import type { AdministrativeGender } from "@/shared/types/schema-enums";
 // ─── Queries ─────────────────────────────────────────────────────────
 
 const PatientDetailByPersonQuery = graphql(`
-  query PatientDetailByPerson($personId: ID!) {
+  query PatientDetailByPerson($personId: ID!, $locale: String) {
     listPatients(filter: { personId: { eq: $personId } }, first: 1) {
       results {
         id
@@ -35,7 +36,7 @@ const PatientDetailByPersonQuery = graphql(`
               system
               code
               version
-              display
+              display(locale: $locale)
             }
           }
           note {
@@ -182,7 +183,7 @@ export async function fetchPatientDetail(
 
   const result = await requestGraphql({
     document: PatientDetailByPersonQuery,
-    variables: { personId },
+    variables: { personId, locale: getLocale() },
     organizationId,
   });
 

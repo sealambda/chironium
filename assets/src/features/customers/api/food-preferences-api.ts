@@ -1,5 +1,6 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql } from "@/graphql";
+import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
@@ -13,6 +14,7 @@ const ListFoodPreferenceObservationsQuery = graphql(`
     $filter: ObservationFilterInput
     $sort: [ObservationSortInput]
     $first: Int
+    $locale: String
   ) {
     listFoodPreferenceObservations(
       filter: $filter
@@ -28,7 +30,7 @@ const ListFoodPreferenceObservationsQuery = graphql(`
             system
             code
             version
-            display
+            display(locale: $locale)
           }
         }
         note {
@@ -47,6 +49,7 @@ const ListFoodAversionObservationsQuery = graphql(`
     $filter: ObservationFilterInput
     $sort: [ObservationSortInput]
     $first: Int
+    $locale: String
   ) {
     listFoodAversionObservations(filter: $filter, sort: $sort, first: $first) {
       results {
@@ -58,7 +61,7 @@ const ListFoodAversionObservationsQuery = graphql(`
             system
             code
             version
-            display
+            display(locale: $locale)
           }
         }
         note {
@@ -182,6 +185,7 @@ export async function fetchFoodPreferencesHistory(
     filter: buildSubjectFilter(personId),
     sort: SORT_NEWEST_FIRST,
     first: 250,
+    locale: getLocale(),
   };
 
   const [preferenceResult, aversionResult] = await Promise.all([
@@ -269,6 +273,7 @@ export async function fetchFoodPreferences(
     filter: buildSubjectFilter(personId),
     sort: SORT_NEWEST_FIRST,
     first: 250,
+    locale: getLocale(),
   };
 
   const [preferenceResult, aversionResult] = await Promise.all([

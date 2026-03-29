@@ -1,5 +1,6 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql, type ResultOf } from "@/graphql";
+import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import { toDateTimeInput } from "@/shared/utils/date-time-input";
@@ -32,6 +33,7 @@ const ListObservationsQuery = graphql(`
     $sort: [ObservationSortInput]
     $first: Int
     $after: String
+    $locale: String
   ) {
     listObservations(
       filter: $filter
@@ -47,7 +49,7 @@ const ListObservationsQuery = graphql(`
           coding {
             system
             code
-            display
+            display(locale: $locale)
           }
           text
         }
@@ -275,6 +277,7 @@ export async function fetchObservationsSummary(
       filter: buildSubjectFilter(personId),
       sort: SORT_NEWEST_FIRST,
       first: 3,
+      locale: getLocale(),
     },
     organizationId,
   });
@@ -305,6 +308,7 @@ export async function fetchObservationsList(
       filter: buildSubjectFilter(personId),
       sort: SORT_NEWEST_FIRST,
       first: 250,
+      locale: getLocale(),
     },
     organizationId,
   });
@@ -363,6 +367,7 @@ export async function fetchLatestMenstrualCycle(
       filter: buildSubjectFilter(personId),
       sort: SORT_NEWEST_FIRST,
       first: 250,
+      locale: getLocale(),
     },
     organizationId,
   });
