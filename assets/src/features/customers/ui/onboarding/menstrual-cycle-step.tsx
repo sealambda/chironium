@@ -20,7 +20,7 @@ interface MenstrualCycleStepProps {
 }
 
 /**
- * Step 4: Capture last menstrual cycle dates and notes.
+ * Capture last menstrual cycle dates and notes.
  * All fields are optional — the user can skip this step.
  * Auto-skips when gender is MALE.
  */

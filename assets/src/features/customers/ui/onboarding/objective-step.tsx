@@ -15,7 +15,7 @@ interface ObjectiveStepProps {
 }
 
 /**
- * Step 3: Capture the customer's main objective as a free text observation.
+ * Capture the customer's main health or fitness objective (creates an active Goal record).
  */
 export function ObjectiveStep({ initialData, onSubmit, onBack, onSaveDraft }: ObjectiveStepProps) {
   const form = useForm({

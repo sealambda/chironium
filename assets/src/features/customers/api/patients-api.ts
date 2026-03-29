@@ -46,6 +46,46 @@ const PatientDetailByPersonQuery = graphql(`
             authorString
           }
         }
+        conditions {
+          id
+          clinicalStatus
+          verificationStatus
+          code {
+            text
+            coding {
+              system
+              code
+              version
+              display(locale: $locale)
+            }
+          }
+          note {
+            text
+            time
+            authorReference
+            authorString
+          }
+        }
+        medicationStatements {
+          id
+          clinicalStatus
+          verificationStatus
+          code {
+            text
+            coding {
+              system
+              code
+              version
+              display(locale: $locale)
+            }
+          }
+          note {
+            text
+            time
+            authorReference
+            authorString
+          }
+        }
         goals(
           filter: { lifecycleStatus: { eq: ACTIVE } }
           sort: [{ field: PRIORITY, order: ASC }]

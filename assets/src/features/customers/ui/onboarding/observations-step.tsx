@@ -22,7 +22,7 @@ interface ObservationEntry extends ClinicalNoteFormData {
 }
 
 /**
- * Step 8: Capture one or more clinical note observations with datetime and body.
+ * Final step: capture one or more clinical note observations with datetime and body.
  * Uses the same add-to-list pattern as the org plans step: a single form
  * at the top, an "Add" button, and a compact summary list below.
  */
