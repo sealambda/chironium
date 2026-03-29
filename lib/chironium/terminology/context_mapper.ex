@@ -2,9 +2,8 @@ defmodule Chironium.Terminology.ContextMapper do
   @moduledoc """
   Maps a clinical context atom to its SNOMED/LOINC system URL and root ancestor code.
 
-  The `parent_code` is `nil` for code systems (e.g. LOINC) where the hierarchy
-  is not encoded in the closure table; in that case only the system URL filter
-  is applied.
+  If `parent_code` is `nil`, only the system URL filter is applied,
+  like for lab results where we want all LOINC codes regardless of hierarchy.
   """
 
   @type context ::
