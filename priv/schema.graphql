@@ -36,6 +36,9 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -44,9 +47,6 @@ input PractitionerNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -211,6 +211,9 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -219,9 +222,6 @@ input PersonNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -2735,7 +2735,7 @@ type CreateMedicationStatementResult {
 
 input CreateMedicationStatementInput {
   "Whether the medication is being consumed or administered."
-  status: MedicationStatementStatus!
+  status: MedicationStatementStatus
 
   "What medication was taken."
   medication: MedicationStatementMedicationInput

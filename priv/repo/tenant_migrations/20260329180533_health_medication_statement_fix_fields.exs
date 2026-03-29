@@ -13,7 +13,7 @@ defmodule Chironium.Repo.TenantMigrations.HealthMedicationStatementFixFields do
     alter table(:medication_statements, prefix: prefix()) do
       remove :verification_status
       remove :clinical_status
-      add :status, :text, null: false
+      add :status, :text, null: false, default: "recorded"
     end
   end
 
