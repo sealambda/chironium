@@ -71,3 +71,21 @@ export function formatFhirVerificationStatusLabel(value: string | null | undefin
       return humanizeUnknownEnumToken(v);
   }
 }
+
+/** Localized FHIR MedicationStatement status. */
+export function formatFhirMedicationStatusLabel(value: string | null | undefined): string {
+  if (!value) {
+    return EMPTY_VALUE_PLACEHOLDER;
+  }
+  const v = value.toUpperCase();
+  switch (v) {
+    case "RECORDED":
+      return m.fhir_medication_status_recorded();
+    case "ENTERED_IN_ERROR":
+      return m.fhir_medication_status_entered_in_error();
+    case "DRAFT":
+      return m.fhir_medication_status_draft();
+    default:
+      return humanizeUnknownEnumToken(v);
+  }
+}

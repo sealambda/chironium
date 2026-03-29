@@ -39,12 +39,12 @@ interface MedicationsCardProps {
   isLoading?: boolean;
 }
 
-type MedicationsCardItem = Pick<ApiMedicationItem, "code">;
+type MedicationsCardItem = Pick<ApiMedicationItem, "medication">;
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 function medicationsLabels(items: MedicationsCardItem[]): string[] {
-  return items.map((item) => displayTextFromCodeableConcept(item.code)).filter(Boolean);
+  return items.map((item) => displayTextFromCodeableConcept(item.medication)).filter(Boolean);
 }
 
 // ─── Add dialog ──────────────────────────────────────────────────────

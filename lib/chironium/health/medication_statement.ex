@@ -46,17 +46,16 @@ defmodule Chironium.Health.MedicationStatement do
   end
 
   attributes do
-    attribute :clinical_status, Chironium.Health.Condition.ClinicalStatus do
+    attribute :status, Chironium.Health.MedicationStatement.Status do
+      description "Whether the medication is being consumed or administered."
       public? true
+      allow_nil? false
     end
 
-    attribute :verification_status, Chironium.Health.Condition.VerificationStatus do
-      public? true
-    end
+    # TODO: Dosage and effective period/timing
 
-    # TODO Dosage and effective period/timing
-
-    attribute :code, Chironium.Datatypes.CodeableConcept do
+    attribute :medication, Chironium.Datatypes.CodeableConcept do
+      description "What medication was taken."
       public? true
     end
 
