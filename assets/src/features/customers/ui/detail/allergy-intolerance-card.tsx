@@ -8,6 +8,10 @@ import {
   createAllergiesAndIntolerances,
 } from "@/features/customers/api/allergy-intolerance-api";
 import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
+import {
+  CustomerDetailEmptyCard,
+  CustomerDetailEmptyCardAddRow,
+} from "@/features/customers/ui/detail/customer-detail-empty-card";
 import { TagColumn } from "@/features/customers/ui/detail/tag-column";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -196,20 +200,18 @@ export function AllergyIntoleranceCard({
 
   if (isEmpty) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-        <div className="flex items-start justify-end">
-          <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
-            <CardAddButton label={m.allergy_intolerance_add()} />
-          </AddAllergyIntoleranceDialog>
-        </div>
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
-          <AlertTriangle className="size-8 text-muted-foreground/70" />
-          <div className="text-center">
-            <p className="font-medium text-foreground text-sm">{m.allergy_intolerance_empty()}</p>
-            <p className="text-foreground/65 text-xs">{m.allergy_intolerance_empty_desc()}</p>
-          </div>
-        </div>
-      </div>
+      <CustomerDetailEmptyCard
+        header={
+          <CustomerDetailEmptyCardAddRow>
+            <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
+              <CardAddButton label={m.allergy_intolerance_add()} />
+            </AddAllergyIntoleranceDialog>
+          </CustomerDetailEmptyCardAddRow>
+        }
+        icon={AlertTriangle}
+        title={m.allergy_intolerance_empty()}
+        description={m.allergy_intolerance_empty_desc()}
+      />
     );
   }
 

@@ -2,6 +2,7 @@ import { format, formatDistanceStrict, isValid, parseISO } from "date-fns";
 import { MoveRight, RefreshCcwDot } from "lucide-react";
 
 import type { MenstrualCycleSummary } from "@/features/customers/api/observations-api";
+import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer-detail-empty-card";
 import * as m from "@/paraglide/messages";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
@@ -43,7 +44,7 @@ function formatCycleDuration(startDate: string | null, endDate: string | null): 
 
 function MenstrualCycleCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-center justify-between gap-4">
         <Skeleton className="h-7 w-44" />
         <Skeleton className="h-7 w-16" />
@@ -68,19 +69,16 @@ export function MenstrualCycleCard({ cycle, isLoading }: Readonly<MenstrualCycle
 
   if (!cycle) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-        <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
-          {m.menstrual_cycle_title()}
-        </h3>
-
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
-          <RefreshCcwDot className="size-10 text-muted-foreground/60" />
-          <div className="text-center">
-            <p className="font-medium text-foreground text-sm">{m.menstrual_cycle_empty()}</p>
-            <p className="mt-0.5 text-foreground/65 text-xs">{m.menstrual_cycle_empty_desc()}</p>
-          </div>
-        </div>
-      </div>
+      <CustomerDetailEmptyCard
+        header={
+          <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
+            {m.menstrual_cycle_title()}
+          </h3>
+        }
+        icon={RefreshCcwDot}
+        title={m.menstrual_cycle_empty()}
+        description={m.menstrual_cycle_empty_desc()}
+      />
     );
   }
 
@@ -90,7 +88,7 @@ export function MenstrualCycleCard({ cycle, isLoading }: Readonly<MenstrualCycle
   const note = cycle?.notes?.trim() || m.menstrual_cycle_note_empty();
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-end gap-2">
         <h3 className="font-bold text-foreground text-xl uppercase leading-none tracking-wide">
           {m.menstrual_cycle_last_cycle()}

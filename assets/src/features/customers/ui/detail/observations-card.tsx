@@ -4,6 +4,7 @@ import { ClipboardList } from "lucide-react";
 import type { ObservationItem, ObservationsPage } from "@/features/customers/api/observations-api";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
 import { CardFooter, CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
+import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer-detail-empty-card";
 import * as m from "@/paraglide/messages";
 import { CardAddButton } from "@/shared/ui/card-add-button";
 import { MarkdownContent } from "@/shared/ui/markdown-content";
@@ -86,23 +87,21 @@ export function ObservationsCard({
 
   if (!latestObservation) {
     return (
-      <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-        <div className="flex items-start justify-between">
-          <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
-            {m.observations_last_title()}
-          </h3>
-          <AddObservationDialog personId={personId} patientId={patientId}>
-            <CardAddButton label={m.observations_add()} />
-          </AddObservationDialog>
-        </div>
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
-          <ClipboardList className="size-10 text-muted-foreground/60" />
-          <div className="text-center">
-            <p className="font-medium text-foreground text-sm">{m.observations_empty()}</p>
-            <p className="mt-0.5 text-foreground/65 text-xs">{m.observations_empty_desc()}</p>
+      <CustomerDetailEmptyCard
+        header={
+          <div className="flex items-start justify-between">
+            <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
+              {m.observations_last_title()}
+            </h3>
+            <AddObservationDialog personId={personId} patientId={patientId}>
+              <CardAddButton label={m.observations_add()} />
+            </AddObservationDialog>
           </div>
-        </div>
-      </div>
+        }
+        icon={ClipboardList}
+        title={m.observations_empty()}
+        description={m.observations_empty_desc()}
+      />
     );
   }
 

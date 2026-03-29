@@ -2,6 +2,10 @@ import { Beef, Droplet, LeafIcon, Wheat } from "lucide-react";
 
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import { CardFooter, CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
+import {
+  CustomerDetailEmptyCard,
+  CustomerDetailEmptyCardAddRow,
+} from "@/features/customers/ui/detail/customer-detail-empty-card";
 import { NutritionPlanDialog } from "@/features/customers/ui/detail/nutrition-plan-dialog";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
@@ -124,7 +128,7 @@ export function NutritionPlanSummaryCardSkeleton() {
       <div className="my-4 h-px bg-border" />
 
       {/* Macro indicators — fills remaining space */}
-      <div className="flex flex-1 items-center pb-4">
+      <div className="pb-4">
         <div className="flex w-full flex-wrap justify-evenly gap-y-4">
           {Array.from({ length: 3 }, (_, i) => (
             <div key={String(i)} className="flex min-w-24 flex-col items-center gap-1">
@@ -162,27 +166,25 @@ export function NutritionPlanSummaryCard({
 
   if (!plan) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
-        <div className="flex items-start justify-end">
-          <NutritionPlanDialog
-            personId={personId}
-            patientId={patientId}
-            latestWeight={latestWeight}
-            latestHeight={latestHeight}
-            birthDate={birthDate}
-            gender={gender}
-          >
-            <CardAddButton label={m.nutrition_plan_add()} />
-          </NutritionPlanDialog>
-        </div>
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6">
-          <LeafIcon className="size-8 text-muted-foreground/70" />
-          <div className="text-center">
-            <p className="font-medium text-foreground text-sm">{m.nutrition_no_plan()}</p>
-            <p className="text-foreground/65 text-xs">{m.nutrition_no_plan_desc()}</p>
-          </div>
-        </div>
-      </div>
+      <CustomerDetailEmptyCard
+        header={
+          <CustomerDetailEmptyCardAddRow>
+            <NutritionPlanDialog
+              personId={personId}
+              patientId={patientId}
+              latestWeight={latestWeight}
+              latestHeight={latestHeight}
+              birthDate={birthDate}
+              gender={gender}
+            >
+              <CardAddButton label={m.nutrition_plan_add()} />
+            </NutritionPlanDialog>
+          </CustomerDetailEmptyCardAddRow>
+        }
+        icon={LeafIcon}
+        title={m.nutrition_no_plan()}
+        description={m.nutrition_no_plan_desc()}
+      />
     );
   }
 
@@ -205,8 +207,8 @@ export function NutritionPlanSummaryCard({
 
       <div className="my-4 h-px bg-border" />
 
-      {/* Section B: Macro Indicators — fills remaining space */}
-      <div className="flex flex-1 items-center pb-4">
+      {/* Section B: Macro Indicators */}
+      <div className="pb-4">
         <MacroIndicatorsRow
           protein={plan.proteinG}
           carbs={plan.carbsG}

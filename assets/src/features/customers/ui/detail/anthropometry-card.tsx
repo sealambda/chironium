@@ -8,6 +8,10 @@ import type {
 } from "@/features/customers/api/anthropometry-api";
 import { AddAnthropometryDialog } from "@/features/customers/ui/detail/add-anthropometry-dialog";
 import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
+import {
+  CustomerDetailEmptyCard,
+  CustomerDetailEmptyCardAddRow,
+} from "@/features/customers/ui/detail/customer-detail-empty-card";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { CardAddButton } from "@/shared/ui/card-add-button";
@@ -205,7 +209,7 @@ function GroupedCircumferences({
   visibleGroups: CircumferenceGroupDef[];
 }>) {
   return (
-    <div className="h-full rounded-xl bg-muted/30 p-3">
+    <div className="rounded-xl bg-muted/30 p-3">
       <div className="grid grid-cols-2 gap-x-4">
         {visibleGroups.flatMap((group, groupIndex) => {
           const groupId = group.keys[0];
@@ -255,7 +259,7 @@ function MeasurementDetailsSection({
 
   if (!canShowMetabolicIndicators && !canShowCircumferences) {
     return (
-      <div className="flex-1 px-3 py-5 text-center text-foreground/65 text-sm">
+      <div className="px-3 py-5 text-center text-foreground/65 text-sm">
         {m.anthropometry_calculation_unavailable()}
       </div>
     );
@@ -265,7 +269,7 @@ function MeasurementDetailsSection({
     <>
       {canShowMetabolicIndicators ? <MetabolicIndicatorsRow bmi={bmi} whr={whr} /> : null}
       {canShowCircumferences ? (
-        <div className={cn("flex-1", canShowMetabolicIndicators ? "mt-4" : "mt-0")}>
+        <div className={canShowMetabolicIndicators ? "mt-4" : undefined}>
           <GroupedCircumferences
             latest={latest}
             previous={previous}
@@ -281,7 +285,7 @@ function MeasurementDetailsSection({
 
 export function AnthropometryCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="min-h-19 space-y-1.5">
         <div className="flex items-baseline gap-2">
           <Skeleton className="h-9 w-20" />
@@ -305,7 +309,7 @@ export function AnthropometryCardSkeleton() {
         </div>
       </div>
 
-      <div className="mt-4 flex-1 space-y-3 rounded-xl bg-muted/30 p-3">
+      <div className="mt-4 space-y-3 rounded-xl bg-muted/30 p-3">
         {Array.from({ length: 2 }, (_g, g) => (
           <div key={`grp-${String(g)}`} className="space-y-2">
             <Skeleton className="h-3.5 w-16" />
@@ -327,7 +331,7 @@ export function AnthropometryCardSkeleton() {
         ))}
       </div>
 
-      <div className="mt-auto border-border border-t pt-3">
+      <div className="mt-4 border-border border-t pt-3">
         <Skeleton className="h-4 w-52" />
       </div>
     </div>
@@ -351,27 +355,25 @@ export function AnthropometryCard({
 
   if (!latest) {
     return (
-      <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-        <div className="flex items-start justify-end">
-          <AddAnthropometryDialog personId={personId} patientId={patientId}>
-            <CardAddButton label={m.anthropometry_add()} />
-          </AddAnthropometryDialog>
-        </div>
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
-          <ScaleIcon className="size-10 text-muted-foreground/60" />
-          <div className="text-center">
-            <p className="font-medium text-foreground text-sm">{m.anthropometry_no_records()}</p>
-            <p className="mt-0.5 text-foreground/65 text-xs">{m.anthropometry_no_records_desc()}</p>
-          </div>
-        </div>
-      </div>
+      <CustomerDetailEmptyCard
+        header={
+          <CustomerDetailEmptyCardAddRow>
+            <AddAnthropometryDialog personId={personId} patientId={patientId}>
+              <CardAddButton label={m.anthropometry_add()} />
+            </AddAnthropometryDialog>
+          </CustomerDetailEmptyCardAddRow>
+        }
+        icon={ScaleIcon}
+        title={m.anthropometry_no_records()}
+        description={m.anthropometry_no_records_desc()}
+      />
     );
   }
 
   const weightDelta = computeDelta(latest.weight, previous?.weight);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
+    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
       <div className="flex items-start justify-between">
         <HeroSection latest={latest} weightDelta={weightDelta} />
         <AddAnthropometryDialog personId={personId} patientId={patientId}>
