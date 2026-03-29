@@ -54,3 +54,12 @@ node_modules/
 .DS_Store
 
 package-lock.json
+
+# Nix / direnv / devenv artifacts.
+.direnv/
+.devenv/
+.devenv.flake.nix
+.nix-mix/
+.nix-hex/
+.nix-corepack/
+result
