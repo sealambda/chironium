@@ -12,7 +12,9 @@ import {
   CustomerDetailEmptyCard,
   CustomerDetailEmptyCardAddRow,
 } from "@/features/customers/ui/detail/customer-detail-empty-card";
+import { CustomerDetailTagsCardSkeleton } from "@/features/customers/ui/detail/customer-detail-tags-card-skeleton";
 import { TagColumn } from "@/features/customers/ui/detail/tag-column";
+import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import type { TerminologyTag } from "@/shared/types/terminology";
@@ -26,7 +28,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 
 // ─── Props ───────────────────────────────────────────────────────────
@@ -45,7 +46,7 @@ type AllergyIntoleranceItem = Pick<ApiAllergyIntoleranceItem, "type" | "code">;
 function parseItemTags(items: AllergyIntoleranceItem[], type: string): string[] {
   return items
     .filter((item) => item.type === type)
-    .map((item) => item.code?.text ?? item.code?.coding?.[0]?.display ?? "")
+    .map((item) => displayTextFromCodeableConcept(item.code))
     .filter(Boolean);
 }
 
@@ -155,33 +156,6 @@ function AddAllergyIntoleranceDialog({
   );
 }
 
-// ─── Loading skeleton ────────────────────────────────────────────────
-
-function AllergyIntoleranceCardSkeleton() {
-  return (
-    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Skeleton className="mx-auto h-4 w-20" />
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={String(i)} className="h-7 w-18 rounded-full" />
-            ))}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Skeleton className="mx-auto h-4 w-24" />
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {Array.from({ length: 2 }, (_, i) => (
-              <Skeleton key={String(i)} className="h-7 w-22 rounded-full" />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Main component ──────────────────────────────────────────────────
 
 export function AllergyIntoleranceCard({
@@ -191,7 +165,7 @@ export function AllergyIntoleranceCard({
   isLoading,
 }: Readonly<AllergyIntoleranceCardProps>) {
   if (isLoading) {
-    return <AllergyIntoleranceCardSkeleton />;
+    return <CustomerDetailTagsCardSkeleton columns={2} />;
   }
 
   const allergyTags = parseItemTags(items, "ALLERGY");

@@ -17,7 +17,7 @@ interface FoodStepProps {
 }
 
 /**
- * Step 7: Capture dietary inclusions and exclusions as tagged items.
+ * Capture dietary inclusions and exclusions as tagged items (optional).
  * Both fields are optional — the user can skip this step.
  */
 export function FoodStep({ initialData, onSubmit, onBack, onSaveDraft }: FoodStepProps) {

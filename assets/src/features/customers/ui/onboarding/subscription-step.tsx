@@ -71,7 +71,7 @@ function PlanSelector({ plans, loading, value, onChange }: PlanSelectorProps) {
 }
 
 /**
- * Step 2: Select a subscription plan and start date.
+ * Select a subscription plan and start date.
  */
 export function SubscriptionStep({
   organizationId,

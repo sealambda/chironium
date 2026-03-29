@@ -1,4 +1,5 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
+import { observationValueCodeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
 import { graphql } from "@/graphql";
 import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
@@ -144,10 +145,9 @@ export interface FoodPreferenceHistoryItem {
   id: string;
   date: string | null;
   type: "inclusion" | "exclusion";
+  /** Display text: coded rows use coding displays; free-text rows use valueString. */
   items: string;
-  /** True when the value comes from a coded concept — these rows are not editable. */
-  isCoded: boolean;
-  /** Populated for coded rows; empty for free-text rows. */
+  /** Codings from valueCodeableConcept when present; empty when the value is free text only. */
   codings: ObservationCoding[];
   notes: {
     text?: string | null;
@@ -155,6 +155,32 @@ export interface FoodPreferenceHistoryItem {
     authorString?: string | null;
     time?: string | null;
   }[];
+}
+
+/** Builds a terminology tag for the history edit dialog (coded and free-text rows). */
+export function terminologyTagFromFoodHistoryItem(
+  row: FoodPreferenceHistoryItem,
+): TerminologyTag | null {
+  const c = row.codings[0];
+  if (c) {
+    const label = row.items?.trim() || c.display?.trim() || c.code;
+    if (!label) {
+      return null;
+    }
+    return {
+      label,
+      coding: {
+        system: c.system,
+        code: c.code,
+        version: c.version ?? null,
+        display: c.display ?? null,
+      },
+    };
+  }
+  if (row.items?.trim()) {
+    return { label: row.items.trim() };
+  }
+  return null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -225,10 +251,10 @@ export async function fetchFoodPreferencesHistory(
     type: FoodPreferenceHistoryItem["type"],
   ): FoodPreferenceHistoryItem => {
     const rawCodings = obs.valueCodeableConcept?.coding ?? [];
-    const isCoded = rawCodings.length > 0;
-    const items = isCoded
-      ? rawCodings.flatMap((c) => (c.display ? [c.display] : [])).join(", ")
-      : (obs.valueString ?? "");
+    const items =
+      rawCodings.length > 0
+        ? rawCodings.flatMap((c) => (c.display ? [c.display] : [])).join(", ")
+        : (obs.valueString ?? "");
     const codings: ObservationCoding[] = rawCodings.map((c) => ({
       system: c.system,
       code: c.code,
@@ -239,7 +265,6 @@ export async function fetchFoodPreferencesHistory(
       id: obs.id,
       date: obs.effectiveDateTime ?? null,
       type,
-      isCoded,
       codings,
       items,
       notes: obs.note ?? [],
@@ -390,35 +415,39 @@ export async function createFoodObservations(
       if (!entry.coding) {
         return;
       }
-      const result = await requestGraphql({
-        document: type === "inclusion" ? LogFoodPreferenceMutation : LogFoodAversionMutation,
-        variables: {
-          input: {
-            valueCodeableConcept: {
-              text: entry.label,
-              coding: [
-                {
-                  system: entry.coding.system,
-                  code: entry.coding.code,
-                  version: entry.coding.version ?? undefined,
-                },
-              ],
+      const input = {
+        valueCodeableConcept: {
+          text: entry.label,
+          coding: [
+            {
+              system: entry.coding.system,
+              code: entry.coding.code,
+              version: entry.coding.version ?? undefined,
             },
-            note: [
-              {
-                text: entry.label,
-                ...(userId ? { authorReference: userId } : { authorString: userName }),
-                time: new Date().toISOString(),
-              },
-            ],
-            subjectId,
-          },
+          ],
         },
-        organizationId,
-      });
+        note: [
+          {
+            text: entry.label,
+            ...(userId ? { authorReference: userId } : { authorString: userName }),
+            time: new Date().toISOString(),
+          },
+        ],
+        subjectId,
+      };
       if (type === "inclusion") {
+        const result = await requestGraphql({
+          document: LogFoodPreferenceMutation,
+          variables: { input },
+          organizationId,
+        });
         unwrapMutationResult(result.logFoodPreference, "Failed to log food preference.");
       } else {
+        const result = await requestGraphql({
+          document: LogFoodAversionMutation,
+          variables: { input },
+          organizationId,
+        });
         unwrapMutationResult(result.logFoodAversion, "Failed to log food aversion.");
       }
     })();
@@ -471,6 +500,26 @@ export async function updateFoodObservationText(
     // Explicitly clear valueCodeableConcept so the backend's exactly-one-value
     // constraint is satisfied when overwriting a previously coded observation.
     variables: { id, input: { valueString: newValueString, valueCodeableConcept: null } },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateObservation, "Failed to update food preference.");
+}
+
+/** Updates food observation value from a terminology tag (coded or free text). */
+export async function updateFoodObservationFromTag(
+  id: string,
+  tag: TerminologyTag,
+  organizationId: string,
+): Promise<void> {
+  const coded = observationValueCodeInputFromTerminologyTag(tag);
+  const result = await requestGraphql({
+    document: UpdateFoodObservationMutation,
+    variables: {
+      id,
+      input: coded
+        ? { valueCodeableConcept: coded, valueString: null }
+        : { valueString: tag.label, valueCodeableConcept: null },
+    },
     organizationId,
   });
   unwrapMutationResult(result.updateObservation, "Failed to update food preference.");

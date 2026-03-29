@@ -19,8 +19,10 @@ import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
 import { Route as AppCustomersCustomerIdObservationsRouteImport } from './routes/_app/customers_.$customerId_.observations'
 import { Route as AppCustomersCustomerIdNutritionRouteImport } from './routes/_app/customers_.$customerId_.nutrition'
+import { Route as AppCustomersCustomerIdMedicationsRouteImport } from './routes/_app/customers_.$customerId_.medications'
 import { Route as AppCustomersCustomerIdGoalsRouteImport } from './routes/_app/customers_.$customerId_.goals'
 import { Route as AppCustomersCustomerIdFoodPreferencesRouteImport } from './routes/_app/customers_.$customerId_.food-preferences'
+import { Route as AppCustomersCustomerIdConditionsRouteImport } from './routes/_app/customers_.$customerId_.conditions'
 import { Route as AppCustomersCustomerIdAnthropometryRouteImport } from './routes/_app/customers_.$customerId_.anthropometry'
 import { Route as AppCustomersCustomerIdAllergiesRouteImport } from './routes/_app/customers_.$customerId_.allergies'
 
@@ -75,6 +77,12 @@ const AppCustomersCustomerIdNutritionRoute =
     path: '/customers/$customerId/nutrition',
     getParentRoute: () => AppRoute,
   } as any)
+const AppCustomersCustomerIdMedicationsRoute =
+  AppCustomersCustomerIdMedicationsRouteImport.update({
+    id: '/customers_/$customerId_/medications',
+    path: '/customers/$customerId/medications',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppCustomersCustomerIdGoalsRoute =
   AppCustomersCustomerIdGoalsRouteImport.update({
     id: '/customers_/$customerId_/goals',
@@ -85,6 +93,12 @@ const AppCustomersCustomerIdFoodPreferencesRoute =
   AppCustomersCustomerIdFoodPreferencesRouteImport.update({
     id: '/customers_/$customerId_/food-preferences',
     path: '/customers/$customerId/food-preferences',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppCustomersCustomerIdConditionsRoute =
+  AppCustomersCustomerIdConditionsRouteImport.update({
+    id: '/customers_/$customerId_/conditions',
+    path: '/customers/$customerId/conditions',
     getParentRoute: () => AppRoute,
   } as any)
 const AppCustomersCustomerIdAnthropometryRoute =
@@ -110,8 +124,10 @@ export interface FileRoutesByFullPath {
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/allergies': typeof AppCustomersCustomerIdAllergiesRoute
   '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
+  '/customers/$customerId/conditions': typeof AppCustomersCustomerIdConditionsRoute
   '/customers/$customerId/food-preferences': typeof AppCustomersCustomerIdFoodPreferencesRoute
   '/customers/$customerId/goals': typeof AppCustomersCustomerIdGoalsRoute
+  '/customers/$customerId/medications': typeof AppCustomersCustomerIdMedicationsRoute
   '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
   '/customers/$customerId/observations': typeof AppCustomersCustomerIdObservationsRoute
 }
@@ -125,8 +141,10 @@ export interface FileRoutesByTo {
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/allergies': typeof AppCustomersCustomerIdAllergiesRoute
   '/customers/$customerId/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
+  '/customers/$customerId/conditions': typeof AppCustomersCustomerIdConditionsRoute
   '/customers/$customerId/food-preferences': typeof AppCustomersCustomerIdFoodPreferencesRoute
   '/customers/$customerId/goals': typeof AppCustomersCustomerIdGoalsRoute
+  '/customers/$customerId/medications': typeof AppCustomersCustomerIdMedicationsRoute
   '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
   '/customers/$customerId/observations': typeof AppCustomersCustomerIdObservationsRoute
 }
@@ -142,8 +160,10 @@ export interface FileRoutesById {
   '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
   '/_app/customers_/$customerId_/allergies': typeof AppCustomersCustomerIdAllergiesRoute
   '/_app/customers_/$customerId_/anthropometry': typeof AppCustomersCustomerIdAnthropometryRoute
+  '/_app/customers_/$customerId_/conditions': typeof AppCustomersCustomerIdConditionsRoute
   '/_app/customers_/$customerId_/food-preferences': typeof AppCustomersCustomerIdFoodPreferencesRoute
   '/_app/customers_/$customerId_/goals': typeof AppCustomersCustomerIdGoalsRoute
+  '/_app/customers_/$customerId_/medications': typeof AppCustomersCustomerIdMedicationsRoute
   '/_app/customers_/$customerId_/nutrition': typeof AppCustomersCustomerIdNutritionRoute
   '/_app/customers_/$customerId_/observations': typeof AppCustomersCustomerIdObservationsRoute
 }
@@ -159,8 +179,10 @@ export interface FileRouteTypes {
     | '/customers/$customerId'
     | '/customers/$customerId/allergies'
     | '/customers/$customerId/anthropometry'
+    | '/customers/$customerId/conditions'
     | '/customers/$customerId/food-preferences'
     | '/customers/$customerId/goals'
+    | '/customers/$customerId/medications'
     | '/customers/$customerId/nutrition'
     | '/customers/$customerId/observations'
   fileRoutesByTo: FileRoutesByTo
@@ -174,8 +196,10 @@ export interface FileRouteTypes {
     | '/customers/$customerId'
     | '/customers/$customerId/allergies'
     | '/customers/$customerId/anthropometry'
+    | '/customers/$customerId/conditions'
     | '/customers/$customerId/food-preferences'
     | '/customers/$customerId/goals'
+    | '/customers/$customerId/medications'
     | '/customers/$customerId/nutrition'
     | '/customers/$customerId/observations'
   id:
@@ -190,8 +214,10 @@ export interface FileRouteTypes {
     | '/_app/customers_/$customerId'
     | '/_app/customers_/$customerId_/allergies'
     | '/_app/customers_/$customerId_/anthropometry'
+    | '/_app/customers_/$customerId_/conditions'
     | '/_app/customers_/$customerId_/food-preferences'
     | '/_app/customers_/$customerId_/goals'
+    | '/_app/customers_/$customerId_/medications'
     | '/_app/customers_/$customerId_/nutrition'
     | '/_app/customers_/$customerId_/observations'
   fileRoutesById: FileRoutesById
@@ -273,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomersCustomerIdNutritionRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/customers_/$customerId_/medications': {
+      id: '/_app/customers_/$customerId_/medications'
+      path: '/customers/$customerId/medications'
+      fullPath: '/customers/$customerId/medications'
+      preLoaderRoute: typeof AppCustomersCustomerIdMedicationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/customers_/$customerId_/goals': {
       id: '/_app/customers_/$customerId_/goals'
       path: '/customers/$customerId/goals'
@@ -285,6 +318,13 @@ declare module '@tanstack/react-router' {
       path: '/customers/$customerId/food-preferences'
       fullPath: '/customers/$customerId/food-preferences'
       preLoaderRoute: typeof AppCustomersCustomerIdFoodPreferencesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/customers_/$customerId_/conditions': {
+      id: '/_app/customers_/$customerId_/conditions'
+      path: '/customers/$customerId/conditions'
+      fullPath: '/customers/$customerId/conditions'
+      preLoaderRoute: typeof AppCustomersCustomerIdConditionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/customers_/$customerId_/anthropometry': {
@@ -313,8 +353,10 @@ interface AppRouteChildren {
   AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
   AppCustomersCustomerIdAllergiesRoute: typeof AppCustomersCustomerIdAllergiesRoute
   AppCustomersCustomerIdAnthropometryRoute: typeof AppCustomersCustomerIdAnthropometryRoute
+  AppCustomersCustomerIdConditionsRoute: typeof AppCustomersCustomerIdConditionsRoute
   AppCustomersCustomerIdFoodPreferencesRoute: typeof AppCustomersCustomerIdFoodPreferencesRoute
   AppCustomersCustomerIdGoalsRoute: typeof AppCustomersCustomerIdGoalsRoute
+  AppCustomersCustomerIdMedicationsRoute: typeof AppCustomersCustomerIdMedicationsRoute
   AppCustomersCustomerIdNutritionRoute: typeof AppCustomersCustomerIdNutritionRoute
   AppCustomersCustomerIdObservationsRoute: typeof AppCustomersCustomerIdObservationsRoute
 }
@@ -329,9 +371,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppCustomersCustomerIdAllergiesRoute: AppCustomersCustomerIdAllergiesRoute,
   AppCustomersCustomerIdAnthropometryRoute:
     AppCustomersCustomerIdAnthropometryRoute,
+  AppCustomersCustomerIdConditionsRoute: AppCustomersCustomerIdConditionsRoute,
   AppCustomersCustomerIdFoodPreferencesRoute:
     AppCustomersCustomerIdFoodPreferencesRoute,
   AppCustomersCustomerIdGoalsRoute: AppCustomersCustomerIdGoalsRoute,
+  AppCustomersCustomerIdMedicationsRoute:
+    AppCustomersCustomerIdMedicationsRoute,
   AppCustomersCustomerIdNutritionRoute: AppCustomersCustomerIdNutritionRoute,
   AppCustomersCustomerIdObservationsRoute:
     AppCustomersCustomerIdObservationsRoute,

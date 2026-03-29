@@ -2,9 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import type { AllergiesFormData } from "@/features/customers/api/allergy-intolerance-api";
 import type { AnthropometryFormData } from "@/features/customers/api/anthropometry-api";
 import type { FoodFormData } from "@/features/customers/api/food-preferences-api";
+import type { MedicationsFormData } from "@/features/customers/api/medications-api";
 import type {
   ClinicalNoteFormData,
   MenstrualCycleFormData,
@@ -27,12 +27,16 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { ResponsiveStepIndicator } from "@/shared/ui/responsive-step-indicator";
 
-import { AllergiesStep } from "./allergies-step";
 import { AnthropometryStep } from "./anthropometry-step";
 import { FoodStep } from "./food-step";
+import { MedicationsStep } from "./medications-step";
 import { MenstrualCycleStep } from "./menstrual-cycle-step";
 import { ObjectiveStep } from "./objective-step";
 import { ObservationsStep } from "./observations-step";
+import {
+  PathologiesAllergiesStep,
+  type PathologiesAllergiesStepData,
+} from "./pathologies-allergies-step";
 import { PersonStep } from "./person-step";
 import { SubscriptionStep } from "./subscription-step";
 
@@ -45,21 +49,24 @@ const STEPS = [
   { label: () => m.onboarding_step_personal() },
   { label: () => m.onboarding_step_subscription() },
   { label: () => m.onboarding_step_objective() },
-  { label: () => m.onboarding_step_cycle() },
   { label: () => m.onboarding_step_anthropometry() },
-  { label: () => m.onboarding_step_allergies() },
+  { label: () => m.onboarding_step_pathologies_allergies() },
+  { label: () => m.onboarding_step_medications() },
   { label: () => m.onboarding_step_food() },
+  { label: () => m.onboarding_step_cycle() },
   { label: () => m.onboarding_step_observations() },
 ];
 
 const EMPTY_DRAFT: OnboardingDraft = {
   person: null,
   subscription: null,
-  objective: null,
   menstrualCycle: null,
   anthropometry: null,
+  pathologies: null,
   allergies: null,
+  medications: null,
   food: null,
+  objective: null,
   notes: null,
   pendingNote: null,
 };
@@ -177,7 +184,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   return (
     <>
       <Dialog open={open} onOpenChange={handleDialogChange}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{m.onboarding_title()}</DialogTitle>
           </DialogHeader>
@@ -265,30 +272,34 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
       );
     case 3:
       return (
-        <MenstrualCycleStep
-          initialData={draft.menstrualCycle ?? undefined}
-          gender={draft.person?.gender}
-          onSubmit={(data: MenstrualCycleFormData) => advance({ menstrualCycle: data }, 4)}
+        <AnthropometryStep
+          initialData={draft.anthropometry ?? undefined}
+          onSubmit={(data: AnthropometryFormData) => advance({ anthropometry: data }, 4)}
           onBack={() => goBack(2)}
-          onSaveDraft={(data) => saveDraft({ menstrualCycle: data })}
+          onSaveDraft={(data) => saveDraft({ anthropometry: data })}
         />
       );
     case 4:
       return (
-        <AnthropometryStep
-          initialData={draft.anthropometry ?? undefined}
-          onSubmit={(data: AnthropometryFormData) => advance({ anthropometry: data }, 5)}
+        <PathologiesAllergiesStep
+          initialPathologies={draft.pathologies ?? undefined}
+          initialAllergies={draft.allergies ?? undefined}
+          onSubmit={(data: PathologiesAllergiesStepData) =>
+            advance({ pathologies: data.pathologies, allergies: data.allergies }, 5)
+          }
           onBack={() => goBack(3)}
-          onSaveDraft={(data) => saveDraft({ anthropometry: data })}
+          onSaveDraft={(data) =>
+            saveDraft({ pathologies: data.pathologies, allergies: data.allergies })
+          }
         />
       );
     case 5:
       return (
-        <AllergiesStep
-          initialData={draft.allergies ?? undefined}
-          onSubmit={(data: AllergiesFormData) => advance({ allergies: data }, 6)}
+        <MedicationsStep
+          initialData={draft.medications ?? undefined}
+          onSubmit={(data: MedicationsFormData) => advance({ medications: data }, 6)}
           onBack={() => goBack(4)}
-          onSaveDraft={(data) => saveDraft({ allergies: data })}
+          onSaveDraft={(data) => saveDraft({ medications: data })}
         />
       );
     case 6:
@@ -302,12 +313,22 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
       );
     case 7:
       return (
+        <MenstrualCycleStep
+          initialData={draft.menstrualCycle ?? undefined}
+          gender={draft.person?.gender}
+          onSubmit={(data: MenstrualCycleFormData) => advance({ menstrualCycle: data }, 8)}
+          onBack={() => goBack(6)}
+          onSaveDraft={(data) => saveDraft({ menstrualCycle: data })}
+        />
+      );
+    case 8:
+      return (
         <ObservationsStep
           initialData={draft.notes ?? undefined}
           initialPending={draft.pendingNote ?? undefined}
           isSubmitting={isSubmitting}
           onSubmit={finish}
-          onBack={() => goBack(6)}
+          onBack={() => goBack(7)}
           onSaveDraft={(notes, pending) => saveDraft({ notes, pendingNote: pending ?? null })}
         />
       );

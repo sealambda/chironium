@@ -1,18 +1,22 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { Check, PencilIcon, X } from "lucide-react";
+import { PencilIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import {
   type FoodPreferenceHistoryItem,
   fetchFoodPreferencesHistory,
+  terminologyTagFromFoodHistoryItem,
+  updateFoodObservationFromTag,
   updateFoodObservationNotes,
-  updateFoodObservationText,
 } from "@/features/customers/api/food-preferences-api";
+import { deleteObservation } from "@/features/customers/api/observations-api";
+import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-history-entry-dialog";
+import { EditHistoryElementDialog } from "@/features/customers/ui/detail/edit-history-element-dialog";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
+import { formatClinicalHistoryDate } from "@/features/customers/utils/clinical-history-display";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -23,15 +27,7 @@ import { CodingPopover } from "@/shared/ui/coding-popover";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { getDateLocale } from "@/shared/utils/date-locale";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) {
-    return EMPTY_VALUE_PLACEHOLDER;
-  }
-  return format(new Date(value), "PP", { locale: getDateLocale() });
-}
 
 function getDietTypeLabel(type: FoodPreferenceHistoryItem["type"]): string {
   if (type === "inclusion") {
@@ -47,8 +43,10 @@ export function FoodPreferencesHistoryPage() {
   const queryClient = useQueryClient();
 
   const [editTarget, setEditTarget] = useState<FoodPreferenceHistoryItem | null>(null);
-  const [editText, setEditText] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useDetailModeEffect(<HistoryDetailHeader />, "food-preferences-history");
 
@@ -58,27 +56,16 @@ export function FoodPreferencesHistoryPage() {
     enabled: Boolean(customerId && selectedOrg?.id),
   });
 
-  const handleSave = async () => {
-    const trimmed = editText.trim();
-    if (!trimmed || !editTarget) {
-      return;
-    }
-    setSaving(true);
-    try {
-      await updateFoodObservationText(editTarget.id, trimmed, selectedOrg?.id ?? "");
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "foodPreferencesHistory"],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "foodPreferences"],
-      });
-      toast.success(m.food_preferences_edit_success());
-      setEditTarget(null);
-    } catch {
-      toast.error(m.onboarding_error());
-    } finally {
-      setSaving(false);
-    }
+  const invalidateFoodHistory = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ["person", customerId, "foodPreferencesHistory"],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["person", customerId, "foodPreferences"],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["person", customerId, "patient-detail"],
+    });
   };
 
   const buildUpdatedNotes = (
@@ -121,12 +108,7 @@ export function FoodPreferencesHistoryPage() {
           buildUpdatedNotes(notes, { kind: "add", text }),
           selectedOrg?.id ?? "",
         );
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "foodPreferencesHistory"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "foodPreferences"],
-        });
+        await invalidateFoodHistory();
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -139,12 +121,7 @@ export function FoodPreferencesHistoryPage() {
           buildUpdatedNotes(notes, { kind: "update", index, text }),
           selectedOrg?.id ?? "",
         );
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "foodPreferencesHistory"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "foodPreferences"],
-        });
+        await invalidateFoodHistory();
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -157,12 +134,7 @@ export function FoodPreferencesHistoryPage() {
           buildUpdatedNotes(notes, { kind: "delete", index }),
           selectedOrg?.id ?? "",
         );
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "foodPreferencesHistory"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "foodPreferences"],
-        });
+        await invalidateFoodHistory();
         toast.success(m.notes_delete_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -172,73 +144,27 @@ export function FoodPreferencesHistoryPage() {
 
   const columns: ColumnDef<FoodPreferenceHistoryItem, unknown>[] = [
     {
-      id: "date",
-      accessorKey: "date",
-      header: ({ column }) => <SortableHeader column={column}>{m.common_date()}</SortableHeader>,
-      cell: ({ getValue }) => (
-        <span className="whitespace-nowrap">{formatDate(getValue() as string | null)}</span>
-      ),
-      sortingFn: "datetime",
+      id: "element",
+      accessorKey: "items",
+      header: ({ column }) => <SortableHeader column={column}>{m.common_element()}</SortableHeader>,
+      cell: ({ row }) => <span>{row.original.items || EMPTY_VALUE_PLACEHOLDER}</span>,
     },
     {
       id: "type",
       accessorFn: (row) => getDietTypeLabel(row.type),
-      header: ({ column }) => (
-        <SortableHeader column={column}>{m.food_preferences_history_col_type()}</SortableHeader>
-      ),
+      header: ({ column }) => <SortableHeader column={column}>{m.common_type()}</SortableHeader>,
       cell: ({ getValue }) => <span className="whitespace-nowrap">{getValue() as string}</span>,
     },
     {
-      id: "items",
-      accessorKey: "items",
-      header: ({ column }) => (
-        <SortableHeader column={column}>{m.food_preferences_history_col_items()}</SortableHeader>
+      id: "date",
+      accessorKey: "date",
+      header: ({ column }) => <SortableHeader column={column}>{m.common_date()}</SortableHeader>,
+      cell: ({ getValue }) => (
+        <span className="whitespace-nowrap">
+          {formatClinicalHistoryDate(getValue() as string | null)}
+        </span>
       ),
-      cell: ({ row }) => {
-        const value = row.original.items;
-        const isEditing = editTarget?.id === row.original.id;
-
-        if (isEditing) {
-          return (
-            <div className="flex items-center gap-1">
-              <input
-                // biome-ignore lint/a11y/noAutofocus: focus expected when entering edit mode
-                autoFocus
-                className="min-w-40 rounded border px-2 py-0.5 text-sm outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    void handleSave();
-                  }
-                  if (e.key === "Escape") {
-                    setEditTarget(null);
-                  }
-                }}
-                disabled={saving}
-              />
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => void handleSave()}
-                disabled={saving || !editText.trim()}
-              >
-                <Check className="size-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => setEditTarget(null)}
-                disabled={saving}
-              >
-                <X className="size-3.5" />
-              </Button>
-            </div>
-          );
-        }
-
-        return <span>{value || EMPTY_VALUE_PLACEHOLDER}</span>;
-      },
+      sortingFn: "datetime",
     },
     {
       id: "actions",
@@ -256,16 +182,27 @@ export function FoodPreferencesHistoryPage() {
             size="icon-xs"
             onClick={() => {
               setEditTarget(row.original);
-              setEditText(row.original.items);
+              setEditOpen(true);
             }}
           >
             <PencilIcon className="size-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => setDeleteTargetId(row.original.id)}
+            aria-label={m.history_entry_delete_confirm_title()}
+            className="text-destructive/60 hover:text-destructive"
+          >
+            <Trash2Icon className="size-3.5" />
           </Button>
         </div>
       ),
       enableSorting: false,
     },
   ];
+
+  const initialEditTag = editTarget ? terminologyTagFromFoodHistoryItem(editTarget) : null;
 
   return (
     <div className="space-y-4 pt-4 lg:pt-6">
@@ -280,11 +217,68 @@ export function FoodPreferencesHistoryPage() {
         <DataTable
           columns={columns}
           data={data ?? []}
-          initialSorting={[{ id: "date", desc: true }]}
+          initialSorting={[{ id: "element", desc: false }]}
           getRowId={(row) => row.id}
           pinFirstColumn
         />
       )}
+
+      <EditHistoryElementDialog
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open);
+          if (!open) {
+            setEditTarget(null);
+          }
+        }}
+        organizationId={selectedOrg?.id ?? ""}
+        conceptContext="FOOD"
+        initialTag={initialEditTag}
+        saving={saving}
+        onSave={async (tag) => {
+          if (!editTarget) {
+            return;
+          }
+          setSaving(true);
+          try {
+            await updateFoodObservationFromTag(editTarget.id, tag, selectedOrg?.id ?? "");
+            await invalidateFoodHistory();
+            toast.success(m.food_preferences_edit_success());
+            setEditOpen(false);
+            setEditTarget(null);
+          } catch {
+            toast.error(m.onboarding_error());
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
+
+      <DeleteHistoryEntryDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTargetId(null);
+          }
+        }}
+        deleting={deleting}
+        onConfirm={async () => {
+          if (!deleteTargetId) {
+            return;
+          }
+          setDeleting(true);
+          try {
+            await deleteObservation(deleteTargetId, selectedOrg?.id ?? "");
+            await invalidateFoodHistory();
+            toast.success(m.history_entry_delete_success());
+            setDeleteTargetId(null);
+          } catch {
+            toast.error(m.onboarding_error());
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
     </div>
   );
 }

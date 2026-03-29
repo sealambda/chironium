@@ -5,7 +5,9 @@ import { createPatientForPerson } from "@/features/customers/api/patients-api";
 import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
 import { AllergyIntoleranceCard } from "@/features/customers/ui/detail/allergy-intolerance-card";
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
+import { ConditionsCard } from "@/features/customers/ui/detail/conditions-card";
 import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-preferences-card";
+import { MedicationsCard } from "@/features/customers/ui/detail/medications-card";
 import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
 import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
 import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
@@ -35,6 +37,8 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
     menstrualCycle,
     foodPreferences,
     allergyIntolerances,
+    conditions,
+    medications,
   } = detail;
 
   const { mutate: createPatient, isPending } = useMutation({
@@ -83,18 +87,33 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
           </div>
 
           <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
-            <FoodPreferencesCard
+            <ConditionsCard
               personId={personId}
               patientId={patientId}
-              included={foodPreferences.data?.included ?? []}
-              excluded={foodPreferences.data?.excluded ?? []}
-              isLoading={foodPreferences.isLoading}
+              items={conditions.data ?? []}
+              isLoading={conditions.isLoading}
             />
             <AllergyIntoleranceCard
               personId={personId}
               patientId={patientId}
               items={allergyIntolerances.data ?? []}
               isLoading={allergyIntolerances.isLoading}
+            />
+          </div>
+
+          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
+            <MedicationsCard
+              personId={personId}
+              patientId={patientId}
+              items={medications.data ?? []}
+              isLoading={medications.isLoading}
+            />
+            <FoodPreferencesCard
+              personId={personId}
+              patientId={patientId}
+              included={foodPreferences.data?.included ?? []}
+              excluded={foodPreferences.data?.excluded ?? []}
+              isLoading={foodPreferences.isLoading}
             />
           </div>
 

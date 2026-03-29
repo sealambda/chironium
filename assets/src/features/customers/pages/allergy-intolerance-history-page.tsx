@@ -1,18 +1,27 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Check, PencilIcon, X } from "lucide-react";
+import { PencilIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import {
   type AllergyIntoleranceItem,
+  deleteAllergyIntolerance,
   fetchAllergyIntolerances,
-  updateAllergyIntoleranceCode,
+  updateAllergyIntoleranceCodeFromTag,
   updateAllergyIntoleranceNotes,
 } from "@/features/customers/api/allergy-intolerance-api";
 import { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
+import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-history-entry-dialog";
+import { EditHistoryElementDialog } from "@/features/customers/ui/detail/edit-history-element-dialog";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
-import { toAuthorInput } from "@/features/customers/utils/annotation-author";
+import { buildUpdatedClinicalAnnotations } from "@/features/customers/utils/clinical-annotation-notes";
+import {
+  formatFhirClinicalStatusLabel,
+  formatFhirVerificationStatusLabel,
+} from "@/features/customers/utils/clinical-history-display";
+import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
+import { terminologyTagFromCodeable } from "@/features/customers/utils/terminology-code-mutation";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -35,13 +44,6 @@ function getAllergyTypeLabel(type: string): string {
   return type;
 }
 
-function formatStatus(status: string | null | undefined): string {
-  if (!status) {
-    return EMPTY_VALUE_PLACEHOLDER;
-  }
-  return status.charAt(0) + status.slice(1).toLowerCase();
-}
-
 export function AllergyIntoleranceHistoryPage() {
   const { customerId } = Route.useParams();
   const { selectedOrg } = useOrg();
@@ -50,8 +52,10 @@ export function AllergyIntoleranceHistoryPage() {
   const queryClient = useQueryClient();
 
   const [editTarget, setEditTarget] = useState<AllergyIntoleranceItem | null>(null);
-  const [editText, setEditText] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useDetailModeEffect(<HistoryDetailHeader />, "allergies-history");
 
@@ -61,59 +65,13 @@ export function AllergyIntoleranceHistoryPage() {
     enabled: Boolean(patientId && selectedOrg?.id),
   });
 
-  const handleSave = async () => {
-    const trimmed = editText.trim();
-    if (!trimmed || !editTarget) {
-      return;
-    }
-    setSaving(true);
-    try {
-      await updateAllergyIntoleranceCode(editTarget.id, trimmed, selectedOrg?.id ?? "");
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "allergyIntolerances"],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "patient-detail"],
-      });
-      toast.success(m.allergy_intolerance_edit_success());
-      setEditTarget(null);
-    } catch {
-      toast.error(m.onboarding_error());
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const buildUpdatedNotes = (
-    current: Annotation[],
-    action:
-      | { kind: "add"; text: string }
-      | { kind: "update"; index: number; text: string }
-      | { kind: "delete"; index: number },
-  ) => {
-    const base = current.map((n) => ({
-      text: n.text ?? "",
-      ...toAuthorInput(n),
-      time: n.time ?? undefined,
-    }));
-    if (action.kind === "add") {
-      const authorInput = toAuthorInput({
-        authorReference: user?.id,
-        authorString: user?.name,
-      });
-      return [
-        ...base,
-        {
-          text: action.text,
-          ...authorInput,
-          time: new Date().toISOString(),
-        },
-      ];
-    }
-    if (action.kind === "update") {
-      return base.map((n, i) => (i === action.index ? { ...n, text: action.text } : n));
-    }
-    return base.filter((_, i) => i !== action.index);
+  const invalidateAllergyQueries = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ["person", customerId, "allergyIntolerances"],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["person", customerId, "patient-detail"],
+    });
   };
 
   const makeNoteHandlers = (id: string, notes: Annotation[]) => ({
@@ -121,15 +79,10 @@ export function AllergyIntoleranceHistoryPage() {
       try {
         await updateAllergyIntoleranceNotes(
           id,
-          buildUpdatedNotes(notes, { kind: "add", text }),
+          buildUpdatedClinicalAnnotations(notes, { kind: "add", text }, { currentUser: user }),
           selectedOrg?.id ?? "",
         );
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "allergyIntolerances"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "patient-detail"],
-        });
+        await invalidateAllergyQueries();
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -139,15 +92,14 @@ export function AllergyIntoleranceHistoryPage() {
       try {
         await updateAllergyIntoleranceNotes(
           id,
-          buildUpdatedNotes(notes, { kind: "update", index, text }),
+          buildUpdatedClinicalAnnotations(
+            notes,
+            { kind: "update", index, text },
+            { currentUser: user },
+          ),
           selectedOrg?.id ?? "",
         );
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "allergyIntolerances"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "patient-detail"],
-        });
+        await invalidateAllergyQueries();
         toast.success(m.notes_edit_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -157,15 +109,10 @@ export function AllergyIntoleranceHistoryPage() {
       try {
         await updateAllergyIntoleranceNotes(
           id,
-          buildUpdatedNotes(notes, { kind: "delete", index }),
+          buildUpdatedClinicalAnnotations(notes, { kind: "delete", index }, { currentUser: user }),
           selectedOrg?.id ?? "",
         );
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "allergyIntolerances"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["person", customerId, "patient-detail"],
-        });
+        await invalidateAllergyQueries();
         toast.success(m.notes_delete_success());
       } catch {
         toast.error(m.onboarding_error());
@@ -175,75 +122,30 @@ export function AllergyIntoleranceHistoryPage() {
 
   const columns: ColumnDef<AllergyIntoleranceItem, unknown>[] = [
     {
-      id: "type",
+      id: "element",
+      accessorFn: (row) => displayTextFromCodeableConcept(row.code) || EMPTY_VALUE_PLACEHOLDER,
+      header: ({ column }) => <SortableHeader column={column}>{m.common_element()}</SortableHeader>,
+      cell: ({ row }) => (
+        <span>{displayTextFromCodeableConcept(row.original.code) || EMPTY_VALUE_PLACEHOLDER}</span>
+      ),
+    },
+    {
+      id: "kind",
       accessorFn: (row) => getAllergyTypeLabel(row.type ?? ""),
+      header: ({ column }) => <SortableHeader column={column}>{m.common_type()}</SortableHeader>,
+    },
+    {
+      id: "clinicalStatus",
+      accessorFn: (row) => formatFhirClinicalStatusLabel(row.clinicalStatus),
       header: ({ column }) => (
-        <SortableHeader column={column}>{m.allergy_intolerance_history_col_type()}</SortableHeader>
+        <SortableHeader column={column}>{m.common_clinical_status()}</SortableHeader>
       ),
     },
     {
-      id: "items",
-      accessorFn: (row) =>
-        row.code?.text ?? row.code?.coding?.[0]?.display ?? EMPTY_VALUE_PLACEHOLDER,
+      id: "verificationStatus",
+      accessorFn: (row) => formatFhirVerificationStatusLabel(row.verificationStatus),
       header: ({ column }) => (
-        <SortableHeader column={column}>{m.allergy_intolerance_history_col_items()}</SortableHeader>
-      ),
-      cell: ({ row }) => {
-        const value =
-          row.original.code?.text ??
-          row.original.code?.coding?.[0]?.display ??
-          EMPTY_VALUE_PLACEHOLDER;
-        const isEditing = editTarget?.id === row.original.id;
-
-        if (isEditing) {
-          return (
-            <div className="flex items-center gap-1">
-              <input
-                // biome-ignore lint/a11y/noAutofocus: focus expected when entering edit mode
-                autoFocus
-                className="min-w-40 rounded border px-2 py-0.5 text-sm outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    void handleSave();
-                  }
-                  if (e.key === "Escape") {
-                    setEditTarget(null);
-                  }
-                }}
-                disabled={saving}
-              />
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => void handleSave()}
-                disabled={saving || !editText.trim()}
-              >
-                <Check className="size-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => setEditTarget(null)}
-                disabled={saving}
-              >
-                <X className="size-3.5" />
-              </Button>
-            </div>
-          );
-        }
-
-        return <span>{value}</span>;
-      },
-    },
-    {
-      id: "status",
-      accessorFn: (row) => formatStatus(row.clinicalStatus),
-      header: ({ column }) => (
-        <SortableHeader column={column}>
-          {m.allergy_intolerance_history_col_status()}
-        </SortableHeader>
+        <SortableHeader column={column}>{m.common_verification_status()}</SortableHeader>
       ),
     },
     {
@@ -267,13 +169,20 @@ export function AllergyIntoleranceHistoryPage() {
               variant="ghost"
               size="icon-xs"
               onClick={() => {
-                const val =
-                  row.original.code?.text ?? row.original.code?.coding?.[0]?.display ?? "";
                 setEditTarget(row.original);
-                setEditText(val);
+                setEditOpen(true);
               }}
             >
               <PencilIcon className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => setDeleteTargetId(row.original.id)}
+              aria-label={m.history_entry_delete_confirm_title()}
+              className="text-destructive/60 hover:text-destructive"
+            >
+              <Trash2Icon className="size-3.5" />
             </Button>
           </div>
         );
@@ -281,6 +190,8 @@ export function AllergyIntoleranceHistoryPage() {
       enableSorting: false,
     },
   ];
+
+  const initialEditTag = editTarget ? terminologyTagFromCodeable(editTarget.code) : null;
 
   return (
     <div className="space-y-4 pt-4 lg:pt-6">
@@ -292,8 +203,70 @@ export function AllergyIntoleranceHistoryPage() {
           <Skeleton className="h-10 w-full" />
         </div>
       ) : (
-        <DataTable columns={columns} data={data ?? []} pinFirstColumn />
+        <DataTable
+          columns={columns}
+          data={data ?? []}
+          initialSorting={[{ id: "element", desc: false }]}
+          pinFirstColumn
+        />
       )}
+
+      <EditHistoryElementDialog
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open);
+          if (!open) {
+            setEditTarget(null);
+          }
+        }}
+        organizationId={selectedOrg?.id ?? ""}
+        conceptContext="ALLERGY_INTOLERANCE"
+        initialTag={initialEditTag}
+        saving={saving}
+        onSave={async (tag) => {
+          if (!editTarget) {
+            return;
+          }
+          setSaving(true);
+          try {
+            await updateAllergyIntoleranceCodeFromTag(editTarget.id, tag, selectedOrg?.id ?? "");
+            await invalidateAllergyQueries();
+            toast.success(m.allergy_intolerance_edit_success());
+            setEditOpen(false);
+            setEditTarget(null);
+          } catch {
+            toast.error(m.onboarding_error());
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
+
+      <DeleteHistoryEntryDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTargetId(null);
+          }
+        }}
+        deleting={deleting}
+        onConfirm={async () => {
+          if (!deleteTargetId) {
+            return;
+          }
+          setDeleting(true);
+          try {
+            await deleteAllergyIntolerance(deleteTargetId, selectedOrg?.id ?? "");
+            await invalidateAllergyQueries();
+            toast.success(m.history_entry_delete_success());
+            setDeleteTargetId(null);
+          } catch {
+            toast.error(m.onboarding_error());
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
     </div>
   );
 }

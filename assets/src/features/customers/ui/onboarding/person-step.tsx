@@ -46,7 +46,7 @@ const GENDER_OPTIONS: { value: AdministrativeGender; label: () => string }[] = [
 ];
 
 /**
- * Step 1: Collect personal information to create a patient with a person record.
+ * Collect personal information to create a patient with a person record.
  */
 export function PersonStep({
   initialData,

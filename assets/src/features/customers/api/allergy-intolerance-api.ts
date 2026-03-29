@@ -1,4 +1,5 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
+import { codeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
 import { graphql, type ResultOf } from "@/graphql";
 import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
@@ -16,6 +17,7 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
         id
         type
         clinicalStatus
+        verificationStatus
         code {
           text
           coding {
@@ -74,6 +76,19 @@ const UpdateAllergyIntoleranceMutation = graphql(`
   }
 `);
 
+const DeleteAllergyIntoleranceMutation = graphql(`
+  mutation DeleteAllergyIntolerance($id: ID!) {
+    deleteAllergyIntolerance(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** A single allergy or intolerance record returned by the patient query. */
@@ -83,7 +98,7 @@ export type AllergyIntoleranceItem = NonNullable<
   >["allergyIntolerances"]
 >[number];
 
-/** Form data for the allergies and intolerances onboarding step. */
+/** Form data for the allergies and intolerances onboarding fields. */
 export interface AllergiesFormData {
   allergies: TerminologyTag[];
   intolerances: TerminologyTag[];
@@ -201,4 +216,29 @@ export async function updateAllergyIntoleranceCode(
     organizationId,
   });
   unwrapMutationResult(result.updateAllergyIntolerance, "Failed to update record.");
+}
+
+export async function updateAllergyIntoleranceCodeFromTag(
+  id: string,
+  tag: TerminologyTag,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateAllergyIntoleranceMutation,
+    variables: { id, input: { code: codeInputFromTerminologyTag(tag) } },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateAllergyIntolerance, "Failed to update record.");
+}
+
+/**
+ * Permanently removes an allergy or intolerance record.
+ */
+export async function deleteAllergyIntolerance(id: string, organizationId: string): Promise<void> {
+  const result = await requestGraphql({
+    document: DeleteAllergyIntoleranceMutation,
+    variables: { id },
+    organizationId,
+  });
+  unwrapMutationResult(result.deleteAllergyIntolerance, "Failed to delete allergy/intolerance.");
 }

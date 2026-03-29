@@ -148,7 +148,7 @@ function NumberField({
 }
 
 /**
- * Step 5: Capture height, weight, and circumference measurements.
+ * Capture height, weight, and circumference measurements.
  * All fields are optional — the user can skip this step.
  */
 export function AnthropometryStep({
