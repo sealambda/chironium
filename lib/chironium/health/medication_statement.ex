@@ -50,6 +50,7 @@ defmodule Chironium.Health.MedicationStatement do
       description "Whether the medication is being consumed or administered."
       public? true
       allow_nil? false
+      default :recorded
     end
 
     # TODO: Dosage and effective period/timing
