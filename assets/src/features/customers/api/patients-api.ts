@@ -68,9 +68,8 @@ const PatientDetailByPersonQuery = graphql(`
         }
         medicationStatements {
           id
-          clinicalStatus
-          verificationStatus
-          code {
+          status
+          medication {
             text
             coding {
               system

@@ -15,9 +15,8 @@ const GetPatientMedicationsQuery = graphql(`
     getPatient(id: $patientId) {
       medicationStatements {
         id
-        clinicalStatus
-        verificationStatus
-        code {
+        status
+        medication {
           text
           coding {
             system
@@ -132,10 +131,9 @@ export async function createMedicationsFromTags(
         document: CreateMedicationStatementMutation,
         variables: {
           input: {
-            clinicalStatus: "ACTIVE",
-            verificationStatus: "CONFIRMED",
+            status: "RECORDED",
             subjectId: patientId,
-            code: tag.coding
+            medication: tag.coding
               ? {
                   text: tag.label,
                   coding: [
@@ -192,7 +190,7 @@ export async function updateMedicationCodeText(
 ): Promise<void> {
   const result = await requestGraphql({
     document: UpdateMedicationStatementMutation,
-    variables: { id, input: { code: { text } } },
+    variables: { id, input: { medication: { text } } },
     organizationId,
   });
   unwrapMutationResult(result.updateMedicationStatement, "Failed to update medication.");
@@ -205,7 +203,7 @@ export async function updateMedicationCodeFromTag(
 ): Promise<void> {
   const result = await requestGraphql({
     document: UpdateMedicationStatementMutation,
-    variables: { id, input: { code: codeInputFromTerminologyTag(tag) } },
+    variables: { id, input: { medication: codeInputFromTerminologyTag(tag) } },
     organizationId,
   });
   unwrapMutationResult(result.updateMedicationStatement, "Failed to update medication.");

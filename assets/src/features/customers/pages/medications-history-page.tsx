@@ -16,10 +16,7 @@ import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-
 import { EditHistoryElementDialog } from "@/features/customers/ui/detail/edit-history-element-dialog";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
 import { buildUpdatedClinicalAnnotations } from "@/features/customers/utils/clinical-annotation-notes";
-import {
-  formatFhirClinicalStatusLabel,
-  formatFhirVerificationStatusLabel,
-} from "@/features/customers/utils/clinical-history-display";
+import { formatFhirMedicationStatusLabel } from "@/features/customers/utils/clinical-history-display";
 import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
 import { terminologyTagFromCodeable } from "@/features/customers/utils/terminology-code-mutation";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -113,30 +110,24 @@ export function MedicationsHistoryPage() {
   const columns: ColumnDef<MedicationItem, unknown>[] = [
     {
       id: "element",
-      accessorFn: (row) => displayTextFromCodeableConcept(row.code) || EMPTY_VALUE_PLACEHOLDER,
+      accessorFn: (row) =>
+        displayTextFromCodeableConcept(row.medication) || EMPTY_VALUE_PLACEHOLDER,
       header: ({ column }) => <SortableHeader column={column}>{m.common_element()}</SortableHeader>,
       cell: ({ row }) => (
-        <span>{displayTextFromCodeableConcept(row.original.code) || EMPTY_VALUE_PLACEHOLDER}</span>
+        <span>
+          {displayTextFromCodeableConcept(row.original.medication) || EMPTY_VALUE_PLACEHOLDER}
+        </span>
       ),
     },
     {
-      id: "clinicalStatus",
-      accessorFn: (row) => formatFhirClinicalStatusLabel(row.clinicalStatus),
-      header: ({ column }) => (
-        <SortableHeader column={column}>{m.common_clinical_status()}</SortableHeader>
-      ),
-    },
-    {
-      id: "verificationStatus",
-      accessorFn: (row) => formatFhirVerificationStatusLabel(row.verificationStatus),
-      header: ({ column }) => (
-        <SortableHeader column={column}>{m.common_verification_status()}</SortableHeader>
-      ),
+      id: "status",
+      accessorFn: (row) => formatFhirMedicationStatusLabel(row.status),
+      header: ({ column }) => <SortableHeader column={column}>{m.common_status()}</SortableHeader>,
     },
     {
       id: "actions",
       cell: ({ row }) => {
-        const codings = (row.original.code?.coding ?? []).map((c) => ({
+        const codings = (row.original.medication?.coding ?? []).map((c) => ({
           system: c.system ?? "",
           code: c.code ?? "",
           display: c.display,
@@ -176,7 +167,7 @@ export function MedicationsHistoryPage() {
     },
   ];
 
-  const initialEditTag = editTarget ? terminologyTagFromCodeable(editTarget.code) : null;
+  const initialEditTag = editTarget ? terminologyTagFromCodeable(editTarget.medication) : null;
 
   return (
     <div className="space-y-4 pt-4 lg:pt-6">

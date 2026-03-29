@@ -101,7 +101,7 @@ input MedicationStatementNoteInput {
   authorString: String
 }
 
-input MedicationStatementCodeInput {
+input MedicationStatementMedicationInput {
   text: String
   coding: [CodeableConceptCodingInput!]
 }
@@ -427,6 +427,17 @@ enum ObservationStatus {
 
   "The authoring\/source system does not know which of the status values currently applies for this observation. Note: This concept is not to be used for 'other' - one of the listed statuses is presumed to apply, but the authoring\/source system does not know which."
   UNKNOWN
+}
+
+enum MedicationStatementStatus {
+  "The medication usage is draft or preliminary."
+  DRAFT
+
+  "Some of the actions that are implied by the medication usage may have occurred. For example, the patient may have taken some of the medication. Clinical decision support systems should take this status into account."
+  ENTERED_IN_ERROR
+
+  "The action of recording the medication statement is finished."
+  RECORDED
 }
 
 enum GoalPriority {
@@ -2701,11 +2712,11 @@ type UpdateMedicationStatementResult {
 }
 
 input UpdateMedicationStatementInput {
-  clinicalStatus: ConditionClinicalStatus
+  "Whether the medication is being consumed or administered."
+  status: MedicationStatementStatus
 
-  verificationStatus: ConditionVerificationStatus
-
-  code: MedicationStatementCodeInput
+  "What medication was taken."
+  medication: MedicationStatementMedicationInput
 
   "Further information about the usage"
   note: [MedicationStatementNoteInput!]
@@ -2723,11 +2734,11 @@ type CreateMedicationStatementResult {
 }
 
 input CreateMedicationStatementInput {
-  clinicalStatus: ConditionClinicalStatus
+  "Whether the medication is being consumed or administered."
+  status: MedicationStatementStatus!
 
-  verificationStatus: ConditionVerificationStatus
-
-  code: MedicationStatementCodeInput
+  "What medication was taken."
+  medication: MedicationStatementMedicationInput
 
   "Further information about the usage"
   note: [MedicationStatementNoteInput!]
@@ -2737,8 +2748,7 @@ input CreateMedicationStatementInput {
 
 enum MedicationStatementSortField {
   ID
-  CLINICAL_STATUS
-  VERIFICATION_STATUS
+  STATUS
   SUBJECT_ID
 }
 
@@ -2755,28 +2765,15 @@ input MedicationStatementFilterSubjectId {
   isNotDistinctFrom: String
 }
 
-input MedicationStatementFilterVerificationStatus {
+input MedicationStatementFilterStatus {
   isNil: Boolean
-  eq: ConditionVerificationStatus
-  notEq: ConditionVerificationStatus
-  in: [ConditionVerificationStatus]
-  lessThan: ConditionVerificationStatus
-  greaterThan: ConditionVerificationStatus
-  lessThanOrEqual: ConditionVerificationStatus
-  greaterThanOrEqual: ConditionVerificationStatus
-  isDistinctFrom: String
-  isNotDistinctFrom: String
-}
-
-input MedicationStatementFilterClinicalStatus {
-  isNil: Boolean
-  eq: ConditionClinicalStatus
-  notEq: ConditionClinicalStatus
-  in: [ConditionClinicalStatus]
-  lessThan: ConditionClinicalStatus
-  greaterThan: ConditionClinicalStatus
-  lessThanOrEqual: ConditionClinicalStatus
-  greaterThanOrEqual: ConditionClinicalStatus
+  eq: MedicationStatementStatus
+  notEq: MedicationStatementStatus
+  in: [MedicationStatementStatus!]
+  lessThan: MedicationStatementStatus
+  greaterThan: MedicationStatementStatus
+  lessThanOrEqual: MedicationStatementStatus
+  greaterThanOrEqual: MedicationStatementStatus
   isDistinctFrom: String
   isNotDistinctFrom: String
 }
@@ -2796,12 +2793,18 @@ input MedicationStatementFilterId {
 
 input MedicationStatementFilterInput {
   and: [MedicationStatementFilterInput!]
+
   or: [MedicationStatementFilterInput!]
+
   not: [MedicationStatementFilterInput!]
+
   id: MedicationStatementFilterId
-  clinicalStatus: MedicationStatementFilterClinicalStatus
-  verificationStatus: MedicationStatementFilterVerificationStatus
+
+  "Whether the medication is being consumed or administered."
+  status: MedicationStatementFilterStatus
+
   subjectId: MedicationStatementFilterSubjectId
+
   subject: PatientFilterInput
 }
 
@@ -2813,11 +2816,11 @@ input MedicationStatementSortInput {
 type MedicationStatement {
   id: ID!
 
-  clinicalStatus: ConditionClinicalStatus
+  "Whether the medication is being consumed or administered."
+  status: MedicationStatementStatus!
 
-  verificationStatus: ConditionVerificationStatus
-
-  code: CodeableConcept
+  "What medication was taken."
+  medication: CodeableConcept
 
   "Further information about the usage"
   note: [Annotation!]
