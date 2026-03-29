@@ -147,9 +147,17 @@ defmodule Chironium.Terminology.Service do
     exact_match =
       locale_candidates
       |> Enum.find_value(fn candidate ->
-        Enum.find(designations, fn designation ->
-          normalize_locale(designation.language) == candidate and designation.use in @preferred_use_order
+        designations
+        |> Enum.filter(fn designation ->
+          normalize_locale(designation.language) == candidate and
+            designation.use in @preferred_use_order
         end)
+        |> Enum.min_by(
+          fn designation ->
+            Enum.find_index(@preferred_use_order, &(&1 == designation.use)) || 999
+          end,
+          fn -> nil end
+        )
       end)
 
     with nil <- exact_match do
