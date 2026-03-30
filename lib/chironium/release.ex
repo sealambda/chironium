@@ -65,6 +65,31 @@ defmodule Chironium.Release do
     end
   end
 
+  # -- Terminology imports --
+  # Run as one-off commands in production via:
+  #   ./chironium eval 'Chironium.Release.import_loinc("/data/loinc")'
+  #   ./chironium eval 'Chironium.Release.import_loinc("/data/loinc", version: "2.82", force: true)'
+
+  def import_loinc(path, opts \\ []) do
+    start_app()
+    Chironium.Terminology.Importer.Loinc.run(path, opts)
+  end
+
+  def import_snomed(path, opts \\ []) do
+    start_app()
+    Chironium.Terminology.Importer.Snomed.run(path, opts)
+  end
+
+  def import_snomed_spanish(path, opts \\ []) do
+    start_app()
+    Chironium.Terminology.Importer.Snomed.run_spanish_extension(path, opts)
+  end
+
+  defp start_app do
+    load_app()
+    Application.ensure_all_started(@app)
+  end
+
   defp repos do
     domains()
     |> Enum.flat_map(fn domain ->
