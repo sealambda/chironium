@@ -264,7 +264,7 @@ defmodule Chironium.Terminology.Importer do
   # ── Private Helpers ──────────────────────────────────────────────────
 
   defp sql!(query, params) do
-    Ecto.Adapters.SQL.query!(Repo, query, params, timeout: 60_000)
+    Ecto.Adapters.SQL.query!(Repo, query, params, timeout: :infinity)
   end
 
   defp dump_uuid!(str) do
