@@ -12,6 +12,7 @@ defmodule Chironium.Accounts do
 
     show_resources [
       Chironium.Accounts.Organization,
+      Chironium.Accounts.PrincipalGrant,
       Chironium.Accounts.Invitation,
       Chironium.Accounts.User,
       Chironium.Accounts.UserIdentity
@@ -31,6 +32,7 @@ defmodule Chironium.Accounts do
 
     resource Chironium.Accounts.Organization
     resource Chironium.Accounts.OrganizationUsers
+    resource Chironium.Accounts.PrincipalGrant
     resource Chironium.Accounts.Token
     resource Chironium.Accounts.User
     resource Chironium.Accounts.UserIdentity

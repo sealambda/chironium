@@ -23,8 +23,11 @@ defmodule ChironiumWeb.GraphqlSchema do
     """
     field :current_actor, :user do
       resolve fn
-        _, %{context: %{actor: actor}} when not is_nil(actor) ->
-          {:ok, actor}
+        _, %{context: %{actor: %Chironium.Accounts.User{} = user}} ->
+          {:ok, user}
+
+        _, %{context: %{actor: %{__metadata__: %{user: user}}}} when not is_nil(user) ->
+          {:ok, user}
 
         _, _ ->
           {:error, "Not authenticated"}

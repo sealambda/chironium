@@ -60,7 +60,14 @@ defmodule Chironium.Accounts.Organization do
       authorize_if actor_present()
     end
 
-    policy action_type(:update) do
+    policy action(:invite_users) do
+      description "Organisation owners and power users can invite new members."
+      authorize_if relates_to_actor_via(:owner)
+      authorize_if Chironium.Accounts.Checks.PowerUser
+    end
+
+    policy action(:update) do
+      description "Only the organisation owner can update organisation details."
       authorize_if relates_to_actor_via(:owner)
     end
 

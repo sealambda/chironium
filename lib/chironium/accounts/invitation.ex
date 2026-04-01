@@ -74,7 +74,7 @@ defmodule Chironium.Accounts.Invitation do
       description "Create an invitation to join an organization - the user may already exist or not"
 
       primary? true
-      accept [:email]
+      accept [:email, :role]
 
       change relate_actor(:invited_by)
 
@@ -95,7 +95,8 @@ defmodule Chironium.Accounts.Invitation do
                  :create,
                  %{
                    organization_id: result.organization_id,
-                   user_id: context.actor.id
+                   user_id: context.actor.id,
+                   role: result.role
                  },
                  authorize?: false
                )
@@ -191,6 +192,14 @@ defmodule Chironium.Accounts.Invitation do
     attribute :expires_at, :utc_datetime do
       public? true
       default fn -> DateTime.add(DateTime.utc_now(), 7, :day) end
+    end
+
+    attribute :role, :atom do
+      description "Organization role assigned when the invitation is accepted."
+      public? true
+      allow_nil? false
+      default :member
+      constraints one_of: [:member, :power_user]
     end
   end
 

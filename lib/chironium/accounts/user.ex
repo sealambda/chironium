@@ -114,6 +114,7 @@ defmodule Chironium.Accounts.User do
     policy action(:read) do
       authorize_if accessing_from(Chironium.Accounts.Organization, :owner)
       authorize_if accessing_from(Chironium.Accounts.Organization, :users)
+      authorize_if relates_to_actor_via([:organization_memberships, :organization, :users])
     end
   end
 
@@ -167,6 +168,7 @@ defmodule Chironium.Accounts.User do
 
   relationships do
     has_many :identities, Chironium.Accounts.UserIdentity
+    has_many :organization_memberships, Chironium.Accounts.OrganizationUsers
   end
 
   identities do
