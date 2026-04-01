@@ -118,6 +118,12 @@ config :chironium,
     Chironium.BaseResources.Tenantable
   ]
 
+# Principal resolution: maps PrincipalGrant types to domain resolvers.
+config :chironium, Chironium.Accounts.ActorResolver,
+  principal_resolvers: %{
+    practitioner: Chironium.Health.PrincipalResolver
+  }
+
 # Configure the endpoint
 config :chironium, ChironiumWeb.Endpoint,
   url: [host: "localhost"],

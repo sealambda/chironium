@@ -36,6 +36,23 @@ defmodule Chironium.Health.Practitioner do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
+  policies do
+    # Org owners and power-user-role members can manage practitioners.
+    bypass Chironium.Accounts.Checks.PowerUser do
+      authorize_if always()
+    end
+
+    # Any authenticated actor in the org can read the practitioner list.
+    policy action_type(:read) do
+      authorize_if actor_present()
+    end
+
+    # Write actions are restricted to power users (bypassed above).
+    policy action([:create, :update, :destroy]) do
+      forbid_if always()
+    end
+  end
+
   attributes do
     attribute :name, {:array, Chironium.Datatypes.HumanName} do
       allow_nil? false
@@ -49,6 +66,14 @@ defmodule Chironium.Health.Practitioner do
 
     attribute :birth_date, :date do
       public? true
+    end
+  end
+
+  relationships do
+    has_many :care_team_participations, Chironium.Health.CareTeamParticipant do
+      description "Care teams where this practitioner participates"
+      public? true
+      destination_attribute :practitioner_id
     end
   end
 end

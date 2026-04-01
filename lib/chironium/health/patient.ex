@@ -39,7 +39,12 @@ defmodule Chironium.Health.Patient do
   end
 
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    defaults [:destroy, create: :*, update: :*]
+
+    read :read do
+      primary? true
+      pagination keyset?: true
+    end
 
     create :create_patient_with_person do
       description "Create a patient and a new person"
@@ -52,10 +57,17 @@ defmodule Chironium.Health.Patient do
     end
   end
 
-  # TODO: Add policies
   policies do
-    policy always() do
+    bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
+    end
+
+    policy action(:read) do
+      authorize_if Chironium.Health.Checks.PatientVisibleToActor
+    end
+
+    policy action([:create, :create_patient_with_person, :update, :destroy]) do
+      authorize_if actor_present()
     end
   end
 
@@ -98,6 +110,11 @@ defmodule Chironium.Health.Patient do
       public? true
       destination_attribute :subject_id
       default_sort effective_date_time: :desc
+    end
+
+    has_many :care_teams, Chironium.Health.CareTeam do
+      description "Care teams where this patient is the subject"
+      destination_attribute :subject_patient_id
     end
 
     # TODO Should use the NutritionOrder resource instead: https://hl7.org/fhir/R5/nutritionorder.html

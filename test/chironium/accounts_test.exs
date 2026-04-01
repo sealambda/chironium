@@ -1,7 +1,21 @@
 defmodule Chironium.AccountsTest do
-  require IEx
+  require Ash.Query
   use Chironium.DataCase
   import Chironium.Generator
+
+  # -- Helpers -----------------------------------------------------------------
+
+  defp create_power_user_membership(organization_id, user_id) do
+    Chironium.Accounts.OrganizationUsers
+    |> Ash.Changeset.for_create(
+      :create,
+      %{organization_id: organization_id, user_id: user_id, role: :power_user},
+      authorize?: false
+    )
+    |> Ash.create!()
+  end
+
+  # -- User --------------------------------------------------------------------
 
   describe "user" do
     test "can be seeded" do
@@ -28,11 +42,147 @@ defmodule Chironium.AccountsTest do
         Ash.get!(Chironium.Accounts.Organization, org.id, actor: other_user)
       end
     end
+  end
 
-    test "can add a user to an organization" do
+  # -- Power user (org owner or member with :power_user role) ------------------
+
+  describe "power user" do
+    setup do
+      owner = generate(user())
+      org = generate(organization(actor: owner))
+      %{owner: owner, org: org}
+    end
+
+    test "can list organization members", %{owner: owner, org: org} do
+      org_with_relations = Ash.load!(org, [:owner, :users], actor: owner)
+      assert org_with_relations.owner.id == owner.id
+      assert org_with_relations.users == []
+    end
+
+    test "sees invited users as members after they accept", %{owner: owner, org: org} do
+      member = generate(user())
+
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: member.email}]},
+        actor: owner
+      )
+      |> Ash.update!()
+
+      {:ok, [invitation]} =
+        Chironium.Accounts.find_current_email_invitations(actor: member)
+
+      {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: member)
+
+      org_with_users =
+        Ash.get!(Chironium.Accounts.Organization, org.id, actor: owner, load: [:owner, :users])
+
+      assert org_with_users.owner.id == owner.id
+      assert [loaded_member] = org_with_users.users
+      assert loaded_member.id == member.id
+    end
+
+    test "owner can invite a new member", %{owner: owner, org: org} do
+      new_user = generate(user())
+
+      assert {:ok, _} =
+               org
+               |> Ash.Changeset.for_update(
+                 :invite_users,
+                 %{invitations: [%{email: new_user.email}]},
+                 actor: owner
+               )
+               |> Ash.update()
+    end
+
+    test "member with power_user role can invite a new member", %{org: org} do
+      power_user = generate(user())
+      create_power_user_membership(org.id, power_user.id)
+
+      new_user = generate(user())
+
+      assert {:ok, _} =
+               org
+               |> Ash.Changeset.for_update(
+                 :invite_users,
+                 %{invitations: [%{email: new_user.email}]},
+                 actor: power_user
+               )
+               |> Ash.update()
+    end
+  end
+
+  # -- Regular member ----------------------------------------------------------
+
+  describe "member" do
+    setup do
+      owner = generate(user())
+      org = generate(organization(actor: owner))
+      member = generate(user())
+
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: member.email}]},
+        actor: owner
+      )
+      |> Ash.update!()
+
+      {:ok, [invitation]} =
+        Chironium.Accounts.find_current_email_invitations(actor: member)
+
+      {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: member)
+
+      %{owner: owner, org: org, member: member}
+    end
+
+    test "can list multiple organization members", %{owner: owner, org: org, member: member} do
+      second_member = generate(user())
+
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: second_member.email}]},
+        actor: owner
+      )
+      |> Ash.update!()
+
+      {:ok, [invitation]} =
+        Chironium.Accounts.find_current_email_invitations(actor: second_member)
+
+      {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: second_member)
+
+      org_with_users =
+        Ash.get!(Chironium.Accounts.Organization, org.id, actor: member, load: [:owner, :users])
+
+      assert org_with_users.owner.id == owner.id
+      member_ids = Enum.map(org_with_users.users, & &1.id) |> Enum.sort()
+      assert member_ids == Enum.sort([member.id, second_member.id])
+    end
+
+    test "cannot invite a new member", %{org: org, member: member} do
+      new_user = generate(user())
+
+      assert {:error, %Ash.Error.Forbidden{}} =
+               org
+               |> Ash.Changeset.for_update(
+                 :invite_users,
+                 %{invitations: [%{email: new_user.email}]},
+                 actor: member
+               )
+               |> Ash.update()
+    end
+
+    test "non-member cannot list organization members", %{org: org} do
+      outsider = generate(user())
+
+      assert_raise Ash.Error.Invalid, fn ->
+        Ash.get!(Chironium.Accounts.Organization, org.id, actor: outsider)
+      end
+    end
+  end
+
+  # -- Invitation flow ---------------------------------------------------------
+
+  describe "invitation flow" do
+    test "invitee can accept an invitation" do
       actor = generate(user())
       org = generate(organization(actor: actor))
-
       other_user = generate(user())
 
       org
@@ -46,6 +196,13 @@ defmodule Chironium.AccountsTest do
 
       assert {:ok, _accepted_invitation} =
                Chironium.Accounts.accept_invitation(invitation.invite_code, actor: other_user)
+
+      membership =
+        Chironium.Accounts.OrganizationUsers
+        |> Ash.Query.filter(organization_id: org.id, user_id: other_user.id)
+        |> Ash.read_one!(actor: other_user)
+
+      assert membership.role == :member
 
       Ash.get!(Chironium.Accounts.Organization, org.id, actor: other_user)
     end
@@ -66,7 +223,7 @@ defmodule Chironium.AccountsTest do
                Chironium.Accounts.accept_invitation("INVALID", actor: other_user)
     end
 
-    test "can reject an invitation" do
+    test "invitee can reject an invitation" do
       actor = generate(user())
       org = generate(organization(actor: actor))
 
@@ -134,73 +291,7 @@ defmodule Chironium.AccountsTest do
                Chironium.Accounts.accept_invitation(invitation.invite_code, actor: other_user)
     end
 
-    test "owner can list organization members" do
-      owner = generate(user())
-      org = generate(organization(actor: owner))
-
-      org_with_relations = Ash.load!(org, [:owner, :users], actor: owner)
-      assert org_with_relations.owner.id == owner.id
-      assert org_with_relations.users == []
-    end
-
-    test "owner sees invited users as members after they accept" do
-      owner = generate(user())
-      org = generate(organization(actor: owner))
-
-      member = generate(user())
-
-      org
-      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: member.email}]},
-        actor: owner
-      )
-      |> Ash.update!()
-
-      {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: member)
-
-      {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: member)
-
-      org_with_users = Ash.get!(Chironium.Accounts.Organization, org.id, actor: owner, load: [:owner, :users])
-      assert org_with_users.owner.id == owner.id
-      assert [loaded_member] = org_with_users.users
-      assert loaded_member.id == member.id
-    end
-
-    test "member can list organization members" do
-      owner = generate(user())
-      org = generate(organization(actor: owner))
-
-      member = generate(user())
-
-      org
-      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: member.email}]},
-        actor: owner
-      )
-      |> Ash.update!()
-
-      {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: member)
-
-      {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: member)
-
-      org_with_users = Ash.get!(Chironium.Accounts.Organization, org.id, actor: member, load: [:owner, :users])
-      assert org_with_users.owner.id == owner.id
-      assert [loaded_member] = org_with_users.users
-      assert loaded_member.id == member.id
-    end
-
-    test "non-member cannot list organization members" do
-      owner = generate(user())
-      org = generate(organization(actor: owner))
-
-      outsider = generate(user())
-
-      assert_raise Ash.Error.Invalid, fn ->
-        Ash.get!(Chironium.Accounts.Organization, org.id, actor: outsider)
-      end
-    end
-
-    test "can be re-invited to the same organization after rejecting" do
+    test "can be re-invited after rejecting" do
       owner = generate(user())
       org = generate(organization(actor: owner))
 

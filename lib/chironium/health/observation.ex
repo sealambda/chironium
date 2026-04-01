@@ -695,10 +695,17 @@ defmodule Chironium.Health.Observation do
     end
   end
 
-  # TODO: Add policies
   policies do
-    policy always() do
+    bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
+    end
+
+    policy action_type(:read) do
+      authorize_if {Chironium.Health.Checks.PatientSubjectVisibleToActor, relationship: :subject}
+    end
+
+    policy action([:create, :update, :destroy]) do
+      authorize_if actor_present()
     end
   end
 

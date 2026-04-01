@@ -12,6 +12,8 @@ defmodule Chironium.Health do
 
     show_resources [
       Chironium.Health.AllergyIntolerance,
+      Chironium.Health.CareTeam,
+      Chironium.Health.CareTeamParticipant,
       Chironium.Health.Condition,
       Chironium.Health.Goal,
       Chironium.Health.MedicationStatement,
@@ -29,6 +31,8 @@ defmodule Chironium.Health do
 
   resources do
     resource Chironium.Health.AllergyIntolerance
+    resource Chironium.Health.CareTeam
+    resource Chironium.Health.CareTeamParticipant
     resource Chironium.Health.Condition
     resource Chironium.Health.Goal
     resource Chironium.Health.MedicationStatement

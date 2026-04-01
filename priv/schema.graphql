@@ -4,10 +4,6 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-}
-
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -36,9 +32,6 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -47,6 +40,9 @@ input PractitionerNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -211,9 +207,6 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -222,6 +215,9 @@ input PersonNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -567,6 +563,23 @@ enum ConditionClinicalStatus {
 
   "The authoring\/source system does not know which of the status values currently applies for this condition. Note: This concept is not to be used for 'other' - one of the listed statuses is presumed to apply, but the authoring\/source system does not know which."
   UNKNOWN
+}
+
+enum CareTeamStatus {
+  "The care team is currently participating in the coordination and delivery of care."
+  ACTIVE
+
+  "The care team should have never existed."
+  ENTERED_IN_ERROR
+
+  "The care team was, but is no longer, participating in the coordination and delivery of care."
+  INACTIVE
+
+  "The care team has been drafted and proposed, but not yet participating in the coordination and delivery of patient care."
+  PROPOSED
+
+  "The care team is temporarily on hold or suspended and not participating in the coordination and delivery of care."
+  SUSPENDED
 }
 
 enum AllergyIntoleranceType {
@@ -1078,6 +1091,7 @@ enum InvitationSortField {
   EMAIL
   INVITE_CODE
   EXPIRES_AT
+  ROLE
   STATE
   ORGANIZATION_ID
   INVITED_BY_ID
@@ -1110,6 +1124,19 @@ input InvitationFilterOrganizationId {
 }
 
 input InvitationFilterState {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String!]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input InvitationFilterRole {
   isNil: Boolean
   eq: String
   notEq: String
@@ -1192,6 +1219,9 @@ input InvitationFilterInput {
 
   expiresAt: InvitationFilterExpiresAt
 
+  "Organization role assigned when the invitation is accepted."
+  role: InvitationFilterRole
+
   state: InvitationFilterState
 
   organizationId: InvitationFilterOrganizationId
@@ -1217,6 +1247,9 @@ type Invitation {
   inviteCode: String
 
   expiresAt: DateTime
+
+  "Organization role assigned when the invitation is accepted."
+  role: String!
 
   state: String!
 
@@ -1848,6 +1881,63 @@ input CreatePractitionerInput {
   birthDate: Date
 }
 
+input PractitionerFilterBirthDate {
+  isNil: Boolean
+  eq: Date
+  notEq: Date
+  in: [Date]
+  lessThan: Date
+  greaterThan: Date
+  lessThanOrEqual: Date
+  greaterThanOrEqual: Date
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PractitionerFilterActive {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PractitionerFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PractitionerFilterInput {
+  and: [PractitionerFilterInput!]
+
+  or: [PractitionerFilterInput!]
+
+  not: [PractitionerFilterInput!]
+
+  id: PractitionerFilterId
+
+  "Whether this practitioner's record is in active use"
+  active: PractitionerFilterActive
+
+  birthDate: PractitionerFilterBirthDate
+
+  "Care teams where this practitioner participates"
+  careTeamParticipations: CareTeamParticipantFilterInput
+}
+
 type Practitioner {
   id: ID!
 
@@ -1865,6 +1955,21 @@ type Practitioner {
     "The number of records to skip."
     offset: Int
   ): [PractitionerVersion!]!
+
+  "Care teams where this practitioner participates"
+  careTeamParticipations(
+    "How to sort the records in the response"
+    sort: [CareTeamParticipantSortInput]
+
+    "A filter to limit the results"
+    filter: CareTeamParticipantFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [CareTeamParticipant!]!
 }
 
 "The result of the :delete_patient mutation"
@@ -3317,6 +3422,375 @@ type Condition {
   subject: Patient!
 }
 
+"The result of the :delete_care_team_participant mutation"
+type DeleteCareTeamParticipantResult {
+  "The record that was successfully deleted"
+  result: CareTeamParticipant
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_care_team_participant mutation"
+type UpdateCareTeamParticipantResult {
+  "The successful result of the mutation"
+  result: CareTeamParticipant
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateCareTeamParticipantInput {
+  active: Boolean
+
+  "Role of the participant in the care team"
+  role: String
+
+  careTeamId: ID
+
+  practitionerId: ID
+}
+
+"The result of the :create_care_team_participant mutation"
+type CreateCareTeamParticipantResult {
+  "The successful result of the mutation"
+  result: CareTeamParticipant
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateCareTeamParticipantInput {
+  active: Boolean
+
+  "Role of the participant in the care team"
+  role: String
+
+  careTeamId: ID!
+
+  practitionerId: ID!
+}
+
+enum CareTeamParticipantSortField {
+  ID
+  ACTIVE
+  ROLE
+  CARE_TEAM_ID
+  PRACTITIONER_ID
+}
+
+input CareTeamParticipantFilterPractitionerId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CareTeamParticipantFilterCareTeamId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CareTeamParticipantFilterRole {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input CareTeamParticipantFilterActive {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CareTeamParticipantFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CareTeamParticipantFilterInput {
+  and: [CareTeamParticipantFilterInput!]
+
+  or: [CareTeamParticipantFilterInput!]
+
+  not: [CareTeamParticipantFilterInput!]
+
+  id: CareTeamParticipantFilterId
+
+  active: CareTeamParticipantFilterActive
+
+  "Role of the participant in the care team"
+  role: CareTeamParticipantFilterRole
+
+  careTeamId: CareTeamParticipantFilterCareTeamId
+
+  practitionerId: CareTeamParticipantFilterPractitionerId
+
+  careTeam: CareTeamFilterInput
+
+  practitioner: PractitionerFilterInput
+}
+
+input CareTeamParticipantSortInput {
+  order: SortOrder
+  field: CareTeamParticipantSortField!
+}
+
+type CareTeamParticipant {
+  id: ID!
+
+  active: Boolean!
+
+  "Role of the participant in the care team"
+  role: String
+
+  careTeamId: ID!
+
+  practitionerId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [CareTeamParticipantVersion!]!
+
+  careTeam: CareTeam!
+
+  practitioner: Practitioner!
+}
+
+"The result of the :delete_care_team mutation"
+type DeleteCareTeamResult {
+  "The record that was successfully deleted"
+  result: CareTeam
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+"The result of the :update_care_team mutation"
+type UpdateCareTeamResult {
+  "The successful result of the mutation"
+  result: CareTeam
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateCareTeamInput {
+  "Proposed, active, suspended, inactive, or entered in error"
+  status: CareTeamStatus
+
+  "Name of the care team"
+  name: String
+
+  subjectPatientId: ID
+}
+
+"The result of the :create_care_team mutation"
+type CreateCareTeamResult {
+  "The successful result of the mutation"
+  result: CareTeam
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreateCareTeamInput {
+  "Proposed, active, suspended, inactive, or entered in error"
+  status: CareTeamStatus
+
+  "Name of the care team"
+  name: String
+
+  subjectPatientId: ID!
+}
+
+enum CareTeamSortField {
+  ID
+  STATUS
+  NAME
+  SUBJECT_PATIENT_ID
+}
+
+"A keyset page of :care_team"
+type KeysetPageOfCareTeam {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [CareTeam!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
+input CareTeamFilterSubjectPatientId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CareTeamFilterName {
+  isNil: Boolean
+  eq: String
+  notEq: String
+  in: [String]
+  lessThan: String
+  greaterThan: String
+  lessThanOrEqual: String
+  greaterThanOrEqual: String
+  contains: String
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+  like: String
+  ilike: String
+}
+
+input CareTeamFilterStatus {
+  isNil: Boolean
+  eq: CareTeamStatus
+  notEq: CareTeamStatus
+  in: [CareTeamStatus]
+  lessThan: CareTeamStatus
+  greaterThan: CareTeamStatus
+  lessThanOrEqual: CareTeamStatus
+  greaterThanOrEqual: CareTeamStatus
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CareTeamFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input CareTeamFilterInput {
+  and: [CareTeamFilterInput!]
+
+  or: [CareTeamFilterInput!]
+
+  not: [CareTeamFilterInput!]
+
+  id: CareTeamFilterId
+
+  "Proposed, active, suspended, inactive, or entered in error"
+  status: CareTeamFilterStatus
+
+  "Name of the care team"
+  name: CareTeamFilterName
+
+  subjectPatientId: CareTeamFilterSubjectPatientId
+
+  "The patient who is the subject of the care team"
+  subjectPatient: PatientFilterInput
+
+  "Participants in the care team"
+  participants: CareTeamParticipantFilterInput
+}
+
+input CareTeamSortInput {
+  order: SortOrder
+  field: CareTeamSortField!
+}
+
+type CareTeam {
+  id: ID!
+
+  "Proposed, active, suspended, inactive, or entered in error"
+  status: CareTeamStatus
+
+  "Name of the care team"
+  name: String
+
+  subjectPatientId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [CareTeamVersion!]!
+
+  "The patient who is the subject of the care team"
+  subjectPatient: Patient!
+
+  "Participants in the care team"
+  participants(
+    "How to sort the records in the response"
+    sort: [CareTeamParticipantSortInput]
+
+    "A filter to limit the results"
+    filter: CareTeamParticipantFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [CareTeamParticipant!]!
+}
+
 "The result of the :delete_allergy_intolerance mutation"
 type DeleteAllergyIntoleranceResult {
   "The record that was successfully deleted"
@@ -3498,6 +3972,24 @@ type AllergyIntoleranceVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: AllergyIntolerance!
+}
+
+type CareTeamVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: CareTeam!
+}
+
+type CareTeamParticipantVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: CareTeamParticipant!
 }
 
 type ConditionVersion {
@@ -3840,6 +4332,13 @@ type SubscriptionVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Subscription!
+}
+
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Organization role assigned when the invitation is accepted."
+  role: String
 }
 
 enum DesignationSortField {
@@ -4395,6 +4894,31 @@ type RootQueryType {
     last: Int
   ): KeysetPageOfSubscription
 
+  listCareTeams(
+    "How to sort the records in the response"
+    sort: [CareTeamSortInput]
+
+    "A filter to limit the results"
+    filter: CareTeamFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfCareTeam
+
+  getCareTeam(
+    "The id of the record"
+    id: ID!
+  ): CareTeam
+
   listNutritionPlans(
     "How to sort the records in the response"
     sort: [NutritionPlanSortInput]
@@ -4806,6 +5330,18 @@ type RootMutationType {
   updateAllergyIntolerance(id: ID!, input: UpdateAllergyIntoleranceInput): UpdateAllergyIntoleranceResult!
 
   deleteAllergyIntolerance(id: ID!): DeleteAllergyIntoleranceResult!
+
+  createCareTeam(input: CreateCareTeamInput!): CreateCareTeamResult!
+
+  updateCareTeam(id: ID!, input: UpdateCareTeamInput): UpdateCareTeamResult!
+
+  deleteCareTeam(id: ID!): DeleteCareTeamResult!
+
+  createCareTeamParticipant(input: CreateCareTeamParticipantInput!): CreateCareTeamParticipantResult!
+
+  updateCareTeamParticipant(id: ID!, input: UpdateCareTeamParticipantInput): UpdateCareTeamParticipantResult!
+
+  deleteCareTeamParticipant(id: ID!): DeleteCareTeamParticipantResult!
 
   createCondition(input: CreateConditionInput!): CreateConditionResult!
 

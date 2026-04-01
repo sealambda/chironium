@@ -29,7 +29,18 @@ defmodule Chironium.Accounts.OrganizationUsers do
     policy action(:read) do
       authorize_if accessing_from(Chironium.Accounts.Organization, :users)
       authorize_if relates_to_actor_via([:organization, :owner])
+      authorize_if relates_to_actor_via([:organization, :users])
       authorize_if relates_to_actor_via(:user)
+    end
+  end
+
+  attributes do
+    attribute :role, :atom do
+      description "Organization-level role used for high-level authorization checks."
+      allow_nil? false
+      public? true
+      default :member
+      constraints one_of: [:member, :power_user]
     end
   end
 
