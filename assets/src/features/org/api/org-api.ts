@@ -193,6 +193,8 @@ export interface PendingInvitation {
   organizationId: string;
 }
 
+export type InvitationRole = "member" | "power_user";
+
 // ─── Functions ───────────────────────────────────────────────────────
 
 /** Fetch all organizations the current user has access to. */
@@ -314,13 +316,14 @@ export async function createSubscriptionPlan(
 export async function inviteUserToOrganization(params: {
   organizationId: string;
   email: string;
+  role: InvitationRole;
 }): Promise<void> {
   const result = await requestGraphql({
     document: InviteUsersToOrganizationMutation,
     variables: {
       id: params.organizationId,
       input: {
-        invitations: [{ email: params.email }],
+        invitations: [{ email: params.email, role: params.role }],
       },
     },
     organizationId: params.organizationId,

@@ -3,7 +3,11 @@ import { AlertCircle, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { fetchOrganizationSettings, inviteUserToOrganization } from "@/features/org/api/org-api";
+import {
+  fetchOrganizationSettings,
+  type InvitationRole,
+  inviteUserToOrganization,
+} from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -20,6 +24,14 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Loading } from "@/shared/ui/loading";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPositioner,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { emailRequiredSchema } from "@/shared/utils/email-validation";
 
@@ -33,6 +45,11 @@ type MemberRow = {
   status: string;
 };
 
+const INVITATION_ROLE_OPTIONS: Array<{ value: InvitationRole; label: () => string }> = [
+  { value: "member", label: m.settings_member_status_member },
+  { value: "power_user", label: m.settings_invite_role_power_user },
+];
+
 function isPendingInvitationState(state: string): boolean {
   return state.toLowerCase() === "pending";
 }
@@ -42,6 +59,7 @@ export function SettingsPage() {
   const { selectedOrg, loading: orgLoading } = useOrg();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<InvitationRole>("member");
   const [isInviting, setIsInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
@@ -142,6 +160,7 @@ export function SettingsPage() {
   const handleOpenInvite = () => {
     setInviteError(null);
     setEmail("");
+    setInviteRole("member");
     setIsDialogOpen(true);
   };
 
@@ -163,6 +182,7 @@ export function SettingsPage() {
       await inviteUserToOrganization({
         organizationId: selectedOrg.id,
         email: normalizedEmail,
+        role: inviteRole,
       });
       toast.success(m.settings_invite_success());
       setIsDialogOpen(false);
@@ -257,6 +277,7 @@ export function SettingsPage() {
           if (!nextOpen) {
             setInviteError(null);
             setEmail("");
+            setInviteRole("member");
           }
         }}
       >
@@ -276,6 +297,31 @@ export function SettingsPage() {
               onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="invite-role">{m.settings_invite_role_label()}</Label>
+            <Select
+              value={inviteRole}
+              onValueChange={(value) => setInviteRole((value as InvitationRole | null) ?? "member")}
+              items={INVITATION_ROLE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label(),
+              }))}
+            >
+              <SelectTrigger id="invite-role" className="w-full">
+                <SelectValue placeholder={m.settings_invite_role_placeholder()} />
+              </SelectTrigger>
+              <SelectPositioner>
+                <SelectContent>
+                  {INVITATION_ROLE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectPositioner>
+            </Select>
           </div>
 
           {inviteError ? (
