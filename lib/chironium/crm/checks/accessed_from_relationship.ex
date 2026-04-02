@@ -16,13 +16,16 @@ defmodule Chironium.CRM.Checks.AccessedFromRelationship do
   def describe(_opts), do: "accessed via a relationship from another resource"
 
   @impl true
-  def match?(
-        _actor,
-        %{query: %{context: %{accessing_from: %{source: _, relationship: _}}}},
-        _opts
-      ) do
-    true
+  def match?(_actor, %{query: %Ash.Query{} = query}, _opts) do
+    match?({:context, query.context})
+  end
+
+  def match?(_actor, %{changeset: %Ash.Changeset{} = changeset}, _opts) do
+    match?({:context, changeset.context})
   end
 
   def match?(_, _, _), do: false
+
+  defp match?({:context, %{accessing_from: %{source: _, name: _}}}), do: true
+  defp match?(_), do: false
 end

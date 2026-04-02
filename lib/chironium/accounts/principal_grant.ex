@@ -1,11 +1,22 @@
 defmodule Chironium.Accounts.PrincipalGrant do
   @moduledoc """
-  Maps a user to a principal they are allowed to act as within an organization.
+  Maps a user (or a pending invitation) to a principal within an organization.
 
-  Tenant-scoped: the organization context is implicit via multitenancy.
-  The `user_id` column has no DB-level FK because it references `public.users`
-  across schema boundaries. Integrity is enforced by the SetTenant plug, which
-  verifies organization membership before any tenant-scoped operation.
+  A grant is always in one of two states:
+
+  - **Invitation-linked** — `invitation_id` is set, `user_id` is nil. Created
+    when an invitation carrying principal grants is sent. No user has access yet.
+  - **User-linked** — `user_id` is set, `invitation_id` is nil. Either created
+    directly by a power user, or transitioned from invitation-linked when the
+    invitation is accepted.
+
+  Exactly one of `user_id`/`invitation_id` must be set; this is enforced by a
+  before-action hook on every create action.
+
+  Both FKs omit DB-level constraints because they reference the `public` schema
+  across the tenant-schema boundary. Referential integrity for `user_id` is
+  enforced by the SetTenant plug; for `invitation_id`, it is enforced by the
+  create action that only runs within the invitation's after-action.
   """
 
   use Chironium.BaseResources.Tenantable,
@@ -22,9 +33,14 @@ defmodule Chironium.Accounts.PrincipalGrant do
   postgres do
     table "principal_grants"
 
-    references do
-      # User lives in the public schema; skip the cross-schema FK constraint.
-      reference :user, ignore?: true
+    # Prevent duplicate invitation-linked grants for the same principal.
+    # NULL invitation_id values are excluded so the index does not block
+    # user-linked grants (which have invitation_id = NULL).
+    custom_indexes do
+      index [:invitation_id, :principal_type, :principal_id],
+        unique: true,
+        where: "invitation_id IS NOT NULL",
+        name: "principal_grants_unique_invitation_principal_index"
     end
   end
 
@@ -33,7 +49,32 @@ defmodule Chironium.Accounts.PrincipalGrant do
   end
 
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    defaults [:read, :destroy, update: :*]
+
+    # Standard create: used by power users assigning grants directly, and by
+    # the invitation after-action to create invitation-linked (pending) grants.
+    # Validates that the referenced principal exists in the current tenant.
+    create :create do
+      primary? true
+      accept [:user_id, :invitation_id, :principal_type, :principal_id, :active]
+
+      change fn changeset, _context ->
+        Ash.Changeset.before_action(changeset, &validate_principal_source/1)
+      end
+
+      change Chironium.Accounts.Validations.PrincipalExistsInOrg
+    end
+
+    # Lightweight create used exclusively in the invitation accept after-action:
+    # converts an invitation-linked grant into a user-linked grant. Skips the
+    # existence re-check since the principal was already validated at invite time.
+    create :link_to_user do
+      accept [:user_id, :principal_type, :principal_id, :active]
+
+      change fn changeset, _context ->
+        Ash.Changeset.before_action(changeset, &validate_principal_source/1)
+      end
+    end
   end
 
   policies do
@@ -54,10 +95,9 @@ defmodule Chironium.Accounts.PrincipalGrant do
   end
 
   attributes do
-    attribute :principal_type, :atom do
+    attribute :principal_type, Chironium.Accounts.PrincipalType do
       allow_nil? false
       public? true
-      constraints one_of: [:practitioner, :patient]
     end
 
     attribute :principal_id, :uuid do
@@ -74,13 +114,45 @@ defmodule Chironium.Accounts.PrincipalGrant do
 
   relationships do
     belongs_to :user, Chironium.Accounts.User do
-      allow_nil? false
+      # Nil when the grant is invitation-linked (pending acceptance).
+      allow_nil? true
+      public? true
+    end
+
+    belongs_to :invitation, Chironium.Accounts.Invitation do
+      # Nil once the grant is linked to a user.
+      allow_nil? true
       public? true
     end
   end
 
   identities do
+    # User-linked grant uniqueness. PostgreSQL treats NULL as distinct in unique
+    # indexes, so invitation-linked grants (user_id = NULL) are not constrained
+    # by this identity — the custom index above handles their deduplication.
     identity :unique_user_principal_grant,
              [:user_id, :principal_type, :principal_id]
+  end
+
+  defp validate_principal_source(changeset) do
+    user_id = Ash.Changeset.get_attribute(changeset, :user_id)
+    invitation_id = Ash.Changeset.get_attribute(changeset, :invitation_id)
+
+    case {is_nil(user_id), is_nil(invitation_id)} do
+      {true, true} ->
+        Ash.Changeset.add_error(changeset,
+          field: :user_id,
+          message: "either user_id or invitation_id must be set"
+        )
+
+      {false, false} ->
+        Ash.Changeset.add_error(changeset,
+          field: :invitation_id,
+          message: "only one of user_id or invitation_id may be set"
+        )
+
+      _ ->
+        changeset
+    end
   end
 end

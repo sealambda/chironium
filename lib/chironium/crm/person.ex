@@ -51,6 +51,7 @@ defmodule Chironium.CRM.Person do
 
     policy action(:read) do
       authorize_if Chironium.CRM.Checks.AccessedFromRelationship
+      authorize_if Chironium.CRM.Checks.PersonVisibleToActor
     end
 
     policy action([:create, :update, :destroy]) do

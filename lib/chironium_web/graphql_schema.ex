@@ -45,6 +45,11 @@ defmodule ChironiumWeb.GraphqlSchema do
     field(:currency, non_null(:string))
   end
 
+  input_object :principal_grant_input do
+    field(:principal_type, non_null(:principal_type))
+    field(:principal_id, non_null(:id))
+  end
+
   mutation do
     # Custom Absinthe mutations can be placed here
   end

@@ -145,7 +145,8 @@ defmodule Chironium.AccountsTest do
       {:ok, [invitation]} =
         Chironium.Accounts.find_current_email_invitations(actor: second_member)
 
-      {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: second_member)
+      {:ok, _} =
+        Chironium.Accounts.accept_invitation(invitation.invite_code, actor: second_member)
 
       org_with_users =
         Ash.get!(Chironium.Accounts.Organization, org.id, actor: member, load: [:owner, :users])
