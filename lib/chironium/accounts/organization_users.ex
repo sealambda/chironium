@@ -10,10 +10,18 @@ defmodule Chironium.Accounts.OrganizationUsers do
     domain: Chironium.Accounts,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshPaperTrail.Resource]
+    extensions: [AshPaperTrail.Resource, AshGraphql.Resource]
 
   postgres do
     table "organization_users"
+  end
+
+  graphql do
+    type :organization_user
+  end
+
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:organization_user]}
   end
 
   actions do
@@ -35,12 +43,11 @@ defmodule Chironium.Accounts.OrganizationUsers do
   end
 
   attributes do
-    attribute :role, :atom do
+    attribute :role, Chironium.Accounts.OrganizationUser.Role do
       description "Organization-level role used for high-level authorization checks."
       allow_nil? false
       public? true
       default :member
-      constraints one_of: [:member, :power_user]
     end
   end
 

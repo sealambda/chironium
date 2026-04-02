@@ -4,16 +4,6 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-
-  "Optional principal grants to pre-create for the invited user."
-  principalGrants: [PrincipalGrantInput!]
-
-  "Organization role assigned when the invitation is accepted."
-  role: String
-}
-
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -713,6 +703,11 @@ enum PrincipalType {
   PRACTITIONER
 }
 
+enum OrganizationUserRole {
+  MEMBER
+  POWER_USER
+}
+
 enum UserSortField {
   ID
   EMAIL
@@ -900,6 +895,114 @@ type User {
   ): [UserVersion!]!
 }
 
+enum OrganizationUserSortField {
+  ID
+  ROLE
+  ORGANIZATION_ID
+  USER_ID
+}
+
+input OrganizationUserFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input OrganizationUserFilterOrganizationId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input OrganizationUserFilterRole {
+  isNil: Boolean
+  eq: OrganizationUserRole
+  notEq: OrganizationUserRole
+  in: [OrganizationUserRole!]
+  lessThan: OrganizationUserRole
+  greaterThan: OrganizationUserRole
+  lessThanOrEqual: OrganizationUserRole
+  greaterThanOrEqual: OrganizationUserRole
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input OrganizationUserFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input OrganizationUserFilterInput {
+  and: [OrganizationUserFilterInput!]
+
+  or: [OrganizationUserFilterInput!]
+
+  not: [OrganizationUserFilterInput!]
+
+  id: OrganizationUserFilterId
+
+  "Organization-level role used for high-level authorization checks."
+  role: OrganizationUserFilterRole
+
+  organizationId: OrganizationUserFilterOrganizationId
+
+  userId: OrganizationUserFilterUserId
+
+  organization: OrganizationFilterInput
+
+  user: UserFilterInput
+}
+
+input OrganizationUserSortInput {
+  order: SortOrder
+  field: OrganizationUserSortField!
+}
+
+type OrganizationUser {
+  id: ID!
+
+  "Organization-level role used for high-level authorization checks."
+  role: OrganizationUserRole!
+
+  organizationId: ID!
+
+  userId: ID!
+
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [OrganizationUserVersion!]!
+
+  organization: Organization!
+
+  user: User!
+}
+
 "The result of the :invite_users_to_organization mutation"
 type InviteUsersToOrganizationResult {
   "The successful result of the mutation"
@@ -1023,6 +1126,9 @@ input OrganizationFilterInput {
   "The organization must belong to an owner, usually who created it"
   owner: UserFilterInput
 
+  "Join resource for the many-to-many relationship between organizations and users, containing role information."
+  organizationUsers: OrganizationUserFilterInput
+
   "All other users belonging to the organization are defined separately"
   users: UserFilterInput
 
@@ -1054,6 +1160,21 @@ type Organization {
 
   "The organization must belong to an owner, usually who created it"
   owner: User!
+
+  "Join resource for the many-to-many relationship between organizations and users, containing role information."
+  organizationUsers(
+    "How to sort the records in the response"
+    sort: [OrganizationUserSortInput]
+
+    "A filter to limit the results"
+    filter: OrganizationUserFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [OrganizationUser!]!
 
   "All other users belonging to the organization are defined separately"
   users(
@@ -1156,13 +1277,13 @@ input InvitationFilterState {
 
 input InvitationFilterRole {
   isNil: Boolean
-  eq: String
-  notEq: String
-  in: [String!]
-  lessThan: String
-  greaterThan: String
-  lessThanOrEqual: String
-  greaterThanOrEqual: String
+  eq: OrganizationUserRole
+  notEq: OrganizationUserRole
+  in: [OrganizationUserRole!]
+  lessThan: OrganizationUserRole
+  greaterThan: OrganizationUserRole
+  lessThanOrEqual: OrganizationUserRole
+  greaterThanOrEqual: OrganizationUserRole
   isDistinctFrom: String
   isNotDistinctFrom: String
 }
@@ -1267,7 +1388,7 @@ type Invitation {
   expiresAt: DateTime
 
   "Organization role assigned when the invitation is accepted."
-  role: String!
+  role: OrganizationUserRole!
 
   state: String!
 
@@ -1304,6 +1425,15 @@ type OrganizationVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Organization!
+}
+
+type OrganizationUserVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: OrganizationUser!
 }
 
 type UserVersion {
@@ -4376,6 +4506,16 @@ type SubscriptionVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Subscription!
+}
+
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Optional principal grants to pre-create for the invited user."
+  principalGrants: [PrincipalGrantInput!]
+
+  "Organization role assigned when the invitation is accepted."
+  role: OrganizationUserRole
 }
 
 enum DesignationSortField {
