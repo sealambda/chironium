@@ -26,6 +26,11 @@ defmodule Chironium.Health.Practitioner do
 
       destroy :delete_practitioner, :destroy
     end
+
+    queries do
+      get :get_practitioner, :read
+      list :list_practitioners, :read
+    end
   end
 
   paper_trail do

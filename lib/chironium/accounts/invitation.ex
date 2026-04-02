@@ -76,7 +76,39 @@ defmodule Chironium.Accounts.Invitation do
       primary? true
       accept [:email, :role]
 
+      argument :principal_grants, {:array, Chironium.Accounts.PrincipalGrantInput} do
+        description "Optional principal grants to pre-create for the invited user."
+        allow_nil? false
+        default []
+      end
+
       change relate_actor(:invited_by)
+
+      # Create invitation-linked PrincipalGrant records so the power user can
+      # attach grants at invite time. The tenant is derived from organization_id
+      # because the invitation itself lives in the public schema (no tenant).
+      change after_action(fn changeset, result, _context ->
+               tenant = "org_#{result.organization_id}"
+               grants_input = Ash.Changeset.get_argument(changeset, :principal_grants) || []
+
+               Enum.reduce_while(grants_input, {:ok, result}, fn grant_input, {:ok, acc} ->
+                 case Chironium.Accounts.PrincipalGrant
+                      |> Ash.Changeset.for_create(
+                        :create,
+                        %{
+                          invitation_id: result.id,
+                          principal_type: grant_input.principal_type,
+                          principal_id: grant_input.principal_id
+                        },
+                        authorize?: false,
+                        tenant: tenant
+                      )
+                      |> Ash.create() do
+                   {:ok, _} -> {:cont, {:ok, acc}}
+                   {:error, error} -> {:halt, {:error, error}}
+                 end
+               end)
+             end)
 
       # TODO Send email invitations
     end
@@ -90,6 +122,8 @@ defmodule Chironium.Accounts.Invitation do
       change set_attribute(:invite_code, nil)
 
       change after_action(fn _changeset, result, context ->
+               tenant = "org_#{result.organization_id}"
+
                Ash.Changeset.for_create(
                  Chironium.Accounts.OrganizationUsers,
                  :create,
@@ -100,7 +134,47 @@ defmodule Chironium.Accounts.Invitation do
                  },
                  authorize?: false
                )
-               |> Ash.create!()
+               |> Ash.create!(
+                 upsert?: true,
+                 upsert_identity: :unique_organization_user
+               )
+
+               # Convert every invitation-linked grant to a user-linked grant, granting
+               # the new member access to the associated principals immediately.
+               pending_grants =
+                 Chironium.Accounts.PrincipalGrant
+                 |> Ash.Query.filter_input(%{invitation_id: result.id})
+                 |> Ash.read!(authorize?: false, tenant: tenant)
+
+               Enum.each(pending_grants, fn grant ->
+                 # Check upfront whether the user already has a matching user-linked grant.
+                 # This avoids triggering a unique constraint violation inside the current
+                 # PostgreSQL transaction, which would leave it in an aborted state.
+                 existing =
+                   Chironium.Accounts.PrincipalGrant
+                   |> Ash.Query.filter_input(%{
+                     user_id: context.actor.id,
+                     principal_type: grant.principal_type,
+                     principal_id: grant.principal_id
+                   })
+                   |> Ash.read_one!(authorize?: false, tenant: tenant)
+
+                 if existing do
+                   # User already has a matching grant; remove the redundant
+                   # invitation-linked one (with its paper trail version records).
+                   revoke_invitation_grant(grant.id, tenant)
+                 else
+                   # No conflict; update in-place to assign the grant to the new user.
+                   Ash.Changeset.for_update(
+                     grant,
+                     :update,
+                     %{user_id: context.actor.id, invitation_id: nil},
+                     authorize?: false,
+                     tenant: tenant
+                   )
+                   |> Ash.update!()
+                 end
+               end)
 
                # Archive the accepted invitation so the same email can be re-invited later.
                Ash.destroy!(result, authorize?: false)
@@ -218,6 +292,26 @@ defmodule Chironium.Accounts.Invitation do
   identities do
     identity :unique_invitation, [:organization_id, :email]
     identity :unique_invite_code, [:invite_code]
+  end
+
+  # Cascade-deletes an invitation-linked PrincipalGrant and its AshPaperTrail
+  # version records. Ash.destroy!/1 is blocked by the FK from
+  # `principal_grants_versions.version_source_id` to `principal_grants.id`.
+  defp revoke_invitation_grant(grant_id, tenant) do
+    import Ecto.Query, only: [from: 2]
+
+    # Raw Ecto queries expect binary UUIDs, not string UUIDs.
+    id_bin = Ecto.UUID.dump!(grant_id)
+
+    Chironium.Repo.delete_all(
+      from(v in "principal_grants_versions", where: v.version_source_id == ^id_bin),
+      prefix: tenant
+    )
+
+    Chironium.Repo.delete_all(
+      from(g in "principal_grants", where: g.id == ^id_bin),
+      prefix: tenant
+    )
   end
 
   defp update_invitation_by_invite_code(invite_code, ash_action, context) do

@@ -4,6 +4,16 @@ schema {
   subscription: Subscription
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Optional principal grants to pre-create for the invited user."
+  principalGrants: [PrincipalGrantInput!]
+
+  "Organization role assigned when the invitation is accepted."
+  role: String
+}
+
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -32,14 +42,14 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -207,14 +217,14 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -693,6 +703,14 @@ enum NameUse {
 
   "Known as\/conventional\/the one you normally use."
   USUAL
+}
+
+enum PrincipalType {
+  "Patient"
+  PATIENT
+
+  "Practitioner"
+  PRACTITIONER
 }
 
 enum UserSortField {
@@ -1881,6 +1899,27 @@ input CreatePractitionerInput {
   birthDate: Date
 }
 
+enum PractitionerSortField {
+  ID
+  ACTIVE
+  BIRTH_DATE
+}
+
+"A keyset page of :practitioner"
+type KeysetPageOfPractitioner {
+  "Total count on all pages"
+  count: Int
+
+  "The records contained in the page"
+  results: [Practitioner!]
+
+  "The first keyset in the results"
+  startKeyset: String
+
+  "The last keyset in the results"
+  endKeyset: String
+}
+
 input PractitionerFilterBirthDate {
   isNil: Boolean
   eq: Date
@@ -1936,6 +1975,11 @@ input PractitionerFilterInput {
 
   "Care teams where this practitioner participates"
   careTeamParticipations: CareTeamParticipantFilterInput
+}
+
+input PractitionerSortInput {
+  order: SortOrder
+  field: PractitionerSortField!
 }
 
 type Practitioner {
@@ -4334,13 +4378,6 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-
-  "Organization role assigned when the invitation is accepted."
-  role: String
-}
-
 enum DesignationSortField {
   ID
   LANGUAGE
@@ -5220,6 +5257,31 @@ type RootQueryType {
     id: ID!
   ): Patient
 
+  getPractitioner(
+    "The id of the record"
+    id: ID!
+  ): Practitioner
+
+  listPractitioners(
+    "How to sort the records in the response"
+    sort: [PractitionerSortInput]
+
+    "A filter to limit the results"
+    filter: PractitionerFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): KeysetPageOfPractitioner
+
   getTask(
     "A filter to limit the results"
     filter: TaskFilterInput
@@ -5318,6 +5380,11 @@ type Money {
 input MoneyInput {
   amount: Decimal!
   currency: String!
+}
+
+input PrincipalGrantInput {
+  principalType: PrincipalType!
+  principalId: ID!
 }
 
 type RootMutationType {
