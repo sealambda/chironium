@@ -98,6 +98,11 @@ defmodule Chironium.Accounts.Organization do
       public? true
     end
 
+    has_many :organization_users, Chironium.Accounts.OrganizationUsers do
+      description "Join resource for the many-to-many relationship between organizations and users, containing role information."
+      public? true
+    end
+
     many_to_many :users, Chironium.Accounts.User do
       description "All other users belonging to the organization are defined separately"
       through Chironium.Accounts.OrganizationUsers

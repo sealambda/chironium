@@ -268,12 +268,11 @@ defmodule Chironium.Accounts.Invitation do
       default fn -> DateTime.add(DateTime.utc_now(), 7, :day) end
     end
 
-    attribute :role, :atom do
+    attribute :role, Chironium.Accounts.OrganizationUser.Role do
       description "Organization role assigned when the invitation is accepted."
       public? true
       allow_nil? false
       default :member
-      constraints one_of: [:member, :power_user]
     end
   end
 
