@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { type InvitationRole, inviteUserToOrganization } from "@/features/org/api/org-api";
+import { inviteUserToOrganization } from "@/features/org/api/org-api";
+import type { OrganizationUserRole } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
@@ -31,9 +32,9 @@ interface InviteMemberDialogProps {
   readonly onInvited: () => Promise<void>;
 }
 
-const INVITATION_ROLE_OPTIONS: Array<{ value: InvitationRole; label: () => string }> = [
-  { value: "member", label: m.settings_invite_role_member },
-  { value: "power_user", label: m.settings_invite_role_power_user },
+const INVITATION_ROLE_OPTIONS: Array<{ value: OrganizationUserRole; label: () => string }> = [
+  { value: "MEMBER", label: m.settings_invite_role_member },
+  { value: "POWER_USER", label: m.settings_invite_role_power_user },
 ];
 
 export function InviteMemberDialog({
@@ -43,14 +44,14 @@ export function InviteMemberDialog({
   onInvited,
 }: Readonly<InviteMemberDialogProps>) {
   const [email, setEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<InvitationRole>("member");
+  const [inviteRole, setInviteRole] = useState<OrganizationUserRole>("MEMBER");
   const [isInviting, setIsInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
   const reset = () => {
     setInviteError(null);
     setEmail("");
-    setInviteRole("member");
+    setInviteRole("MEMBER");
     setIsInviting(false);
   };
 
@@ -111,7 +112,7 @@ export function InviteMemberDialog({
             <FieldLabel>{m.settings_invite_role_label()}</FieldLabel>
             <Select
               value={inviteRole}
-              onValueChange={(value) => setInviteRole((value as InvitationRole | null) ?? "member")}
+              onValueChange={(value) => setInviteRole(value ?? "MEMBER")}
               items={INVITATION_ROLE_OPTIONS.map((option) => ({
                 value: option.value,
                 label: option.label(),

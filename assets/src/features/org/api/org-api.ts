@@ -1,3 +1,4 @@
+import type { OrganizationUserRole, PrincipalType } from "@/gql/graphql";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -219,12 +220,8 @@ export interface PendingInvitation {
   organizationId: string;
 }
 
-export type InvitationRole = "member" | "power_user";
-
 /** React Query cache key for `fetchOrganizationSettings` (append organization id as third element). */
 export const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
-
-export type PrincipalTypeForGrant = "PATIENT" | "PRACTITIONER";
 
 /** Lowercased email → user id for org owner and join rows (for matching invite input). */
 export function getOrgMemberEmailToUserIdMap(
@@ -370,7 +367,7 @@ export async function createSubscriptionPlan(
 export async function inviteUserToOrganization(params: {
   organizationId: string;
   email: string;
-  role: InvitationRole;
+  role: OrganizationUserRole;
 }): Promise<void> {
   const result = await requestGraphql({
     document: InviteUsersToOrganizationMutation,
@@ -392,7 +389,7 @@ export async function inviteUserToOrganization(params: {
 export async function inviteUserWithPrincipalGrants(params: {
   organizationId: string;
   email: string;
-  principalGrants: Array<{ principalType: PrincipalTypeForGrant; principalId: string }>;
+  principalGrants: Array<{ principalType: PrincipalType; principalId: string }>;
 }): Promise<void> {
   const result = await requestGraphql({
     document: InviteUsersToOrganizationMutation,
@@ -417,7 +414,7 @@ export async function inviteUserWithPrincipalGrants(params: {
 export async function createPrincipalGrant(params: {
   organizationId: string;
   userId: string;
-  principalType: PrincipalTypeForGrant;
+  principalType: PrincipalType;
   principalId: string;
 }): Promise<void> {
   const result = await requestGraphql({
