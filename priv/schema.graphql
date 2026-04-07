@@ -4,6 +4,16 @@ schema {
   subscription: Subscription
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Optional principal grants to pre-create for the invited user."
+  principalGrants: [PrincipalGrantInput!]
+
+  "Organization role assigned when the invitation is accepted."
+  role: OrganizationUserRole
+}
+
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -32,14 +42,14 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -207,14 +217,14 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   "Text representation of the full name"
   text: String
@@ -4506,16 +4516,6 @@ type SubscriptionVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Subscription!
-}
-
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-
-  "Optional principal grants to pre-create for the invited user."
-  principalGrants: [PrincipalGrantInput!]
-
-  "Organization role assigned when the invitation is accepted."
-  role: OrganizationUserRole
 }
 
 enum DesignationSortField {

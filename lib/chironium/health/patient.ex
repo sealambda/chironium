@@ -71,6 +71,10 @@ defmodule Chironium.Health.Patient do
     end
   end
 
+  changes do
+    change Chironium.Health.Patient.Changes.AssignPractitionerCareTeam, on: [:create]
+  end
+
   attributes do
   end
 
