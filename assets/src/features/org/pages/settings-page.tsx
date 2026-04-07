@@ -1,41 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 
-import {
-  fetchOrganizationSettings,
-  type InvitationRole,
-  inviteUserToOrganization,
-} from "@/features/org/api/org-api";
+import { fetchOrganizationSettings, ORG_SETTINGS_QUERY_KEY } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { InviteMemberDialog } from "@/features/org/ui/invite-member-dialog";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
 import { Loading } from "@/shared/ui/loading";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectPositioner,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { emailRequiredSchema } from "@/shared/utils/email-validation";
-
-const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
 
 type MemberRow = {
   key: string;
@@ -45,23 +20,25 @@ type MemberRow = {
   status: string;
 };
 
-const INVITATION_ROLE_OPTIONS: Array<{ value: InvitationRole; label: () => string }> = [
-  { value: "member", label: m.settings_member_status_member },
-  { value: "power_user", label: m.settings_invite_role_power_user },
-];
-
 function isPendingInvitationState(state: string): boolean {
   return state.toLowerCase() === "pending";
+}
+
+function formatOrgRoleLabel(role: string | null | undefined): string {
+  if (!role) {
+    return m.settings_invite_role_member();
+  }
+  const normalized = role.trim().replaceAll("-", "_").toUpperCase();
+  if (normalized === "POWER_USER") {
+    return m.settings_invite_role_power_user();
+  }
+  return m.settings_invite_role_member();
 }
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
   const { selectedOrg, loading: orgLoading } = useOrg();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<InvitationRole>("member");
-  const [isInviting, setIsInviting] = useState(false);
-  const [inviteError, setInviteError] = useState<string | null>(null);
 
   const {
     data: organization,
@@ -122,8 +99,8 @@ export function SettingsPage() {
     };
 
     addActiveMember(organization.owner, m.settings_member_status_owner());
-    for (const member of organization.users) {
-      addActiveMember(member, m.settings_member_status_member());
+    for (const ou of organization.organizationUsers) {
+      addActiveMember(ou.user, formatOrgRoleLabel(ou.role));
     }
 
     const activeRows = [...activeByEmail.values()];
@@ -148,7 +125,7 @@ export function SettingsPage() {
           key: invitation.id,
           primary: inviteEmail,
           secondary: null,
-          role: m.settings_member_status_member(),
+          role: formatOrgRoleLabel(invitation.role),
           status: m.settings_member_status_pending(),
         } satisfies MemberRow,
       ];
@@ -156,46 +133,6 @@ export function SettingsPage() {
 
     return [...activeRows, ...pendingRows];
   }, [organization]);
-
-  const handleOpenInvite = () => {
-    setInviteError(null);
-    setEmail("");
-    setInviteRole("member");
-    setIsDialogOpen(true);
-  };
-
-  const handleInvite = async () => {
-    if (!selectedOrg?.id) {
-      return;
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const parsedEmail = emailRequiredSchema.safeParse(normalizedEmail);
-    if (!parsedEmail.success) {
-      setInviteError(parsedEmail.error.issues[0]?.message ?? m.validation_email_format());
-      return;
-    }
-
-    setInviteError(null);
-    setIsInviting(true);
-    try {
-      await inviteUserToOrganization({
-        organizationId: selectedOrg.id,
-        email: normalizedEmail,
-        role: inviteRole,
-      });
-      toast.success(m.settings_invite_success());
-      setIsDialogOpen(false);
-      await queryClient.invalidateQueries({
-        queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg.id],
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : m.settings_invite_error();
-      setInviteError(message);
-    } finally {
-      setIsInviting(false);
-    }
-  };
 
   if (orgLoading || isLoading) {
     return <Loading />;
@@ -239,7 +176,7 @@ export function SettingsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle>{m.settings_members_section_title()}</CardTitle>
-          <Button onClick={handleOpenInvite}>{m.settings_invite_member()}</Button>
+          <Button onClick={() => setIsDialogOpen(true)}>{m.settings_invite_member()}</Button>
         </CardHeader>
         <CardContent>
           <Table>
@@ -270,76 +207,18 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Dialog
-        open={isDialogOpen}
-        onOpenChange={(nextOpen) => {
-          setIsDialogOpen(nextOpen);
-          if (!nextOpen) {
-            setInviteError(null);
-            setEmail("");
-            setInviteRole("member");
+      {selectedOrg ? (
+        <InviteMemberDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          organizationId={selectedOrg.id}
+          onInvited={() =>
+            queryClient.invalidateQueries({
+              queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg.id],
+            })
           }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{m.settings_invite_dialog_title()}</DialogTitle>
-            <DialogDescription>{m.settings_invite_dialog_desc()}</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-2">
-            <Label htmlFor="invite-email">{m.settings_invite_email_label()}</Label>
-            <Input
-              id="invite-email"
-              type="email"
-              placeholder={m.settings_invite_email_placeholder()}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="invite-role">{m.settings_invite_role_label()}</Label>
-            <Select
-              value={inviteRole}
-              onValueChange={(value) => setInviteRole((value as InvitationRole | null) ?? "member")}
-              items={INVITATION_ROLE_OPTIONS.map((option) => ({
-                value: option.value,
-                label: option.label(),
-              }))}
-            >
-              <SelectTrigger id="invite-role" className="w-full">
-                <SelectValue placeholder={m.settings_invite_role_placeholder()} />
-              </SelectTrigger>
-              <SelectPositioner>
-                <SelectContent>
-                  {INVITATION_ROLE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectPositioner>
-            </Select>
-          </div>
-
-          {inviteError ? (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
-              {inviteError}
-            </div>
-          ) : null}
-
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
-              {m.common_cancel()}
-            </Button>
-            <Button type="button" onClick={handleInvite} disabled={isInviting}>
-              {isInviting ? m.common_saving() : m.settings_invite_submit()}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        />
+      ) : null}
     </div>
   );
 }

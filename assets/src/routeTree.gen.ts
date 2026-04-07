@@ -15,6 +15,7 @@ import { Route as AppTasksRouteImport } from './routes/_app/tasks'
 import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppPractitionersRouteImport } from './routes/_app/practitioners'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
 import { Route as AppCustomersCustomerIdObservationsRouteImport } from './routes/_app/customers_.$customerId_.observations'
@@ -53,6 +54,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPractitionersRoute = AppPractitionersRouteImport.update({
+  id: '/practitioners',
+  path: '/practitioners',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCustomersRoute = AppCustomersRouteImport.update({
@@ -117,6 +123,7 @@ const AppCustomersCustomerIdAllergiesRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
+  '/practitioners': typeof AppPractitionersRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
+  '/practitioners': typeof AppPractitionersRoute
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/_app/customers': typeof AppCustomersRoute
+  '/_app/practitioners': typeof AppPractitionersRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/subscriptions': typeof AppSubscriptionsRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/customers'
+    | '/practitioners'
     | '/profile'
     | '/settings'
     | '/subscriptions'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/customers'
+    | '/practitioners'
     | '/profile'
     | '/settings'
     | '/subscriptions'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/_app/customers'
+    | '/_app/practitioners'
     | '/_app/profile'
     | '/_app/settings'
     | '/_app/subscriptions'
@@ -269,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/practitioners': {
+      id: '/_app/practitioners'
+      path: '/practitioners'
+      fullPath: '/practitioners'
+      preLoaderRoute: typeof AppPractitionersRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/customers': {
@@ -346,6 +365,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
+  AppPractitionersRoute: typeof AppPractitionersRoute
   AppProfileRoute: typeof AppProfileRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSubscriptionsRoute: typeof AppSubscriptionsRoute
@@ -363,6 +383,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
+  AppPractitionersRoute: AppPractitionersRoute,
   AppProfileRoute: AppProfileRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSubscriptionsRoute: AppSubscriptionsRoute,

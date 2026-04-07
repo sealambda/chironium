@@ -29,15 +29,20 @@ const GetOrganizationSettingsQuery = graphql(`
         email
         name
       }
-      users {
+      organizationUsers {
         id
-        email
-        name
+        role
+        user {
+          id
+          email
+          name
+        }
       }
       invitations {
         id
         email
         state
+        role
       }
     }
   }
@@ -97,6 +102,19 @@ const CreateSubscriptionPlanMutation = graphql(`
 const InviteUsersToOrganizationMutation = graphql(`
   mutation InviteUsersToOrganization($id: ID!, $input: InviteUsersToOrganizationInput) {
     inviteUsersToOrganization(id: $id, input: $input) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const CreatePrincipalGrantMutation = graphql(`
+  mutation CreatePrincipalGrant($input: CreatePrincipalGrantInput!) {
+    createPrincipalGrant(input: $input) {
       result {
         id
       }
@@ -172,17 +190,25 @@ export interface OrganizationMemberUser {
   name: string | null;
 }
 
+/** Join row for org membership; `role` is the GraphQL enum (e.g. MEMBER, POWER_USER). */
+export interface OrganizationMembershipRow {
+  id: string;
+  role: string;
+  user: OrganizationMemberUser;
+}
+
 /** Organization settings data including members and invitations. */
 export interface OrganizationSettingsData {
   id: string;
   name: string;
   slug: string;
   owner: OrganizationMemberUser;
-  users: OrganizationMemberUser[];
+  organizationUsers: OrganizationMembershipRow[];
   invitations: Array<{
     id: string;
     email: string | null;
     state: string;
+    role: string;
   }>;
 }
 
@@ -194,6 +220,29 @@ export interface PendingInvitation {
 }
 
 export type InvitationRole = "member" | "power_user";
+
+/** React Query cache key for `fetchOrganizationSettings` (append organization id as third element). */
+export const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
+
+export type PrincipalTypeForGrant = "PATIENT" | "PRACTITIONER";
+
+/** Lowercased email → user id for org owner and join rows (for matching invite input). */
+export function getOrgMemberEmailToUserIdMap(
+  organization: OrganizationSettingsData,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  const put = (email: string, userId: string) => {
+    const key = email.trim().toLowerCase();
+    if (key) {
+      map.set(key, userId);
+    }
+  };
+  put(organization.owner.email, organization.owner.id);
+  for (const row of organization.organizationUsers) {
+    put(row.user.email, row.user.id);
+  }
+  return map;
+}
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -228,15 +277,20 @@ export async function fetchOrganizationSettings(
       email: data.getOrganization.owner.email,
       name: data.getOrganization.owner.name ?? null,
     },
-    users: data.getOrganization.users.map((u) => ({
-      id: u.id,
-      email: u.email,
-      name: u.name ?? null,
+    organizationUsers: data.getOrganization.organizationUsers.map((row) => ({
+      id: row.id,
+      role: row.role,
+      user: {
+        id: row.user.id,
+        email: row.user.email,
+        name: row.user.name ?? null,
+      },
     })),
     invitations: data.getOrganization.invitations.map((invitation) => ({
       id: invitation.id,
       email: invitation.email ?? null,
       state: invitation.state,
+      role: invitation.role,
     })),
   };
 }
@@ -330,6 +384,56 @@ export async function inviteUserToOrganization(params: {
   });
 
   unwrapMutationResult(result.inviteUsersToOrganization, "Failed to invite member.");
+}
+
+/**
+ * Invite a user and attach principal grants (e.g. link accepted account to a practitioner).
+ */
+export async function inviteUserWithPrincipalGrants(params: {
+  organizationId: string;
+  email: string;
+  principalGrants: Array<{ principalType: PrincipalTypeForGrant; principalId: string }>;
+}): Promise<void> {
+  const result = await requestGraphql({
+    document: InviteUsersToOrganizationMutation,
+    variables: {
+      id: params.organizationId,
+      input: {
+        invitations: [
+          {
+            email: params.email,
+            principalGrants: params.principalGrants,
+          },
+        ],
+      },
+    },
+    organizationId: params.organizationId,
+  });
+
+  unwrapMutationResult(result.inviteUsersToOrganization, "Failed to send invitation.");
+}
+
+/** Link an existing org member to a principal (tenant-scoped; power users only). */
+export async function createPrincipalGrant(params: {
+  organizationId: string;
+  userId: string;
+  principalType: PrincipalTypeForGrant;
+  principalId: string;
+}): Promise<void> {
+  const result = await requestGraphql({
+    document: CreatePrincipalGrantMutation,
+    variables: {
+      input: {
+        userId: params.userId,
+        principalType: params.principalType,
+        principalId: params.principalId,
+        active: true,
+      },
+    },
+    organizationId: params.organizationId,
+  });
+
+  unwrapMutationResult(result.createPrincipalGrant, "Failed to link principal grant.");
 }
 
 /** Accept a pending invitation using its invite code. */

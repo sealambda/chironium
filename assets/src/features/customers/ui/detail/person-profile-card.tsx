@@ -155,7 +155,7 @@ export function PersonProfileCard({
               </AvatarFallback>
             </Avatar>
 
-            <div className="min-w-0 space-y-2">
+            <div className="flex min-w-0 flex-col items-start gap-2 space-y-2">
               <h1 className="font-bold text-foreground text-xl tracking-wide">
                 {name}
                 {ageLabel}
