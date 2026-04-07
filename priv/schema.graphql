@@ -4,16 +4,6 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-
-  "Optional principal grants to pre-create for the invited user."
-  principalGrants: [PrincipalGrantInput!]
-
-  "Organization role assigned when the invitation is accepted."
-  role: OrganizationUserRole
-}
-
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -42,6 +32,9 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -50,9 +43,6 @@ input PractitionerNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -217,6 +207,9 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -225,9 +218,6 @@ input PersonNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -905,6 +895,41 @@ type User {
   ): [UserVersion!]!
 }
 
+"The result of the :create_principal_grant mutation"
+type CreatePrincipalGrantResult {
+  "The successful result of the mutation"
+  result: PrincipalGrant
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input CreatePrincipalGrantInput {
+  principalType: PrincipalType!
+  principalId: ID!
+  active: Boolean
+  userId: ID
+  invitationId: ID
+}
+
+type PrincipalGrant {
+  id: ID!
+  principalType: PrincipalType!
+  principalId: ID!
+  active: Boolean!
+  userId: ID
+  invitationId: ID
+  paperTrailVersions(
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PrincipalGrantVersion!]!
+  user: User
+  invitation: Invitation
+}
+
 enum OrganizationUserSortField {
   ID
   ROLE
@@ -1444,6 +1469,15 @@ type OrganizationUserVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: OrganizationUser!
+}
+
+type PrincipalGrantVersion {
+  id: ID!
+  versionActionType: String!
+  versionActionName: String!
+  versionSourceId: ID!
+  changes: JsonString
+  versionSource: PrincipalGrant!
 }
 
 type UserVersion {
@@ -4518,6 +4552,16 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Optional principal grants to pre-create for the invited user."
+  principalGrants: [PrincipalGrantInput!]
+
+  "Organization role assigned when the invitation is accepted."
+  role: OrganizationUserRole
+}
+
 enum DesignationSortField {
   ID
   LANGUAGE
@@ -5651,6 +5695,8 @@ type RootMutationType {
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 
   inviteUsersToOrganization(id: ID!, input: InviteUsersToOrganizationInput): InviteUsersToOrganizationResult!
+
+  createPrincipalGrant(input: CreatePrincipalGrantInput!): CreatePrincipalGrantResult!
 }
 
 """

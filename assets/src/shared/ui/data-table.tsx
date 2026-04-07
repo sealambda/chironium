@@ -6,8 +6,11 @@ import {
   getCoreRowModel,
   getExpandedRowModel,
   getSortedRowModel,
+  type OnChangeFn,
   type Row,
+  type RowSelectionState,
   type SortingState,
+  type TableOptions,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -41,11 +44,11 @@ export interface DataTableProps<TData> {
   /** Optional: Controlled sorting state */
   sorting?: SortingState;
   /** Optional: Callback when sorting changes */
-  onSortingChange?: (sorting: SortingState) => void;
+  onSortingChange?: OnChangeFn<SortingState>;
   /** Optional: Controlled expanded state */
   expanded?: ExpandedState;
   /** Optional: Callback when expanded state changes */
-  onExpandedChange?: (expanded: ExpandedState) => void;
+  onExpandedChange?: OnChangeFn<ExpandedState>;
   /** Optional: Custom empty state message or component */
   emptyState?: React.ReactNode;
   /** Optional: Get row ID for stable keys */
@@ -54,6 +57,12 @@ export interface DataTableProps<TData> {
   onRowClick?: (data: TData) => void;
   /** Optional: Pin the first column when scrolling horizontally */
   pinFirstColumn?: boolean;
+  /** Optional: Row selection state (controlled); enable with `enableRowSelection` */
+  rowSelection?: RowSelectionState;
+  /** Optional: Row selection change handler */
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  /** Optional: Enable row selection (TanStack Table) */
+  enableRowSelection?: boolean;
 }
 
 interface SortableHeaderProps<TData, TValue> {
@@ -61,9 +70,31 @@ interface SortableHeaderProps<TData, TValue> {
   children: React.ReactNode;
 }
 
+const INTERACTIVE_ROW_CLICK_SELECTOR = [
+  "a",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  '[role="button"]',
+  '[role="checkbox"]',
+  '[data-slot="checkbox"]',
+].join(",");
+
+function shouldIgnoreRowClick(event: React.MouseEvent<HTMLTableRowElement>): boolean {
+  const target = event.target;
+  if (!(target instanceof Element)) {
+    return false;
+  }
+  return target.closest(INTERACTIVE_ROW_CLICK_SELECTOR) !== null;
+}
+
 // ============= Helper Components =============
 
-function SortableHeader<TData, TValue>({ column, children }: SortableHeaderProps<TData, TValue>) {
+function SortableHeader<TData, TValue>({
+  column,
+  children,
+}: Readonly<SortableHeaderProps<TData, TValue>>) {
   if (!column.getCanSort()) {
     return <span>{children}</span>;
   }
@@ -104,6 +135,37 @@ function DefaultEmptyState() {
   );
 }
 
+function selectionTableOptions<TData>(
+  enabled: boolean,
+  setRowSelection: OnChangeFn<RowSelectionState>,
+): Pick<
+  TableOptions<TData>,
+  "onRowSelectionChange" | "enableRowSelection" | "enableMultiRowSelection"
+> {
+  if (!enabled) {
+    return {};
+  }
+  return {
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
+    enableMultiRowSelection: true,
+  };
+}
+
+function expandableTableOptions<TData>(
+  enabled: boolean,
+  setExpanded: OnChangeFn<ExpandedState>,
+): Pick<TableOptions<TData>, "onExpandedChange" | "getExpandedRowModel" | "getRowCanExpand"> {
+  if (!enabled) {
+    return {};
+  }
+  return {
+    onExpandedChange: setExpanded,
+    getExpandedRowModel: getExpandedRowModel(),
+    getRowCanExpand: () => true,
+  };
+}
+
 // ============= Main Component =============
 
 function DataTable<TData>({
@@ -120,15 +182,21 @@ function DataTable<TData>({
   getRowId,
   onRowClick,
   pinFirstColumn,
-}: DataTableProps<TData>) {
+  rowSelection: controlledRowSelection,
+  onRowSelectionChange,
+  enableRowSelection = false,
+}: Readonly<DataTableProps<TData>>) {
   // Internal state fallback for uncontrolled mode
   const [internalSorting, setInternalSorting] = useState<SortingState>(initialSorting ?? []);
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
+  const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({});
 
   const sorting = controlledSorting ?? internalSorting;
   const setSorting = onSortingChange ?? setInternalSorting;
   const expanded = controlledExpanded ?? internalExpanded;
   const setExpanded = onExpandedChange ?? setInternalExpanded;
+  const rowSelection = controlledRowSelection ?? internalRowSelection;
+  const setRowSelection = onRowSelectionChange ?? setInternalRowSelection;
 
   // Determine if expandable features are enabled
   const isExpandable = Boolean(renderExpandedRow);
@@ -139,23 +207,15 @@ function DataTable<TData>({
     state: {
       sorting,
       ...(isExpandable && { expanded }),
+      ...(enableRowSelection && { rowSelection }),
     },
     onSortingChange: (updater) => {
-      const newSorting = typeof updater === "function" ? updater(sorting) : updater;
-      setSorting(newSorting);
+      setSorting(updater);
     },
-    ...(isExpandable && {
-      onExpandedChange: (updater) => {
-        const newExpanded = typeof updater === "function" ? updater(expanded) : updater;
-        setExpanded(newExpanded);
-      },
-    }),
+    ...selectionTableOptions<TData>(enableRowSelection, setRowSelection),
+    ...expandableTableOptions<TData>(isExpandable, setExpanded),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    ...(isExpandable && {
-      getExpandedRowModel: getExpandedRowModel(),
-      getRowCanExpand: () => true,
-    }),
     ...(getRowId && { getRowId }),
   });
 
@@ -201,7 +261,12 @@ function DataTable<TData>({
                 <TableRow
                   data-state={row.getIsExpanded() ? "expanded" : undefined}
                   className={onRowClick ? "cursor-pointer" : undefined}
-                  onClick={() => onRowClick?.(row.original)}
+                  onClick={(event) => {
+                    if (shouldIgnoreRowClick(event)) {
+                      return;
+                    }
+                    onRowClick?.(row.original);
+                  }}
                 >
                   {isExpandable && (
                     <TableCell className="w-10 p-0 pl-2">

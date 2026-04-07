@@ -12,16 +12,37 @@ import { emailOptionalSchema } from "@/shared/utils/email-validation";
 export const NAME_PATTERN = /^[\p{L}][\p{L}\s'.-]*[\p{L}.]$/u;
 export const CONSECUTIVE_SPECIALS = /[\s'.-]{2}/;
 
-const nameField = z
-  .string()
-  .min(2, { message: m.validation_name_min() })
-  .max(50, { message: m.validation_name_max() })
-  .regex(NAME_PATTERN, { message: m.validation_name_format() })
-  .refine((v) => !CONSECUTIVE_SPECIALS.test(v), { message: m.validation_name_consecutive() });
+function createPersonNameField(msgs: {
+  min: string;
+  max: string;
+  format: string;
+  consecutive: string;
+}) {
+  return z
+    .string()
+    .min(2, { message: msgs.min })
+    .max(50, { message: msgs.max })
+    .regex(NAME_PATTERN, { message: msgs.format })
+    .refine((v) => !CONSECUTIVE_SPECIALS.test(v), { message: msgs.consecutive });
+}
+
+export const personGivenNameField = createPersonNameField({
+  min: m.validation_given_name_min(),
+  max: m.validation_given_name_max(),
+  format: m.validation_given_name_format(),
+  consecutive: m.validation_given_name_consecutive(),
+});
+
+export const personFamilyNameField = createPersonNameField({
+  min: m.validation_family_name_min(),
+  max: m.validation_family_name_max(),
+  format: m.validation_family_name_format(),
+  consecutive: m.validation_family_name_consecutive(),
+});
 
 export const personSchema = z.object({
-  givenName: nameField,
-  familyName: nameField,
+  givenName: personGivenNameField,
+  familyName: personFamilyNameField,
   birthDate: z.string(),
   gender: z.union([z.enum(["MALE", "FEMALE", "OTHER", "UNKNOWN"]), z.literal("")]),
   phone: z

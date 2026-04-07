@@ -24,10 +24,18 @@ defmodule Chironium.Accounts.PrincipalGrant do
     domain: Chironium.Accounts,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAdmin.Resource, AshPaperTrail.Resource]
+    extensions: [AshAdmin.Resource, AshPaperTrail.Resource, AshGraphql.Resource]
 
   admin do
     actor? true
+  end
+
+  graphql do
+    type :principal_grant
+
+    mutations do
+      create :create_principal_grant, :create
+    end
   end
 
   postgres do
