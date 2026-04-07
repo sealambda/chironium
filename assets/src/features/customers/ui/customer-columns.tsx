@@ -3,6 +3,7 @@ import { addMonths, formatISO } from "date-fns";
 
 import type { CustomerListItem } from "@/features/customers/api/persons-api";
 import * as m from "@/paraglide/messages";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
@@ -10,6 +11,37 @@ import { formatPersonName } from "@/shared/utils/person-utils";
 import { durationToMonths, formatDurationWithUnit } from "@/shared/utils/subscriptions-utils";
 
 export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
+  {
+    id: "select",
+    enableSorting: false,
+    header: ({ table }) => (
+      <span className="flex justify-center pr-1">
+        <Checkbox
+          aria-label={m.customers_select_all_aria()}
+          checked={table.getIsAllPageRowsSelected()}
+          indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(Boolean(value))}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </span>
+    ),
+    cell: ({ row }) => (
+      <span className="flex justify-center pr-1">
+        <Checkbox
+          aria-label={m.customers_select_row_aria({
+            name: formatPersonName(row.original.person.name),
+          })}
+          checked={row.getIsSelected()}
+          disabled={!row.getCanSelect()}
+          onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </span>
+    ),
+    size: 40,
+  },
   {
     id: "name",
     enableSorting: false,

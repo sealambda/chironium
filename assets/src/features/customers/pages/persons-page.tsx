@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import type { RowSelectionState } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -9,6 +10,7 @@ import {
   Search,
   Users,
 } from "lucide-react";
+import type * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -22,13 +24,16 @@ import {
   getStoredPersonSortPreference,
   storePersonSortPreference,
 } from "@/features/customers/model/person-sort-preferences";
+import { CustomerBulkActionBar } from "@/features/customers/ui/customer-bulk-action-bar";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
+import { ReassignCustomersDialog } from "@/features/customers/ui/reassign-customers-dialog";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/ui/input-group";
+import { ListSearchField } from "@/shared/ui/list-search-field";
 import { Loading } from "@/shared/ui/loading";
 import { formatPersonName } from "@/shared/utils/person-utils";
 
@@ -46,9 +51,12 @@ import { formatPersonName } from "@/shared/utils/person-utils";
  * data shown where available.
  */
 export function CustomersPage() {
+  const queryClient = useQueryClient();
   const { selectedOrg, loading: orgsLoading } = useOrg();
   const { setHeaderContent } = useDetailMode();
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [search, setSearch] = useState("");
   const [sortOption, setSortOption] = useState<PersonListSortOption>(
     () => getStoredPersonSortPreference() ?? "moreRecent",
@@ -91,6 +99,14 @@ export function CustomersPage() {
     return customers.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
   }, [customers, search]);
 
+  const selectedPersonIds = useMemo(
+    () =>
+      Object.entries(rowSelection)
+        .filter(([, selected]) => selected)
+        .map(([id]) => id),
+    [rowSelection],
+  );
+
   const handleSortOptionChange = (nextSortOption: PersonListSortOption) => {
     storePersonSortPreference(nextSortOption);
     setSortOption(nextSortOption);
@@ -106,7 +122,11 @@ export function CustomersPage() {
       <div className="ml-auto flex w-full items-center justify-end gap-3">
         {customers.length > 0 ? (
           <div className="hidden w-72 sm:block">
-            <CustomerSearchInput value={search} onChange={setSearch} />
+            <ListSearchField
+              value={search}
+              onChange={setSearch}
+              placeholder={m.customers_search_placeholder()}
+            />
           </div>
         ) : null}
         <Button onClick={() => setOnboardingOpen(true)}>
@@ -162,7 +182,11 @@ export function CustomersPage() {
 
       {customers.length > 0 ? (
         <div className="sm:hidden">
-          <CustomerSearchInput value={search} onChange={setSearch} />
+          <ListSearchField
+            value={search}
+            onChange={setSearch}
+            placeholder={m.customers_search_placeholder()}
+          />
         </div>
       ) : null}
 
@@ -170,6 +194,24 @@ export function CustomersPage() {
         items={filtered}
         isEmpty={customers.length === 0}
         onAdd={() => setOnboardingOpen(true)}
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
+      />
+
+      <CustomerBulkActionBar
+        selectedCount={selectedPersonIds.length}
+        onReassign={() => setReassignOpen(true)}
+        onClear={() => setRowSelection({})}
+      />
+
+      <ReassignCustomersDialog
+        open={reassignOpen}
+        onOpenChange={setReassignOpen}
+        organizationId={selectedOrg.id}
+        selectedPersonIds={selectedPersonIds}
+        onCompleted={() => {
+          queryClient.invalidateQueries({ queryKey: ["customers"] });
+        }}
       />
 
       <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
@@ -177,35 +219,18 @@ export function CustomersPage() {
   );
 }
 
-function CustomerSearchInput({
-  value,
-  onChange,
-}: Readonly<{
-  value: string;
-  onChange: (value: string) => void;
-}>) {
-  return (
-    <InputGroup>
-      <InputGroupAddon>
-        <Search className="size-4" />
-      </InputGroupAddon>
-      <InputGroupInput
-        placeholder={m.customers_search_placeholder()}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </InputGroup>
-  );
-}
-
 function CustomerList({
   items,
   isEmpty,
   onAdd,
+  rowSelection,
+  onRowSelectionChange,
 }: Readonly<{
   items: CustomerListItem[];
   isEmpty: boolean;
   onAdd: () => void;
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: React.Dispatch<React.SetStateAction<RowSelectionState>>;
 }>) {
   if (isEmpty) {
     return (
@@ -225,23 +250,50 @@ function CustomerList({
 
   return (
     <div className="space-y-3">
-      {/* Mobile: stacked cards */}
+      {/* Mobile: stacked cards with bulk selection */}
       <div className="space-y-3 lg:hidden">
-        {items.map((item) => (
-          <Link
-            key={item.person.id}
-            to="/customers/$customerId"
-            params={{ customerId: item.person.id }}
-            className="block"
-          >
-            <PersonCard item={item} />
-          </Link>
-        ))}
+        {items.map((item) => {
+          const id = item.person.id;
+          const name = formatPersonName(item.person.name);
+          return (
+            <div key={id} className="relative">
+              <Checkbox
+                aria-label={m.customers_select_row_aria({ name })}
+                checked={Boolean(rowSelection[id])}
+                className="absolute top-4 right-4 z-10"
+                onCheckedChange={(value) => {
+                  const selected = Boolean(value);
+                  onRowSelectionChange((prev) => {
+                    if (selected) {
+                      return { ...prev, [id]: true };
+                    }
+                    const next = { ...prev };
+                    delete next[id];
+                    return next;
+                  });
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+              <Link
+                to="/customers/$customerId"
+                params={{ customerId: id }}
+                className="block min-w-0"
+              >
+                <PersonCard item={item} />
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       {/* Desktop: data table */}
       <div className="hidden lg:block">
-        <CustomerTable items={items} />
+        <CustomerTable
+          items={items}
+          rowSelection={rowSelection}
+          onRowSelectionChange={onRowSelectionChange}
+        />
       </div>
     </div>
   );

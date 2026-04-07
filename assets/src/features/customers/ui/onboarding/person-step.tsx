@@ -95,13 +95,13 @@ export function PersonStep({
             validators={{
               onBlur: ({ value }) => {
                 if (!value || value.trim().length < 2) {
-                  return m.validation_name_min();
+                  return m.validation_given_name_min();
                 }
                 if (!NAME_PATTERN.test(value)) {
-                  return m.validation_name_format();
+                  return m.validation_given_name_format();
                 }
                 if (CONSECUTIVE_SPECIALS.test(value)) {
-                  return m.validation_name_consecutive();
+                  return m.validation_given_name_consecutive();
                 }
                 return undefined;
               },
@@ -145,13 +145,13 @@ export function PersonStep({
             validators={{
               onBlur: ({ value }) => {
                 if (!value || value.trim().length < 2) {
-                  return m.validation_name_min();
+                  return m.validation_family_name_min();
                 }
                 if (!NAME_PATTERN.test(value)) {
-                  return m.validation_name_format();
+                  return m.validation_family_name_format();
                 }
                 if (CONSECUTIVE_SPECIALS.test(value)) {
-                  return m.validation_name_consecutive();
+                  return m.validation_family_name_consecutive();
                 }
                 return undefined;
               },
