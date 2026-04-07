@@ -35,6 +35,7 @@ defmodule Chironium.Accounts.OrganizationUsers do
     end
 
     policy action(:read) do
+      authorize_if accessing_from(Chironium.Accounts.Organization, :organization_users)
       authorize_if accessing_from(Chironium.Accounts.Organization, :users)
       authorize_if relates_to_actor_via([:organization, :owner])
       authorize_if relates_to_actor_via([:organization, :users])
