@@ -1,3 +1,4 @@
+import type { GoalCategory, GoalPriority } from "@/gql/graphql";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -84,9 +85,6 @@ export type GoalRecord = NonNullable<
     NonNullable<ResultOf<typeof AllGoalsByPersonQuery>["listPatients"]>["results"]
   >[number]["goals"]
 >[number];
-
-export type GoalPriority = "HIGH_PRIORITY" | "MEDIUM_PRIORITY" | "LOW_PRIORITY";
-export type GoalCategory = "DIETARY" | "BEHAVIORAL" | "NURSING" | "PHYSIOTHERAPY" | "SAFETY";
 
 interface GoalMutationPayload<T> {
   result?: T | null;

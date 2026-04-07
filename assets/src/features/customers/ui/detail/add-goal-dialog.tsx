@@ -2,15 +2,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import {
-  createGoal,
-  type GoalCategory,
-  type GoalPriority,
-  type GoalRecord,
-  updateGoal,
-} from "@/features/customers/api/goals-api";
+import { createGoal, type GoalRecord, updateGoal } from "@/features/customers/api/goals-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+import type { GoalCategory, GoalPriority } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
