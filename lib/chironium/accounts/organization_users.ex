@@ -18,6 +18,10 @@ defmodule Chironium.Accounts.OrganizationUsers do
 
   graphql do
     type :organization_user
+
+    mutations do
+      update :update_organization_user, :update
+    end
   end
 
   paper_trail do
@@ -41,6 +45,10 @@ defmodule Chironium.Accounts.OrganizationUsers do
       authorize_if relates_to_actor_via([:organization, :users])
       authorize_if relates_to_actor_via(:user)
     end
+
+    policy action(:update) do
+      authorize_if Chironium.Accounts.Checks.PowerUser
+    end
   end
 
   attributes do
@@ -60,6 +68,13 @@ defmodule Chironium.Accounts.OrganizationUsers do
 
     belongs_to :user, Chironium.Accounts.User do
       allow_nil? false
+      public? true
+    end
+
+    has_many :principal_grants, Chironium.Accounts.PrincipalGrant do
+      description "Principal grants linked to this member (tenant-scoped)."
+      destination_attribute :user_id
+      source_attribute :user_id
       public? true
     end
   end

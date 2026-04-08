@@ -4,45 +4,44 @@ import { useMemo, useState } from "react";
 
 import { fetchOrganizationSettings, ORG_SETTINGS_QUERY_KEY } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
+import {
+  EditMemberRoleDialog,
+  type EditMemberRoleTarget,
+} from "@/features/org/ui/edit-member-role-dialog";
 import { InviteMemberDialog } from "@/features/org/ui/invite-member-dialog";
+import {
+  MakeMemberPractitionerDialog,
+  type MakePractitionerTarget,
+} from "@/features/org/ui/make-member-practitioner-dialog";
+import { SettingsMemberActionsMenu } from "@/features/org/ui/settings-member-actions-menu";
+import { SettingsMemberRoleStatusFields } from "@/features/org/ui/settings-member-role-status-fields";
+import {
+  buildSettingsMemberRows,
+  canManageOrgMembers,
+  memberRowHasActions,
+  type SettingsMemberTableRow,
+} from "@/features/org/utils/settings-member-table-model";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-
-type MemberRow = {
-  key: string;
-  primary: string;
-  secondary: string | null;
-  role: string;
-  status: string;
-};
-
-function isPendingInvitationState(state: string): boolean {
-  return state.toLowerCase() === "pending";
-}
-
-function formatOrgRoleLabel(role: string | null | undefined): string {
-  if (!role) {
-    return m.settings_invite_role_member();
-  }
-  const normalized = role.trim().replaceAll("-", "_").toUpperCase();
-  if (normalized === "POWER_USER") {
-    return m.settings_invite_role_power_user();
-  }
-  return m.settings_invite_role_member();
-}
+import { cn } from "@/shared/utils/utils";
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useCurrentUser();
   const { selectedOrg, loading: orgLoading } = useOrg();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [editRoleTarget, setEditRoleTarget] = useState<EditMemberRoleTarget | null>(null);
+  const [makePractitionerTarget, setMakePractitionerTarget] =
+    useState<MakePractitionerTarget | null>(null);
 
   const {
     data: organization,
-    isLoading,
+    isLoading: settingsLoading,
     error: settingsError,
   } = useQuery({
     queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg?.id],
@@ -50,91 +49,26 @@ export function SettingsPage() {
     enabled: Boolean(selectedOrg?.id),
   });
 
-  const memberRows = useMemo((): MemberRow[] => {
+  const memberRows = useMemo((): SettingsMemberTableRow[] => {
     if (!organization) {
       return [];
     }
-
-    const pendingByEmail = new Set<string>();
-    for (const invitation of organization.invitations) {
-      if (!isPendingInvitationState(invitation.state)) {
-        continue;
-      }
-      const inviteEmail = invitation.email?.trim();
-      if (!inviteEmail) {
-        continue;
-      }
-      pendingByEmail.add(inviteEmail.toLowerCase());
-    }
-
-    const activeByEmail = new Map<string, MemberRow>();
-
-    const addActiveMember = (
-      member: { id: string; email: string; name: string | null },
-      role: string,
-    ) => {
-      const trimmedEmail = member.email.trim();
-      if (!trimmedEmail) {
-        return;
-      }
-
-      const lowerEmail = trimmedEmail.toLowerCase();
-      if (activeByEmail.has(lowerEmail)) {
-        return;
-      }
-
-      const displayName = member.name?.trim() ?? "";
-      const primary = displayName || trimmedEmail;
-      const secondary = displayName ? trimmedEmail : null;
-
-      activeByEmail.set(lowerEmail, {
-        key: member.id,
-        primary,
-        secondary,
-        role,
-        status: pendingByEmail.has(lowerEmail)
-          ? m.settings_member_status_pending()
-          : m.settings_member_status_active(),
-      });
-    };
-
-    addActiveMember(organization.owner, m.settings_member_status_owner());
-    for (const ou of organization.organizationUsers) {
-      addActiveMember(ou.user, formatOrgRoleLabel(ou.role));
-    }
-
-    const activeRows = [...activeByEmail.values()];
-
-    const pendingRows = organization.invitations.flatMap((invitation) => {
-      if (!isPendingInvitationState(invitation.state)) {
-        return [];
-      }
-
-      const inviteEmail = invitation.email?.trim() ?? "";
-      if (!inviteEmail) {
-        return [];
-      }
-
-      const lowerEmail = inviteEmail.toLowerCase();
-      if (activeByEmail.has(lowerEmail)) {
-        return [];
-      }
-
-      return [
-        {
-          key: invitation.id,
-          primary: inviteEmail,
-          secondary: null,
-          role: formatOrgRoleLabel(invitation.role),
-          status: m.settings_member_status_pending(),
-        } satisfies MemberRow,
-      ];
-    });
-
-    return [...activeRows, ...pendingRows];
+    return buildSettingsMemberRows(organization);
   }, [organization]);
 
-  if (orgLoading || isLoading) {
+  const canManageMembers = useMemo(
+    () => canManageOrgMembers(organization, currentUser?.id),
+    [organization, currentUser?.id],
+  );
+
+  const hasVisibleMembers = memberRows.length > 0;
+
+  const invalidateSettings = () =>
+    queryClient.invalidateQueries({
+      queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg?.id ?? ""],
+    });
+
+  if (orgLoading || settingsLoading) {
     return <Loading />;
   }
 
@@ -176,48 +110,133 @@ export function SettingsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle>{m.settings_members_section_title()}</CardTitle>
-          <Button onClick={() => setIsDialogOpen(true)}>{m.settings_invite_member()}</Button>
+          {hasVisibleMembers ? (
+            <Button type="button" onClick={() => setIsInviteOpen(true)}>
+              {m.settings_invite_member()}
+            </Button>
+          ) : null}
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{m.settings_members_user_col()}</TableHead>
-                <TableHead>{m.settings_members_role_col()}</TableHead>
-                <TableHead>{m.settings_members_status_col()}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {memberRows.map((row) => (
-                <TableRow key={row.key}>
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-medium">{row.primary}</span>
-                      {row.secondary ? (
-                        <span className="text-muted-foreground text-sm">{row.secondary}</span>
+          {hasVisibleMembers ? (
+            <div className="space-y-3">
+              <div className="space-y-3 lg:hidden">
+                {memberRows.map((row: SettingsMemberTableRow) => {
+                  const showActionSlot = canManageMembers && memberRowHasActions(row);
+                  return (
+                    <div
+                      key={row.key}
+                      className="relative rounded-lg border border-border/60 bg-card px-4 py-3 shadow-sm"
+                    >
+                      {showActionSlot ? (
+                        <div className="absolute end-3 top-3">
+                          <SettingsMemberActionsMenu
+                            row={row}
+                            onEditRole={setEditRoleTarget}
+                            onMakePractitioner={setMakePractitionerTarget}
+                          />
+                        </div>
                       ) : null}
+                      <div
+                        className={cn(
+                          "flex min-w-0 flex-col gap-1",
+                          showActionSlot ? "pe-10" : undefined,
+                        )}
+                      >
+                        <span className="font-medium">{row.primary}</span>
+                        {row.secondary ? (
+                          <span className="text-muted-foreground text-sm">{row.secondary}</span>
+                        ) : null}
+                        <SettingsMemberRoleStatusFields row={row} />
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{row.role}</TableCell>
-                  <TableCell>{row.status}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  );
+                })}
+              </div>
+
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{m.settings_members_user_col()}</TableHead>
+                      <TableHead>{m.settings_members_role_col()}</TableHead>
+                      <TableHead>{m.settings_members_status_col()}</TableHead>
+                      {canManageMembers ? (
+                        <TableHead className="w-14 text-end">
+                          <span className="sr-only">{m.settings_members_actions_aria()}</span>
+                        </TableHead>
+                      ) : null}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {memberRows.map((row: SettingsMemberTableRow) => (
+                      <TableRow key={row.key}>
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium">{row.primary}</span>
+                            {row.secondary ? (
+                              <span className="text-muted-foreground text-sm">{row.secondary}</span>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                        <TableCell>{row.roleDisplay}</TableCell>
+                        <TableCell>{row.status}</TableCell>
+                        {canManageMembers ? (
+                          <TableCell className="text-end">
+                            <SettingsMemberActionsMenu
+                              row={row}
+                              onEditRole={setEditRoleTarget}
+                              onMakePractitioner={setMakePractitionerTarget}
+                            />
+                          </TableCell>
+                        ) : null}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2 text-sm">
+              <p className="font-medium text-foreground">
+                {m.settings_members_not_visible_title()}
+              </p>
+              <p className="text-muted-foreground">{m.settings_members_not_visible_desc()}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {selectedOrg ? (
-        <InviteMemberDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          organizationId={selectedOrg.id}
-          onInvited={() =>
-            queryClient.invalidateQueries({
-              queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg.id],
-            })
-          }
-        />
+        <>
+          <InviteMemberDialog
+            open={isInviteOpen}
+            onOpenChange={setIsInviteOpen}
+            organizationId={selectedOrg.id}
+            onInvited={invalidateSettings}
+          />
+          <EditMemberRoleDialog
+            open={editRoleTarget !== null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setEditRoleTarget(null);
+              }
+            }}
+            organizationId={selectedOrg.id}
+            target={editRoleTarget}
+            onSaved={invalidateSettings}
+          />
+          <MakeMemberPractitionerDialog
+            open={makePractitionerTarget !== null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setMakePractitionerTarget(null);
+              }
+            }}
+            organizationId={selectedOrg.id}
+            target={makePractitionerTarget}
+            onSaved={invalidateSettings}
+          />
+        </>
       ) : null}
     </div>
   );

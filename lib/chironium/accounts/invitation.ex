@@ -286,6 +286,12 @@ defmodule Chironium.Accounts.Invitation do
       allow_nil? false
       public? true
     end
+
+    has_many :principal_grants, Chironium.Accounts.PrincipalGrant do
+      description "Principal grants created for this invitation (tenant-scoped). Resolves on acceptance."
+      destination_attribute :invitation_id
+      public? true
+    end
   end
 
   identities do

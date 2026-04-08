@@ -4,6 +4,16 @@ schema {
   subscription: Subscription
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Optional principal grants to pre-create for the invited user."
+  principalGrants: [PrincipalGrantInput!]
+
+  "Organization role assigned when the invitation is accepted."
+  role: OrganizationUserRole
+}
+
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -19,8 +29,8 @@ type Duration {
 input TaskNoteInput {
   time: DateTime
   text: String
-  authorString: String
   authorReference: String
+  authorString: String
 }
 
 input TaskRequestedPeriodInput {
@@ -32,6 +42,9 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -40,9 +53,6 @@ input PractitionerNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -62,8 +72,8 @@ input PractitionerNameInput {
 input ObservationNoteInput {
   time: DateTime
   text: String
-  authorString: String
   authorReference: String
+  authorString: String
 }
 
 input ObservationValueCodeableConceptInput {
@@ -93,8 +103,8 @@ input ObservationCodeInput {
 input MedicationStatementNoteInput {
   time: DateTime
   text: String
-  authorString: String
   authorReference: String
+  authorString: String
 }
 
 input MedicationStatementMedicationInput {
@@ -105,8 +115,8 @@ input MedicationStatementMedicationInput {
 input GoalNoteInput {
   time: DateTime
   text: String
-  authorString: String
   authorReference: String
+  authorString: String
 }
 
 input GoalDescriptionInput {
@@ -117,8 +127,8 @@ input GoalDescriptionInput {
 input ConditionNoteInput {
   time: DateTime
   text: String
-  authorString: String
   authorReference: String
+  authorString: String
 }
 
 input ConditionCodeInput {
@@ -129,8 +139,8 @@ input ConditionCodeInput {
 input AllergyIntoleranceNoteInput {
   time: DateTime
   text: String
-  authorString: String
   authorReference: String
+  authorString: String
 }
 
 type Annotation {
@@ -207,6 +217,9 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
+  "Text representation of the full name"
+  text: String
+
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -215,9 +228,6 @@ input PersonNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Text representation of the full name"
-  text: String
 
   """
   Parts that come after the name
@@ -846,6 +856,9 @@ input UserFilterInput {
   Might be provided when a name claim is present.
   """
   givenName: UserFilterGivenName
+
+  "Principal grants for this user in the current organization tenant."
+  principalGrants: PrincipalGrantFilterInput
 }
 
 input UserSortInput {
@@ -893,6 +906,21 @@ type User {
     "The number of records to skip."
     offset: Int
   ): [UserVersion!]!
+
+  "Principal grants for this user in the current organization tenant."
+  principalGrants(
+    "How to sort the records in the response"
+    sort: [PrincipalGrantSortInput]
+
+    "A filter to limit the results"
+    filter: PrincipalGrantFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PrincipalGrant!]!
 }
 
 "The result of the :create_principal_grant mutation"
@@ -912,6 +940,112 @@ input CreatePrincipalGrantInput {
   invitationId: ID
 }
 
+enum PrincipalGrantSortField {
+  ID
+  PRINCIPAL_TYPE
+  PRINCIPAL_ID
+  ACTIVE
+  USER_ID
+  INVITATION_ID
+}
+
+input PrincipalGrantFilterInvitationId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PrincipalGrantFilterUserId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PrincipalGrantFilterActive {
+  isNil: Boolean
+  eq: Boolean
+  notEq: Boolean
+  in: [Boolean!]
+  lessThan: Boolean
+  greaterThan: Boolean
+  lessThanOrEqual: Boolean
+  greaterThanOrEqual: Boolean
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PrincipalGrantFilterPrincipalId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PrincipalGrantFilterPrincipalType {
+  isNil: Boolean
+  eq: PrincipalType
+  notEq: PrincipalType
+  in: [PrincipalType!]
+  lessThan: PrincipalType
+  greaterThan: PrincipalType
+  lessThanOrEqual: PrincipalType
+  greaterThanOrEqual: PrincipalType
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PrincipalGrantFilterId {
+  isNil: Boolean
+  eq: ID
+  notEq: ID
+  in: [ID!]
+  lessThan: ID
+  greaterThan: ID
+  lessThanOrEqual: ID
+  greaterThanOrEqual: ID
+  isDistinctFrom: String
+  isNotDistinctFrom: String
+}
+
+input PrincipalGrantFilterInput {
+  and: [PrincipalGrantFilterInput!]
+  or: [PrincipalGrantFilterInput!]
+  not: [PrincipalGrantFilterInput!]
+  id: PrincipalGrantFilterId
+  principalType: PrincipalGrantFilterPrincipalType
+  principalId: PrincipalGrantFilterPrincipalId
+  active: PrincipalGrantFilterActive
+  userId: PrincipalGrantFilterUserId
+  invitationId: PrincipalGrantFilterInvitationId
+  user: UserFilterInput
+  invitation: InvitationFilterInput
+}
+
+input PrincipalGrantSortInput {
+  order: SortOrder
+  field: PrincipalGrantSortField!
+}
+
 type PrincipalGrant {
   id: ID!
   principalType: PrincipalType!
@@ -928,6 +1062,24 @@ type PrincipalGrant {
   ): [PrincipalGrantVersion!]!
   user: User
   invitation: Invitation
+}
+
+"The result of the :update_organization_user mutation"
+type UpdateOrganizationUserResult {
+  "The successful result of the mutation"
+  result: OrganizationUser
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateOrganizationUserInput {
+  "Organization-level role used for high-level authorization checks."
+  role: OrganizationUserRole
+
+  organizationId: ID
+
+  userId: ID
 }
 
 enum OrganizationUserSortField {
@@ -1008,6 +1160,9 @@ input OrganizationUserFilterInput {
   organization: OrganizationFilterInput
 
   user: UserFilterInput
+
+  "Principal grants linked to this member (tenant-scoped)."
+  principalGrants: PrincipalGrantFilterInput
 }
 
 input OrganizationUserSortInput {
@@ -1036,6 +1191,21 @@ type OrganizationUser {
   organization: Organization!
 
   user: User!
+
+  "Principal grants linked to this member (tenant-scoped)."
+  principalGrants(
+    "How to sort the records in the response"
+    sort: [PrincipalGrantSortInput]
+
+    "A filter to limit the results"
+    filter: PrincipalGrantFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PrincipalGrant!]!
 }
 
 "The result of the :invite_users_to_organization mutation"
@@ -1405,6 +1575,9 @@ input InvitationFilterInput {
   organization: OrganizationFilterInput
 
   invitedBy: UserFilterInput
+
+  "Principal grants created for this invitation (tenant-scoped). Resolves on acceptance."
+  principalGrants: PrincipalGrantFilterInput
 }
 
 input InvitationSortInput {
@@ -1442,6 +1615,21 @@ type Invitation {
   organization: Organization!
 
   invitedBy: User!
+
+  "Principal grants created for this invitation (tenant-scoped). Resolves on acceptance."
+  principalGrants(
+    "How to sort the records in the response"
+    sort: [PrincipalGrantSortInput]
+
+    "A filter to limit the results"
+    filter: PrincipalGrantFilterInput
+
+    "The number of records to return."
+    limit: Int
+
+    "The number of records to skip."
+    offset: Int
+  ): [PrincipalGrant!]!
 }
 
 type InvitationVersion {
@@ -4552,16 +4740,6 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-
-  "Optional principal grants to pre-create for the invited user."
-  principalGrants: [PrincipalGrantInput!]
-
-  "Organization role assigned when the invitation is accepted."
-  role: OrganizationUserRole
-}
-
 enum DesignationSortField {
   ID
   LANGUAGE
@@ -5695,6 +5873,8 @@ type RootMutationType {
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
 
   inviteUsersToOrganization(id: ID!, input: InviteUsersToOrganizationInput): InviteUsersToOrganizationResult!
+
+  updateOrganizationUser(id: ID!, input: UpdateOrganizationUserInput): UpdateOrganizationUserResult!
 
   createPrincipalGrant(input: CreatePrincipalGrantInput!): CreatePrincipalGrantResult!
 }

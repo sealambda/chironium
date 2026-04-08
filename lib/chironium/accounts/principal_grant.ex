@@ -89,6 +89,7 @@ defmodule Chironium.Accounts.PrincipalGrant do
     # Regular members may read only their own grants.
     policy action_type(:read) do
       authorize_if expr(user_id == ^actor(:id))
+      authorize_if accessing_from(Chironium.Accounts.Invitation, :principal_grants)
     end
 
     # No member may self-assign or modify grants; only power users (bypassed above) can.

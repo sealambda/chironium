@@ -51,6 +51,12 @@ defmodule Chironium.Accounts.Checks.PowerUser do
        when not is_nil(id),
        do: {:ok, id}
 
+  defp organization_id_from_data(%{
+         changeset: %{data: %Chironium.Accounts.OrganizationUsers{organization_id: id}}
+       })
+       when not is_nil(id),
+       do: {:ok, id}
+
   defp organization_id_from_data(_), do: :error
 
   defp access_level_from_context(%{query: query}) when not is_nil(query) do

@@ -9,7 +9,7 @@ interface ListSearchFieldProps {
 }
 
 /**
- * Search control used in list pages (customers, practitioners, etc.).
+ * Search control used in list pages (e.g. customers).
  */
 export function ListSearchField({ value, onChange, placeholder }: ListSearchFieldProps) {
   return (
