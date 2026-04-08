@@ -22,6 +22,8 @@ defmodule Mix.Tasks.Chironium.Seed.CareTeams do
   end
 
   @doc "Create a care team for each patient with 1–3 random practitioners."
+  def seed(_tenant, _patients, []), do: :ok
+
   def seed(tenant, patients, practitioners) do
     opts = Helpers.ash_opts(tenant)
 

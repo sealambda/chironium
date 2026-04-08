@@ -84,6 +84,11 @@ defmodule Chironium.CRM.Person do
     # TODO: deceased, address, maritalStatus, photo, communication.language
   end
 
+  relationships do
+    # Not exposed publicly; used by PersonVisibleToActor to traverse care-team chains at the DB level.
+    has_many :patients, Chironium.Health.Patient
+  end
+
   calculations do
     calculate :given_name_sort_key,
               :string,

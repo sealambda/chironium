@@ -25,7 +25,7 @@ defmodule Mix.Tasks.Chironium.Seed.NutritionPlans do
     opts = Helpers.ash_opts(tenant)
 
     Enum.each(patients, fn patient ->
-      for _ <- 1..Enum.random(0..2) do
+      for _ <- 1..Enum.random(0..2)//1 do
         generate(nutrition_plan(Keyword.merge(opts, patient_id: patient.id)))
       end
     end)

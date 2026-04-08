@@ -12,11 +12,6 @@ defmodule Chironium.Accounts.PrincipalGrant do
 
   Exactly one of `user_id`/`invitation_id` must be set; this is enforced by a
   before-action hook on every create action.
-
-  Both FKs omit DB-level constraints because they reference the `public` schema
-  across the tenant-schema boundary. Referential integrity for `user_id` is
-  enforced by the SetTenant plug; for `invitation_id`, it is enforced by the
-  create action that only runs within the invitation's after-action.
   """
 
   use Chironium.BaseResources.Tenantable,
@@ -30,14 +25,6 @@ defmodule Chironium.Accounts.PrincipalGrant do
     actor? true
   end
 
-  graphql do
-    type :principal_grant
-
-    mutations do
-      create :create_principal_grant, :create
-    end
-  end
-
   postgres do
     table "principal_grants"
 
@@ -49,6 +36,14 @@ defmodule Chironium.Accounts.PrincipalGrant do
         unique: true,
         where: "invitation_id IS NOT NULL",
         name: "principal_grants_unique_invitation_principal_index"
+    end
+  end
+
+  graphql do
+    type :principal_grant
+
+    mutations do
+      create :create_principal_grant, :create
     end
   end
 

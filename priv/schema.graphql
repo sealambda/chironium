@@ -19,8 +19,8 @@ type Duration {
 input TaskNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input TaskRequestedPeriodInput {
@@ -32,9 +32,6 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -43,6 +40,9 @@ input PractitionerNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
@@ -62,8 +62,8 @@ input PractitionerNameInput {
 input ObservationNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input ObservationValueCodeableConceptInput {
@@ -93,8 +93,8 @@ input ObservationCodeInput {
 input MedicationStatementNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input MedicationStatementMedicationInput {
@@ -105,8 +105,8 @@ input MedicationStatementMedicationInput {
 input GoalNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input GoalDescriptionInput {
@@ -117,8 +117,8 @@ input GoalDescriptionInput {
 input ConditionNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input ConditionCodeInput {
@@ -129,8 +129,8 @@ input ConditionCodeInput {
 input AllergyIntoleranceNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 type Annotation {
@@ -207,9 +207,6 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Text representation of the full name"
-  text: String
-
   "Time period when name was\/is in use"
   period: HumanNamePeriodInput
 
@@ -218,6 +215,9 @@ input PersonNameInput {
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come after the name
