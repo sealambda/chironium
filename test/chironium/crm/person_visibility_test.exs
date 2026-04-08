@@ -108,6 +108,33 @@ defmodule Chironium.CRM.PersonVisibilityTest do
       assert visible.results == []
     end
 
+    test "practitioner only sees their assigned persons among many unrelated patients", ctx do
+      practitioner_user = generate(user())
+      create_membership(ctx.organization.id, practitioner_user.id, :member)
+
+      practitioner = create_practitioner(ctx, "Dr Scale")
+      grant_practitioner(ctx, practitioner_user.id, practitioner.id)
+
+      # Create several unrelated patients that the practitioner cannot see.
+      for _ <- 1..8 do
+        create_patient_with_person(ctx)
+      end
+
+      # Create the one patient the practitioner is assigned to.
+      assigned_patient = create_patient_with_person(ctx)
+      care_team = create_care_team(ctx, assigned_patient, :active, "Scale team")
+      add_participant(ctx, care_team, practitioner)
+
+      actor = enrich_actor(practitioner_user, ctx.tenant)
+
+      visible =
+        Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
+        |> Map.fetch!(:results)
+
+      assert length(visible) == 1
+      assert hd(visible).id == assigned_patient.person_id
+    end
+
     test "person without a linked patient is invisible to non-power-users", ctx do
       practitioner_user = generate(user())
       create_membership(ctx.organization.id, practitioner_user.id, :member)

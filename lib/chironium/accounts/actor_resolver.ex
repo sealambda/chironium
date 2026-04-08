@@ -48,13 +48,19 @@ defmodule Chironium.Accounts.ActorResolver do
 
         resolver ->
           ids = Enum.map(type_grants, & &1.principal_id)
-
-          case resolver.resolve(hd(ids), ids, user, tenant) do
-            {:ok, principal} -> principal
-            :error -> nil
-          end
+          try_resolve(resolver, ids, ids, user, tenant)
       end
     end) || user
+  end
+
+  # Try each principal ID in order until a resolver succeeds.
+  defp try_resolve(_resolver, [], _all_ids, _user, _tenant), do: nil
+
+  defp try_resolve(resolver, [id | rest], all_ids, user, tenant) do
+    case resolver.resolve(id, all_ids, user, tenant) do
+      {:ok, principal} -> principal
+      :error -> try_resolve(resolver, rest, all_ids, user, tenant)
+    end
   end
 
   defp active_grants(user_id, tenant) do

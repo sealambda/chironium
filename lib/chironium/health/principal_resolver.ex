@@ -14,6 +14,9 @@ defmodule Chironium.Health.PrincipalResolver do
            authorize?: false,
            tenant: tenant
          ) do
+      {:ok, nil} ->
+        :error
+
       {:ok, practitioner} ->
         {:ok,
          practitioner

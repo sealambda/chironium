@@ -25,7 +25,7 @@ defmodule Mix.Tasks.Chironium.Seed.Allergies do
     opts = Helpers.ash_opts(tenant)
 
     Enum.each(patients, fn patient ->
-      for _ <- 1..Enum.random(0..3) do
+      for _ <- 1..Enum.random(0..3)//1 do
         generate(allergy_intolerance(Keyword.merge(opts, patient_id: patient.id)))
       end
     end)

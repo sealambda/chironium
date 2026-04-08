@@ -38,15 +38,15 @@ defmodule Mix.Tasks.Chironium.Seed.Observations do
     end
 
     # Hip first, then waist, so waist-hip ratio can be computed.
-    for _ <- 1..Enum.random(0..3) do
+    for _ <- 1..Enum.random(0..3)//1 do
       create_observation(patient, :log_hip_circumference, %{hip_circumference_cm: 85.0 + :rand.uniform() * 30}, opts)
     end
 
-    for _ <- 1..Enum.random(0..3) do
+    for _ <- 1..Enum.random(0..3)//1 do
       create_observation(patient, :log_waist_circumference, %{waist_circumference_cm: 65.0 + :rand.uniform() * 40}, opts)
     end
 
-    for _ <- 1..Enum.random(0..2) do
+    for _ <- 1..Enum.random(0..2)//1 do
       create_observation(patient, :log_chest_circumference, %{chest_circumference_cm: 80.0 + :rand.uniform() * 30}, opts)
     end
   end
