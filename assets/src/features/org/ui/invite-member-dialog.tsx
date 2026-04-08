@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { inviteUserToOrganization } from "@/features/org/api/org-api";
+import {
+  inviteUserToOrganization,
+  inviteUserWithPrincipalGrants,
+} from "@/features/org/api/org-api";
+import { ORGANIZATION_MEMBER_ROLE_OPTIONS } from "@/features/org/constants/organization-member-role-options";
+import { createPractitioner } from "@/features/practitioners/api/practitioners-api";
 import type { OrganizationUserRole } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -32,11 +38,6 @@ interface InviteMemberDialogProps {
   readonly onInvited: () => Promise<void>;
 }
 
-const INVITATION_ROLE_OPTIONS: Array<{ value: OrganizationUserRole; label: () => string }> = [
-  { value: "MEMBER", label: m.settings_invite_role_member },
-  { value: "POWER_USER", label: m.settings_invite_role_power_user },
-];
-
 export function InviteMemberDialog({
   open,
   onOpenChange,
@@ -45,6 +46,9 @@ export function InviteMemberDialog({
 }: Readonly<InviteMemberDialogProps>) {
   const [email, setEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<OrganizationUserRole>("MEMBER");
+  const [inviteAsPractitioner, setInviteAsPractitioner] = useState(false);
+  const [practitionerGivenName, setPractitionerGivenName] = useState("");
+  const [practitionerFamilyName, setPractitionerFamilyName] = useState("");
   const [isInviting, setIsInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
@@ -52,6 +56,9 @@ export function InviteMemberDialog({
     setInviteError(null);
     setEmail("");
     setInviteRole("MEMBER");
+    setInviteAsPractitioner(false);
+    setPractitionerGivenName("");
+    setPractitionerFamilyName("");
     setIsInviting(false);
   };
 
@@ -70,14 +77,35 @@ export function InviteMemberDialog({
       return;
     }
 
+    const givenName = practitionerGivenName.trim();
+    const familyName = practitionerFamilyName.trim();
+    if (inviteAsPractitioner && !givenName && !familyName) {
+      setInviteError(m.practitioner_create_error_name());
+      return;
+    }
+
     setInviteError(null);
     setIsInviting(true);
     try {
-      await inviteUserToOrganization({
-        organizationId,
-        email: normalizedEmail,
-        role: inviteRole,
-      });
+      if (inviteAsPractitioner) {
+        const practitioner = await createPractitioner(organizationId, {
+          givenName,
+          familyName,
+          birthDate: "",
+        });
+        await inviteUserWithPrincipalGrants({
+          organizationId,
+          email: normalizedEmail,
+          role: inviteRole,
+          principalGrants: [{ principalType: "PRACTITIONER", principalId: practitioner.id }],
+        });
+      } else {
+        await inviteUserToOrganization({
+          organizationId,
+          email: normalizedEmail,
+          role: inviteRole,
+        });
+      }
       toast.success(m.settings_invite_success());
       handleOpenChange(false);
       await onInvited();
@@ -112,8 +140,8 @@ export function InviteMemberDialog({
             <FieldLabel>{m.settings_invite_role_label()}</FieldLabel>
             <Select
               value={inviteRole}
-              onValueChange={(value) => setInviteRole(value ?? "MEMBER")}
-              items={INVITATION_ROLE_OPTIONS.map((option) => ({
+              onValueChange={(value) => setInviteRole((value ?? "MEMBER") as OrganizationUserRole)}
+              items={ORGANIZATION_MEMBER_ROLE_OPTIONS.map((option) => ({
                 value: option.value,
                 label: option.label(),
               }))}
@@ -123,7 +151,7 @@ export function InviteMemberDialog({
               </SelectTrigger>
               <SelectPositioner>
                 <SelectContent>
-                  {INVITATION_ROLE_OPTIONS.map((option) => (
+                  {ORGANIZATION_MEMBER_ROLE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label()}
                     </SelectItem>
@@ -132,6 +160,37 @@ export function InviteMemberDialog({
               </SelectPositioner>
             </Select>
           </Field>
+
+          <Field>
+            <div className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={inviteAsPractitioner}
+                onCheckedChange={(value) => setInviteAsPractitioner(Boolean(value))}
+              />
+              <span>{m.settings_invite_as_practitioner()}</span>
+            </div>
+          </Field>
+
+          {inviteAsPractitioner ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field>
+                <FieldLabel required>{m.practitioner_create_given_label()}</FieldLabel>
+                <Input
+                  value={practitionerGivenName}
+                  onChange={(event) => setPractitionerGivenName(event.target.value)}
+                  autoComplete="given-name"
+                />
+              </Field>
+              <Field>
+                <FieldLabel required>{m.practitioner_create_family_label()}</FieldLabel>
+                <Input
+                  value={practitionerFamilyName}
+                  onChange={(event) => setPractitionerFamilyName(event.target.value)}
+                  autoComplete="family-name"
+                />
+              </Field>
+            </div>
+          ) : null}
         </FieldGroup>
 
         {inviteError ? (

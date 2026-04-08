@@ -170,6 +170,12 @@ defmodule Chironium.Accounts.User do
   relationships do
     has_many :identities, Chironium.Accounts.UserIdentity
     has_many :organization_memberships, Chironium.Accounts.OrganizationUsers
+
+    has_many :principal_grants, Chironium.Accounts.PrincipalGrant do
+      description "Principal grants for this user in the current organization tenant."
+      destination_attribute :user_id
+      public? true
+    end
   end
 
   identities do

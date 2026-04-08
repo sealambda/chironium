@@ -1,4 +1,33 @@
 /**
+ * Resolves given and family strings for forms (e.g. practitioner) from User-like profile fields.
+ * Prefers explicit `givenName` / `familyName`; otherwise splits `name` on whitespace
+ * (first token → given, remainder → family).
+ */
+export function givenFamilyFromUserProfile(fields: {
+  name: string | null | undefined;
+  givenName: string | null | undefined;
+  familyName: string | null | undefined;
+}): { givenName: string; familyName: string } {
+  const g = fields.givenName?.trim() ?? "";
+  const f = fields.familyName?.trim() ?? "";
+  if (g || f) {
+    return { givenName: g, familyName: f };
+  }
+  const full = fields.name?.trim() ?? "";
+  if (!full) {
+    return { givenName: "", familyName: "" };
+  }
+  const parts = full.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return { givenName: "", familyName: "" };
+  }
+  if (parts.length === 1) {
+    return { givenName: parts[0] ?? "", familyName: "" };
+  }
+  return { givenName: parts[0] ?? "", familyName: parts.slice(1).join(" ") };
+}
+
+/**
  * Generate initials from a full name.
  * Uses first letter of first word and last word.
  * @example "John Smith" -> "JS", "Maria" -> "MM", "" -> "?"

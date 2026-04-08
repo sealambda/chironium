@@ -15,7 +15,6 @@ const ListPractitionersQuery = graphql(`
           text
         }
         active
-        birthDate
       }
     }
   }
@@ -26,13 +25,6 @@ const CreatePractitionerMutation = graphql(`
     createPractitioner(input: $input) {
       result {
         id
-        name {
-          given
-          family
-          text
-        }
-        active
-        birthDate
       }
       errors {
         message
@@ -53,11 +45,25 @@ export interface CreatePractitionerParams {
   birthDate: string;
 }
 
+export type CreatedPractitioner = NonNullable<
+  NonNullable<ResultOf<typeof CreatePractitionerMutation>["createPractitioner"]>["result"]
+>;
+
 // ─── Functions ───────────────────────────────────────────────────────
 
-/**
- * Fetches practitioners (newest first). Apply `applyPractitionerListSort` in the UI layer.
- */
+function practitionerGivenNameSortKey(name: Practitioner["name"]): string {
+  const given = name[0]?.given?.[0] ?? "";
+  return given.toLowerCase();
+}
+
+/** Stable copy sorted by first given name (A-Z) for display lists (e.g. reassignment picker). */
+export function sortPractitionersByGivenNameAsc(items: Practitioner[]): Practitioner[] {
+  return [...items].sort((a, b) =>
+    practitionerGivenNameSortKey(a.name).localeCompare(practitionerGivenNameSortKey(b.name)),
+  );
+}
+
+/** Fetches practitioners (newest first). Use {@link sortPractitionersByGivenNameAsc} when the UI needs alphabetical order. */
 export async function fetchPractitionersList(organizationId: string): Promise<Practitioner[]> {
   if (!organizationId) {
     return [];
@@ -78,7 +84,7 @@ export async function fetchPractitionersList(organizationId: string): Promise<Pr
 export async function createPractitioner(
   organizationId: string,
   values: CreatePractitionerParams,
-): Promise<Practitioner> {
+): Promise<CreatedPractitioner> {
   const given = values.givenName.trim();
   const family = values.familyName.trim();
   const text = [given, family].filter(Boolean).join(" ").trim();

@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { bulkReassignPractitionersToCustomers } from "@/features/customers/api/care-team-api";
-import { applyPractitionerListSort } from "@/features/practitioners/api/practitioner-list-sort";
-import { fetchPractitionersList } from "@/features/practitioners/api/practitioners-api";
+import {
+  fetchPractitionersList,
+  sortPractitionersByGivenNameAsc,
+} from "@/features/practitioners/api/practitioners-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
@@ -54,7 +56,7 @@ export function ReassignCustomersDialog({
 
   const comboItems = useMemo((): PractitionerComboItem[] => {
     const active = practitioners.filter((p) => p.active !== false);
-    return applyPractitionerListSort([...active], "givenNameAsc").map((p) => ({
+    return sortPractitionersByGivenNameAsc(active).map((p) => ({
       value: p.id,
       label: formatPersonName(p.name),
     }));
