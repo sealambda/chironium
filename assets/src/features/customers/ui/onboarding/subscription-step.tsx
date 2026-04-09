@@ -54,7 +54,7 @@ function PlanSelector({ plans, loading, value, onChange }: PlanSelectorProps) {
         label: getTranslatedPlanLabel(plan),
       }))}
     >
-      <SelectTrigger className="w-full">
+      <SelectTrigger className="w-full" data-testid="onboarding-plan-trigger">
         <SelectValue placeholder={m.plan_placeholder()} />
       </SelectTrigger>
       <SelectPositioner>

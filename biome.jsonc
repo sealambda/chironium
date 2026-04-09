@@ -3,7 +3,14 @@
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
-    "includes": ["**/src/**", "**/js/**", "**/config.*", "**/jsonc"]
+    "includes": [
+      "**/src/**",
+      "**/js/**",
+      "**/config.*",
+      "**/jsonc",
+      "**/assets/e2e/**/*.ts",
+      "**/playwright.config.ts"
+    ]
   },
   "vcs": {
     "enabled": true,
@@ -269,11 +276,26 @@
   "overrides": [
     // Build tools (Vite, codegen) require default exports.
     {
-      "includes": ["*.config.{js,ts,mjs,mts}"],
+      "includes": ["*.config.{js,ts,mjs,mts}", "**/assets/playwright.config.ts"],
       "linter": {
         "rules": {
           "style": {
             "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+
+    // Playwright E2E: default export for global setup; locator strings trigger noSecrets false positives.
+    {
+      "includes": ["**/assets/e2e/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          },
+          "security": {
+            "noSecrets": "off"
           }
         }
       }

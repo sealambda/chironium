@@ -109,13 +109,13 @@ defmodule Chironium.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ash.setup", "assets.setup", "assets.build", "run priv/repo/seeds.exs"],
+      setup: ["deps.get", "ash.setup --quiet", "assets.setup", "assets.codegen", "assets.build", "run priv/repo/seeds.exs"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ash.setup --quiet", "test"],
-      "assets.setup": ["phoenix_vite.npm assets install"],
-      "assets.build": ["phoenix_vite.npm vite build"],
-      "assets.codegen": ["cmd sh -c 'cd assets && pnpm gql:generate'"],
+      "assets.setup": ["cmd sh -c 'pnpm install --frozen-lockfile'"],
+      "assets.build": ["cmd sh -c 'pnpm --dir assets build'"],
+      "assets.codegen": ["cmd sh -c 'pnpm --dir assets gql:generate'"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
 
       # Clean rebuild for branch switching - preserves migrations,

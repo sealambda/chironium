@@ -274,7 +274,7 @@ export const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
 export async function fetchAccessibleOrganizations(): Promise<OrganizationRecord[]> {
   const data = await requestGraphql({
     document: ListOrganizationsQuery,
-    variables: { first: 10 },
+    variables: { first: 100 },
   });
   return data.listOrganizations?.results ?? [];
 }

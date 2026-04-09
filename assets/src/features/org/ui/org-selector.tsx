@@ -57,6 +57,7 @@ export function OrgSelector({
         render={
           <button
             type="button"
+            data-testid="org-selector-trigger"
             className={cn(
               "group flex w-full items-center gap-2 rounded-lg px-2 py-2",
               !showNameOnMobile && "justify-center md:justify-start",
@@ -98,6 +99,7 @@ export function OrgSelector({
               key={org.id}
               onClick={() => onSelectOrg(org.id)}
               className="gap-2 p-2"
+              data-testid={`org-selector-item-${org.id}`}
             >
               <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border font-bold text-xs">
                 {getOrgMark(org.name)}
@@ -106,7 +108,11 @@ export function OrgSelector({
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onCreateClick} className="gap-2 p-2">
+          <DropdownMenuItem
+            onClick={onCreateClick}
+            className="gap-2 p-2"
+            data-testid="org-selector-create-button"
+          >
             <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
               <Plus className="size-4" />
             </span>

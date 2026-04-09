@@ -121,6 +121,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
           <Field data-invalid={Boolean(errors.name)}>
             <FieldLabel>{m.plan_name()}</FieldLabel>
             <Input
+              data-testid="create-org-plan-name-input"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -139,6 +140,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
             <Field data-invalid={Boolean(errors.durationValue)}>
               <FieldLabel>{m.plan_duration_value()}</FieldLabel>
               <Input
+                data-testid="create-org-plan-duration-value-input"
                 type="number"
                 min="1"
                 value={durationValue}
@@ -167,7 +169,10 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
                 disabled={submitting}
                 items={DURATION_UNITS}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger
+                  className="w-full"
+                  data-testid="create-org-plan-duration-unit-trigger"
+                >
                   <SelectValue placeholder={m.duration_placeholder()} />
                 </SelectTrigger>
                 <SelectPositioner>
@@ -186,6 +191,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
         </FieldGroup>
 
         <Button
+          data-testid="create-org-add-plan-button"
           variant="outline"
           size="sm"
           className="w-full"
@@ -204,7 +210,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
         <Button variant="outline" onClick={onBack} disabled={submitting}>
           {m.common_back()}
         </Button>
-        <Button onClick={handleFinish} disabled={submitting}>
+        <Button onClick={handleFinish} disabled={submitting} data-testid="create-org-finish-button">
           {submitting ? m.common_creating() : m.common_finish()}
         </Button>
       </DialogFooter>

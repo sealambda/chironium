@@ -112,7 +112,7 @@ export function MakeMemberPractitionerDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent data-testid="make-practitioner-dialog">
         <DialogHeader>
           <DialogTitle>{m.settings_make_practitioner_dialog_title()}</DialogTitle>
           <DialogDescription>{m.settings_make_practitioner_dialog_desc()}</DialogDescription>
@@ -123,6 +123,7 @@ export function MakeMemberPractitionerDialog({
             <Field>
               <FieldLabel required>{m.practitioner_create_given_label()}</FieldLabel>
               <Input
+                data-testid="make-practitioner-given-name-input"
                 value={givenName}
                 onChange={(e) => setGivenName(e.target.value)}
                 autoComplete="given-name"
@@ -131,6 +132,7 @@ export function MakeMemberPractitionerDialog({
             <Field>
               <FieldLabel required>{m.practitioner_create_family_label()}</FieldLabel>
               <Input
+                data-testid="make-practitioner-family-name-input"
                 value={familyName}
                 onChange={(e) => setFamilyName(e.target.value)}
                 autoComplete="family-name"
@@ -149,7 +151,12 @@ export function MakeMemberPractitionerDialog({
           <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
             {m.common_cancel()}
           </Button>
-          <Button type="button" onClick={() => void handleSubmit()} disabled={saving || !target}>
+          <Button
+            type="button"
+            onClick={() => void handleSubmit()}
+            disabled={saving || !target}
+            data-testid="make-practitioner-submit-button"
+          >
             {saving ? m.common_saving() : m.settings_make_practitioner_submit()}
           </Button>
         </DialogFooter>

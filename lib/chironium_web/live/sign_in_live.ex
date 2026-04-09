@@ -205,7 +205,7 @@ defmodule ChironiumWeb.SignInLive do
   defp welcome_heading(assigns) do
     ~H"""
     <div class="text-center space-y-1">
-      <h1 class="text-lg sm:text-xl font-medium tracking-tight">
+      <h1 class="text-lg sm:text-xl font-medium tracking-tight" data-testid="sign-in-heading">
         {gettext("Welcome Back")}
       </h1>
       <p class="text-auth-muted text-sm">
@@ -220,6 +220,7 @@ defmodule ChironiumWeb.SignInLive do
     <div class="space-y-2">
       <a
         href={~p"/auth/user/google"}
+        data-testid="sign-in-google-link"
         class={[
           "w-full h-9 sm:h-10 rounded-md",
           "bg-auth-card hover:bg-auth-surface",

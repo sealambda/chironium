@@ -117,7 +117,9 @@ function useOnboardingDraft(
             queryKey: ["customers", "subscriptions", organizationId],
           }),
         ]);
-        toast.success(m.onboarding_success());
+        toast.success(
+          <span data-testid="toast-customer-onboarding-complete">{m.onboarding_success()}</span>,
+        );
         onCloseRef.current();
       } catch (err) {
         const message = err instanceof Error ? err.message : m.onboarding_error();
@@ -184,7 +186,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   return (
     <>
       <Dialog open={open} onOpenChange={handleDialogChange}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl" data-testid="customer-onboarding-dialog">
           <DialogHeader>
             <DialogTitle>{m.onboarding_title()}</DialogTitle>
           </DialogHeader>

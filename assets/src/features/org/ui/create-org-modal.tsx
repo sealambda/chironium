@@ -76,10 +76,9 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
       setIsSubmitting(true);
       try {
         const orgId = await submitOrgCreation(finalDraft);
-        // Invalidate the cached org list so selectOrg finds the new org.
         await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
         await selectOrg(orgId);
-        toast.success(m.org_created());
+        toast.success(<span data-testid="toast-organization-created">{m.org_created()}</span>);
         handleClose();
       } catch (err) {
         const message = err instanceof Error ? err.message : m.org_create_error();
@@ -96,7 +95,7 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent>
+      <DialogContent data-testid="create-org-dialog">
         <DialogHeader>
           <DialogTitle>{m.org_create()}</DialogTitle>
         </DialogHeader>
@@ -104,7 +103,9 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
         <ResponsiveStepIndicator steps={stepLabels} currentStep={currentStep} />
 
         <div className="space-y-1">
-          <h3 className="font-medium text-base">{currentStepMeta.title()}</h3>
+          <h3 className="font-medium text-base" data-testid="create-org-step-title">
+            {currentStepMeta.title()}
+          </h3>
           <p className="text-muted-foreground text-sm">{currentStepMeta.description()}</p>
         </div>
 

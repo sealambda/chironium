@@ -37,6 +37,7 @@ function NoOrgScreen() {
           description={m.org_no_access_desc()}
           actionLabel={m.org_no_access_action()}
           onAction={() => setIsCreateOrgOpen(true)}
+          actionTestId="no-org-create-organization-button"
           className="w-full max-w-lg"
         />
       </div>

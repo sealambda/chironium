@@ -52,6 +52,12 @@ defmodule ChironiumWeb.Router do
     plug ChironiumWeb.Plugs.RequireAuthenticatedUser
   end
 
+  # JSON body is parsed in Endpoint; no CSRF — dev-only Playwright session bootstrap.
+  pipeline :playwright_e2e do
+    plug :accepts, ["json"]
+    plug :fetch_session
+  end
+
   scope "/", ChironiumWeb do
     pipe_through :browser
 
@@ -92,6 +98,15 @@ defmodule ChironiumWeb.Router do
 
   # Enable LiveDashboard and Swoosh mailbox preview in development.
   # These routes MUST come before the catch-all app routes.
+  if Application.compile_env(:chironium, :dev_routes) do
+    scope "/dev/playwright", ChironiumWeb do
+      pipe_through :playwright_e2e
+
+      post "/session", PlaywrightE2EController, :create
+      post "/user", PlaywrightE2EController, :ensure_user
+    end
+  end
+
   if Application.compile_env(:chironium, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.

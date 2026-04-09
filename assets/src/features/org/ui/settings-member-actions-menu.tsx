@@ -59,6 +59,7 @@ export function SettingsMemberActionsMenu({
             size="icon"
             className="size-8"
             aria-label={m.settings_members_actions_aria()}
+            data-testid={`member-actions-${row.key}`}
           />
         }
       >
@@ -66,12 +67,18 @@ export function SettingsMemberActionsMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={4}>
         {editTarget ? (
-          <DropdownMenuItem onClick={() => onEditRole(editTarget)}>
+          <DropdownMenuItem
+            onClick={() => onEditRole(editTarget)}
+            data-testid={`member-edit-role-${row.key}`}
+          >
             {m.settings_member_edit_role()}
           </DropdownMenuItem>
         ) : null}
         {row.hasPractitionerGrant ? null : (
-          <DropdownMenuItem onClick={() => onMakePractitioner(makePractitionerTargetFromRow(row))}>
+          <DropdownMenuItem
+            onClick={() => onMakePractitioner(makePractitionerTargetFromRow(row))}
+            data-testid={`member-make-practitioner-${row.key}`}
+          >
             {m.settings_member_make_practitioner()}
           </DropdownMenuItem>
         )}
