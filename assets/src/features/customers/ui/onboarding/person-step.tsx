@@ -111,6 +111,7 @@ export function PersonStep({
               <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel required>{m.field_given_name()}</FieldLabel>
                 <Input
+                  data-testid="onboarding-given-name-input"
                   maxLength={50}
                   value={field.state.value}
                   onChange={(e) => {
@@ -161,6 +162,7 @@ export function PersonStep({
               <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel required>{m.field_family_name()}</FieldLabel>
                 <Input
+                  data-testid="onboarding-family-name-input"
                   maxLength={50}
                   value={field.state.value}
                   onChange={(e) => {

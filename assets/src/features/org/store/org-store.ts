@@ -74,15 +74,16 @@ export const useOrgStore = create<OrgStoreState>()(
           });
           availableOrgs = refreshed ?? [];
           org = availableOrgs.find((candidate) => candidate.id === orgId) ?? null;
-          set(
-            {
-              availableOrgs,
-              selectedOrg: resolveSelectedOrg(get().selectedOrg, availableOrgs),
-            },
-            false,
-            "orgs/selectOrg:refresh",
-          );
         }
+
+        set(
+          {
+            availableOrgs,
+            selectedOrg: resolveSelectedOrg(get().selectedOrg, availableOrgs),
+          },
+          false,
+          "orgs/selectOrg:refresh",
+        );
 
         if (!org) {
           const error = new Error("Organization not found");

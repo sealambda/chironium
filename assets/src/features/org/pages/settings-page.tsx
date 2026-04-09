@@ -84,7 +84,10 @@ export function SettingsPage() {
   return (
     <div className="space-y-4 pt-7">
       <header>
-        <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
+        <h1
+          className="font-bold text-2xl text-foreground uppercase tracking-wide"
+          data-testid="settings-heading"
+        >
           {m.settings_title()}
         </h1>
       </header>
@@ -111,7 +114,11 @@ export function SettingsPage() {
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle>{m.settings_members_section_title()}</CardTitle>
           {hasVisibleMembers ? (
-            <Button type="button" onClick={() => setIsInviteOpen(true)}>
+            <Button
+              type="button"
+              onClick={() => setIsInviteOpen(true)}
+              data-testid="settings-invite-member-button"
+            >
               {m.settings_invite_member()}
             </Button>
           ) : null}

@@ -9,6 +9,7 @@ interface EmptyStateProps {
   readonly description?: string;
   readonly actionLabel?: string;
   readonly onAction?: () => void;
+  readonly actionTestId?: string;
   readonly className?: string;
 }
 
@@ -18,6 +19,7 @@ function EmptyState({
   description,
   actionLabel,
   onAction,
+  actionTestId,
   className,
 }: EmptyStateProps) {
   return (
@@ -35,7 +37,7 @@ function EmptyState({
           {description ? <div className="text-muted-foreground text-sm">{description}</div> : null}
         </div>
         {actionLabel && onAction ? (
-          <Button variant="outline" size="sm" onClick={onAction}>
+          <Button variant="outline" size="sm" onClick={onAction} data-testid={actionTestId}>
             {actionLabel}
           </Button>
         ) : null}

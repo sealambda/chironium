@@ -69,12 +69,12 @@ config :chironium, ChironiumWeb.Endpoint,
     web_console_logger: true,
     patterns: [
       # Static assets, except user uploads
-      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$"E,
+      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$",
       # Gettext translations
-      ~r"priv/gettext/.*\.po$"E,
+      ~r"priv/gettext/.*\.po$",
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/chironium_web/router\.ex$"E,
-      ~r"lib/chironium_web/(controllers|live|components)/.*\.(ex|heex)$"E
+      ~r"lib/chironium_web/router\.ex$",
+      ~r"lib/chironium_web/(controllers|live|components)/.*\.(ex|heex)$"
     ]
   ]
 
@@ -83,7 +83,10 @@ config :chironium, ChironiumWeb.Endpoint,
 # Production uses environment variables configured in runtime.exs.
 config :chironium,
   dev_routes: true,
-  token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE"
+  token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE",
+  # Shared secret for POST /dev/playwright/session (Playwright E2E)
+  playwright_e2e_secret:
+    System.get_env("PLAYWRIGHT_E2E_SECRET", "local-playwright-e2e-secret-do-not-use-in-prod")
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"

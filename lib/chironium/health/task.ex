@@ -75,7 +75,7 @@ defmodule Chironium.Health.Task do
       transition :complete, from: :in_progress, to: :completed
       transition :fail, from: :in_progress, to: :failed
 
-      transition :destroy, from: :*, to: :entered_in_error
+      transition :mark_entered_in_error, from: :*, to: :entered_in_error
     end
   end
 
@@ -86,7 +86,24 @@ defmodule Chironium.Health.Task do
       change transition_state(:ready)
     end
 
+    update :request do
+      change transition_state(:requested)
+    end
+
+    update :receive do
+      change transition_state(:received)
+    end
+
+    update :accept do
+      change transition_state(:accepted)
+    end
+
+    update :reject do
+      change transition_state(:rejected)
+    end
+
     update :start do
+      require_atomic? false
       change transition_state(:in_progress)
 
       change fn changeset, _context ->
@@ -97,6 +114,7 @@ defmodule Chironium.Health.Task do
     end
 
     update :complete do
+      require_atomic? false
       change transition_state(:completed)
 
       change fn changeset, _context ->
@@ -114,6 +132,7 @@ defmodule Chironium.Health.Task do
     end
 
     update :fail do
+      require_atomic? false
       change transition_state(:failed)
 
       change fn changeset, _context ->
@@ -128,6 +147,22 @@ defmodule Chironium.Health.Task do
           "end" => DateTime.utc_now()
         })
       end
+    end
+
+    update :cancel do
+      change transition_state(:cancelled)
+    end
+
+    update :suspend do
+      change transition_state(:on_hold)
+    end
+
+    update :resume do
+      change transition_state(:in_progress)
+    end
+
+    update :mark_entered_in_error do
+      change transition_state(:entered_in_error)
     end
   end
 

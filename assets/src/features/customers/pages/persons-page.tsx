@@ -129,7 +129,7 @@ export function CustomersPage() {
             />
           </div>
         ) : null}
-        <Button onClick={() => setOnboardingOpen(true)}>
+        <Button onClick={() => setOnboardingOpen(true)} data-testid="customers-new-button-header">
           <Plus className="size-4" data-icon="inline-start" />
           <span className="hidden md:inline">{m.customer_add()}</span>
         </Button>
@@ -165,7 +165,10 @@ export function CustomersPage() {
     <div className="space-y-4 pt-7">
       <header className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h1 className="font-bold text-foreground text-xl uppercase tracking-wide">
+          <h1
+            className="font-bold text-foreground text-xl uppercase tracking-wide"
+            data-testid="customers-heading"
+          >
             {m.customers_title()}
           </h1>
           <span className="text-muted-foreground text-sm">({customers.length})</span>
@@ -240,6 +243,7 @@ function CustomerList({
         description={m.customers_empty_desc()}
         actionLabel={m.customer_add()}
         onAction={onAdd}
+        actionTestId="customers-new-button-empty"
       />
     );
   }

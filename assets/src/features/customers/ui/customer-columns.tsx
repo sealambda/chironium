@@ -17,6 +17,7 @@ export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
     header: ({ table }) => (
       <span className="flex justify-center pr-1">
         <Checkbox
+          data-testid="customers-select-all-checkbox"
           aria-label={m.customers_select_all_aria()}
           checked={table.getIsAllPageRowsSelected()}
           indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
@@ -29,6 +30,7 @@ export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
     cell: ({ row }) => (
       <span className="flex justify-center pr-1">
         <Checkbox
+          data-testid={`customers-row-checkbox-${row.original.person.id}`}
           aria-label={m.customers_select_row_aria({
             name: formatPersonName(row.original.person.name),
           })}

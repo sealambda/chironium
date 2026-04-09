@@ -54,3 +54,8 @@ node_modules/
 .DS_Store
 
 package-lock.json
+
+# Playwright (assets)
+/assets/e2e/.auth/
+/assets/playwright-report/
+/assets/test-results/

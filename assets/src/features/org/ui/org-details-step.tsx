@@ -47,6 +47,7 @@ export function OrgDetailsStep({ initialData, onSubmit, onCancel }: OrgDetailsSt
         <Field data-invalid={Boolean(errors.orgName)}>
           <FieldLabel>{m.org_name()}</FieldLabel>
           <Input
+            data-testid="create-org-name-input"
             value={orgName}
             onChange={(e) => {
               setOrgName(e.target.value);
@@ -68,6 +69,7 @@ export function OrgDetailsStep({ initialData, onSubmit, onCancel }: OrgDetailsSt
         <Field data-invalid={Boolean(errors.orgSlug)}>
           <FieldLabel>{m.org_slug()}</FieldLabel>
           <Input
+            data-testid="create-org-slug-input"
             value={orgSlug}
             onChange={(e) => {
               setOrgSlug(e.target.value);
@@ -87,7 +89,9 @@ export function OrgDetailsStep({ initialData, onSubmit, onCancel }: OrgDetailsSt
         <Button variant="outline" onClick={onCancel}>
           {m.common_cancel()}
         </Button>
-        <Button onClick={handleSubmit}>{m.common_next()}</Button>
+        <Button onClick={handleSubmit} data-testid="create-org-next-button">
+          {m.common_next()}
+        </Button>
       </DialogFooter>
     </>
   );

@@ -37,6 +37,7 @@ export function CustomerBulkActionBar({
           )}
           onClick={onReassign}
           aria-label={m.customers_bulk_reassign()}
+          data-testid="customers-reassign-button"
         >
           <UserPlus className="size-4 shrink-0" />
           <span className="hidden md:inline">{m.customers_bulk_reassign()}</span>

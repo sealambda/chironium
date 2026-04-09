@@ -140,7 +140,7 @@ export function ReassignCustomersDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" data-testid="reassign-dialog">
         <DialogHeader>
           <DialogTitle>{m.customers_reassign_dialog_title()}</DialogTitle>
           <DialogDescription>{m.customers_reassign_dialog_description()}</DialogDescription>
@@ -199,6 +199,7 @@ export function ReassignCustomersDialog({
                             <div className="flex items-start gap-3 px-2 py-2.5">
                               <Checkbox
                                 id={rowId}
+                                data-testid={`reassign-practitioner-checkbox-${item.value}`}
                                 checked={selectedValueSet.has(item.value)}
                                 className="mt-0.5"
                                 disabled={submitting}
@@ -206,6 +207,7 @@ export function ReassignCustomersDialog({
                               />
                               <label
                                 htmlFor={rowId}
+                                data-testid={`reassign-practitioner-label-${item.value}`}
                                 className="min-w-0 flex-1 cursor-pointer text-foreground text-sm leading-snug"
                               >
                                 {item.label}
@@ -225,6 +227,7 @@ export function ReassignCustomersDialog({
             <div className="flex gap-3">
               <Checkbox
                 id="reassign-replace-assignments"
+                data-testid="reassign-replace-checkbox"
                 checked={replaceExistingAssignments}
                 disabled={submitting}
                 onCheckedChange={(v) => setReplaceExistingAssignments(Boolean(v))}
@@ -257,6 +260,7 @@ export function ReassignCustomersDialog({
             type="button"
             onClick={() => void handleSubmit()}
             disabled={submitting || comboItems.length === 0}
+            data-testid="reassign-apply-button"
           >
             {m.customers_reassign_submit()}
           </Button>

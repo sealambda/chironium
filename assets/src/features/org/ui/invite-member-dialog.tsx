@@ -118,7 +118,7 @@ export function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent data-testid="invite-member-dialog">
         <DialogHeader>
           <DialogTitle>{m.settings_invite_dialog_title()}</DialogTitle>
           <DialogDescription>{m.settings_invite_dialog_desc()}</DialogDescription>
@@ -128,6 +128,7 @@ export function InviteMemberDialog({
           <Field>
             <FieldLabel>{m.settings_invite_email_label()}</FieldLabel>
             <Input
+              data-testid="invite-member-email-input"
               type="email"
               placeholder={m.settings_invite_email_placeholder()}
               value={email}
@@ -146,13 +147,17 @@ export function InviteMemberDialog({
                 label: option.label(),
               }))}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" data-testid="invite-member-role-trigger">
                 <SelectValue placeholder={m.settings_invite_role_placeholder()} />
               </SelectTrigger>
               <SelectPositioner>
                 <SelectContent>
                   {ORGANIZATION_MEMBER_ROLE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      data-testid={`invite-member-role-option-${option.value.toLowerCase()}`}
+                    >
                       {option.label()}
                     </SelectItem>
                   ))}
@@ -164,6 +169,7 @@ export function InviteMemberDialog({
           <Field>
             <div className="flex items-center gap-2 text-sm">
               <Checkbox
+                data-testid="invite-member-practitioner-checkbox"
                 checked={inviteAsPractitioner}
                 onCheckedChange={(value) => setInviteAsPractitioner(Boolean(value))}
               />
@@ -176,6 +182,7 @@ export function InviteMemberDialog({
               <Field>
                 <FieldLabel required>{m.practitioner_create_given_label()}</FieldLabel>
                 <Input
+                  data-testid="invite-member-practitioner-given-name-input"
                   value={practitionerGivenName}
                   onChange={(event) => setPractitionerGivenName(event.target.value)}
                   autoComplete="given-name"
@@ -184,6 +191,7 @@ export function InviteMemberDialog({
               <Field>
                 <FieldLabel required>{m.practitioner_create_family_label()}</FieldLabel>
                 <Input
+                  data-testid="invite-member-practitioner-family-name-input"
                   value={practitionerFamilyName}
                   onChange={(event) => setPractitionerFamilyName(event.target.value)}
                   autoComplete="family-name"
@@ -203,7 +211,12 @@ export function InviteMemberDialog({
           <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
             {m.common_cancel()}
           </Button>
-          <Button type="button" onClick={handleInvite} disabled={isInviting}>
+          <Button
+            type="button"
+            onClick={handleInvite}
+            disabled={isInviting}
+            data-testid="invite-member-submit-button"
+          >
             {isInviting ? m.common_saving() : m.settings_invite_submit()}
           </Button>
         </DialogFooter>

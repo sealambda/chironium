@@ -3,8 +3,6 @@ name: Build, publish, and deploy Docker image
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 env:
   REGISTRY: ghcr.io

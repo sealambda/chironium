@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "paraglide-js compile --emit-ts-declarations --strategy cookie preferredLanguage baseLocale && tsc -b && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "dev": "vite dev",
@@ -16,14 +18,20 @@
     "preview": "vite preview",
     "quality": "biome check . && tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "gql:generate": "gql.tada generate output --tsconfig tsconfig.app.json",
-    "gql:check": "gql.tada check --tsconfig tsconfig.app.json"
+    "gql:generate": "pnpm gql:generate:tada && pnpm gql:generate:legacy",
+    "gql:generate:tada": "gql.tada generate output --tsconfig tsconfig.app.json",
+    "gql:generate:legacy": "graphql-codegen --config codegen.ts",
+    "gql:check": "gql.tada check --tsconfig tsconfig.app.json",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@fontsource-variable/inter": "^5.2.8",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@icons-pack/react-simple-icons": "^13.11.2",
-    "@inlang/paraglide-js": "^2.12.0",
+    "@inlang/paraglide-js": "^2.15.3",
     "@tanstack/react-form": "^1.28.3",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
@@ -55,24 +63,32 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "@graphql-codegen/cli": "^6.2.1",
+    "@graphql-codegen/client-preset": "^5.2.4",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query-devtools": "^5.91.3",
     "@tanstack/react-router": "^1.161.1",
     "@tanstack/react-router-devtools": "^1.161.1",
     "@tanstack/router-plugin": "^1.161.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.2.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
     "daisyui": "^5.5.18",
     "graphql": "^16.12.0",
+    "happy-dom": "^20.8.9",
     "shadcn": "^3.8.5",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.1.3"
   },
   "engines": {
     "node": "~>24.13",
-    "pnpm": "~>10.32"
+    "pnpm": "~>10.33"
   }
 }

@@ -5,7 +5,7 @@
   "type": "module",
   "engines": {
     "node": "~>24.13",
-    "pnpm": "~>10.32"
+    "pnpm": "~>10.33"
   },
   "scripts": {
     "assets:dev": "pnpm --filter chironium-assets dev",
@@ -18,11 +18,19 @@
     "assets:check": "pnpm --filter chironium-assets check",
     "assets:check:fix": "pnpm --filter chironium-assets check:fix",
     "assets:codegen": "pnpm --filter chironium-assets gql:generate",
+    "assets:test": "pnpm --filter chironium-assets test",
+    "assets:e2e": "pnpm --filter chironium-assets e2e",
+    "assets:e2e:ui": "pnpm --filter chironium-assets e2e:ui",
     "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "husky": "^9.1.7"
   },
-  "packageManager": "pnpm@10.32.1"
+  "pnpm": {
+    "overrides": {
+      "picomatch": "^4.0.4"
+    }
+  },
+  "packageManager": "pnpm@10.33.0"
 }

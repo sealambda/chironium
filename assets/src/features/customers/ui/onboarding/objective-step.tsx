@@ -43,7 +43,7 @@ export function ObjectiveStep({ initialData, onSubmit, onBack, onSaveDraft }: Ob
           name="objective"
           validators={{
             onBlur: ({ value }) => {
-              if (!value || !value.trim()) {
+              if (!value?.trim()) {
                 return m.validation_objective_required();
               }
               return undefined;
@@ -54,6 +54,7 @@ export function ObjectiveStep({ initialData, onSubmit, onBack, onSaveDraft }: Ob
             <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel required>{m.field_objective()}</FieldLabel>
               <Textarea
+                data-testid="onboarding-objective-input"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}

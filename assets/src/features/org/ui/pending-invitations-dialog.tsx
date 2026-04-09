@@ -107,6 +107,7 @@ export function PendingInvitationsDialog() {
             variant="ghost"
             onClick={() => void handleReject()}
             disabled={submittingAction !== null}
+            data-testid="invitation-reject-button"
           >
             {submittingAction === "reject" ? m.common_saving() : m.org_invitation_reject()}
           </Button>
@@ -114,6 +115,7 @@ export function PendingInvitationsDialog() {
             type="button"
             onClick={() => void handleAccept()}
             disabled={submittingAction !== null}
+            data-testid="invitation-accept-button"
           >
             {submittingAction === "accept" ? m.common_saving() : m.org_invitation_accept()}
           </Button>

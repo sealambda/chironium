@@ -1,0 +1,139 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chironium_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MIX_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/chironium_test
+      GOOGLE_CLIENT_ID: ci-dummy-google-client-id
+      GOOGLE_CLIENT_SECRET: ci-dummy-google-client-secret
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up BEAM
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.18.4"
+          otp-version: "27.3"
+
+      - name: Install Elixir dependencies
+        run: mix deps.get
+
+      - name: Prepare test database
+        run: mix ash.setup --quiet
+
+      - name: Run backend tests
+        run: mix test
+
+  assets-unit-and-e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chironium_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MIX_ENV: dev
+      PLAYWRIGHT_BASE_URL: http://localhost:4000
+      PLAYWRIGHT_E2E_SECRET: local-playwright-e2e-secret-do-not-use-in-prod
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/chironium_dev
+      GOOGLE_CLIENT_ID: ci-dummy-google-client-id
+      GOOGLE_CLIENT_SECRET: ci-dummy-google-client-secret
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up BEAM
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.18.4"
+          otp-version: "27.3"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.13.0"
+
+      - name: Install Elixir dependencies
+        run: mix deps.get
+
+      - name: Prepare database
+        run: mix ash.setup --quiet
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production JS dependencies
+        run: pnpm audit --prod --audit-level high
+
+      - name: Generate GraphQL types
+        run: pnpm assets:codegen
+
+      - name: Build assets
+        run: pnpm assets:build
+
+      - name: Run assets unit tests
+        run: pnpm assets:test
+
+      - name: Install Playwright browser and OS deps
+        run: pnpm --dir assets e2e:install
+
+      - name: Start Phoenix server
+        run: mix phx.server > /tmp/phoenix.log 2>&1 &
+
+      - name: Wait for server
+        run: |
+          for i in {1..60}; do
+            if curl -fsS -H "x-playwright-e2e-secret: $PLAYWRIGHT_E2E_SECRET" "$PLAYWRIGHT_BASE_URL/sign-in" > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Phoenix server did not become ready in time."
+          tail -n 200 /tmp/phoenix.log
+          exit 1
+
+      - name: Run assets E2E tests
+        run: pnpm assets:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: assets/playwright-report
+          if-no-files-found: ignore

@@ -50,16 +50,30 @@ export function StepLayout({
 
       <DialogFooter>
         {onCancel ? (
-          <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            data-testid="onboarding-cancel-button"
+          >
             {m.common_cancel()}
           </Button>
         ) : null}
         {onBack ? (
-          <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
+          <Button
+            variant="outline"
+            onClick={onBack}
+            disabled={isSubmitting}
+            data-testid="onboarding-back-button"
+          >
             {m.common_back()}
           </Button>
         ) : null}
-        <Button onClick={onSubmit} disabled={isSubmitting || submitDisabled}>
+        <Button
+          onClick={onSubmit}
+          disabled={isSubmitting || submitDisabled}
+          data-testid={isLastStep ? "onboarding-finish-button" : "onboarding-next-button"}
+        >
           {buttonLabel}
         </Button>
       </DialogFooter>
