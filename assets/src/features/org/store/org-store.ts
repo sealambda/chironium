@@ -5,8 +5,7 @@ import { queryClient } from "@/app/providers/query-client";
 import type { OrganizationRecord } from "@/features/org/api/org-api";
 import { createOrganization, fetchAccessibleOrganizations } from "@/features/org/api/org-api";
 import { getStoredPreference, storePreference } from "@/features/org/model/org-preferences";
-
-export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
+import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
 type OrgStoreState = {
   selectedOrg: OrganizationRecord | null;

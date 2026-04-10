@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 // ─── Constants ────────────────────────────────────────────────────────
 
@@ -175,10 +176,10 @@ export function AddGoalDialog({
       }
 
       await queryClient.invalidateQueries({
-        queryKey: ["person", personId, "goals"],
+        queryKey: personQueryKeys.goalsScope(personId),
       });
       await queryClient.invalidateQueries({
-        queryKey: ["person", personId, "patient-detail"],
+        queryKey: personQueryKeys.patientDetailScope(personId),
       });
 
       toast.success(isEditing ? m.goals_edit_success() : m.goals_add_success());

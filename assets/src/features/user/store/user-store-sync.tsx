@@ -2,8 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { fetchCurrentUser } from "@/features/user/api/user-api";
+import { USER_QUERY_KEY } from "@/shared/utils/query-keys";
 
-import { USER_QUERY_KEY, useUserStore } from "./user-store";
+import { useUserStore } from "./user-store";
 
 /**
  * Syncs the user store with the current user query.

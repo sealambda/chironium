@@ -26,6 +26,7 @@ import {
 } from "@/shared/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { ResponsiveStepIndicator } from "@/shared/ui/responsive-step-indicator";
+import { customersQueryKeys } from "@/shared/utils/query-keys";
 
 import { AnthropometryStep } from "./anthropometry-step";
 import { FoodStep } from "./food-step";
@@ -111,10 +112,10 @@ function useOnboardingDraft(
         await submitOnboarding(finalDraft, organizationId, userId, userName);
         await Promise.all([
           queryClient.invalidateQueries({
-            queryKey: ["customers", "persons", organizationId],
+            queryKey: customersQueryKeys.personsPrefix(organizationId),
           }),
           queryClient.invalidateQueries({
-            queryKey: ["customers", "subscriptions", organizationId],
+            queryKey: customersQueryKeys.subscriptions(organizationId),
           }),
         ]);
         toast.success(

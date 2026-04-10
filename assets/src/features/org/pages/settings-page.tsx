@@ -1,8 +1,9 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { fetchOrganizationSettings, ORG_SETTINGS_QUERY_KEY } from "@/features/org/api/org-api";
+import { queryClient } from "@/app/providers/query-client";
+import { fetchOrganizationSettings } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
   EditMemberRoleDialog,
@@ -28,10 +29,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { orgSettingsQueryKey, practitionersBulkReassignQueryKey } from "@/shared/utils/query-keys";
 import { cn } from "@/shared/utils/utils";
 
 export function SettingsPage() {
-  const queryClient = useQueryClient();
   const { user: currentUser } = useCurrentUser();
   const { selectedOrg, loading: orgLoading } = useOrg();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -44,7 +45,7 @@ export function SettingsPage() {
     isLoading: settingsLoading,
     error: settingsError,
   } = useQuery({
-    queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg?.id],
+    queryKey: orgSettingsQueryKey(selectedOrg?.id ?? ""),
     queryFn: () => fetchOrganizationSettings(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg?.id),
   });
@@ -65,8 +66,17 @@ export function SettingsPage() {
 
   const invalidateSettings = () =>
     queryClient.invalidateQueries({
-      queryKey: [...ORG_SETTINGS_QUERY_KEY, selectedOrg?.id ?? ""],
+      queryKey: orgSettingsQueryKey(selectedOrg?.id ?? ""),
     });
+
+  const invalidateAfterPractitionerLinked = async () => {
+    await invalidateSettings();
+    if (selectedOrg?.id) {
+      await queryClient.invalidateQueries({
+        queryKey: practitionersBulkReassignQueryKey(selectedOrg.id),
+      });
+    }
+  };
 
   if (orgLoading || settingsLoading) {
     return <Loading />;
@@ -241,7 +251,7 @@ export function SettingsPage() {
             }}
             organizationId={selectedOrg.id}
             target={makePractitionerTarget}
-            onSaved={invalidateSettings}
+            onSaved={invalidateAfterPractitionerLinked}
           />
         </>
       ) : null}

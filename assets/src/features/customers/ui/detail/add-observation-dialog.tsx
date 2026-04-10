@@ -6,6 +6,7 @@ import { createClinicalNoteObservations } from "@/features/customers/api/observa
 import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface AddObservationDialogProps {
   personId: string;
@@ -43,10 +44,10 @@ export function AddObservationDialog({
       );
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["person", personId, "observations"],
+          queryKey: personQueryKeys.observationsScope(personId),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["person", personId, "observationsList"],
+          queryKey: personQueryKeys.observationsListScope(personId),
         }),
       ]);
       toast.success(m.observations_add_success());

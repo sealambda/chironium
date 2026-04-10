@@ -29,6 +29,7 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -83,10 +84,10 @@ function AddMedicationsDialog({
       await createMedicationsFromTags(tags, patientId, selectedOrg?.id ?? "");
 
       await queryClient.invalidateQueries({
-        queryKey: ["person", personId, "medications"],
+        queryKey: personQueryKeys.medicationsScope(personId),
       });
       await queryClient.invalidateQueries({
-        queryKey: ["person", personId, "patient-detail"],
+        queryKey: personQueryKeys.patientDetailScope(personId),
       });
 
       toast.success(m.medication_add_success());

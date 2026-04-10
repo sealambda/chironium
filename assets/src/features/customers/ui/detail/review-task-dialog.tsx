@@ -24,6 +24,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
 
 interface ReviewTaskDialogProps {
   personId: string;
@@ -90,7 +91,7 @@ export function ReviewTaskDialog({ personId, patientId }: Readonly<ReviewTaskDia
   const queryClient = useQueryClient();
 
   const { data: pendingReviewTasks = [], isLoading: isTasksLoading } = useQuery({
-    queryKey: ["person", personId, "review-tasks", selectedOrg?.id, patientId],
+    queryKey: personQueryKeys.reviewTasks(personId, selectedOrg?.id ?? "", patientId),
     queryFn: () => fetchPendingPlanReviewTasksForPatient(patientId, selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg?.id && patientId),
   });
@@ -127,10 +128,10 @@ export function ReviewTaskDialog({ personId, patientId }: Readonly<ReviewTaskDia
 
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["person", personId, "review-tasks"],
+          queryKey: personQueryKeys.reviewTasksScope(personId),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["tasks", "list", selectedOrg.id],
+          queryKey: tasksListQueryKey(selectedOrg.id),
         }),
       ]);
 

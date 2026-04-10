@@ -45,6 +45,7 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { ListSearchField } from "@/shared/ui/list-search-field";
 import { Loading } from "@/shared/ui/loading";
 import { formatPersonName } from "@/shared/utils/person-utils";
+import { customersQueryKeys, personQueryKeys } from "@/shared/utils/query-keys";
 
 /**
  * Customers page displaying a scrollable list of all persons, with subscription
@@ -67,7 +68,7 @@ export function CustomersPage() {
     isLoading: personsLoading,
     error: personsError,
   } = useQuery({
-    queryKey: ["customers", "persons", selectedOrg?.id, sortOption],
+    queryKey: customersQueryKeys.persons(selectedOrg?.id ?? "", sortOption),
     queryFn: () => fetchPersons(selectedOrg?.id ?? "", sortOption),
     enabled: Boolean(selectedOrg),
     placeholderData: (previousData) => previousData,
@@ -78,7 +79,7 @@ export function CustomersPage() {
     isLoading: subscriptionsLoading,
     error: subscriptionsError,
   } = useQuery({
-    queryKey: ["customers", "subscriptions", selectedOrg?.id],
+    queryKey: customersQueryKeys.subscriptions(selectedOrg?.id ?? ""),
     queryFn: () => fetchSubscriptions(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg),
   });
@@ -213,7 +214,20 @@ export function CustomersPage() {
         organizationId={selectedOrg.id}
         selectedPersonIds={selectedPersonIds}
         onCompleted={() => {
-          queryClient.invalidateQueries({ queryKey: ["customers"] });
+          const orgId = selectedOrg.id;
+          void Promise.all([
+            queryClient.invalidateQueries({
+              queryKey: customersQueryKeys.personsPrefix(orgId),
+            }),
+            queryClient.invalidateQueries({
+              queryKey: customersQueryKeys.subscriptions(orgId),
+            }),
+            ...selectedPersonIds.map((personId) =>
+              queryClient.invalidateQueries({
+                queryKey: personQueryKeys.patientDetailScope(personId),
+              }),
+            ),
+          ]);
         }}
       />
 

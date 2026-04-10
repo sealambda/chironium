@@ -28,6 +28,7 @@ import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 function getDietTypeLabel(type: FoodPreferenceHistoryItem["type"]): string {
   if (type === "inclusion") {
@@ -51,20 +52,20 @@ export function FoodPreferencesHistoryPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "food-preferences-history");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "foodPreferencesHistory", selectedOrg?.id],
+    queryKey: personQueryKeys.foodPreferencesHistory(customerId, selectedOrg?.id ?? ""),
     queryFn: () => fetchFoodPreferencesHistory(customerId, selectedOrg?.id ?? ""),
     enabled: Boolean(customerId && selectedOrg?.id),
   });
 
   const invalidateFoodHistory = async () => {
     await queryClient.invalidateQueries({
-      queryKey: ["person", customerId, "foodPreferencesHistory"],
+      queryKey: personQueryKeys.foodPreferencesHistoryScope(customerId),
     });
     await queryClient.invalidateQueries({
-      queryKey: ["person", customerId, "foodPreferences"],
+      queryKey: personQueryKeys.foodPreferencesScope(customerId),
     });
     await queryClient.invalidateQueries({
-      queryKey: ["person", customerId, "patient-detail"],
+      queryKey: personQueryKeys.patientDetailScope(customerId),
     });
   };
 

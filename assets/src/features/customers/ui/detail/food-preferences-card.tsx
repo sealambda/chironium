@@ -26,6 +26,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 // ─── Props ───────────────────────────────────────────────────────────
 
@@ -84,7 +85,7 @@ function AddFoodPreferenceDialog({
       );
 
       await queryClient.invalidateQueries({
-        queryKey: ["person", personId, "foodPreferences"],
+        queryKey: personQueryKeys.foodPreferencesScope(personId),
       });
 
       toast.success(m.food_preferences_add_success());

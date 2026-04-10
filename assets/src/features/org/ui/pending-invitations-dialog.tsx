@@ -8,7 +8,6 @@ import {
   rejectInvitation,
 } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
-import { ORG_QUERY_KEY } from "@/features/org/store/org-store";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import {
@@ -19,8 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-
-const INVITATIONS_QUERY_KEY = ["org", "pending-invitations"] as const;
+import { INVITATIONS_QUERY_KEY, ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
 type InvitationSubmitAction = "accept" | "reject";
 

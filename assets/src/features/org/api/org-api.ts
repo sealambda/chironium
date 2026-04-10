@@ -265,9 +265,6 @@ export interface PendingInvitation {
   organizationId: string;
 }
 
-/** React Query cache key for `fetchOrganizationSettings` (append organization id as third element). */
-export const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
-
 // ─── Functions ───────────────────────────────────────────────────────
 
 /** Fetch all organizations the current user has access to. */

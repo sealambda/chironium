@@ -22,6 +22,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { ListSearchField } from "@/shared/ui/list-search-field";
 import { formatPersonName } from "@/shared/utils/person-utils";
+import { practitionersBulkReassignQueryKey } from "@/shared/utils/query-keys";
 
 interface PractitionerComboItem {
   value: string;
@@ -49,7 +50,7 @@ export function ReassignCustomersDialog({
   const [submitting, setSubmitting] = useState(false);
 
   const { data: practitioners = [] } = useQuery({
-    queryKey: ["practitioners", organizationId, "bulk-reassign"],
+    queryKey: practitionersBulkReassignQueryKey(organizationId),
     queryFn: () => fetchPractitionersList(organizationId),
     enabled: open && Boolean(organizationId),
   });

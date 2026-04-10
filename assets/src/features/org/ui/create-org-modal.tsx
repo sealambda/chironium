@@ -8,10 +8,10 @@ import {
   submitOrgCreation,
 } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
-import { ORG_QUERY_KEY } from "@/features/org/store/org-store";
 import * as m from "@/paraglide/messages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { ResponsiveStepIndicator } from "@/shared/ui/responsive-step-indicator";
+import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
 import { OrgDetailsStep } from "./org-details-step";
 import { PlansStep } from "./plans-step";

@@ -29,6 +29,7 @@ import { NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) {
@@ -89,7 +90,7 @@ export function GoalsPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "goals");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "goals", selectedOrg?.id],
+    queryKey: personQueryKeys.goals(customerId, selectedOrg?.id ?? ""),
     queryFn: () => fetchAllGoals(customerId, selectedOrg?.id ?? ""),
     enabled: Boolean(customerId && selectedOrg?.id),
   });
@@ -97,10 +98,10 @@ export function GoalsPage() {
   const invalidate = () =>
     Promise.all([
       queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "goals"],
+        queryKey: personQueryKeys.goalsScope(customerId),
       }),
       queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "patient-detail"],
+        queryKey: personQueryKeys.patientDetailScope(customerId),
       }),
     ]);
 

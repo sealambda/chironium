@@ -2,8 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { fetchAccessibleOrganizations } from "@/features/org/api/org-api";
+import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
-import { ORG_QUERY_KEY, useOrgStore } from "./org-store";
+import { useOrgStore } from "./org-store";
 
 /**
  * Syncs the org store with accessible organization queries.
