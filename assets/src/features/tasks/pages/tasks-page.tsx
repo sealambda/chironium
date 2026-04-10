@@ -14,6 +14,7 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { formatPersonName } from "@/shared/utils/person-utils";
+import { tasksListQueryKey } from "@/shared/utils/query-keys";
 
 export function TasksPage() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export function TasksPage() {
     isLoading: tasksLoading,
     error: tasksError,
   } = useQuery({
-    queryKey: ["tasks", "list", selectedOrg?.id],
+    queryKey: tasksListQueryKey(selectedOrg?.id ?? ""),
     queryFn: () => fetchTasks(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg),
     placeholderData: (previousData) => previousData,
@@ -87,12 +88,15 @@ export function TasksPage() {
                 key={task.id}
                 type="button"
                 className="w-full cursor-pointer rounded-lg border bg-card p-4 text-left active:bg-muted/50"
-                onClick={() => {
+                onClick={async () => {
                   const personId = task.forPatient?.personId;
                   if (!personId) {
                     return;
                   }
-                  void navigate({ to: "/customers/$customerId", params: { customerId: personId } });
+                  await navigate({
+                    to: "/customers/$customerId",
+                    params: { customerId: personId },
+                  });
                 }}
               >
                 <div className="flex items-start justify-between gap-3">

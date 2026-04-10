@@ -9,6 +9,7 @@ import {
 import { fetchPatientDetail } from "@/features/customers/api/patients-api";
 import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 /** Combine loading states from multiple queries. */
 function combineLoadingState(...queries: UseQueryResult<unknown, Error>[]) {
@@ -26,7 +27,7 @@ export function usePersonDetail(personId: string) {
 
   // Single query for patient identity and all directly associated records.
   const patientDetail = useQuery({
-    queryKey: ["person", personId, "patient-detail", organizationId],
+    queryKey: personQueryKeys.patientDetail(personId, organizationId),
     queryFn: () => fetchPatientDetail(personId, organizationId),
     enabled,
   });
@@ -41,28 +42,28 @@ export function usePersonDetail(personId: string) {
 
   // Per-person query (does not require a patient record).
   const subscriptions = useQuery({
-    queryKey: ["person", personId, "subscriptions", organizationId],
+    queryKey: personQueryKeys.subscriptions(personId, organizationId),
     queryFn: () => fetchSubscriptionsByPerson(personId, organizationId),
     enabled,
   });
 
   const anthropometry = useQuery({
-    queryKey: ["person", personId, "anthropometry", organizationId],
+    queryKey: personQueryKeys.anthropometry(personId, organizationId),
     queryFn: () => fetchAnthropometry(personId, organizationId),
     enabled: healthEnabled,
   });
   const observations = useQuery({
-    queryKey: ["person", personId, "observations", organizationId],
+    queryKey: personQueryKeys.observations(personId, organizationId),
     queryFn: () => fetchObservationsSummary(personId, organizationId),
     enabled: healthEnabled,
   });
   const menstrualCycle = useQuery({
-    queryKey: ["person", personId, "menstrualCycle", organizationId],
+    queryKey: personQueryKeys.menstrualCycle(personId, organizationId),
     queryFn: () => fetchLatestMenstrualCycle(personId, organizationId),
     enabled: healthEnabled,
   });
   const foodPreferences = useQuery({
-    queryKey: ["person", personId, "foodPreferences", organizationId],
+    queryKey: personQueryKeys.foodPreferences(personId, organizationId),
     queryFn: () => fetchFoodPreferences(personId, organizationId),
     enabled: healthEnabled,
   });

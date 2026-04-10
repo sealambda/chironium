@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface AddAnthropometryDialogProps {
   readonly personId: string;
@@ -71,7 +72,7 @@ export function AddAnthropometryDialog({
       try {
         await logAnthropometry(data, patientId, selectedOrg?.id ?? "");
         await queryClient.invalidateQueries({
-          queryKey: ["person", personId, "anthropometry"],
+          queryKey: personQueryKeys.anthropometryScope(personId),
         });
         toast.success(m.anthropometry_add_success());
         setOpen(false);

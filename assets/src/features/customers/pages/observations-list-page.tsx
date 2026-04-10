@@ -39,6 +39,7 @@ import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) {
@@ -61,7 +62,7 @@ export function ObservationsListPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "observations-history");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "observationsList", selectedOrg?.id],
+    queryKey: personQueryKeys.observationsList(customerId, selectedOrg?.id ?? ""),
     queryFn: () => fetchObservationsList(customerId, selectedOrg?.id ?? ""),
     enabled: Boolean(customerId && selectedOrg?.id),
   });
@@ -69,10 +70,10 @@ export function ObservationsListPage() {
   const invalidate = () =>
     Promise.all([
       queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "observationsList"],
+        queryKey: personQueryKeys.observationsListScope(customerId),
       }),
       queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "observations"],
+        queryKey: personQueryKeys.observationsScope(customerId),
       }),
     ]);
 

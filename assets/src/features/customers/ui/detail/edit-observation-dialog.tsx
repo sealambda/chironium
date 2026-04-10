@@ -11,6 +11,7 @@ import { ObservationDialog } from "@/features/customers/ui/detail/observation-di
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { toDateInput, toTimeInput } from "@/shared/utils/date-time-input";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface EditObservationDialogProps {
   observation: ObservationItem;
@@ -63,10 +64,10 @@ export function EditObservationDialog({
       );
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["person", personId, "observations"],
+          queryKey: personQueryKeys.observationsScope(personId),
         }),
         queryClient.invalidateQueries({
-          queryKey: ["person", personId, "observationsList"],
+          queryKey: personQueryKeys.observationsListScope(personId),
         }),
       ]);
       toast.success(m.observations_edit_success());

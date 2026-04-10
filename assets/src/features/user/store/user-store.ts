@@ -3,8 +3,7 @@ import { devtools } from "zustand/middleware";
 
 import { queryClient } from "@/app/providers/query-client";
 import { fetchCurrentUser, type UserProfile } from "@/features/user/api/user-api";
-
-export const USER_QUERY_KEY = ["user", "current"] as const;
+import { USER_QUERY_KEY } from "@/shared/utils/query-keys";
 
 type UserStoreState = {
   user: UserProfile | null;

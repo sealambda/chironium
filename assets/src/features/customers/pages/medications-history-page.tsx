@@ -30,6 +30,7 @@ import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 export function MedicationsHistoryPage() {
   const { customerId } = Route.useParams();
@@ -47,17 +48,17 @@ export function MedicationsHistoryPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "medications-history");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "medications", selectedOrg?.id],
+    queryKey: personQueryKeys.medications(customerId, selectedOrg?.id ?? ""),
     queryFn: () => fetchMedications(patientId ?? "", selectedOrg?.id ?? ""),
     enabled: Boolean(patientId && selectedOrg?.id),
   });
 
   const invalidateMedicationsQueries = async () => {
     await queryClient.invalidateQueries({
-      queryKey: ["person", customerId, "medications"],
+      queryKey: personQueryKeys.medicationsScope(customerId),
     });
     await queryClient.invalidateQueries({
-      queryKey: ["person", customerId, "patient-detail"],
+      queryKey: personQueryKeys.patientDetailScope(customerId),
     });
   };
 

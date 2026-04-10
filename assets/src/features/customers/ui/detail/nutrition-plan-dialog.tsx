@@ -22,6 +22,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 import { cn } from "@/shared/utils/utils";
 
 // ─── Atwater constants & helpers ────────────────────────────────────
@@ -377,10 +378,10 @@ export function NutritionPlanDialog({
       try {
         await createNutritionPlan(data, patientId, selectedOrg?.id ?? "");
         await queryClient.invalidateQueries({
-          queryKey: ["person", personId, "nutritionPlans", selectedOrg?.id ?? ""],
+          queryKey: personQueryKeys.nutritionPlans(personId, selectedOrg?.id ?? ""),
         });
         await queryClient.invalidateQueries({
-          queryKey: ["person", personId, "patient-detail"],
+          queryKey: personQueryKeys.patientDetailScope(personId),
         });
         toast.success(m.nutrition_plan_add_success());
         setOpen(false);

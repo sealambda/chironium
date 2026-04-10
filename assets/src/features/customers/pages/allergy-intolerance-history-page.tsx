@@ -33,6 +33,7 @@ import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 function getAllergyTypeLabel(type: string): string {
   if (type === "ALLERGY") {
@@ -60,17 +61,17 @@ export function AllergyIntoleranceHistoryPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "allergies-history");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "allergyIntolerances", selectedOrg?.id],
+    queryKey: personQueryKeys.allergyIntolerances(customerId, selectedOrg?.id ?? ""),
     queryFn: () => fetchAllergyIntolerances(patientId ?? "", selectedOrg?.id ?? ""),
     enabled: Boolean(patientId && selectedOrg?.id),
   });
 
   const invalidateAllergyQueries = async () => {
     await queryClient.invalidateQueries({
-      queryKey: ["person", customerId, "allergyIntolerances"],
+      queryKey: personQueryKeys.allergyIntolerancesScope(customerId),
     });
     await queryClient.invalidateQueries({
-      queryKey: ["person", customerId, "patient-detail"],
+      queryKey: personQueryKeys.patientDetailScope(customerId),
     });
   };
 

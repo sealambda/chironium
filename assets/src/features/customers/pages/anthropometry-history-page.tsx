@@ -35,6 +35,7 @@ import { type Annotation, NotesPopover } from "@/shared/ui/notes-popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 function formatDate(value: string): string {
   if (!value) {
@@ -59,7 +60,7 @@ export function AnthropometryHistoryPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "anthropometry-history");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "anthropometryHistory", selectedOrg?.id],
+    queryKey: personQueryKeys.anthropometryHistory(customerId, selectedOrg?.id ?? ""),
     queryFn: () => fetchAnthropometryHistory(customerId, selectedOrg?.id ?? ""),
     enabled: Boolean(customerId && selectedOrg?.id),
   });
@@ -67,10 +68,10 @@ export function AnthropometryHistoryPage() {
   const invalidate = () =>
     Promise.all([
       queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "anthropometryHistory"],
+        queryKey: personQueryKeys.anthropometryHistoryScope(customerId),
       }),
       queryClient.invalidateQueries({
-        queryKey: ["person", customerId, "anthropometry"],
+        queryKey: personQueryKeys.anthropometryScope(customerId),
       }),
     ]);
 

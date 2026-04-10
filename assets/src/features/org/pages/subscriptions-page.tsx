@@ -16,8 +16,7 @@ import type { SubscriptionPlan } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
-
-const PLANS_QUERY_KEY = "subscription-plans";
+import { subscriptionPlansQueryKey } from "@/shared/utils/query-keys";
 
 /**
  * Lists subscription plans for the selected organization with a desktop table
@@ -34,15 +33,14 @@ export function SubscriptionsPage() {
     isLoading: plansLoading,
     error: plansError,
   } = useQuery({
-    queryKey: [PLANS_QUERY_KEY, selectedOrg?.id],
+    queryKey: subscriptionPlansQueryKey(selectedOrg?.id ?? ""),
     queryFn: () => fetchSubscriptionPlans(selectedOrg?.id ?? ""),
     enabled: Boolean(selectedOrg),
     placeholderData: (previousData) => previousData,
   });
 
-  const invalidatePlans = () => {
-    void queryClient.invalidateQueries({ queryKey: [PLANS_QUERY_KEY, selectedOrg?.id] });
-  };
+  const invalidatePlans = () =>
+    queryClient.invalidateQueries({ queryKey: subscriptionPlansQueryKey(selectedOrg?.id ?? "") });
 
   useEffect(() => {
     if (!selectedOrg || plansLoading || Boolean(plansError)) {

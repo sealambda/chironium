@@ -18,12 +18,12 @@ export function TaskTable({ items }: Readonly<TaskTableProps>) {
         columns={taskColumns}
         data={items}
         getRowId={(row) => row.id}
-        onRowClick={(item) => {
+        onRowClick={async (item) => {
           const personId = item.forPatient?.personId;
           if (!personId) {
             return;
           }
-          void navigate({
+          await navigate({
             to: "/customers/$customerId",
             params: { customerId: personId },
           });

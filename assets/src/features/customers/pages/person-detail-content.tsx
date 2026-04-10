@@ -15,6 +15,7 @@ import { PersonProfileCard } from "@/features/customers/ui/detail/person-profile
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface PersonDetailContentProps {
   personId: string;
@@ -43,11 +44,10 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
 
   const { mutate: createPatient, isPending } = useMutation({
     mutationFn: () => createPatientForPerson(personId, selectedOrg?.id ?? ""),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ["person", personId, "patient-detail"],
-      });
-    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: personQueryKeys.patientDetailScope(personId),
+      }),
   });
 
   const latestSnapshot = anthropometry.data?.[0];

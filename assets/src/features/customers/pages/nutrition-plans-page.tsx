@@ -12,6 +12,7 @@ import { Route } from "@/routes/_app/customers_.$customerId_.nutrition";
 import { useDetailModeEffect } from "@/shared/layout/detail-context";
 import { DataTable, SortableHeader } from "@/shared/ui/data-table";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 const columns: ColumnDef<NutritionPlanRecord, unknown>[] = [
   {
@@ -48,7 +49,7 @@ export function NutritionPlansPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "nutrition-plans");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["person", customerId, "nutritionPlans", selectedOrg?.id],
+    queryKey: personQueryKeys.nutritionPlans(customerId, selectedOrg?.id ?? ""),
     queryFn: () => fetchNutritionPlans(customerId, selectedOrg?.id ?? ""),
     enabled: Boolean(customerId && selectedOrg?.id),
   });

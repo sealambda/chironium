@@ -18,6 +18,7 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface EditAnthropometryDialogProps {
   personId: string;
@@ -85,10 +86,10 @@ export function EditAnthropometryDialog({
       try {
         await updateAnthropometryEntry(snapshot, updateInput, selectedOrg?.id ?? "");
         await queryClient.invalidateQueries({
-          queryKey: ["person", personId, "anthropometryHistory"],
+          queryKey: personQueryKeys.anthropometryHistoryScope(personId),
         });
         await queryClient.invalidateQueries({
-          queryKey: ["person", personId, "anthropometry"],
+          queryKey: personQueryKeys.anthropometryScope(personId),
         });
         toast.success(m.anthropometry_edit_success());
         onOpenChange(false);

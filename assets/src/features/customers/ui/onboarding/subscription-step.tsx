@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { subscriptionPlansQueryKey } from "@/shared/utils/query-keys";
 import { getTranslatedPlanLabel } from "@/shared/utils/subscriptions-utils";
 
 import { StepLayout } from "./step-layout";
@@ -81,7 +82,7 @@ export function SubscriptionStep({
   onSaveDraft,
 }: SubscriptionStepProps) {
   const { data: plans = [], isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
-    queryKey: ["subscriptionPlans", organizationId],
+    queryKey: subscriptionPlansQueryKey(organizationId),
     queryFn: () => fetchSubscriptionPlans(organizationId),
     enabled: Boolean(organizationId),
   });
