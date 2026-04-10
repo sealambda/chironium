@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  backend-tests:
+  validation:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -22,50 +22,13 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      MIX_ENV: test
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/chironium_test
-      GOOGLE_CLIENT_ID: ci-dummy-google-client-id
-      GOOGLE_CLIENT_SECRET: ci-dummy-google-client-secret
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up BEAM
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: "1.18.4"
-          otp-version: "27.3"
-
-      - name: Install Elixir dependencies
-        run: mix deps.get
-
-      - name: Prepare test database
-        run: mix ash.setup --quiet
-
-      - name: Run backend tests
-        run: mix test
-
-  assets-unit-and-e2e-tests:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: pgvector/pgvector:pg18
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: chironium_dev
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    env:
-      MIX_ENV: dev
+      DATABASE_URL_BASE: postgres://postgres:postgres@localhost:5432
+      DATABASE_NAME_TEST: chironium_test
+      DATABASE_NAME_DEV: chironium_dev
+      DATABASE_URL_TEST: $DATABASE_URL_BASE/$DATABASE_NAME_TEST
+      DATABASE_URL_DEV: $DATABASE_URL_BASE/$DATABASE_NAME_DEV
       PLAYWRIGHT_BASE_URL: http://localhost:4000
       PLAYWRIGHT_E2E_SECRET: local-playwright-e2e-secret-do-not-use-in-prod
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/chironium_dev
       GOOGLE_CLIENT_ID: ci-dummy-google-client-id
       GOOGLE_CLIENT_SECRET: ci-dummy-google-client-secret
     steps:
@@ -75,24 +38,45 @@ jobs:
       - name: Set up BEAM
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.18.4"
-          otp-version: "27.3"
+          version-file: "mise.toml"
+          version-type: "strict"
+
+      - name: Cache Elixir deps and build
+        uses: actions/cache@v5
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('mix.lock', 'mix.exs') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v5
-        with:
-          version: 10.33.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "24.13.0"
+          node-version-file: "package.json"
+          cache: pnpm
+
+      - name: Create dev database
+        run: |
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE $DATABASE_NAME_DEV;" || true
+        env:
+          PGPASSWORD: postgres
 
       - name: Install Elixir dependencies
         run: mix deps.get
 
-      - name: Prepare database
+      - name: Run backend tests
+        run: mix test
+
+      - name: Prepare dev database
         run: mix ash.setup --quiet
+        env:
+          MIX_ENV: dev
+          DATABASE_URL: $DATABASE_URL_DEV
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
@@ -114,6 +98,9 @@ jobs:
 
       - name: Start Phoenix server
         run: mix phx.server > /tmp/phoenix.log 2>&1 &
+        env:
+          MIX_ENV: dev
+          DATABASE_URL: $DATABASE_URL_DEV
 
       - name: Wait for server
         run: |
