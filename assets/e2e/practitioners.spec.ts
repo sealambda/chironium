@@ -18,10 +18,8 @@ async function createSessionContext(
   email: string,
 ): Promise<{ context: BrowserContext; page: Page }> {
   const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000";
-  const secret = process.env.PLAYWRIGHT_E2E_SECRET;
-  if (!secret) {
-    throw new Error("PLAYWRIGHT_E2E_SECRET environment variable must be set.");
-  }
+  const secret =
+    process.env.PLAYWRIGHT_E2E_SECRET ?? "local-playwright-e2e-secret-do-not-use-in-prod";
   const request = page.request;
   await devPlaywrightEnsureUser(request, { baseURL, secret, email });
 

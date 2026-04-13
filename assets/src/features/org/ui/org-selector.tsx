@@ -94,19 +94,21 @@ export function OrgSelector({
           <DropdownMenuLabel className="text-muted-foreground text-xs">
             {m.nav_organization()}
           </DropdownMenuLabel>
-          {availableOrgs.map((org) => (
-            <DropdownMenuItem
-              key={org.id}
-              onClick={() => onSelectOrg(org.id)}
-              className="gap-2 p-2"
-              data-testid={`org-selector-item-${org.id}`}
-            >
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border font-bold text-xs">
-                {getOrgMark(org.name)}
-              </span>
-              {org.name}
-            </DropdownMenuItem>
-          ))}
+          <div className="max-h-80 overflow-y-auto pr-1">
+            {availableOrgs.map((org) => (
+              <DropdownMenuItem
+                key={org.id}
+                onClick={() => onSelectOrg(org.id)}
+                className="gap-2 p-2"
+                data-testid={`org-selector-item-${org.id}`}
+              >
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border font-bold text-xs">
+                  {getOrgMark(org.name)}
+                </span>
+                {org.name}
+              </DropdownMenuItem>
+            ))}
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={onCreateClick}

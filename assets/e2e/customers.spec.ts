@@ -5,10 +5,8 @@ import { devPlaywrightEnsureUser, devPlaywrightSession } from "./playwright-sess
 
 async function bootstrapSession(page: Page, email: string) {
   const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000";
-  const secret = process.env.PLAYWRIGHT_E2E_SECRET;
-  if (!secret) {
-    throw new Error("PLAYWRIGHT_E2E_SECRET environment variable must be set.");
-  }
+  const secret =
+    process.env.PLAYWRIGHT_E2E_SECRET ?? "local-playwright-e2e-secret-do-not-use-in-prod";
 
   await devPlaywrightEnsureUser(page.request, { baseURL, secret, email });
   await devPlaywrightSession(page.request, { baseURL, secret, email });
