@@ -44,6 +44,25 @@ defmodule Chironium.Health.Patient do
     read :read do
       primary? true
       pagination keyset?: true
+
+      argument :practitioner_id, :uuid do
+        description "Filter patients assigned to this practitioner via active care teams."
+      end
+
+      filter expr(
+               if not is_nil(^arg(:practitioner_id)) do
+                 exists(
+                   care_teams,
+                   status == :active and
+                     exists(
+                       participants,
+                       active == true and practitioner_id == ^arg(:practitioner_id)
+                     )
+                 )
+               else
+                 true
+               end
+             )
     end
 
     create :create_patient_with_person do
