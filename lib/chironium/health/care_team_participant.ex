@@ -8,7 +8,7 @@ defmodule Chironium.Health.CareTeamParticipant do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "care_team_participants"
