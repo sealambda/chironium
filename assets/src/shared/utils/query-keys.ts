@@ -1,4 +1,7 @@
-import type { PersonListSortOption } from "@/features/customers/api/persons-api";
+import type {
+  PersonAssignmentFilter,
+  PersonListSortOption,
+} from "@/features/customers/api/persons-api";
 
 /** Accessible organizations list (org picker / store). */
 export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
@@ -32,8 +35,12 @@ export function tasksListQueryKey(organizationId: string) {
 
 /** Customers list and related org-scoped customer caches. */
 export const customersQueryKeys = {
-  persons(organizationId: string, sortOption: PersonListSortOption) {
-    return ["customers", "persons", organizationId, sortOption] as const;
+  persons(
+    organizationId: string,
+    sortOption: PersonListSortOption,
+    assignmentFilter: PersonAssignmentFilter,
+  ) {
+    return ["customers", "persons", organizationId, sortOption, assignmentFilter] as const;
   },
   /** Any persons list query for the org (all sort variants). */
   personsPrefix(organizationId: string) {
@@ -41,6 +48,9 @@ export const customersQueryKeys = {
   },
   subscriptions(organizationId: string) {
     return ["customers", "subscriptions", organizationId] as const;
+  },
+  practitionerPersonIds(organizationId: string, practitionerId: string) {
+    return ["customers", "practitioner-persons", organizationId, practitionerId] as const;
   },
 };
 

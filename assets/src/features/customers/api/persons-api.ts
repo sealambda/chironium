@@ -8,8 +8,8 @@ import type { PersonFormData } from "./patients-api";
 // ─── Queries ─────────────────────────────────────────────────────────
 
 const ListPersonsQuery = graphql(`
-  query ListPersons($first: Int, $sort: [PersonSortInput]) {
-    listPersons(first: $first, sort: $sort) {
+  query ListPersons($first: Int, $sort: [PersonSortInput], $unassigned: Boolean) {
+    listPersons(first: $first, sort: $sort, unassigned: $unassigned) {
       results {
         id
         name {
@@ -36,6 +36,7 @@ export const personListSortOption = [
   "familyNameDesc",
 ] as const;
 export type PersonListSortOption = (typeof personListSortOption)[number];
+export type PersonAssignmentFilter = "all" | "unassigned";
 
 const SORT_MORE_RECENT_FIRST = [{ field: "ID" as const, order: "DESC" as const }];
 const SORT_LESS_RECENT_FIRST = [{ field: "ID" as const, order: "ASC" as const }];
@@ -107,6 +108,7 @@ export interface CustomerListItem {
 export async function fetchPersons(
   organizationId: string,
   sort: PersonListSortOption = "moreRecent",
+  assignmentFilter: PersonAssignmentFilter = "all",
 ): Promise<Person[]> {
   if (!organizationId) {
     return [];
@@ -117,6 +119,7 @@ export async function fetchPersons(
     variables: {
       first: 250,
       sort: getPersonApiSort(sort),
+      unassigned: assignmentFilter === "unassigned" ? true : undefined,
     },
     organizationId,
   });
