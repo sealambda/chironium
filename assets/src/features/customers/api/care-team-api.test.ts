@@ -1,12 +1,52 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { bulkReassignPractitionersToCustomers } from "@/features/customers/api/care-team-api";
+import {
+  bulkReassignPractitionersToCustomers,
+  fetchPersonIdsByPractitioner,
+} from "@/features/customers/api/care-team-api";
 
 const requestGraphqlMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/shared/api/graphql", () => ({
   requestGraphql: requestGraphqlMock,
 }));
+
+describe("fetchPersonIdsByPractitioner", () => {
+  afterEach(() => {
+    requestGraphqlMock.mockReset();
+  });
+
+  it("returns personIds from care teams for the given practitioner", async () => {
+    requestGraphqlMock.mockResolvedValueOnce({
+      listCareTeams: {
+        results: [
+          { subjectPatient: { personId: "person-1" } },
+          { subjectPatient: { personId: "person-2" } },
+          { subjectPatient: null },
+        ],
+      },
+    });
+
+    const result = await fetchPersonIdsByPractitioner("org-1", "prac-1");
+
+    expect(result).toEqual(["person-1", "person-2"]);
+  });
+
+  it("returns an empty array when there are no matching care teams", async () => {
+    requestGraphqlMock.mockResolvedValueOnce({ listCareTeams: { results: [] } });
+
+    const result = await fetchPersonIdsByPractitioner("org-1", "prac-1");
+
+    expect(result).toEqual([]);
+  });
+
+  it("returns an empty array when organizationId is empty", async () => {
+    const result = await fetchPersonIdsByPractitioner("", "prac-1");
+
+    expect(requestGraphqlMock).not.toHaveBeenCalled();
+    expect(result).toEqual([]);
+  });
+});
 
 describe("care team bulk reassignment", () => {
   afterEach(() => {

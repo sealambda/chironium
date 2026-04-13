@@ -14,6 +14,10 @@ const ListOrganizationsQuery = graphql(`
         name
         slug
         ownerId
+        organizationUsers {
+          userId
+          role
+        }
       }
     }
   }
@@ -354,7 +358,15 @@ export async function createOrganization(data: {
     variables: { input: { name: data.name, slug: data.slug } },
   });
 
-  return unwrapMutationResult(result.createOrganization, "Failed to create organization.");
+  const organization = unwrapMutationResult(
+    result.createOrganization,
+    "Failed to create organization.",
+  );
+
+  return {
+    ...organization,
+    organizationUsers: [],
+  };
 }
 
 /** Create a subscription plan for an organization with duration and pricing. */

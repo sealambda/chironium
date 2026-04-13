@@ -27,7 +27,7 @@ defmodule Chironium.CRM.Person do
 
     queries do
       get :get_person, :read
-      list :list_persons, :read
+      list :list_persons, :list
     end
   end
 
@@ -42,6 +42,29 @@ defmodule Chironium.CRM.Person do
       primary? true
       pagination keyset?: true
     end
+
+    read :list do
+      pagination keyset?: true
+
+      argument :unassigned, :boolean do
+        description "When true, returns only persons with no active practitioner assignment."
+        default false
+      end
+
+      filter expr(
+               if ^arg(:unassigned) do
+                 not exists(
+                   patients,
+                   exists(
+                     care_teams,
+                     status == :active and exists(participants, active == true)
+                   )
+                 )
+               else
+                 true
+               end
+             )
+    end
   end
 
   policies do
@@ -49,7 +72,7 @@ defmodule Chironium.CRM.Person do
       authorize_if always()
     end
 
-    policy action(:read) do
+    policy action_type(:read) do
       authorize_if Chironium.CRM.Checks.AccessedFromRelationship
       authorize_if Chironium.CRM.Checks.PersonVisibleToActor
     end
