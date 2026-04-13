@@ -24,6 +24,7 @@ defmodule Chironium.Subscriptions.Subscription do
 
     mutations do
       create :create_subscription, :create
+      update :update_subscription, :update_subscription
     end
   end
 
@@ -52,6 +53,10 @@ defmodule Chironium.Subscriptions.Subscription do
       end
 
       change manage_relationship(:subscriber, type: :create)
+    end
+
+    update :update_subscription do
+      accept [:plan_id, :start_date]
     end
 
     update :expire do

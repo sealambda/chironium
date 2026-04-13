@@ -9,9 +9,11 @@ import {
   type SubscriptionPlan,
   type SubscriptionRecord,
   SubscriptionsByPersonQuery,
+  UpdateSubscriptionMutation,
 } from "@/shared/types/subscriptions";
 
 type CreateSubscriptionInput = NonNullable<VariablesOf<typeof CreateSubscriptionMutation>["input"]>;
+type UpdateSubscriptionInput = NonNullable<VariablesOf<typeof UpdateSubscriptionMutation>["input"]>;
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -30,7 +32,7 @@ export async function fetchSubscriptions(organizationId: string): Promise<Subscr
   return result.listSubscriptions?.results ?? [];
 }
 
-/** Fetch subscription history for a person, sorted by start date descending. */
+/** Fetch subscription history for a person, sorted by newest record first. */
 export async function fetchSubscriptionsByPerson(
   subscriberId: string,
   organizationId: string,
@@ -67,6 +69,27 @@ export async function createSubscription(
   });
 
   unwrapMutationResult(result.createSubscription, "Failed to create subscription.");
+}
+
+/** Update an existing subscription's plan and/or start date. */
+export async function updateSubscription(
+  id: string,
+  data: Pick<UpdateSubscriptionInput, "planId" | "startDate">,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateSubscriptionMutation,
+    variables: {
+      id,
+      input: {
+        planId: data.planId ?? undefined,
+        startDate: data.startDate || undefined,
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.updateSubscription, "Failed to update subscription.");
 }
 
 /** Fetch all available subscription plans for the organization. */

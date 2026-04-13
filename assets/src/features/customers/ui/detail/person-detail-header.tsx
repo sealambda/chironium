@@ -25,6 +25,7 @@ export function PersonDetailHeader({ person }: PersonDetailHeaderProps) {
             size="icon"
             className="size-10 shrink-0"
             aria-label="Edit personal information"
+            data-testid="customer-person-edit-button"
             onClick={() => setEditOpen(true)}
           >
             <Pencil className="size-4" />

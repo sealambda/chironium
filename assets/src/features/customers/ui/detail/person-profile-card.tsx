@@ -1,14 +1,16 @@
 import { differenceInYears, parseISO } from "date-fns";
-import { Target } from "lucide-react";
+import { Pencil, Plus, Target } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { Person } from "@/features/customers/api/persons-api";
 import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
+import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
 import { ReviewTaskDialog } from "@/features/customers/ui/detail/review-task-dialog";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import { CardAddButton } from "@/shared/ui/card-add-button";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { Separator } from "@/shared/ui/separator";
@@ -20,6 +22,7 @@ import { getSubscriptionBadgeMetadata } from "@/shared/utils/subscriptions-utils
 import { cn } from "@/shared/utils/utils";
 
 import { CardHistoryLinkFooter } from "./card-footer";
+import { CustomerDetailEmptyCardContent } from "./customer-detail-empty-card";
 
 interface PersonProfileCardProps {
   person: Person;
@@ -123,6 +126,9 @@ export function PersonProfileCard({
   const contact = extractContactInfo(person.telecom);
   const ageLabel = getAgeLabel(person.birthDate);
   const badgeMetadata = getSubscriptionBadgeMetadata(currentSubscription);
+  const shouldCreateSubscription = !badgeMetadata.shouldEdit;
+  const subscriptionForDialog = shouldCreateSubscription ? undefined : currentSubscription;
+  const subscriptionActionLabel = shouldCreateSubscription ? m.common_add() : m.common_save();
   const planBadgeLabel = badgeMetadata.statusLabel
     ? `${badgeMetadata.planLabel} - ${badgeMetadata.statusLabel}`
     : badgeMetadata.planLabel;
@@ -137,10 +143,11 @@ export function PersonProfileCard({
     );
   } else {
     goalContent = (
-      <div className="flex items-center gap-2 text-foreground/65 text-sm">
-        <Target className="size-4" />
-        <span>{m.goals_no_goals_desc()}</span>
-      </div>
+      <CustomerDetailEmptyCardContent
+        icon={Target}
+        title={m.goals_no_goals()}
+        description={m.goals_no_goals_desc()}
+      />
     );
   }
 
@@ -149,7 +156,7 @@ export function PersonProfileCard({
       <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         <div className="flex flex-1 items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-4">
-            <Avatar className="size-24">
+            <Avatar className="size-22 sm:size-24">
               <AvatarFallback className="bg-primary font-semibold text-2xl text-primary-foreground">
                 {initials}
               </AvatarFallback>
@@ -160,10 +167,35 @@ export function PersonProfileCard({
                 {name}
                 {ageLabel}
               </h1>
-              <Badge className={badgeMetadata.badgeClassName}>
-                <span className={cn("size-1.5 rounded-full", badgeMetadata.dotClassName)} />
-                {planBadgeLabel}
-              </Badge>
+              <div className="flex items-center">
+                <Badge className={badgeMetadata.badgeClassName}>
+                  <span
+                    className={cn(
+                      "hidden size-1.5 rounded-full sm:inline-block",
+                      badgeMetadata.dotClassName,
+                    )}
+                  />
+                  {planBadgeLabel}
+                  <EditSubscriptionDialog
+                    personId={personId}
+                    currentSubscription={subscriptionForDialog}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="-mr-1.5 ml-0.5 size-5 rounded-full"
+                      aria-label={subscriptionActionLabel}
+                      data-testid="customer-subscription-edit-button"
+                    >
+                      {shouldCreateSubscription ? (
+                        <Plus className="size-3" />
+                      ) : (
+                        <Pencil className="size-3" />
+                      )}
+                    </Button>
+                  </EditSubscriptionDialog>
+                </Badge>
+              </div>
               <ContactButtonGroup {...contact} personName={name} />
             </div>
           </div>
@@ -185,7 +217,7 @@ export function PersonProfileCard({
             </div>
             {patientId ? (
               <AddGoalDialog personId={personId} patientId={patientId}>
-                <CardAddButton label={m.goals_add()} />
+                <CardAddButton label={m.goals_add()} data-testid="customer-goals-add-button" />
               </AddGoalDialog>
             ) : null}
           </div>

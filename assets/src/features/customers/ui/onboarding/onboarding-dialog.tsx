@@ -268,7 +268,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
       return (
         <ObjectiveStep
           initialData={draft.objective ?? undefined}
-          onSubmit={(note: string) => advance({ objective: note }, 3)}
+          onSubmit={(note) => advance({ objective: note }, 3)}
           onBack={() => goBack(1)}
           onSaveDraft={(note) => saveDraft({ objective: note })}
         />

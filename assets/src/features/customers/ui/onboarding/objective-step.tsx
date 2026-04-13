@@ -9,9 +9,9 @@ import { StepLayout } from "./step-layout";
 
 interface ObjectiveStepProps {
   readonly initialData?: string;
-  readonly onSubmit: (note: string) => void;
+  readonly onSubmit: (note: string | null) => void;
   readonly onBack: () => void;
-  readonly onSaveDraft?: (note: string) => void;
+  readonly onSaveDraft?: (note: string | null) => void;
 }
 
 /**
@@ -22,12 +22,14 @@ export function ObjectiveStep({ initialData, onSubmit, onBack, onSaveDraft }: Ob
     defaultValues: { objective: initialData ?? "" },
     validators: { onSubmit: objectiveSchema },
     onSubmit: ({ value }) => {
-      onSubmit(value.objective.trim());
+      const objective = value.objective.trim();
+      onSubmit(objective || null);
     },
   });
 
   const handleBack = () => {
-    onSaveDraft?.(form.state.values.objective);
+    const objective = form.state.values.objective.trim();
+    onSaveDraft?.(objective || null);
     onBack();
   };
 
@@ -39,25 +41,14 @@ export function ObjectiveStep({ initialData, onSubmit, onBack, onSaveDraft }: Ob
       onBack={handleBack}
     >
       <FieldGroup>
-        <form.Field
-          name="objective"
-          validators={{
-            onBlur: ({ value }) => {
-              if (!value?.trim()) {
-                return m.validation_objective_required();
-              }
-              return undefined;
-            },
-          }}
-        >
+        <form.Field name="objective">
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel required>{m.field_objective()}</FieldLabel>
+              <FieldLabel>{m.field_objective()}</FieldLabel>
               <Textarea
                 data-testid="onboarding-objective-input"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
                 placeholder={m.field_objective_placeholder()}
                 rows={4}
                 aria-invalid={field.state.meta.errors.length > 0}

@@ -26,6 +26,7 @@ interface PlanLike {
 interface SubscriptionBadgeMetadata {
   planLabel: string;
   statusLabel: string;
+  shouldEdit: boolean;
   badgeClassName: string;
   dotClassName: string;
 }
@@ -33,7 +34,7 @@ interface SubscriptionBadgeMetadata {
 const DEFAULT_MONTHS = 3;
 
 const BADGE_BASE =
-  "h-7 gap-2 rounded-full border px-3 font-semibold text-emerald-900 sm:text-sm text-xs";
+  "h-7 gap-0 sm:gap-2 rounded-full border px-3 font-semibold text-emerald-900 sm:text-sm text-xs";
 
 const BADGE_ACTIVE = `${BADGE_BASE} border-emerald-200 bg-emerald-100 text-emerald-900`;
 const DOT_ACTIVE = "bg-emerald-500";
@@ -83,6 +84,7 @@ function getBadgeStatus(start: Date, end: Date): Omit<SubscriptionBadgeMetadata,
   if (isPast(end)) {
     return {
       statusLabel: m.sub_expired(),
+      shouldEdit: false,
       badgeClassName: BADGE_EXPIRED,
       dotClassName: DOT_EXPIRED,
     };
@@ -91,15 +93,16 @@ function getBadgeStatus(start: Date, end: Date): Omit<SubscriptionBadgeMetadata,
   if (isToday(end)) {
     return {
       statusLabel: m.sub_today(),
+      shouldEdit: true,
       badgeClassName: BADGE_ACTIVE,
       dotClassName: DOT_ACTIVE,
     };
   }
 
   if (isFuture(start)) {
-    const duration = formatDateDuration(intervalToDuration({ start: new Date(), end: start }));
     return {
-      statusLabel: m.sub_starts_in({ duration }),
+      statusLabel: m.sub_not_started(),
+      shouldEdit: true,
       badgeClassName: BADGE_UPCOMING,
       dotClassName: DOT_UPCOMING,
     };
@@ -107,6 +110,7 @@ function getBadgeStatus(start: Date, end: Date): Omit<SubscriptionBadgeMetadata,
 
   return {
     statusLabel: m.nutrition_status_active(),
+    shouldEdit: true,
     badgeClassName: BADGE_ACTIVE,
     dotClassName: DOT_ACTIVE,
   };
@@ -181,6 +185,7 @@ export function getSubscriptionBadgeMetadata(
     return {
       planLabel: m.customer_no_subscription(),
       statusLabel: "",
+      shouldEdit: false,
       badgeClassName: BADGE_NEUTRAL,
       dotClassName: DOT_NEUTRAL,
     };
@@ -193,6 +198,7 @@ export function getSubscriptionBadgeMetadata(
     return {
       planLabel,
       statusLabel: m.nutrition_status_inactive(),
+      shouldEdit: true,
       badgeClassName: BADGE_NEUTRAL,
       dotClassName: DOT_NEUTRAL,
     };
@@ -304,8 +310,7 @@ export function getTimeRemainingLabel(startDate: Date | string, endDate: Date | 
   }
 
   if (isFuture(start)) {
-    const duration = formatDateDuration(intervalToDuration({ start: new Date(), end: start }));
-    return m.sub_starts_in({ duration });
+    return m.sub_not_started();
   }
 
   const duration = formatDateDuration(intervalToDuration({ start: new Date(), end }));

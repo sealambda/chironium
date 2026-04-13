@@ -55,14 +55,14 @@ export const personSchema = z.object({
 export type PersonSchemaData = z.infer<typeof personSchema>;
 
 export const subscriptionSchema = z.object({
-  planId: z.string().min(1, { message: m.validation_plan_required() }),
+  planId: z.string(),
   startDate: z.string(),
 });
 
 export type SubscriptionSchemaData = z.infer<typeof subscriptionSchema>;
 
 export const objectiveSchema = z.object({
-  objective: z.string().min(1, { message: m.validation_objective_required() }),
+  objective: z.string(),
 });
 
 export type ObjectiveSchemaData = z.infer<typeof objectiveSchema>;
