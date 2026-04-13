@@ -29,13 +29,14 @@ export const SubscriptionsByPersonQuery = graphql(`
   query SubscriptionsByPerson($subscriberId: ID!) {
     listSubscriptions(
       filter: { subscriberId: { eq: $subscriberId } }
-      sort: [{ field: START_DATE, order: DESC }]
+      sort: [{ field: ID, order: DESC }]
     ) {
       results {
         id
         state
         startDate
         plan {
+          id
           name
           duration {
             code
@@ -71,6 +72,21 @@ export const ListSubscriptionPlansQuery = graphql(`
 export const CreateSubscriptionMutation = graphql(`
   mutation CreateSubscription($input: CreateSubscriptionInput!) {
     createSubscription(input: $input) {
+      result {
+        id
+        state
+        startDate
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+export const UpdateSubscriptionMutation = graphql(`
+  mutation UpdateSubscription($id: ID!, $input: UpdateSubscriptionInput!) {
+    updateSubscription(id: $id, input: $input) {
       result {
         id
         state

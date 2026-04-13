@@ -42,8 +42,8 @@ input PractitionerNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -51,8 +51,8 @@ input PractitionerNameInput {
   """
   prefix: [String!]
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -217,8 +217,8 @@ input PersonNameInput {
   "Family name (often called 'Surname')"
   family: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
+  "Text representation of the full name"
+  text: String
 
   """
   Parts that come before the name
@@ -226,8 +226,8 @@ input PersonNameInput {
   """
   prefix: [String!]
 
-  "Text representation of the full name"
-  text: String
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -4478,6 +4478,20 @@ type TaskVersion {
   versionSource: Task!
 }
 
+"The result of the :update_subscription mutation"
+type UpdateSubscriptionResult {
+  "The successful result of the mutation"
+  result: Subscription
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
+input UpdateSubscriptionInput {
+  startDate: Date
+  planId: ID
+}
+
 "The result of the :create_subscription mutation"
 type CreateSubscriptionResult {
   "The successful result of the mutation"
@@ -5753,6 +5767,8 @@ type RootMutationType {
   createSubscriptionPlan(input: CreateSubscriptionPlanInput): CreateSubscriptionPlanResult!
 
   createSubscription(input: CreateSubscriptionInput!): CreateSubscriptionResult!
+
+  updateSubscription(id: ID!, input: UpdateSubscriptionInput): UpdateSubscriptionResult!
 
   createAllergyIntolerance(input: CreateAllergyIntoleranceInput!): CreateAllergyIntoleranceResult!
 

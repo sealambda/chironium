@@ -17,6 +17,7 @@ interface DatePickerProps {
   readonly placeholder?: string;
   readonly disabled?: boolean;
   readonly className?: string;
+  readonly inputTestId?: string;
   readonly endMonth?: Date;
   readonly startMonth?: Date;
 }
@@ -27,6 +28,7 @@ function DatePicker({
   placeholder,
   disabled,
   className,
+  inputTestId,
   endMonth,
   startMonth,
 }: DatePickerProps) {
@@ -80,6 +82,7 @@ function DatePicker({
   return (
     <div className="flex gap-2">
       <Input
+        data-testid={inputTestId}
         value={inputValue}
         onChange={handleInputChange}
         placeholder={placeholder ?? displayFormat.toLowerCase()}
@@ -115,6 +118,7 @@ interface DatePickerStringProps {
   readonly placeholder?: string;
   readonly disabled?: boolean;
   readonly className?: string;
+  readonly inputTestId?: string;
   readonly endMonth?: Date;
   readonly startMonth?: Date;
 }
@@ -125,6 +129,7 @@ function DatePickerString({
   disabled,
   endMonth,
   startMonth,
+  inputTestId,
   ...rest
 }: DatePickerStringProps) {
   const dateValue = value ? parseISO(value) : undefined;
@@ -138,6 +143,7 @@ function DatePickerString({
       value={dateValue}
       onChange={handleChange}
       disabled={disabled}
+      inputTestId={inputTestId}
       endMonth={endMonth}
       startMonth={startMonth}
       {...rest}

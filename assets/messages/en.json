@@ -555,7 +555,7 @@
   "sub_week_singular": "1 week",
   "sub_weeks_unit": "{count} weeks",
   "sub_remaining": "{duration} to go",
-  "sub_starts_in": "Starts in {duration}",
+  "sub_not_started": "Not started",
   "sub_today": "Ends today",
   "sub_year_singular": "1 year",
   "sub_years_unit": "{count} years",
