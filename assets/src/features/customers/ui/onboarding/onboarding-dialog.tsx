@@ -121,12 +121,12 @@ function useOnboardingDraft(
         toast.success(
           <span data-testid="toast-customer-onboarding-complete">{m.onboarding_success()}</span>,
         );
-        onCloseRef.current();
       } catch (err) {
         const message = err instanceof Error ? err.message : m.onboarding_error();
         setError(message);
       } finally {
         setIsSubmitting(false);
+        onCloseRef.current();
       }
     },
     [draft, organizationId, userId, userName, queryClient, onCloseRef],

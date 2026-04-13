@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -107,11 +107,19 @@ export function EditSubscriptionDialog({
     },
   });
 
+  const didResetOnOpen = useRef(false);
+
   useEffect(() => {
     if (!open) {
+      didResetOnOpen.current = false;
       return;
     }
 
+    if (didResetOnOpen.current) {
+      return;
+    }
+
+    didResetOnOpen.current = true;
     form.reset(initialValues);
     setPlanId(initialValues.planId);
     setStartDate(initialValues.startDate);

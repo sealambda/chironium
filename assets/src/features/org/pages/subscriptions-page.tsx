@@ -1,8 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Building2, CreditCard, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { fetchSubscriptionPlans } from "@/features/customers/api/subscriptions-api";
+import { fetchOrganizationSettings } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { AddSubscriptionPlanDialog } from "@/features/org/ui/add-subscription-plan-dialog";
 import {
@@ -10,23 +11,37 @@ import {
   formatSubscriptionPlanPriceText,
 } from "@/features/org/ui/subscription-plan-columns";
 import { SubscriptionPlansTable } from "@/features/org/ui/subscription-plans-table";
+import { canManageOrgMembers } from "@/features/org/utils/settings-member-table-model";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import type { SubscriptionPlan } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
-import { subscriptionPlansQueryKey } from "@/shared/utils/query-keys";
+import { orgSettingsQueryKey, subscriptionPlansQueryKey } from "@/shared/utils/query-keys";
 
 /**
  * Lists subscription plans for the selected organization with a desktop table
  * and mobile cards, matching the customers list layout.
  */
 export function SubscriptionsPage() {
+  const { user: currentUser } = useCurrentUser();
   const { selectedOrg, loading: orgsLoading } = useOrg();
   const { setHeaderContent } = useDetailMode();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
+
+  const { data: organizationSettings } = useQuery({
+    queryKey: orgSettingsQueryKey(selectedOrg?.id ?? ""),
+    queryFn: () => fetchOrganizationSettings(selectedOrg?.id ?? ""),
+    enabled: Boolean(selectedOrg?.id),
+  });
+
+  const canAddPlans = useMemo(
+    () => canManageOrgMembers(organizationSettings, currentUser?.id),
+    [organizationSettings, currentUser?.id],
+  );
 
   const {
     data: plans = [],
@@ -48,6 +63,11 @@ export function SubscriptionsPage() {
       return;
     }
 
+    if (!canAddPlans) {
+      setHeaderContent(null);
+      return;
+    }
+
     setHeaderContent(
       <div className="ml-auto flex w-full items-center justify-end gap-3">
         <Button onClick={() => setAddOpen(true)}>
@@ -60,7 +80,7 @@ export function SubscriptionsPage() {
     return () => {
       setHeaderContent(null);
     };
-  }, [plansError, plansLoading, selectedOrg, setHeaderContent]);
+  }, [canAddPlans, plansError, plansLoading, selectedOrg, setHeaderContent]);
 
   if (orgsLoading || plansLoading) {
     return <Loading />;
@@ -86,23 +106,27 @@ export function SubscriptionsPage() {
         </div>
       </header>
 
-      <PlanList items={plans} onAdd={() => setAddOpen(true)} />
+      <PlanList items={plans} canAddPlans={canAddPlans} onAdd={() => setAddOpen(true)} />
 
-      <AddSubscriptionPlanDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        organizationId={selectedOrg.id}
-        onCreated={invalidatePlans}
-      />
+      {canAddPlans ? (
+        <AddSubscriptionPlanDialog
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          organizationId={selectedOrg.id}
+          onCreated={invalidatePlans}
+        />
+      ) : null}
     </div>
   );
 }
 
 function PlanList({
   items,
+  canAddPlans,
   onAdd,
 }: Readonly<{
   items: SubscriptionPlan[];
+  canAddPlans: boolean;
   onAdd: () => void;
 }>) {
   if (items.length === 0) {
@@ -111,8 +135,8 @@ function PlanList({
         icon={CreditCard}
         title={m.subscriptions_empty()}
         description={m.subscriptions_empty_desc()}
-        actionLabel={m.subscriptions_add_plan()}
-        onAction={onAdd}
+        actionLabel={canAddPlans ? m.subscriptions_add_plan() : undefined}
+        onAction={canAddPlans ? onAdd : undefined}
       />
     );
   }

@@ -30,10 +30,17 @@ defmodule Chironium.Subscriptions.Plan do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
-  # TODO: Add policies
   policies do
-    policy always() do
+    bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
+    end
+
+    policy action_type(:read) do
+      authorize_if actor_present()
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if Chironium.Accounts.Checks.PowerUser
     end
   end
 
