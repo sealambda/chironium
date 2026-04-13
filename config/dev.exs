@@ -84,9 +84,9 @@ config :chironium, ChironiumWeb.Endpoint,
 config :chironium,
   dev_routes: true,
   token_signing_secret: "DuZ4SVcVbmoBuy/tJ46Zt5TwjsVigorE",
-  # Shared secret for POST /dev/playwright/session (Playwright E2E)
-  playwright_e2e_secret:
-    System.get_env("PLAYWRIGHT_E2E_SECRET", "local-playwright-e2e-secret-do-not-use-in-prod")
+  # Shared secret for POST /dev/playwright/session (Playwright E2E).
+  # Must be set explicitly via PLAYWRIGHT_E2E_SECRET; no default is provided.
+  playwright_e2e_secret: System.get_env("PLAYWRIGHT_E2E_SECRET")
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
