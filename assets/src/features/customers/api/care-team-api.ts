@@ -15,6 +15,18 @@ const ListPatientsForPersonsQuery = graphql(`
   }
 `);
 
+const ListCareTeamsByPractitionerQuery = graphql(`
+  query ListCareTeamsByPractitioner($practitionerId: ID!) {
+    listCareTeams(first: 250, filter: { participants: { practitionerId: { eq: $practitionerId } } }) {
+      results {
+        subjectPatient {
+          personId
+        }
+      }
+    }
+  }
+`);
+
 const ListCareTeamsForPatientsQuery = graphql(`
   query ListCareTeamsForPatients($filter: CareTeamFilterInput!) {
     listCareTeams(first: 250, filter: $filter) {
@@ -284,4 +296,24 @@ export async function bulkReassignPractitionersToCustomers({
   }
 
   return { personsSkippedWithoutPatient };
+}
+
+/** Returns the person IDs of all patients assigned to the given practitioner via an active care team. */
+export async function fetchPersonIdsByPractitioner(
+  organizationId: string,
+  practitionerId: string,
+): Promise<string[]> {
+  if (!organizationId || !practitionerId) {
+    return [];
+  }
+
+  const result = await requestGraphql({
+    document: ListCareTeamsByPractitionerQuery,
+    variables: { practitionerId },
+    organizationId,
+  });
+
+  return (result.listCareTeams?.results ?? [])
+    .map((team) => team.subjectPatient?.personId)
+    .filter((id): id is string => Boolean(id));
 }

@@ -42,6 +42,9 @@ export const customersQueryKeys = {
   subscriptions(organizationId: string) {
     return ["customers", "subscriptions", organizationId] as const;
   },
+  practitionerPersonIds(organizationId: string, practitionerId: string) {
+    return ["customers", "practitioner-persons", organizationId, practitionerId] as const;
+  },
 };
 
 /**

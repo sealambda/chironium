@@ -6,6 +6,7 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   Building2,
+  ListFilterIcon,
   Plus,
   Search,
   Users,
@@ -13,6 +14,7 @@ import {
 import type * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { fetchPersonIdsByPractitioner } from "@/features/customers/api/care-team-api";
 import {
   type CustomerListItem,
   fetchPersons,
@@ -26,6 +28,7 @@ import {
 } from "@/features/customers/model/person-sort-preferences";
 import { CustomerBulkActionBar } from "@/features/customers/ui/customer-bulk-action-bar";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
+import { FilterByPractitionerDialog } from "@/features/customers/ui/filter-by-practitioner-dialog";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
 import { ReassignCustomersDialog } from "@/features/customers/ui/reassign-customers-dialog";
@@ -47,30 +50,24 @@ import { Loading } from "@/shared/ui/loading";
 import { formatPersonName } from "@/shared/utils/person-utils";
 import { customersQueryKeys, personQueryKeys } from "@/shared/utils/query-keys";
 
-/**
- * Customers page displaying a scrollable list of all persons, with subscription
- * data shown where available.
- */
-export function CustomersPage() {
-  const queryClient = useQueryClient();
-  const { selectedOrg, loading: orgsLoading } = useOrg();
-  const { setHeaderContent } = useDetailMode();
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [reassignOpen, setReassignOpen] = useState(false);
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [search, setSearch] = useState("");
-  const [sortOption, setSortOption] = useState<PersonListSortOption>(
-    () => getStoredPersonSortPreference() ?? "moreRecent",
-  );
+interface PractitionerFilter {
+  id: string;
+  name: string;
+}
 
+function useCustomersPageData(
+  orgId: string | undefined,
+  sortOption: PersonListSortOption,
+  practitionerFilter: PractitionerFilter | null,
+) {
   const {
     data: persons,
     isLoading: personsLoading,
     error: personsError,
   } = useQuery({
-    queryKey: customersQueryKeys.persons(selectedOrg?.id ?? "", sortOption),
-    queryFn: () => fetchPersons(selectedOrg?.id ?? "", sortOption),
-    enabled: Boolean(selectedOrg),
+    queryKey: customersQueryKeys.persons(orgId ?? "", sortOption),
+    queryFn: () => fetchPersons(orgId ?? "", sortOption),
+    enabled: Boolean(orgId),
     placeholderData: (previousData) => previousData,
   });
 
@@ -79,9 +76,15 @@ export function CustomersPage() {
     isLoading: subscriptionsLoading,
     error: subscriptionsError,
   } = useQuery({
-    queryKey: customersQueryKeys.subscriptions(selectedOrg?.id ?? ""),
-    queryFn: () => fetchSubscriptions(selectedOrg?.id ?? ""),
-    enabled: Boolean(selectedOrg),
+    queryKey: customersQueryKeys.subscriptions(orgId ?? ""),
+    queryFn: () => fetchSubscriptions(orgId ?? ""),
+    enabled: Boolean(orgId),
+  });
+
+  const { data: practitionerPersonIds } = useQuery({
+    queryKey: customersQueryKeys.practitionerPersonIds(orgId ?? "", practitionerFilter?.id ?? ""),
+    queryFn: () => fetchPersonIdsByPractitioner(orgId ?? "", practitionerFilter?.id ?? ""),
+    enabled: Boolean(orgId) && Boolean(practitionerFilter?.id),
   });
 
   const isLoading = (personsLoading && !persons) || subscriptionsLoading;
@@ -92,13 +95,42 @@ export function CustomersPage() {
     [persons, subscriptions],
   );
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) {
-      return customers;
-    }
-    return customers.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
-  }, [customers, search]);
+  const practitionerPersonIdSet = useMemo(
+    () => (practitionerPersonIds ? new Set(practitionerPersonIds) : null),
+    [practitionerPersonIds],
+  );
+
+  return { customers, isLoading, error, practitionerPersonIdSet };
+}
+
+/**
+ * Customers page displaying a scrollable list of all persons, with subscription
+ * data shown where available.
+ */
+export function CustomersPage() {
+  const queryClient = useQueryClient();
+  const { selectedOrg, loading: orgsLoading } = useOrg();
+  const { setHeaderContent } = useDetailMode();
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [practitionerFilter, setPractitionerFilter] = useState<PractitionerFilter | null>(null);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [search, setSearch] = useState("");
+  const [sortOption, setSortOption] = useState<PersonListSortOption>(
+    () => getStoredPersonSortPreference() ?? "moreRecent",
+  );
+
+  const { customers, isLoading, error, practitionerPersonIdSet } = useCustomersPageData(
+    selectedOrg?.id,
+    sortOption,
+    practitionerFilter,
+  );
+
+  const filtered = useMemo(
+    () => filterCustomers(customers, practitionerPersonIdSet, search),
+    [customers, practitionerPersonIdSet, search],
+  );
 
   const selectedPersonIds = useMemo(
     () =>
@@ -111,6 +143,28 @@ export function CustomersPage() {
   const handleSortOptionChange = (nextSortOption: PersonListSortOption) => {
     storePersonSortPreference(nextSortOption);
     setSortOption(nextSortOption);
+  };
+
+  const handleReassignCompleted = () => {
+    const orgId = selectedOrg?.id ?? "";
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: customersQueryKeys.personsPrefix(orgId) }),
+      queryClient.invalidateQueries({ queryKey: customersQueryKeys.subscriptions(orgId) }),
+      ...selectedPersonIds.map((personId) =>
+        queryClient.invalidateQueries({ queryKey: personQueryKeys.patientDetailScope(personId) }),
+      ),
+    ]);
+  };
+
+  const handleFilterApply = (practitionerId: string | null, name: string | null) => {
+    if (!practitionerId) {
+      setPractitionerFilter(null);
+      return;
+    }
+    setPractitionerFilter({
+      id: practitionerId,
+      name: name ?? m.customers_filter_by_practitioner(),
+    });
   };
 
   useEffect(() => {
@@ -175,10 +229,14 @@ export function CustomersPage() {
           <span className="text-muted-foreground text-sm">({customers.length})</span>
         </div>
         {customers.length > 0 ? (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <CustomerSortDropdown
               sortOption={sortOption}
               onSortOptionChange={handleSortOptionChange}
+            />
+            <PractitionerFilterButton
+              practitionerFilter={practitionerFilter}
+              onClick={() => setFilterOpen(true)}
             />
           </div>
         ) : null}
@@ -213,26 +271,64 @@ export function CustomersPage() {
         onOpenChange={setReassignOpen}
         organizationId={selectedOrg.id}
         selectedPersonIds={selectedPersonIds}
-        onCompleted={() => {
-          const orgId = selectedOrg.id;
-          void Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: customersQueryKeys.personsPrefix(orgId),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: customersQueryKeys.subscriptions(orgId),
-            }),
-            ...selectedPersonIds.map((personId) =>
-              queryClient.invalidateQueries({
-                queryKey: personQueryKeys.patientDetailScope(personId),
-              }),
-            ),
-          ]);
-        }}
+        onCompleted={handleReassignCompleted}
+      />
+
+      <FilterByPractitionerDialog
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        organizationId={selectedOrg.id}
+        selectedPractitionerId={practitionerFilter?.id ?? null}
+        onApply={handleFilterApply}
       />
 
       <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
     </div>
+  );
+}
+
+function filterCustomers(
+  customers: CustomerListItem[],
+  practitionerPersonIdSet: Set<string> | null,
+  search: string,
+): CustomerListItem[] {
+  let result = customers;
+
+  if (practitionerPersonIdSet) {
+    result = result.filter((item) => practitionerPersonIdSet.has(item.person.id));
+  }
+
+  const q = search.trim().toLowerCase();
+  if (q) {
+    result = result.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
+  }
+
+  return result;
+}
+
+function PractitionerFilterButton({
+  practitionerFilter,
+  onClick,
+}: Readonly<{
+  practitionerFilter: { id: string; name: string } | null;
+  onClick: () => void;
+}>) {
+  return (
+    <Button
+      variant={practitionerFilter ? "secondary" : "outline"}
+      size="sm"
+      type="button"
+      onClick={onClick}
+      aria-label={
+        practitionerFilter
+          ? m.customers_filter_by_practitioner_active_aria({ name: practitionerFilter.name })
+          : m.customers_filter_by_practitioner()
+      }
+      data-testid="filter-practitioner-button"
+    >
+      <ListFilterIcon className="size-4" />
+      {practitionerFilter ? practitionerFilter.name : m.customers_filter_by_practitioner()}
+    </Button>
   );
 }
 
