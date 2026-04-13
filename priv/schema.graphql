@@ -4,16 +4,6 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-
-  "Optional principal grants to pre-create for the invited user."
-  principalGrants: [PrincipalGrantInput!]
-
-  "Organization role assigned when the invitation is accepted."
-  role: OrganizationUserRole
-}
-
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -45,14 +35,14 @@ input PractitionerNameInput {
   "Text representation of the full name"
   text: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -220,14 +210,14 @@ input PersonNameInput {
   "Text representation of the full name"
   text: String
 
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
-
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
+
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -4781,6 +4771,16 @@ type SubscriptionVersion {
   versionSource: Subscription!
 }
 
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Optional principal grants to pre-create for the invited user."
+  principalGrants: [PrincipalGrantInput!]
+
+  "Organization role assigned when the invitation is accepted."
+  role: OrganizationUserRole
+}
+
 enum DesignationSortField {
   ID
   LANGUAGE
@@ -5739,6 +5739,9 @@ type RootQueryType {
 
     "The number of records to return to the end. Maximum 250"
     last: Int
+
+    "When true, returns only persons with no active practitioner assignment."
+    unassigned: Boolean
   ): KeysetPageOfPerson
 
   "Find invitation for the current email address"

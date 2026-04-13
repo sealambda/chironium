@@ -6,6 +6,7 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   Building2,
+  ListFilterIcon,
   Plus,
   Search,
   Users,
@@ -13,10 +14,12 @@ import {
 import type * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { fetchPersonIdsByPractitioner } from "@/features/customers/api/care-team-api";
 import {
   type CustomerListItem,
   fetchPersons,
   mergePersonsWithSubscriptions,
+  type PersonAssignmentFilter,
   type PersonListSortOption,
 } from "@/features/customers/api/persons-api";
 import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
@@ -26,10 +29,12 @@ import {
 } from "@/features/customers/model/person-sort-preferences";
 import { CustomerBulkActionBar } from "@/features/customers/ui/customer-bulk-action-bar";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
+import { FilterByPractitionerDialog } from "@/features/customers/ui/filter-by-practitioner-dialog";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
 import { ReassignCustomersDialog } from "@/features/customers/ui/reassign-customers-dialog";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
 import { Button } from "@/shared/ui/button";
@@ -47,30 +52,34 @@ import { Loading } from "@/shared/ui/loading";
 import { formatPersonName } from "@/shared/utils/person-utils";
 import { customersQueryKeys, personQueryKeys } from "@/shared/utils/query-keys";
 
-/**
- * Customers page displaying a scrollable list of all persons, with subscription
- * data shown where available.
- */
-export function CustomersPage() {
-  const queryClient = useQueryClient();
-  const { selectedOrg, loading: orgsLoading } = useOrg();
-  const { setHeaderContent } = useDetailMode();
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [reassignOpen, setReassignOpen] = useState(false);
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [search, setSearch] = useState("");
-  const [sortOption, setSortOption] = useState<PersonListSortOption>(
-    () => getStoredPersonSortPreference() ?? "moreRecent",
-  );
+interface PractitionerFilter {
+  kind: "practitioner";
+  id: string;
+  name: string;
+}
+
+interface UnassignedFilter {
+  kind: "unassigned";
+}
+
+type CustomerAssignmentFilter = PractitionerFilter | UnassignedFilter | null;
+
+function useCustomersPageData(
+  orgId: string | undefined,
+  sortOption: PersonListSortOption,
+  assignmentFilter: CustomerAssignmentFilter,
+) {
+  const personAssignmentFilter: PersonAssignmentFilter =
+    assignmentFilter?.kind === "unassigned" ? "unassigned" : "all";
 
   const {
     data: persons,
     isLoading: personsLoading,
     error: personsError,
   } = useQuery({
-    queryKey: customersQueryKeys.persons(selectedOrg?.id ?? "", sortOption),
-    queryFn: () => fetchPersons(selectedOrg?.id ?? "", sortOption),
-    enabled: Boolean(selectedOrg),
+    queryKey: customersQueryKeys.persons(orgId ?? "", sortOption, personAssignmentFilter),
+    queryFn: () => fetchPersons(orgId ?? "", sortOption, personAssignmentFilter),
+    enabled: Boolean(orgId),
     placeholderData: (previousData) => previousData,
   });
 
@@ -79,9 +88,22 @@ export function CustomersPage() {
     isLoading: subscriptionsLoading,
     error: subscriptionsError,
   } = useQuery({
-    queryKey: customersQueryKeys.subscriptions(selectedOrg?.id ?? ""),
-    queryFn: () => fetchSubscriptions(selectedOrg?.id ?? ""),
-    enabled: Boolean(selectedOrg),
+    queryKey: customersQueryKeys.subscriptions(orgId ?? ""),
+    queryFn: () => fetchSubscriptions(orgId ?? ""),
+    enabled: Boolean(orgId),
+  });
+
+  const { data: practitionerPersonIds } = useQuery({
+    queryKey: customersQueryKeys.practitionerPersonIds(
+      orgId ?? "",
+      assignmentFilter?.kind === "practitioner" ? assignmentFilter.id : "",
+    ),
+    queryFn: () =>
+      fetchPersonIdsByPractitioner(
+        orgId ?? "",
+        assignmentFilter?.kind === "practitioner" ? assignmentFilter.id : "",
+      ),
+    enabled: Boolean(orgId) && assignmentFilter?.kind === "practitioner",
   });
 
   const isLoading = (personsLoading && !persons) || subscriptionsLoading;
@@ -92,13 +114,58 @@ export function CustomersPage() {
     [persons, subscriptions],
   );
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) {
-      return customers;
+  const practitionerPersonIdSet = useMemo(
+    () => (practitionerPersonIds ? new Set(practitionerPersonIds) : null),
+    [practitionerPersonIds],
+  );
+
+  return { customers, isLoading, error, practitionerPersonIdSet };
+}
+
+/**
+ * Customers page displaying a scrollable list of all persons, with subscription
+ * data shown where available.
+ */
+export function CustomersPage() {
+  const queryClient = useQueryClient();
+  const { selectedOrg, loading: orgsLoading } = useOrg();
+  const { user } = useCurrentUser();
+  const { setHeaderContent } = useDetailMode();
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [assignmentFilter, setAssignmentFilter] = useState<CustomerAssignmentFilter>(null);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [search, setSearch] = useState("");
+  const [sortOption, setSortOption] = useState<PersonListSortOption>(
+    () => getStoredPersonSortPreference() ?? "moreRecent",
+  );
+
+  const { customers, isLoading, error, practitionerPersonIdSet } = useCustomersPageData(
+    selectedOrg?.id,
+    sortOption,
+    assignmentFilter,
+  );
+
+  const filtered = useMemo(
+    () => filterCustomers(customers, practitionerPersonIdSet, search),
+    [customers, practitionerPersonIdSet, search],
+  );
+
+  const canUseUnassignedFilter = useMemo(() => {
+    if (!selectedOrg || !user) {
+      return false;
     }
-    return customers.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
-  }, [customers, search]);
+
+    if (selectedOrg.ownerId === user.id) {
+      return true;
+    }
+
+    return selectedOrg.organizationUsers.some(
+      (organizationUser) =>
+        organizationUser.userId === user.id && organizationUser.role === "POWER_USER",
+    );
+  }, [selectedOrg, user]);
 
   const selectedPersonIds = useMemo(
     () =>
@@ -111,6 +178,25 @@ export function CustomersPage() {
   const handleSortOptionChange = (nextSortOption: PersonListSortOption) => {
     storePersonSortPreference(nextSortOption);
     setSortOption(nextSortOption);
+  };
+
+  const handleReassignCompleted = () => {
+    const orgId = selectedOrg?.id ?? "";
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: customersQueryKeys.personsPrefix(orgId) }),
+      queryClient.invalidateQueries({ queryKey: customersQueryKeys.subscriptions(orgId) }),
+      ...selectedPersonIds.map((personId) =>
+        queryClient.invalidateQueries({ queryKey: personQueryKeys.patientDetailScope(personId) }),
+      ),
+    ]);
+  };
+
+  const handleFilterApply = (nextFilter: CustomerAssignmentFilter) => {
+    if (!nextFilter) {
+      setAssignmentFilter(null);
+      return;
+    }
+    setAssignmentFilter(nextFilter);
   };
 
   useEffect(() => {
@@ -164,7 +250,7 @@ export function CustomersPage() {
 
   return (
     <div className="space-y-4 pt-7">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-baseline gap-2">
           <h1
             className="font-bold text-foreground text-xl uppercase tracking-wide"
@@ -175,21 +261,37 @@ export function CustomersPage() {
           <span className="text-muted-foreground text-sm">({customers.length})</span>
         </div>
         {customers.length > 0 ? (
-          <div className="flex items-center">
+          <div className="hidden items-center gap-2 sm:flex">
             <CustomerSortDropdown
               sortOption={sortOption}
               onSortOptionChange={handleSortOptionChange}
+            />
+            <PractitionerFilterButton
+              assignmentFilter={assignmentFilter}
+              onClick={() => setFilterOpen(true)}
             />
           </div>
         ) : null}
       </header>
 
       {customers.length > 0 ? (
-        <div className="sm:hidden">
-          <ListSearchField
-            value={search}
-            onChange={setSearch}
-            placeholder={m.customers_search_placeholder()}
+        <div className="flex items-center gap-2 sm:hidden">
+          <div className="min-w-0 flex-1">
+            <ListSearchField
+              value={search}
+              onChange={setSearch}
+              placeholder={m.customers_search_placeholder()}
+            />
+          </div>
+          <CustomerSortDropdown
+            sortOption={sortOption}
+            onSortOptionChange={handleSortOptionChange}
+            compact
+          />
+          <PractitionerFilterButton
+            assignmentFilter={assignmentFilter}
+            onClick={() => setFilterOpen(true)}
+            compact
           />
         </div>
       ) : null}
@@ -213,26 +315,74 @@ export function CustomersPage() {
         onOpenChange={setReassignOpen}
         organizationId={selectedOrg.id}
         selectedPersonIds={selectedPersonIds}
-        onCompleted={() => {
-          const orgId = selectedOrg.id;
-          void Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: customersQueryKeys.personsPrefix(orgId),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: customersQueryKeys.subscriptions(orgId),
-            }),
-            ...selectedPersonIds.map((personId) =>
-              queryClient.invalidateQueries({
-                queryKey: personQueryKeys.patientDetailScope(personId),
-              }),
-            ),
-          ]);
-        }}
+        onCompleted={handleReassignCompleted}
+      />
+
+      <FilterByPractitionerDialog
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        organizationId={selectedOrg.id}
+        selectedFilter={assignmentFilter}
+        showUnassignedOption={canUseUnassignedFilter}
+        onApply={handleFilterApply}
       />
 
       <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
     </div>
+  );
+}
+
+function filterCustomers(
+  customers: CustomerListItem[],
+  practitionerPersonIdSet: Set<string> | null,
+  search: string,
+): CustomerListItem[] {
+  let result = customers;
+
+  if (practitionerPersonIdSet) {
+    result = result.filter((item) => practitionerPersonIdSet.has(item.person.id));
+  }
+
+  const q = search.trim().toLowerCase();
+  if (q) {
+    result = result.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
+  }
+
+  return result;
+}
+
+function PractitionerFilterButton({
+  assignmentFilter,
+  onClick,
+  compact = false,
+}: Readonly<{
+  assignmentFilter: CustomerAssignmentFilter;
+  onClick: () => void;
+  compact?: boolean;
+}>) {
+  let buttonLabel: string = m.customers_filter_by_practitioner();
+  if (assignmentFilter?.kind === "practitioner") {
+    buttonLabel = assignmentFilter.name;
+  } else if (assignmentFilter?.kind === "unassigned") {
+    buttonLabel = m.customers_filter_unassigned();
+  }
+
+  return (
+    <Button
+      variant={assignmentFilter ? "secondary" : "outline"}
+      size={compact ? "icon-sm" : "sm"}
+      type="button"
+      onClick={onClick}
+      aria-label={
+        assignmentFilter
+          ? m.customers_filter_by_practitioner_active_aria({ name: buttonLabel })
+          : m.customers_filter_by_practitioner()
+      }
+      data-testid="filter-practitioner-button"
+    >
+      <ListFilterIcon className="size-4" />
+      {compact ? null : <span>{buttonLabel}</span>}
+    </Button>
   );
 }
 
@@ -320,25 +470,22 @@ function CustomerList({
 function CustomerSortDropdown({
   sortOption,
   onSortOptionChange,
+  compact = false,
 }: Readonly<{
   sortOption: PersonListSortOption;
   onSortOptionChange: (sort: PersonListSortOption) => void;
+  compact?: boolean;
 }>) {
   const selectedSortLabel = getSortOptionLabel(sortOption);
-  let SortIcon: typeof ArrowUpDownIcon;
-  if (sortOption === "moreRecent") {
-    SortIcon = ArrowDownIcon;
-  } else if (sortOption === "lessRecent") {
-    SortIcon = ArrowUpIcon;
-  } else {
-    SortIcon = ArrowUpDownIcon;
-  }
+  const SortIcon = getSortTriggerIcon(sortOption);
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="sm" type="button" />}>
+      <DropdownMenuTrigger
+        render={<Button variant="outline" size={compact ? "icon-sm" : "sm"} type="button" />}
+      >
         <SortIcon className="size-4" />
-        {selectedSortLabel}
+        <span className={compact ? "sr-only" : undefined}>{selectedSortLabel}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>{m.customers_sort_by()}</DropdownMenuLabel>
@@ -357,6 +504,26 @@ function CustomerSortDropdown({
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+function getSortTriggerIcon(sortOption: PersonListSortOption): typeof ArrowUpDownIcon {
+  if (
+    sortOption === "moreRecent" ||
+    sortOption === "givenNameDesc" ||
+    sortOption === "familyNameDesc"
+  ) {
+    return ArrowDownIcon;
+  }
+
+  if (
+    sortOption === "lessRecent" ||
+    sortOption === "givenNameAsc" ||
+    sortOption === "familyNameAsc"
+  ) {
+    return ArrowUpIcon;
+  }
+
+  return ArrowUpDownIcon;
 }
 
 function RecentSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
