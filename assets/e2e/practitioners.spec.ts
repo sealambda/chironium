@@ -6,11 +6,7 @@ import {
   selectPractitionerInReassignDialog,
   TIMEOUT_MS,
 } from "./helpers";
-import {
-  defaultLocalPlaywrightSecret,
-  devPlaywrightEnsureUser,
-  devPlaywrightSession,
-} from "./playwright-session";
+import { devPlaywrightEnsureUser, devPlaywrightSession } from "./playwright-session";
 
 function tableCustomerName(page: Page, fullName: string) {
   return page.getByRole("table").getByText(fullName, { exact: true }).first();
@@ -22,7 +18,10 @@ async function createSessionContext(
   email: string,
 ): Promise<{ context: BrowserContext; page: Page }> {
   const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000";
-  const secret = process.env.PLAYWRIGHT_E2E_SECRET ?? defaultLocalPlaywrightSecret;
+  const secret = process.env.PLAYWRIGHT_E2E_SECRET;
+  if (!secret) {
+    throw new Error("PLAYWRIGHT_E2E_SECRET environment variable must be set.");
+  }
   const request = page.request;
   await devPlaywrightEnsureUser(request, { baseURL, secret, email });
 
@@ -237,17 +236,16 @@ test("full invite and customer assignment lifecycle", async ({ browser, page }) 
   await managerCtx.page.getByTestId("reassign-replace-checkbox").click();
   await managerCtx.page.getByTestId("reassign-apply-button").click();
 
-  // TODO: Uncomment this when solved https://github.com/sealambda/chironium/issues/105
-  // await memberCtx.page.goto("/app/customers");
-  // await expect(memberCtx.page.getByTestId("customers-heading")).toBeVisible({
-  //   timeout: TIMEOUT_MS,
-  // });
-  // await expect(tableCustomerName(memberCtx.page, firstCustomer)).not.toBeVisible({
-  //   timeout: TIMEOUT_MS,
-  // });
-  // await expect(tableCustomerName(memberCtx.page, secondCustomer)).not.toBeVisible({
-  //   timeout: TIMEOUT_MS,
-  // });
+  await memberCtx.page.goto("/app/customers");
+  await expect(memberCtx.page.getByTestId("customers-heading")).toBeVisible({
+    timeout: TIMEOUT_MS,
+  });
+  await expect(tableCustomerName(memberCtx.page, firstCustomer)).not.toBeVisible({
+    timeout: TIMEOUT_MS,
+  });
+  await expect(tableCustomerName(memberCtx.page, secondCustomer)).not.toBeVisible({
+    timeout: TIMEOUT_MS,
+  });
 
   await createCustomer(memberCtx.page, memberOwnedCustomer);
   await expect(tableCustomerName(memberCtx.page, memberOwnedCustomer)).toBeVisible({

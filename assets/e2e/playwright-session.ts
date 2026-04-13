@@ -1,7 +1,5 @@
 import type { APIRequestContext, Browser } from "@playwright/test";
 
-export const defaultLocalPlaywrightSecret = "local-playwright-e2e-secret-do-not-use-in-prod";
-
 export async function devPlaywrightEnsureUser(
   request: APIRequestContext,
   params: { baseURL: string; secret: string; email: string },

@@ -1,10 +1,6 @@
 import { chromium, type FullConfig, request } from "@playwright/test";
 
-import {
-  defaultLocalPlaywrightSecret,
-  devPlaywrightEnsureUser,
-  writeStorageState,
-} from "./playwright-session";
+import { devPlaywrightEnsureUser, writeStorageState } from "./playwright-session";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +9,10 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default async function globalSetup(_config: FullConfig): Promise<void> {
   const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000";
-  const secret = process.env.PLAYWRIGHT_E2E_SECRET ?? defaultLocalPlaywrightSecret;
+  const secret = process.env.PLAYWRIGHT_E2E_SECRET;
+  if (!secret) {
+    throw new Error("PLAYWRIGHT_E2E_SECRET environment variable must be set.");
+  }
   const ownerEmail = process.env.E2E_OWNER_EMAIL ?? "e2e-owner@local.test";
 
   const authDir = path.join(rootDir, ".auth");

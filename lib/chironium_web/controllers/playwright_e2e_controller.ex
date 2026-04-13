@@ -48,9 +48,9 @@ defmodule ChironiumWeb.PlaywrightE2EController do
     if not secret_ok?(conn) do
       forbidden(conn)
     else
-      email = params["email"]
+      email = normalize_email(params["email"])
 
-      if not is_binary(email) or email == "" do
+      if email == "" do
         conn |> put_status(:bad_request) |> text(~s(Missing "email" in JSON body.))
       else
         case fetch_user(email) do
@@ -90,6 +90,9 @@ defmodule ChironiumWeb.PlaywrightE2EController do
   end
 
   defp forbidden(conn), do: conn |> put_status(:forbidden) |> text("Forbidden")
+
+  defp normalize_email(email) when is_binary(email), do: email |> String.trim() |> String.downcase()
+  defp normalize_email(_), do: ""
 
   defp fetch_user(email) do
     Chironium.Accounts.User
