@@ -28,6 +28,12 @@ describe("ReassignCustomersDialog", () => {
   const onCompleted = vi.fn();
   const organizationId = "org_test";
 
+  const getDialog = () => {
+    const dialog = screen.getAllByTestId("reassign-dialog").at(-1);
+    expect(dialog).toBeDefined();
+    return dialog as HTMLElement;
+  };
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -53,10 +59,10 @@ describe("ReassignCustomersDialog", () => {
       />,
     );
 
-    const dialog = await screen.findByRole("dialog", { name: /reassign professionals/i });
-    await within(dialog).findByLabelText(/taylor one/i);
-    await user.click(within(dialog).getByLabelText(/taylor one/i));
-    await user.click(within(dialog).getByRole("button", { name: "Apply" }));
+    const dialog = getDialog();
+    await within(dialog).findByTestId("reassign-practitioner-label-prac_a");
+    await user.click(within(dialog).getByTestId("reassign-practitioner-checkbox-prac_a"));
+    await user.click(within(dialog).getByTestId("reassign-apply-button"));
 
     await waitFor(() => {
       expect(bulkReassignPractitionersToCustomers).toHaveBeenCalledWith({
@@ -95,11 +101,11 @@ describe("ReassignCustomersDialog", () => {
       />,
     );
 
-    const dialog = await screen.findByRole("dialog", { name: /reassign professionals/i });
-    await within(dialog).findByLabelText(/jordan b/i);
-    await user.click(within(dialog).getByLabelText(/taylor a/i));
-    await user.click(within(dialog).getByLabelText(/jordan b/i));
-    await user.click(within(dialog).getByRole("button", { name: "Apply" }));
+    const dialog = getDialog();
+    await within(dialog).findByTestId("reassign-practitioner-label-prac_b");
+    await user.click(within(dialog).getByTestId("reassign-practitioner-checkbox-prac_a"));
+    await user.click(within(dialog).getByTestId("reassign-practitioner-checkbox-prac_b"));
+    await user.click(within(dialog).getByTestId("reassign-apply-button"));
 
     await waitFor(() => {
       expect(bulkReassignPractitionersToCustomers).toHaveBeenCalledWith({
@@ -139,11 +145,11 @@ describe("ReassignCustomersDialog", () => {
       />,
     );
 
-    const dialog = await screen.findByRole("dialog", { name: /reassign professionals/i });
-    await within(dialog).findByLabelText(/jordan b/i);
-    await user.click(within(dialog).getByLabelText(/jordan b/i));
-    await user.click(within(dialog).getByLabelText(/replace existing assignments/i));
-    await user.click(within(dialog).getByRole("button", { name: "Apply" }));
+    const dialog = getDialog();
+    await within(dialog).findByTestId("reassign-practitioner-label-prac_b");
+    await user.click(within(dialog).getByTestId("reassign-practitioner-checkbox-prac_b"));
+    await user.click(within(dialog).getByTestId("reassign-replace-checkbox"));
+    await user.click(within(dialog).getByTestId("reassign-apply-button"));
 
     await waitFor(() => {
       expect(bulkReassignPractitionersToCustomers).toHaveBeenCalledWith({

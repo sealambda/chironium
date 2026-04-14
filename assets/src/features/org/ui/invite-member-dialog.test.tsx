@@ -26,6 +26,18 @@ describe("InviteMemberDialog", () => {
   const onInvited = vi.fn().mockResolvedValue(undefined);
   const organizationId = "org_test";
 
+  const getDialog = () => {
+    const dialog = screen.getAllByTestId("invite-member-dialog").at(-1);
+    expect(dialog).toBeDefined();
+    return dialog as HTMLElement;
+  };
+
+  const getLastRoleOption = (value: string) => {
+    const option = screen.getAllByTestId(`invite-member-role-option-${value}`).at(-1);
+    expect(option).toBeDefined();
+    return option as HTMLElement;
+  };
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -43,12 +55,9 @@ describe("InviteMemberDialog", () => {
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /invite member/i });
-    await user.type(
-      within(dialog).getByPlaceholderText("colleague@example.com"),
-      "member@example.com",
-    );
-    await user.click(within(dialog).getByRole("button", { name: "Send invitation" }));
+    const dialog = getDialog();
+    await user.type(within(dialog).getByTestId("invite-member-email-input"), "member@example.com");
+    await user.click(within(dialog).getByTestId("invite-member-submit-button"));
 
     await waitFor(() => {
       expect(inviteUserToOrganization).toHaveBeenCalledWith({
@@ -74,14 +83,11 @@ describe("InviteMemberDialog", () => {
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /invite member/i });
-    await user.type(
-      within(dialog).getByPlaceholderText("colleague@example.com"),
-      "manager@example.com",
-    );
-    await user.click(within(dialog).getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Manager" }));
-    await user.click(within(dialog).getByRole("button", { name: "Send invitation" }));
+    const dialog = getDialog();
+    await user.type(within(dialog).getByTestId("invite-member-email-input"), "manager@example.com");
+    await user.click(within(dialog).getByTestId("invite-member-role-trigger"));
+    await user.click(getLastRoleOption("power_user"));
+    await user.click(within(dialog).getByTestId("invite-member-submit-button"));
 
     await waitFor(() => {
       expect(inviteUserToOrganization).toHaveBeenCalledWith({
@@ -106,23 +112,17 @@ describe("InviteMemberDialog", () => {
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /invite member/i });
+    const dialog = getDialog();
     await user.type(
-      within(dialog).getByPlaceholderText("colleague@example.com"),
+      within(dialog).getByTestId("invite-member-email-input"),
       "clinical@example.com",
     );
-    const checkboxes = within(dialog).getAllByRole("checkbox");
-    const inviteAsPractitioner = checkboxes[0];
-    expect(inviteAsPractitioner).toBeDefined();
-    await user.click(inviteAsPractitioner);
-    const textboxes = within(dialog).getAllByRole("textbox");
-    const given = textboxes[1];
-    const family = textboxes[2];
-    expect(given).toBeDefined();
-    expect(family).toBeDefined();
+    await user.click(within(dialog).getByTestId("invite-member-practitioner-checkbox"));
+    const given = within(dialog).getByTestId("invite-member-practitioner-given-name-input");
+    const family = within(dialog).getByTestId("invite-member-practitioner-family-name-input");
     await user.type(given, "Jane");
     await user.type(family, "Doe");
-    await user.click(within(dialog).getByRole("button", { name: "Send invitation" }));
+    await user.click(within(dialog).getByTestId("invite-member-submit-button"));
 
     await waitFor(() => {
       expect(createPractitioner).toHaveBeenCalledWith(organizationId, {
@@ -154,25 +154,19 @@ describe("InviteMemberDialog", () => {
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /invite member/i });
+    const dialog = getDialog();
     await user.type(
-      within(dialog).getByPlaceholderText("colleague@example.com"),
+      within(dialog).getByTestId("invite-member-email-input"),
       "mgr+prac@example.com",
     );
-    await user.click(within(dialog).getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Manager" }));
-    const checkboxes = within(dialog).getAllByRole("checkbox");
-    const inviteAsPractitioner = checkboxes[0];
-    expect(inviteAsPractitioner).toBeDefined();
-    await user.click(inviteAsPractitioner);
-    const textboxes = within(dialog).getAllByRole("textbox");
-    const given = textboxes[1];
-    const family = textboxes[2];
-    expect(given).toBeDefined();
-    expect(family).toBeDefined();
+    await user.click(within(dialog).getByTestId("invite-member-role-trigger"));
+    await user.click(getLastRoleOption("power_user"));
+    await user.click(within(dialog).getByTestId("invite-member-practitioner-checkbox"));
+    const given = within(dialog).getByTestId("invite-member-practitioner-given-name-input");
+    const family = within(dialog).getByTestId("invite-member-practitioner-family-name-input");
     await user.type(given, "Pat");
     await user.type(family, "Lee");
-    await user.click(within(dialog).getByRole("button", { name: "Send invitation" }));
+    await user.click(within(dialog).getByTestId("invite-member-submit-button"));
 
     await waitFor(() => {
       expect(inviteUserWithPrincipalGrants).toHaveBeenCalledWith({

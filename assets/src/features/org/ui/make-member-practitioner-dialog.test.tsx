@@ -22,6 +22,12 @@ describe("MakeMemberPractitionerDialog", () => {
   const onSaved = vi.fn().mockResolvedValue(undefined);
   const organizationId = "org_test";
 
+  const getDialog = () => {
+    const dialog = screen.getAllByTestId("make-practitioner-dialog").at(-1);
+    expect(dialog).toBeDefined();
+    return dialog as HTMLElement;
+  };
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -41,11 +47,12 @@ describe("MakeMemberPractitionerDialog", () => {
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /grant practitioner access/i });
-    const [given, family] = within(dialog).getAllByRole("textbox");
+    const dialog = getDialog();
+    const given = within(dialog).getByTestId("make-practitioner-given-name-input");
+    const family = within(dialog).getByTestId("make-practitioner-family-name-input");
     await user.type(given, "Sam");
     await user.type(family, "River");
-    await user.click(within(dialog).getByRole("button", { name: "Create and link" }));
+    await user.click(within(dialog).getByTestId("make-practitioner-submit-button"));
 
     await waitFor(() => {
       expect(createPractitioner).toHaveBeenCalledWith(organizationId, {
@@ -77,11 +84,12 @@ describe("MakeMemberPractitionerDialog", () => {
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /grant practitioner access/i });
-    const [given, family] = within(dialog).getAllByRole("textbox");
+    const dialog = getDialog();
+    const given = within(dialog).getByTestId("make-practitioner-given-name-input");
+    const family = within(dialog).getByTestId("make-practitioner-family-name-input");
     await user.type(given, "Alex");
     await user.type(family, "Kim");
-    await user.click(within(dialog).getByRole("button", { name: "Create and link" }));
+    await user.click(within(dialog).getByTestId("make-practitioner-submit-button"));
 
     await waitFor(() => {
       expect(createPrincipalGrant).toHaveBeenCalledWith({

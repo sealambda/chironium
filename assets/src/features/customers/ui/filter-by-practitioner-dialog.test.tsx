@@ -47,10 +47,10 @@ describe("FilterByPractitionerDialog", () => {
       />,
     );
 
-    const dialog = await screen.findByRole("dialog", { name: /filter by professional/i });
-    await within(dialog).findByLabelText(/taylor one/i);
+    const dialog = await screen.findByTestId("filter-practitioner-dialog");
+    await within(dialog).findByTestId("filter-practitioner-label-prac_a");
     await user.click(within(dialog).getByTestId("filter-practitioner-checkbox-unassigned"));
-    await user.click(within(dialog).getByRole("button", { name: "Apply" }));
+    await user.click(within(dialog).getByTestId("filter-practitioner-apply-button"));
 
     await waitFor(() => {
       expect(onApply).toHaveBeenCalledWith({ kind: "unassigned" });
