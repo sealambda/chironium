@@ -154,7 +154,8 @@ export function MakeMemberPractitionerDialog({
           <Button
             type="button"
             onClick={() => void handleSubmit()}
-            disabled={saving || !target}
+            loading={saving}
+            disabled={!target}
             data-testid="make-practitioner-submit-button"
           >
             {saving ? m.common_saving() : m.settings_make_practitioner_submit()}

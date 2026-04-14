@@ -35,7 +35,7 @@ export function DeleteHistoryEntryDialog({
           <AlertDialogAction
             variant="destructive"
             onClick={() => void onConfirm()}
-            disabled={deleting}
+            loading={deleting}
           >
             {deleting ? m.common_saving() : m.history_entry_delete_confirm_action()}
           </AlertDialogAction>

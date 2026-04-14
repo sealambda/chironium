@@ -260,7 +260,8 @@ export function ReassignCustomersDialog({
           <Button
             type="button"
             onClick={() => void handleSubmit()}
-            disabled={submitting || comboItems.length === 0}
+            loading={submitting}
+            disabled={comboItems.length === 0}
             data-testid="reassign-apply-button"
           >
             {m.customers_reassign_submit()}

@@ -214,7 +214,7 @@ export function InviteMemberDialog({
           <Button
             type="button"
             onClick={handleInvite}
-            disabled={isInviting}
+            loading={isInviting}
             data-testid="invite-member-submit-button"
           >
             {isInviting ? m.common_saving() : m.settings_invite_submit()}

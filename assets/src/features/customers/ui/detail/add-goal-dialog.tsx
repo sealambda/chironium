@@ -278,7 +278,7 @@ export function AddGoalDialog({
           <Button variant="outline" onClick={() => setResolvedOpen(false)} disabled={saving}>
             {m.common_cancel()}
           </Button>
-          <Button onClick={handleSubmit} disabled={saving || !hasContent}>
+          <Button onClick={handleSubmit} loading={saving} disabled={!hasContent}>
             {submitLabel}
           </Button>
         </DialogFooter>

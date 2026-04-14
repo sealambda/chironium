@@ -186,7 +186,8 @@ export function EditSubscriptionDialog({
           </Button>
           <Button
             onClick={() => form.handleSubmit()}
-            disabled={saving || !planId}
+            loading={saving}
+            disabled={!planId}
             data-testid="customer-subscription-save-button"
           >
             {submitLabel}

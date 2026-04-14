@@ -71,7 +71,8 @@ export function StepLayout({
         ) : null}
         <Button
           onClick={onSubmit}
-          disabled={isSubmitting || submitDisabled}
+          loading={isSubmitting}
+          disabled={submitDisabled}
           data-testid={isLastStep ? "onboarding-finish-button" : "onboarding-next-button"}
         >
           {buttonLabel}

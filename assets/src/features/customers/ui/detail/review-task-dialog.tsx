@@ -211,7 +211,8 @@ export function ReviewTaskDialog({ personId, patientId }: Readonly<ReviewTaskDia
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={saving || !hasDescription || !hasStartDate || !endIso}
+            loading={saving}
+            disabled={!hasDescription || !hasStartDate || !endIso}
           >
             {saving ? m.common_saving() : m.common_add()}
           </Button>

@@ -137,7 +137,8 @@ export function EditMemberRoleDialog({
           <Button
             type="button"
             onClick={() => void handleSave()}
-            disabled={saving || !target}
+            loading={saving}
+            disabled={!target}
             data-testid="edit-member-role-save-button"
           >
             {saving ? m.common_saving() : m.common_save()}

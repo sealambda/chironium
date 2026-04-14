@@ -33,8 +33,10 @@ export function SubscriptionProgress({
   if (!subscription) {
     return (
       <div className={cn("relative w-full", className)}>
-        <div className="h-4 md:h-5 opacity-0" aria-hidden="true" />
-        <div className="mt-1.5 text-xs opacity-0" aria-hidden="true">x</div>
+        <div className="h-4 opacity-0 md:h-5" aria-hidden="true" />
+        <div className="mt-1.5 text-xs opacity-0" aria-hidden="true">
+          x
+        </div>
         <div className="absolute inset-0 flex items-center">
           <span className="text-muted-foreground text-sm">{m.customer_no_subscription()}</span>
         </div>

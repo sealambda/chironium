@@ -105,7 +105,7 @@ export function AddAnthropometryDialog({
           <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
             {m.common_cancel()}
           </Button>
-          <Button onClick={() => form.handleSubmit()} disabled={saving}>
+          <Button onClick={() => form.handleSubmit()} loading={saving}>
             {saving ? m.common_saving() : m.common_add()}
           </Button>
         </DialogFooter>
