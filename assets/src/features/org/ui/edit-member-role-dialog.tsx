@@ -87,7 +87,7 @@ export function EditMemberRoleDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent data-testid="edit-member-role-dialog">
         <DialogHeader>
           <DialogTitle>{m.settings_edit_role_dialog_title()}</DialogTitle>
           <DialogDescription>{m.settings_edit_role_dialog_desc()}</DialogDescription>
@@ -104,13 +104,17 @@ export function EditMemberRoleDialog({
                 label: option.label(),
               }))}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" data-testid="edit-member-role-trigger">
                 <SelectValue placeholder={m.settings_invite_role_placeholder()} />
               </SelectTrigger>
               <SelectPositioner>
                 <SelectContent>
                   {ORGANIZATION_MEMBER_ROLE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      data-testid={`edit-member-role-option-${option.value.toLowerCase()}`}
+                    >
                       {option.label()}
                     </SelectItem>
                   ))}
@@ -130,7 +134,12 @@ export function EditMemberRoleDialog({
           <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
             {m.common_cancel()}
           </Button>
-          <Button type="button" onClick={() => void handleSave()} disabled={saving || !target}>
+          <Button
+            type="button"
+            onClick={() => void handleSave()}
+            disabled={saving || !target}
+            data-testid="edit-member-role-save-button"
+          >
             {saving ? m.common_saving() : m.common_save()}
           </Button>
         </DialogFooter>

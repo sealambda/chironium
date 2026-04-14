@@ -33,10 +33,10 @@ describe("EditMemberRoleDialog", () => {
       />,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /edit member role/i });
-    await user.click(within(dialog).getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Member" }));
-    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    const dialog = screen.getByTestId("edit-member-role-dialog");
+    await user.click(within(dialog).getByTestId("edit-member-role-trigger"));
+    await user.click(screen.getByTestId("edit-member-role-option-member"));
+    await user.click(within(dialog).getByTestId("edit-member-role-save-button"));
 
     await waitFor(() => {
       expect(updateOrganizationUserRole).toHaveBeenCalledWith({
