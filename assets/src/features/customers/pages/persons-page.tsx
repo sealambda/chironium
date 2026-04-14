@@ -210,7 +210,7 @@ export function CustomersPage() {
 
     setHeaderContent(
       <div className="ml-auto flex w-full items-center justify-end gap-3">
-        {customers.length > 0 ? (
+        {customers.length > 0 || assignmentFilter !== null ? (
           <div className="hidden w-72 sm:block">
             <ListSearchField
               value={search}
@@ -229,7 +229,7 @@ export function CustomersPage() {
     return () => {
       setHeaderContent(null);
     };
-  }, [customers.length, error, isLoading, search, selectedOrg, setHeaderContent]);
+  }, [assignmentFilter, customers.length, error, isLoading, search, selectedOrg, setHeaderContent]);
 
   if (orgsLoading || (selectedOrg && isLoading)) {
     return <Loading />;
@@ -263,7 +263,7 @@ export function CustomersPage() {
           </h1>
           <span className="text-muted-foreground text-sm">({customers.length})</span>
         </div>
-        {customers.length > 0 ? (
+        {customers.length > 0 || assignmentFilter !== null ? (
           <div className="hidden items-center gap-2 sm:flex">
             <CustomerSortDropdown
               sortOption={sortOption}
@@ -277,7 +277,7 @@ export function CustomersPage() {
         ) : null}
       </header>
 
-      {customers.length > 0 ? (
+      {customers.length > 0 || assignmentFilter !== null ? (
         <div className="flex items-center gap-2 sm:hidden">
           <div className="min-w-0 flex-1">
             <ListSearchField
@@ -301,7 +301,7 @@ export function CustomersPage() {
 
       <CustomerList
         items={filtered}
-        isEmpty={customers.length === 0}
+        isEmpty={customers.length === 0 && assignmentFilter === null}
         onAdd={() => setOnboardingOpen(true)}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
