@@ -17,7 +17,13 @@ const ListPatientsForPersonsQuery = graphql(`
 
 const ListCareTeamsByPractitionerQuery = graphql(`
   query ListCareTeamsByPractitioner($practitionerId: ID!) {
-    listCareTeams(first: 250, filter: { participants: { practitionerId: { eq: $practitionerId } } }) {
+    listCareTeams(
+      first: 250
+      filter: {
+        status: { eq: ACTIVE }
+        participants: { active: { eq: true }, practitionerId: { eq: $practitionerId } }
+      }
+    ) {
       results {
         subjectPatient {
           personId

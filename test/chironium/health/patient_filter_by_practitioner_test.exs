@@ -1,6 +1,6 @@
 defmodule Chironium.Health.PatientFilterByPractitionerTest do
   @moduledoc """
-  Verifies that the `:practitioner_id` argument on Patient `:read` correctly
+  Verifies that the `:practitioner_id` argument on Patient `:list` correctly
   filters patients to those assigned to a given practitioner via active
   CareTeams with active participations.
   """
@@ -38,7 +38,7 @@ defmodule Chironium.Health.PatientFilterByPractitionerTest do
 
       result_ids =
         Chironium.Health.Patient
-        |> Ash.Query.for_read(:read, %{practitioner_id: prac_a.id},
+        |> Ash.Query.for_read(:list, %{practitioner_id: prac_a.id},
           actor: ctx.owner,
           tenant: ctx.tenant
         )
@@ -56,7 +56,7 @@ defmodule Chironium.Health.PatientFilterByPractitionerTest do
 
       results =
         Chironium.Health.Patient
-        |> Ash.Query.for_read(:read, %{practitioner_id: prac.id},
+        |> Ash.Query.for_read(:list, %{practitioner_id: prac.id},
           actor: ctx.owner,
           tenant: ctx.tenant
         )
@@ -75,7 +75,7 @@ defmodule Chironium.Health.PatientFilterByPractitionerTest do
 
       results =
         Chironium.Health.Patient
-        |> Ash.Query.for_read(:read, %{practitioner_id: prac.id},
+        |> Ash.Query.for_read(:list, %{practitioner_id: prac.id},
           actor: ctx.owner,
           tenant: ctx.tenant
         )
@@ -94,7 +94,7 @@ defmodule Chironium.Health.PatientFilterByPractitionerTest do
 
       results =
         Chironium.Health.Patient
-        |> Ash.Query.for_read(:read, %{practitioner_id: prac.id},
+        |> Ash.Query.for_read(:list, %{practitioner_id: prac.id},
           actor: ctx.owner,
           tenant: ctx.tenant
         )
@@ -148,7 +148,7 @@ defmodule Chironium.Health.PatientFilterByPractitionerTest do
       # intersection with prac_b's patients is empty.
       filtered =
         Chironium.Health.Patient
-        |> Ash.Query.for_read(:read, %{practitioner_id: prac_b.id},
+        |> Ash.Query.for_read(:list, %{practitioner_id: prac_b.id},
           actor: actor,
           tenant: ctx.tenant
         )
@@ -169,7 +169,7 @@ defmodule Chironium.Health.PatientFilterByPractitionerTest do
 
       results =
         Chironium.Health.Patient
-        |> Ash.Query.for_read(:read, %{practitioner_id: prac.id},
+        |> Ash.Query.for_read(:list, %{practitioner_id: prac.id},
           actor: ctx.owner,
           tenant: ctx.tenant
         )
