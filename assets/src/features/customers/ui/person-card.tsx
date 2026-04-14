@@ -1,12 +1,8 @@
-import { addMonths, formatISO } from "date-fns";
-
 import type { CustomerListItem } from "@/features/customers/api/persons-api";
-import * as m from "@/paraglide/messages";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
-import { durationToMonths } from "@/shared/utils/subscriptions-utils";
 import { cn } from "@/shared/utils/utils";
 
 interface PersonCardProps {
@@ -22,14 +18,6 @@ export function PersonCard({ item, className }: Readonly<PersonCardProps>) {
   const name = formatPersonName(person.name);
   const contact = extractContactInfo(person.telecom);
 
-  const planDurationMonths = subscription ? durationToMonths(subscription.plan?.duration) : null;
-  const endDate =
-    subscription && planDurationMonths
-      ? formatISO(addMonths(new Date(subscription.startDate), planDurationMonths), {
-          representation: "date",
-        })
-      : null;
-
   return (
     <article
       className={cn(
@@ -43,16 +31,7 @@ export function PersonCard({ item, className }: Readonly<PersonCardProps>) {
         <ContactButtonGroup {...contact} personName={name} stopPropagation />
       </div>
 
-      {subscription && endDate && planDurationMonths ? (
-        <SubscriptionProgress
-          startDate={subscription.startDate}
-          endDate={endDate}
-          planDurationMonths={planDurationMonths}
-          className="mt-4"
-        />
-      ) : (
-        <p className="mt-3 text-muted-foreground text-xs">{m.customer_no_subscription()}</p>
-      )}
+      <SubscriptionProgress subscription={subscription} className="mt-4" />
     </article>
   );
 }

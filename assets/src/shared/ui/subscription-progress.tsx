@@ -1,12 +1,13 @@
-import { differenceInMonths, format } from "date-fns";
+import { addMonths, differenceInMonths, format, formatISO } from "date-fns";
 
+import * as m from "@/paraglide/messages";
+import type { SubscriptionListItem } from "@/shared/types/subscriptions";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { durationToMonths } from "@/shared/utils/subscriptions-utils";
 import { cn } from "@/shared/utils/utils";
 
 interface SubscriptionProgressProps {
-  startDate: string;
-  endDate: string;
-  planDurationMonths: number;
+  subscription: SubscriptionListItem | null | undefined;
   className?: string;
 }
 
@@ -23,15 +24,29 @@ function segmentRounding(isFirst: boolean, isLast: boolean): string {
 /**
  * Displays subscription progress as month-section circles.
  * Each circle represents one month; elapsed months are colored, remaining are neutral.
+ * Renders a placeholder when no subscription is provided.
  */
 export function SubscriptionProgress({
-  startDate: startDateStr,
-  endDate: endDateStr,
-  planDurationMonths,
+  subscription,
   className,
 }: Readonly<SubscriptionProgressProps>) {
-  const startDate = new Date(startDateStr);
-  const endDate = new Date(endDateStr);
+  if (!subscription) {
+    return (
+      <div className={cn("relative w-full", className)}>
+        <div className="h-4 md:h-5 opacity-0" aria-hidden="true" />
+        <div className="mt-1.5 text-xs opacity-0" aria-hidden="true">x</div>
+        <div className="absolute inset-0 flex items-center">
+          <span className="text-muted-foreground text-sm">{m.customer_no_subscription()}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const planDurationMonths = durationToMonths(subscription.plan?.duration);
+  const startDate = new Date(subscription.startDate);
+  const endDate = new Date(
+    formatISO(addMonths(startDate, planDurationMonths), { representation: "date" }),
+  );
 
   const elapsedMonths = Math.min(
     planDurationMonths,

@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { addMonths, formatISO } from "date-fns";
 
 import type { CustomerListItem } from "@/features/customers/api/persons-api";
 import * as m from "@/paraglide/messages";
@@ -88,31 +87,10 @@ export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
     id: "progress",
     enableSorting: false,
     header: () => <span className="block min-w-56">{m.customers_col_progress()}</span>,
-    cell: ({ row }) => {
-      const { subscription } = row.original;
-      const duration = subscription?.plan?.duration;
-      const months =
-        subscription && duration?.value && duration?.code ? durationToMonths(duration) : null;
-      const endDate =
-        subscription && months
-          ? formatISO(addMonths(new Date(subscription.startDate), months), {
-              representation: "date",
-            })
-          : null;
-
-      return (
-        <div className="min-w-56">
-          {subscription && endDate && months ? (
-            <SubscriptionProgress
-              startDate={subscription.startDate}
-              endDate={endDate}
-              planDurationMonths={months}
-            />
-          ) : (
-            <span className="text-muted-foreground text-sm">{m.customer_no_subscription()}</span>
-          )}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="min-w-56">
+        <SubscriptionProgress subscription={row.original.subscription} />
+      </div>
+    ),
   },
 ];
