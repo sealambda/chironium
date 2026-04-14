@@ -229,7 +229,7 @@ export function SettingsPage() {
             open={isInviteOpen}
             onOpenChange={setIsInviteOpen}
             organizationId={selectedOrg.id}
-            onInvited={invalidateSettings}
+            onInvited={invalidateAfterPractitionerLinked}
           />
           <EditMemberRoleDialog
             open={editRoleTarget !== null}
