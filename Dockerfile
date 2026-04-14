@@ -63,7 +63,7 @@ COPY priv priv
 COPY lib lib
 
 # install node deps
-COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY assets assets
 # Use --frozen-lockfile for reproducible builds.
 RUN pnpm install --frozen-lockfile
