@@ -29,7 +29,7 @@ defmodule Chironium.Health.Patient do
     end
 
     queries do
-      list :list_patients, :read
+      list :list_patients, :list
       get :get_patient, :read
     end
   end
@@ -43,6 +43,10 @@ defmodule Chironium.Health.Patient do
 
     read :read do
       primary? true
+      pagination keyset?: true
+    end
+
+    read :list do
       pagination keyset?: true
 
       argument :practitioner_id, :uuid do
@@ -81,7 +85,7 @@ defmodule Chironium.Health.Patient do
       authorize_if always()
     end
 
-    policy action(:read) do
+    policy action([:read, :list]) do
       authorize_if Chironium.Health.Checks.PatientVisibleToActor
     end
 

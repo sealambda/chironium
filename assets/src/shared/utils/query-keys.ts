@@ -52,6 +52,10 @@ export const customersQueryKeys = {
   practitionerPersonIds(organizationId: string, practitionerId: string) {
     return ["customers", "practitioner-persons", organizationId, practitionerId] as const;
   },
+  /** Any practitioner-persons query for the org (all practitioner variants). */
+  practitionerPersonIdsPrefix(organizationId: string) {
+    return ["customers", "practitioner-persons", organizationId] as const;
+  },
 };
 
 /**

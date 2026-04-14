@@ -35,14 +35,14 @@ input PractitionerNameInput {
   "Text representation of the full name"
   text: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -210,14 +210,14 @@ input PersonNameInput {
   "Text representation of the full name"
   text: String
 
+  "Time period when name was\/is in use"
+  period: HumanNamePeriodInput
+
   """
   Parts that come before the name
   This repeating element order: Prefix elements appear in order before the name
   """
   prefix: [String!]
-
-  "Time period when name was\/is in use"
-  period: HumanNamePeriodInput
 
   """
   Parts that come after the name
@@ -2200,10 +2200,7 @@ type Task {
   ): [TaskVersion!]!
 
   "Beneficiary of the Task"
-  forPatient(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient
+  forPatient: Patient
 
   "Helper calculation to sort by requested_period.start"
   requestedPeriodStartSortKey: DateTime
@@ -3040,10 +3037,7 @@ type Observation {
   ): [ObservationVersion!]!
 
   "Who the observation is about"
-  subject(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  subject: Patient!
 }
 
 "The result of the :create_nutrition_plan mutation"
@@ -3197,10 +3191,7 @@ type NutritionPlan {
     "The number of records to skip."
     offset: Int
   ): [NutritionPlanVersion!]!
-  patient(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  patient: Patient!
 }
 
 "The result of the :delete_medication_statement mutation"
@@ -3345,10 +3336,7 @@ type MedicationStatement {
     offset: Int
   ): [MedicationStatementVersion!]!
 
-  subject(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  subject: Patient!
 }
 
 "The result of the :delete_goal mutation"
@@ -3674,10 +3662,7 @@ type Goal {
   ): [GoalVersion!]!
 
   "Who this goal is intended for"
-  subject(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  subject: Patient!
 }
 
 "The result of the :delete_condition mutation"
@@ -3830,10 +3815,7 @@ type Condition {
     offset: Int
   ): [ConditionVersion!]!
 
-  subject(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  subject: Patient!
 }
 
 "The result of the :delete_care_team_participant mutation"
@@ -4187,10 +4169,7 @@ type CareTeam {
   ): [CareTeamVersion!]!
 
   "The patient who is the subject of the care team"
-  subjectPatient(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  subjectPatient: Patient!
 
   "Participants in the care team"
   participants(
@@ -4379,10 +4358,7 @@ type AllergyIntolerance {
     offset: Int
   ): [AllergyIntoleranceVersion!]!
 
-  patient(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  patient: Patient!
 }
 
 type AllergyIntoleranceVersion {
@@ -4471,10 +4447,7 @@ type PatientVersion {
   versionActionName: String!
   versionSourceId: ID!
   changes: JsonString
-  versionSource(
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): Patient!
+  versionSource: Patient!
 }
 
 type PractitionerVersion {
@@ -5661,9 +5634,6 @@ type RootQueryType {
   getPatient(
     "The id of the record"
     id: ID!
-
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
   ): Patient
 
   getPractitioner(
@@ -5890,21 +5860,9 @@ type RootMutationType {
   "Create a patient and a new person"
   createPatientWithPerson(input: CreatePatientWithPersonInput): CreatePatientWithPersonResult!
 
-  updatePatient(
-    id: ID!
+  updatePatient(id: ID!, input: UpdatePatientInput): UpdatePatientResult!
 
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-
-    input: UpdatePatientInput
-  ): UpdatePatientResult!
-
-  deletePatient(
-    id: ID!
-
-    "Filter patients assigned to this practitioner via active care teams."
-    practitionerId: ID
-  ): DeletePatientResult!
+  deletePatient(id: ID!): DeletePatientResult!
 
   createPractitioner(input: CreatePractitionerInput!): CreatePractitionerResult!
 

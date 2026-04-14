@@ -185,6 +185,9 @@ export function CustomersPage() {
     void Promise.all([
       queryClient.invalidateQueries({ queryKey: customersQueryKeys.personsPrefix(orgId) }),
       queryClient.invalidateQueries({ queryKey: customersQueryKeys.subscriptions(orgId) }),
+      queryClient.invalidateQueries({
+        queryKey: customersQueryKeys.practitionerPersonIdsPrefix(orgId),
+      }),
       ...selectedPersonIds.map((personId) =>
         queryClient.invalidateQueries({ queryKey: personQueryKeys.patientDetailScope(personId) }),
       ),
