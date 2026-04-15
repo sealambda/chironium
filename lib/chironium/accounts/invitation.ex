@@ -110,7 +110,19 @@ defmodule Chironium.Accounts.Invitation do
                end)
              end)
 
-      # TODO Send email invitations
+      change after_action(fn _changeset, result, context ->
+               invited_by = context.actor
+               result = Ash.load!(result, :organization, authorize?: false)
+
+               Chironium.Notifications.send(:invitation_created, %{
+                 email: to_string(result.email),
+                 invited_by_name: invited_by.name || to_string(invited_by.email),
+                 organization_name: result.organization.name,
+                 accept_url: "#{ChironiumWeb.Endpoint.url()}/invitations/#{result.invite_code}"
+               })
+
+               {:ok, result}
+             end)
     end
 
     update :accept do

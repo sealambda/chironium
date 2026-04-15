@@ -1,0 +1,62 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:22
+#, elixir-autogen, elixir-format
+msgid "%{name} invited you to join %{organization}."
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:28
+#, elixir-autogen, elixir-format
+msgid "Accept invitation"
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:24
+#, elixir-autogen, elixir-format
+msgid "Hi %{name}, you have an upcoming task."
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:32
+#, elixir-autogen, elixir-format
+msgid "If you weren't expecting this invitation, you can safely ignore this email."
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:31
+#, elixir-autogen, elixir-format
+msgid "Patient: %{name}"
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:34
+#, elixir-autogen, elixir-format
+msgid "Priority: %{priority}"
+msgstr ""
+
+#: lib/chironium_web/emails/components.ex:90
+#, elixir-autogen, elixir-format
+msgid "Sent by Chironium"
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:21
+#, elixir-autogen, elixir-format
+msgid "Task reminder"
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:40
+#, elixir-autogen, elixir-format
+msgid "View task"
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:19
+#, elixir-autogen, elixir-format
+msgid "You've been invited"
+msgstr ""

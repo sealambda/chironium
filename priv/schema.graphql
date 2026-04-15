@@ -4,16 +4,6 @@ schema {
   subscription: Subscription
 }
 
-input OrganizationInviteUsersInvitationsInput {
-  email: String
-
-  "Optional principal grants to pre-create for the invited user."
-  principalGrants: [PrincipalGrantInput!]
-
-  "Organization role assigned when the invitation is accepted."
-  role: OrganizationUserRole
-}
-
 input SubscriptionPlanDurationInput {
   code: DurationUnit
   system: String
@@ -29,8 +19,8 @@ type Duration {
 input TaskNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input TaskRequestedPeriodInput {
@@ -72,8 +62,8 @@ input PractitionerNameInput {
 input ObservationNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input ObservationValueCodeableConceptInput {
@@ -103,8 +93,8 @@ input ObservationCodeInput {
 input MedicationStatementNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input MedicationStatementMedicationInput {
@@ -115,8 +105,8 @@ input MedicationStatementMedicationInput {
 input GoalNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input GoalDescriptionInput {
@@ -127,8 +117,8 @@ input GoalDescriptionInput {
 input ConditionNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 input ConditionCodeInput {
@@ -139,8 +129,8 @@ input ConditionCodeInput {
 input AllergyIntoleranceNoteInput {
   time: DateTime
   text: String
-  authorReference: String
   authorString: String
+  authorReference: String
 }
 
 type Annotation {
@@ -4752,6 +4742,16 @@ type SubscriptionVersion {
   versionSourceId: ID!
   changes: JsonString
   versionSource: Subscription!
+}
+
+input OrganizationInviteUsersInvitationsInput {
+  email: String
+
+  "Optional principal grants to pre-create for the invited user."
+  principalGrants: [PrincipalGrantInput!]
+
+  "Organization role assigned when the invitation is accepted."
+  role: OrganizationUserRole
 }
 
 enum DesignationSortField {

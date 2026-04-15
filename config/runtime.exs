@@ -173,19 +173,16 @@ if config_env() == :prod do
 
   # ## Configuring the mailer
   #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :chironium, Chironium.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+  # The adapter is configured at compile-time in config/prod.exs
+  # (Swoosh.ApiClient.Req). Only the API key is set at runtime.
+  if api_key = System.get_env("RESEND_API_KEY") do
+    config :chironium, Chironium.Mailer,
+      adapter: Swoosh.Adapters.Resend,
+      api_key: api_key
+  end
+
+  # Sender address for transactional emails.
+  config :chironium, :email_from,
+    name: System.get_env("EMAIL_FROM_NAME", "Chironium"),
+    address: System.get_env("EMAIL_FROM_ADDRESS", "chironium@updates.appfor.it")
 end
