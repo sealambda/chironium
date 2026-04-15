@@ -11,113 +11,83 @@
 msgid ""
 msgstr ""
 
-#: lib/chironium_web/components/core_components.ex:375
+#: lib/chironium_web/components/core_components.ex:368
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
 
-#: lib/chironium_web/components/layouts.ex:101
-#: lib/chironium_web/components/layouts.ex:113
+#: lib/chironium_web/components/layouts.ex:99
+#: lib/chironium_web/components/layouts.ex:111
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:399
+#: lib/chironium_web/live/sign_in_live.ex:269
 #, elixir-autogen, elixir-format
 msgid "By continuing, you agree to our"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:168
+#: lib/chironium_web/live/sign_in_live.ex:140
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:365
+#: lib/chironium_web/live/sign_in_live.ex:235
 #, elixir-autogen, elixir-format
 msgid "Continue with Google"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:256
-#, elixir-autogen, elixir-format
-msgid "Email address"
-msgstr ""
-
-#: lib/chironium_web/live/sign_in_live.ex:236
-#, elixir-autogen, elixir-format
-msgid "Enter your email to receive a secure magic link."
-msgstr ""
-
-#: lib/chironium_web/live/sign_in_live.ex:342
-#, elixir-autogen, elixir-format
-msgid "Or continue with"
-msgstr ""
-
-#: lib/chironium_web/live/sign_in_live.ex:405
+#: lib/chironium_web/live/sign_in_live.ex:281
 #, elixir-autogen, elixir-format
 msgid "Privacy Policy"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:297
-#, elixir-autogen, elixir-format
-msgid "Send Magic Link"
-msgstr ""
-
-#: lib/chironium_web/live/sign_in_live.ex:298
-#, elixir-autogen, elixir-format
-msgid "Sending..."
-msgstr ""
-
-#: lib/chironium_web/live/sign_in_live.ex:32
+#: lib/chironium_web/live/sign_in_live.ex:26
 #, elixir-autogen, elixir-format
 msgid "Sign In"
 msgstr ""
 
-#: lib/chironium_web/components/layouts.ex:108
+#: lib/chironium_web/components/layouts.ex:106
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:202
+#: lib/chironium_web/live/sign_in_live.ex:177
 #, elixir-autogen, elixir-format
 msgid "Switch to dark mode"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:202
+#: lib/chironium_web/live/sign_in_live.ex:176
 #, elixir-autogen, elixir-format
 msgid "Switch to light mode"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:401
+#: lib/chironium_web/live/sign_in_live.ex:274
 #, elixir-autogen, elixir-format
 msgid "Terms of Service"
 msgstr ""
 
-#: lib/chironium_web/components/layouts.ex:96
+#: lib/chironium_web/components/layouts.ex:94
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:303
-#, elixir-autogen, elixir-format
-msgid "We'll send a secure link to your email for instant access."
-msgstr ""
-
-#: lib/chironium_web/live/sign_in_live.ex:233
+#: lib/chironium_web/live/sign_in_live.ex:209
 #, elixir-autogen, elixir-format
 msgid "Welcome Back"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:403
+#: lib/chironium_web/live/sign_in_live.ex:276
 #, elixir-autogen, elixir-format
 msgid "and"
 msgstr ""
 
-#: lib/chironium_web/components/core_components.ex:75
+#: lib/chironium_web/components/core_components.ex:74
 #, elixir-autogen, elixir-format
 msgid "close"
 msgstr ""
 
-#: lib/chironium_web/live/sign_in_live.ex:266
+#: lib/chironium_web/live/sign_in_live.ex:212
 #, elixir-autogen, elixir-format
-msgid "you@example.com"
+msgid "Sign in with your Google account to continue."
 msgstr ""

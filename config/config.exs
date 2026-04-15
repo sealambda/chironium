@@ -22,7 +22,7 @@ config :ash_oban, pro?: false
 config :chironium, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10],
+  queues: [default: 10, notifications: 5, task_send_reminder: 5],
   repo: Chironium.Repo,
   plugins: [{Oban.Plugins.Cron, []}]
 
@@ -143,6 +143,9 @@ config :chironium, ChironiumWeb.Endpoint,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 config :chironium, Chironium.Mailer, adapter: Swoosh.Adapters.Local
+
+# Default sender address for transactional emails.
+config :chironium, :email_from, name: "Chironium", address: "chironium@updates.appfor.it"
 
 config :posthog,
   enable: false,

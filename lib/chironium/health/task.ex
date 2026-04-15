@@ -18,7 +18,8 @@ defmodule Chironium.Health.Task do
       AshGraphql.Resource,
       AshPaperTrail.Resource,
       AshArchival.Resource,
-      AshStateMachine
+      AshStateMachine,
+      AshOban
     ]
 
   postgres do
@@ -79,8 +80,35 @@ defmodule Chironium.Health.Task do
     end
   end
 
+  oban do
+    list_tenants Chironium.AshOban.ListTenants
+
+    triggers do
+      trigger :send_reminder do
+        scheduler_cron "@hourly"
+        action :send_reminder
+        read_action :tasks_needing_reminder
+        worker_module_name __MODULE__.AshOban.SendReminder.Worker
+        scheduler_module_name __MODULE__.AshOban.SendReminder.Scheduler
+      end
+    end
+  end
+
   actions do
     defaults [:read, :destroy, create: :*]
+
+    read :tasks_needing_reminder do
+      description "Tasks in actionable states whose reminder is due."
+
+      pagination keyset?: true
+
+      filter expr(
+               status in [:ready, :accepted] and
+                 not is_nil(requested_period)
+             )
+
+      prepare Chironium.Health.Preparations.FilterByRequestedPeriodWindow
+    end
 
     update :ready do
       change transition_state(:ready)
@@ -164,15 +192,27 @@ defmodule Chironium.Health.Task do
     update :mark_entered_in_error do
       change transition_state(:entered_in_error)
     end
+
+    update :send_reminder do
+      description "Send task reminder notifications to the patient's care team."
+      require_atomic? false
+
+      change {Chironium.Health.Changes.SendTaskReminder, []}
+    end
   end
 
   policies do
+    bypass AshOban.Checks.AshObanInteraction do
+      authorize_if always()
+    end
+
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
     end
 
     policy action_type(:read) do
-      authorize_if {Chironium.Health.Checks.PatientSubjectVisibleToActor, relationship: :for_patient}
+      authorize_if {Chironium.Health.Checks.PatientSubjectVisibleToActor,
+                    relationship: :for_patient}
     end
 
     policy action([:create, :update, :destroy]) do
