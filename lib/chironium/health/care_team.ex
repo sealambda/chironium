@@ -16,6 +16,11 @@ defmodule Chironium.Health.CareTeam do
     table "care_teams"
   end
 
+  archive do
+    archive_related [:participants]
+    archive_related_authorize? false
+  end
+
   graphql do
     type :care_team
 
