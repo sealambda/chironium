@@ -12,6 +12,8 @@ defmodule Chironium.Health.CareTeamParticipant do
 
   postgres do
     table "care_team_participants"
+
+    identity_wheres_to_sql unique_care_team_practitioner: "archived_at IS NULL"
   end
 
   graphql do
@@ -73,6 +75,8 @@ defmodule Chironium.Health.CareTeamParticipant do
   end
 
   identities do
-    identity :unique_care_team_practitioner, [:care_team_id, :practitioner_id]
+    identity :unique_care_team_practitioner, [:care_team_id, :practitioner_id] do
+      where expr(is_nil(archived_at))
+    end
   end
 end
