@@ -26,10 +26,6 @@ defmodule Chironium.Accounts.Invitation do
   graphql do
     type :invitation
 
-    queries do
-      list :find_current_email_invitations, :current_email_invitation
-    end
-
     mutations do
       update :accept_invitation, :accept,
         identity: false,
@@ -38,6 +34,8 @@ defmodule Chironium.Accounts.Invitation do
       update :reject_invitation, :reject,
         identity: false,
         read_action: :get_by_invite_code
+
+      update :revoke_invitation, :revoke
     end
   end
 
@@ -52,6 +50,7 @@ defmodule Chironium.Accounts.Invitation do
     transitions do
       transition :accept, from: :pending, to: :accepted
       transition :reject, from: :pending, to: :rejected
+      transition :revoke, from: :pending, to: :rejected
     end
   end
 
@@ -118,7 +117,7 @@ defmodule Chironium.Accounts.Invitation do
                  email: to_string(result.email),
                  invited_by_name: invited_by.name || to_string(invited_by.email),
                  organization_name: result.organization.name,
-                 accept_url: "#{ChironiumWeb.Endpoint.url()}/invitations/#{result.invite_code}"
+                 accept_url: invitation_accept_url(result.invite_code)
                })
 
                {:ok, result}
@@ -210,6 +209,21 @@ defmodule Chironium.Accounts.Invitation do
              end)
     end
 
+    update :revoke do
+      description "Revoke a pending invitation"
+
+      accept []
+      require_atomic? false
+      change transition_state(:rejected)
+      change set_attribute(:invite_code, nil)
+
+      # Archive the revoked invitation so the same email can be re-invited later.
+      change after_action(fn _changeset, result, _context ->
+               Ash.destroy!(result, authorize?: false)
+               {:ok, result}
+             end)
+    end
+
     action :accept_by_invite_code, :struct do
       description "Accept an invitation with only an invite code"
 
@@ -247,6 +261,7 @@ defmodule Chironium.Accounts.Invitation do
     # Users can read invitations when they already belong to the organization
     # or when the invitation targets their email address.
     policy action(:read) do
+      authorize_if Chironium.Accounts.Checks.PowerUser
       authorize_if accessing_from(Chironium.Accounts.Organization, :invitations)
       authorize_if expr(email == ^actor(:email))
     end
@@ -260,6 +275,10 @@ defmodule Chironium.Accounts.Invitation do
              :get_by_invite_code
            ]) do
       authorize_if actor_present()
+    end
+
+    policy action(:revoke) do
+      authorize_if Chironium.Accounts.Checks.PowerUser
     end
   end
 
@@ -343,5 +362,15 @@ defmodule Chironium.Accounts.Invitation do
       {:ok, nil} -> {:error, :invalid_invite_code}
       error -> error
     end
+  end
+
+  defp invitation_accept_url(invite_code) do
+    app_url = Application.get_env(:chironium, :app_url, "/app")
+    uri = URI.parse(app_url)
+    params = URI.decode_query(uri.query || "")
+
+    uri
+    |> Map.put(:query, Map.put(params, "invite_code", to_string(invite_code)) |> URI.encode_query())
+    |> URI.to_string()
   end
 end
