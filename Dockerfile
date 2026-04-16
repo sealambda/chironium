@@ -45,7 +45,10 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
-ENV VITE_BACKEND_URL="https://chironium.appfor.it"
+
+# PostHog build-time variables (injected via Docker build args from CI secrets).
+ARG VITE_POSTHOG_KEY
+ENV VITE_POSTHOG_KEY=$VITE_POSTHOG_KEY
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
