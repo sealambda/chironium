@@ -331,6 +331,54 @@ defmodule Chironium.AccountsTest do
       Ash.get!(Chironium.Accounts.Organization, org.id, actor: accepting_user)
     end
 
+    test "owner can revoke a pending invitation" do
+      owner = generate(user())
+      org = generate(organization(actor: owner))
+      invitee = generate(user())
+
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: invitee.email}]},
+        actor: owner
+      )
+      |> Ash.update!()
+
+      [invitation] = Ash.load!(org, :invitations, actor: owner).invitations
+
+      assert {:ok, revoked_invitation} =
+               Ash.update(invitation, %{},
+                 action: :revoke,
+                 actor: owner,
+                 tenant: "org_#{org.id}"
+               )
+
+      assert revoked_invitation.state == :rejected
+
+      # Revoked invitations no longer appear in pending invitation lookups.
+      {:ok, []} = Chironium.Accounts.find_current_email_invitations(actor: invitee)
+    end
+
+    test "non-power users cannot revoke invitations" do
+      owner = generate(user())
+      org = generate(organization(actor: owner))
+      outsider = generate(user())
+      invitee = generate(user())
+
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: invitee.email}]},
+        actor: owner
+      )
+      |> Ash.update!()
+
+      [invitation] = Ash.load!(org, :invitations, actor: owner).invitations
+
+      assert {:error, %Ash.Error.Forbidden{}} =
+               Ash.update(invitation, %{},
+                 action: :revoke,
+                 actor: outsider,
+                 tenant: "org_#{org.id}"
+               )
+    end
+
     test "can accept an invitation with a different email address" do
       actor = generate(user())
       org = generate(organization(actor: actor))

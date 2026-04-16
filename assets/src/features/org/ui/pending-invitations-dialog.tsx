@@ -1,12 +1,8 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 
-import {
-  acceptInvitation,
-  fetchCurrentEmailInvitations,
-  rejectInvitation,
-} from "@/features/org/api/org-api";
+import { acceptInvitation, rejectInvitation } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
@@ -18,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { INVITATIONS_QUERY_KEY, ORG_QUERY_KEY } from "@/shared/utils/query-keys";
+import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
 type InvitationSubmitAction = "accept" | "reject";
 
@@ -27,12 +23,15 @@ export function PendingInvitationsDialog() {
   const { refreshOrgs } = useOrg();
   const [submittingAction, setSubmittingAction] = useState<InvitationSubmitAction | null>(null);
 
-  const { data: invitations = [] } = useQuery({
-    queryKey: INVITATIONS_QUERY_KEY,
-    queryFn: fetchCurrentEmailInvitations,
-  });
+  const inviteCode = readInviteCodeFromUrl();
 
-  const currentInvitation = useMemo(() => invitations[0] ?? null, [invitations]);
+  const clearInviteCodeFromUrl = () => {
+    const current = new URL(globalThis.location.href);
+    current.searchParams.delete("invite_code");
+
+    const updatedUrl = `${current.pathname}${current.search}${current.hash}`;
+    globalThis.history.replaceState(globalThis.history.state, "", updatedUrl);
+  };
 
   const submitInvitationAction = async (params: {
     action: InvitationSubmitAction;
@@ -46,7 +45,7 @@ export function PendingInvitationsDialog() {
       await params.mutate(params.inviteCode);
       toast.success(params.successMessage);
 
-      await queryClient.invalidateQueries({ queryKey: INVITATIONS_QUERY_KEY });
+      clearInviteCodeFromUrl();
       await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
       await refreshOrgs();
     } catch (error) {
@@ -58,7 +57,6 @@ export function PendingInvitationsDialog() {
   };
 
   const handleReject = async () => {
-    const inviteCode = currentInvitation?.inviteCode;
     if (!inviteCode) {
       toast.error(m.org_invitation_reject_unavailable());
       return;
@@ -74,7 +72,6 @@ export function PendingInvitationsDialog() {
   };
 
   const handleAccept = async () => {
-    const inviteCode = currentInvitation?.inviteCode;
     if (!inviteCode) {
       toast.error(m.org_invitation_accept_unavailable());
       return;
@@ -90,12 +87,12 @@ export function PendingInvitationsDialog() {
   };
 
   return (
-    <Dialog open={Boolean(currentInvitation)} onOpenChange={() => {}}>
+    <Dialog open={Boolean(inviteCode)} onOpenChange={() => {}}>
       <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>{m.org_invitation_dialog_title()}</DialogTitle>
           <DialogDescription>
-            {currentInvitation ? m.org_invitation_dialog_desc() : ""}
+            {inviteCode ? m.org_invitation_dialog_desc({ inviteCode }) : ""}
           </DialogDescription>
         </DialogHeader>
 
@@ -121,4 +118,14 @@ export function PendingInvitationsDialog() {
       </DialogContent>
     </Dialog>
   );
+}
+
+function readInviteCodeFromUrl(): string | null {
+  const code = new URLSearchParams(globalThis.location.search).get("invite_code");
+  if (!code) {
+    return null;
+  }
+
+  const trimmed = code.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }

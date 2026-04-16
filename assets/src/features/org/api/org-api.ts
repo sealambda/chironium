@@ -72,17 +72,6 @@ const GetOrganizationSettingsQuery = graphql(`
   }
 `);
 
-const FindCurrentEmailInvitationsQuery = graphql(`
-  query FindCurrentEmailInvitations($sort: [InvitationSortInput!], $filter: InvitationFilterInput) {
-    findCurrentEmailInvitations(sort: $sort, filter: $filter) {
-      id
-      email
-      inviteCode
-      organizationId
-    }
-  }
-`);
-
 // ─── Mutations ───────────────────────────────────────────────────────
 
 const CreateOrganizationMutation = graphql(`
@@ -189,6 +178,19 @@ const RejectInvitationMutation = graphql(`
   }
 `);
 
+const RevokeInvitationMutation = graphql(`
+  mutation RevokeInvitation($id: ID!) {
+    revokeInvitation(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** An organization record with its ID, name, and URL slug. */
@@ -262,13 +264,6 @@ export interface OrganizationSettingsData {
   }>;
 }
 
-export interface PendingInvitation {
-  id: string;
-  email: string | null;
-  inviteCode: string | null;
-  organizationId: string;
-}
-
 // ─── Functions ───────────────────────────────────────────────────────
 
 /** Fetch all organizations the current user has access to. */
@@ -326,26 +321,6 @@ export async function fetchOrganizationSettings(
       principalGrants: invitation.principalGrants,
     })),
   };
-}
-
-/** Fetch invitations matching the current user's email address. */
-export async function fetchCurrentEmailInvitations(): Promise<PendingInvitation[]> {
-  const data = await requestGraphql({
-    document: FindCurrentEmailInvitationsQuery,
-    variables: {
-      sort: [{ field: "EMAIL", order: "ASC" }],
-      filter: {
-        state: { eq: "pending" },
-      },
-    },
-  });
-
-  return data.findCurrentEmailInvitations.map((invitation) => ({
-    id: invitation.id,
-    email: invitation.email ?? null,
-    inviteCode: invitation.inviteCode ?? null,
-    organizationId: invitation.organizationId,
-  }));
 }
 
 /** Create a new organization with the given name and slug. */
@@ -527,6 +502,20 @@ export async function rejectInvitation(inviteCode: string): Promise<void> {
   });
 
   unwrapMutationResult(result.rejectInvitation, "Failed to reject invitation.");
+}
+
+/** Revoke a pending invitation from organization settings. */
+export async function revokeInvitation(params: {
+  organizationId: string;
+  invitationId: string;
+}): Promise<void> {
+  const result = await requestGraphql({
+    document: RevokeInvitationMutation,
+    variables: { id: params.invitationId },
+    organizationId: params.organizationId,
+  });
+
+  unwrapMutationResult(result.revokeInvitation, "Failed to revoke invitation.");
 }
 
 /**

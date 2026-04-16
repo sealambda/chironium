@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { queryClient } from "@/app/providers/query-client";
-import { fetchOrganizationSettings } from "@/features/org/api/org-api";
+import { fetchOrganizationSettings, revokeInvitation } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
   EditMemberRoleDialog,
@@ -75,6 +76,25 @@ export function SettingsPage() {
       await queryClient.invalidateQueries({
         queryKey: practitionersBulkReassignQueryKey(selectedOrg.id),
       });
+    }
+  };
+
+  const handleRevokeInvitation = async (invitationId: string) => {
+    if (!selectedOrg?.id) {
+      return;
+    }
+
+    try {
+      await revokeInvitation({
+        organizationId: selectedOrg.id,
+        invitationId,
+      });
+
+      toast.success(m.settings_revoke_invitation_success());
+      await invalidateSettings();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : m.settings_revoke_invitation_error();
+      toast.error(message);
     }
   };
 
@@ -150,6 +170,9 @@ export function SettingsPage() {
                             row={row}
                             onEditRole={setEditRoleTarget}
                             onMakePractitioner={setMakePractitionerTarget}
+                            onRevokeInvitation={(invitationId) => {
+                              void handleRevokeInvitation(invitationId);
+                            }}
                           />
                         </div>
                       ) : null}
@@ -203,6 +226,9 @@ export function SettingsPage() {
                               row={row}
                               onEditRole={setEditRoleTarget}
                               onMakePractitioner={setMakePractitionerTarget}
+                              onRevokeInvitation={(invitationId) => {
+                                void handleRevokeInvitation(invitationId);
+                              }}
                             />
                           </TableCell>
                         ) : null}

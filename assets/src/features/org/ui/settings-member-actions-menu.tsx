@@ -32,10 +32,12 @@ export function SettingsMemberActionsMenu({
   row,
   onEditRole,
   onMakePractitioner,
+  onRevokeInvitation,
 }: Readonly<{
   row: SettingsMemberTableRow;
   onEditRole: (target: EditMemberRoleTarget) => void;
   onMakePractitioner: (target: MakePractitionerTarget) => void;
+  onRevokeInvitation: (invitationId: string) => void;
 }>) {
   if (!memberRowHasActions(row)) {
     return null;
@@ -65,9 +67,10 @@ export function SettingsMemberActionsMenu({
       >
         <MoreHorizontal className="size-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={4}>
+      <DropdownMenuContent align="end" sideOffset={4} className="w-auto">
         {editTarget ? (
           <DropdownMenuItem
+            className="cursor-pointer whitespace-nowrap"
             onClick={() => onEditRole(editTarget)}
             data-testid={`member-edit-role-${row.key}`}
           >
@@ -76,12 +79,24 @@ export function SettingsMemberActionsMenu({
         ) : null}
         {row.hasPractitionerGrant ? null : (
           <DropdownMenuItem
+            className="cursor-pointer whitespace-nowrap"
             onClick={() => onMakePractitioner(makePractitionerTargetFromRow(row))}
             data-testid={`member-make-practitioner-${row.key}`}
           >
             {m.settings_member_make_practitioner()}
           </DropdownMenuItem>
         )}
+        {row.source.kind === "invitation" ? (
+          <DropdownMenuItem
+            className="cursor-pointer whitespace-nowrap"
+            onClick={() =>
+              onRevokeInvitation(row.source.kind === "invitation" ? row.source.invitationId : "")
+            }
+            data-testid={`member-revoke-invitation-${row.key}`}
+          >
+            {m.settings_member_revoke_invitation()}
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

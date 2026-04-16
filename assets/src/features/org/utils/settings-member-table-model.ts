@@ -233,5 +233,9 @@ export function canManageOrgMembers(
 }
 
 export function memberRowHasActions(row: SettingsMemberTableRow): boolean {
-  return row.source.kind === "membership" || !row.hasPractitionerGrant;
+  return (
+    row.source.kind === "invitation" ||
+    row.source.kind === "membership" ||
+    !row.hasPractitionerGrant
+  );
 }

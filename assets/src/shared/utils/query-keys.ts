@@ -16,9 +16,6 @@ export function orgSettingsQueryKey(organizationId: string) {
   return [...ORG_SETTINGS_QUERY_KEY, organizationId] as const;
 }
 
-/** Pending org invitations (header / dialog). */
-export const INVITATIONS_QUERY_KEY = ["org", "pending-invitations"] as const;
-
 /** Subscription plans for an organization (org billing + onboarding plan pickers). */
 export function subscriptionPlansQueryKey(organizationId: string) {
   return ["subscription-plans", organizationId] as const;
