@@ -58,12 +58,18 @@ function DatePicker({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       let raw = e.target.value.replaceAll(/[^\d/]/g, "");
 
-      // Auto-insert slashes
-      const digits = raw.replaceAll("/", "");
-      if (digits.length >= 4) {
-        raw = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
-      } else if (digits.length >= 2) {
-        raw = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+      const isDeleting = (e.nativeEvent as InputEvent).inputType?.startsWith("delete");
+      if (isDeleting) {
+        // Strip trailing slashes so the user doesn't get stuck when backspacing.
+        raw = raw.replace(/\/+$/, "");
+      } else {
+        // Auto-insert slashes only when typing forward.
+        const digits = raw.replaceAll("/", "");
+        if (digits.length >= 4) {
+          raw = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+        } else if (digits.length >= 2) {
+          raw = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+        }
       }
 
       setInputValue(raw);
