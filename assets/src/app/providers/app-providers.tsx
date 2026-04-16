@@ -1,3 +1,4 @@
+import { PostHogProvider } from "@posthog/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { StrictMode } from "react";
@@ -9,6 +10,7 @@ import { LocaleProvider } from "@/shared/i18n/locale-provider";
 import { ThemeProvider } from "@/shared/theme/theme-provider";
 import { Toaster } from "@/shared/ui/sonner";
 
+import { posthog } from "./posthog-client";
 import { queryClient } from "./query-client";
 
 /**
@@ -17,23 +19,26 @@ import { queryClient } from "./query-client";
  *
  * Provider order (outermost to innermost):
  * 1. StrictMode - React development checks.
- * 2. QueryClientProvider - TanStack Query for data fetching.
- * 3. UserStoreSync - Sync current user profile into Zustand.
- * 4. InnerApp - Router provider.
+ * 2. PostHogProvider - Analytics and feature flags.
+ * 3. QueryClientProvider - TanStack Query for data fetching.
+ * 4. UserStoreSync - Sync current user profile into Zustand and identify in PostHog.
+ * 5. InnerApp - Router provider.
  */
 export function AppProviders() {
   return (
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <UserStoreSync />
-        <ThemeProvider defaultTheme="system">
-          <LocaleProvider>
-            <InnerApp router={router} />
-          </LocaleProvider>
-        </ThemeProvider>
-        <Toaster />
-        {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
-      </QueryClientProvider>
+      <PostHogProvider client={posthog}>
+        <QueryClientProvider client={queryClient}>
+          <UserStoreSync />
+          <ThemeProvider defaultTheme="system">
+            <LocaleProvider>
+              <InnerApp router={router} />
+            </LocaleProvider>
+          </ThemeProvider>
+          <Toaster />
+          {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+        </QueryClientProvider>
+      </PostHogProvider>
     </StrictMode>
   );
 }
