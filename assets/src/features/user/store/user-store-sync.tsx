@@ -1,3 +1,4 @@
+import { usePostHog } from "@posthog/react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
@@ -12,6 +13,7 @@ import { useUserStore } from "./user-store";
  */
 export function UserStoreSync() {
   const setFromQuery = useUserStore((state) => state.setFromQuery);
+  const posthog = usePostHog();
   const { data, isLoading, error } = useQuery({
     queryKey: USER_QUERY_KEY,
     queryFn: fetchCurrentUser,
@@ -32,6 +34,16 @@ export function UserStoreSync() {
       error: error instanceof Error ? error : null,
     });
   }, [data, isLoading, error, setFromQuery]);
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    posthog?.identify(data.id, {
+      email: data.email,
+      name: data.name,
+    });
+  }, [data, posthog]);
 
   return null;
 }

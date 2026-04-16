@@ -30,7 +30,14 @@
   "pnpm": {
     "overrides": {
       "picomatch": "^4.0.4"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "core-js",
+      "esbuild",
+      "msw",
+      "protobufjs",
+      "unrs-resolver"
+    ]
   },
   "packageManager": "pnpm@10.33.0"
 }
