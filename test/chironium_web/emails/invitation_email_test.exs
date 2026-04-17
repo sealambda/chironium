@@ -8,6 +8,7 @@ defmodule ChironiumWeb.Emails.InvitationEmailTest do
       Renderer.render(&ChironiumWeb.Emails.InvitationEmail.render/1, %{
         invited_by_name: "Alice",
         organization_name: "Acme Corp",
+        code: "ABC123",
         accept_url: "https://app.chironium.app/invitations/ABC123"
       })
 
@@ -15,6 +16,7 @@ defmodule ChironiumWeb.Emails.InvitationEmailTest do
     assert html =~ "Alice"
     assert html =~ "Acme Corp"
     assert html =~ "https://app.chironium.app/invitations/ABC123"
+    assert html =~ "ABC123"
     assert html =~ "Accept invitation"
 
     # Premailex inlined styles from the <style> block.

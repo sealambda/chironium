@@ -14,6 +14,7 @@ defmodule Chironium.Workers.NotificationEmailWorkerTest do
           "email" => "alice@example.com",
           "invited_by_name" => "Bob",
           "organization_name" => "Acme Corp",
+          "code" => "ABC123",
           "accept_url" => "https://app.chironium.app/invitations/ABC123"
         }
       }

@@ -23,6 +23,7 @@ defmodule Chironium.Workers.NotificationEmailWorker do
       Renderer.render(&ChironiumWeb.Emails.InvitationEmail.render/1, %{
         invited_by_name: params["invited_by_name"],
         organization_name: params["organization_name"],
+        code: params["code"],
         accept_url: params["accept_url"]
       })
 
