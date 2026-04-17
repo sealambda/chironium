@@ -24,5 +24,24 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# PostHog is configured at compile time because the project token is public
+# (it is already inlined in the frontend JS bundle by Vite). The VITE_POSTHOG_KEY
+# build arg is forwarded as an ENV in the Dockerfile so it is available here.
+posthog_api_key = System.get_env("VITE_POSTHOG_KEY")
+
+posthog_enabled =
+  case posthog_api_key do
+    nil -> false
+    "" -> false
+    _ -> true
+  end
+
+config :posthog,
+  enable: posthog_enabled,
+  enable_error_tracking: posthog_enabled,
+  api_host: System.get_env("VITE_POSTHOG_HOST") || "https://eu.i.posthog.com",
+  api_key: posthog_api_key || "disabled",
+  in_app_otp_apps: [:chironium]
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
