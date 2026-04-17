@@ -117,6 +117,7 @@ defmodule Chironium.Accounts.Invitation do
                  email: to_string(result.email),
                  invited_by_name: invited_by.name || to_string(invited_by.email),
                  organization_name: result.organization.name,
+                 code: result.invite_code,
                  accept_url: invitation_accept_url(result.invite_code)
                })
 
@@ -370,7 +371,10 @@ defmodule Chironium.Accounts.Invitation do
     params = URI.decode_query(uri.query || "")
 
     uri
-    |> Map.put(:query, Map.put(params, "invite_code", to_string(invite_code)) |> URI.encode_query())
+    |> Map.put(
+      :query,
+      Map.put(params, "invite_code", to_string(invite_code)) |> URI.encode_query()
+    )
     |> URI.to_string()
   end
 end

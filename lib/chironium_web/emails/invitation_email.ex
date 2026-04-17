@@ -10,6 +10,7 @@ defmodule ChironiumWeb.Emails.InvitationEmail do
 
   attr :invited_by_name, :string, required: true
   attr :organization_name, :string, required: true
+  attr :code, :string, required: true
   attr :accept_url, :string, required: true
 
   def render(assigns) do
@@ -27,6 +28,18 @@ defmodule ChironiumWeb.Emails.InvitationEmail do
       <.email_button href={@accept_url}>
         {dgettext("emails", "Accept invitation")}
       </.email_button>
+
+      <hr class="email-divider" />
+      <p class="email-text">
+        {dgettext(
+          "emails",
+          "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
+        )}
+      </p>
+      <p class="email-heading">
+        {@code}
+      </p>
+
       <hr class="email-divider" />
       <p class="email-muted">
         {dgettext(

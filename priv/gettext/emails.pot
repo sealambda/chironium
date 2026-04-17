@@ -11,12 +11,12 @@
 msgid ""
 msgstr ""
 
-#: lib/chironium_web/emails/invitation_email.ex:22
+#: lib/chironium_web/emails/invitation_email.ex:23
 #, elixir-autogen, elixir-format
 msgid "%{name} invited you to join %{organization}."
 msgstr ""
 
-#: lib/chironium_web/emails/invitation_email.ex:28
+#: lib/chironium_web/emails/invitation_email.ex:29
 #, elixir-autogen, elixir-format
 msgid "Accept invitation"
 msgstr ""
@@ -26,17 +26,17 @@ msgstr ""
 msgid "Hi %{name}, you have an upcoming task."
 msgstr ""
 
-#: lib/chironium_web/emails/invitation_email.ex:32
+#: lib/chironium_web/emails/invitation_email.ex:45
 #, elixir-autogen, elixir-format
 msgid "If you weren't expecting this invitation, you can safely ignore this email."
 msgstr ""
 
-#: lib/chironium_web/emails/task_reminder_email.ex:31
+#: lib/chironium_web/emails/task_reminder_email.ex:36
 #, elixir-autogen, elixir-format
 msgid "Patient: %{name}"
 msgstr ""
 
-#: lib/chironium_web/emails/task_reminder_email.ex:34
+#: lib/chironium_web/emails/task_reminder_email.ex:39
 #, elixir-autogen, elixir-format
 msgid "Priority: %{priority}"
 msgstr ""
@@ -51,12 +51,17 @@ msgstr ""
 msgid "Task reminder"
 msgstr ""
 
-#: lib/chironium_web/emails/task_reminder_email.ex:40
+#: lib/chironium_web/emails/task_reminder_email.ex:45
 #, elixir-autogen, elixir-format
 msgid "View task"
 msgstr ""
 
-#: lib/chironium_web/emails/invitation_email.ex:19
+#: lib/chironium_web/emails/invitation_email.ex:20
 #, elixir-autogen, elixir-format
 msgid "You've been invited"
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:34
+#, elixir-autogen, elixir-format
+msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
 msgstr ""

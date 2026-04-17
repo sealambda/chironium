@@ -10,6 +10,7 @@ defmodule Chironium.NotificationsTest do
       email: "alice@example.com",
       invited_by_name: "Bob",
       organization_name: "Acme",
+      code: "ABC",
       accept_url: "https://example.com/invite/ABC"
     })
 
@@ -21,6 +22,7 @@ defmodule Chironium.NotificationsTest do
           "email" => "alice@example.com",
           "invited_by_name" => "Bob",
           "organization_name" => "Acme",
+          "code" => "ABC",
           "accept_url" => "https://example.com/invite/ABC"
         }
       }

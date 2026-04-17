@@ -1,0 +1,67 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/chironium_web/emails/invitation_email.ex:23
+#, elixir-autogen, elixir-format
+msgid "%{name} invited you to join %{organization}."
+msgstr "%{name} te invito a unirte a %{organization}."
+
+#: lib/chironium_web/emails/invitation_email.ex:29
+#, elixir-autogen, elixir-format
+msgid "Accept invitation"
+msgstr "Aceptar invitacion"
+
+#: lib/chironium_web/emails/task_reminder_email.ex:24
+#, elixir-autogen, elixir-format
+msgid "Hi %{name}, you have an upcoming task."
+msgstr "Hola %{name}, tienes una tarea proxima."
+
+#: lib/chironium_web/emails/invitation_email.ex:45
+#, elixir-autogen, elixir-format
+msgid "If you weren't expecting this invitation, you can safely ignore this email."
+msgstr "Si no esperabas esta invitacion, puedes ignorar este correo electronico con seguridad."
+
+#: lib/chironium_web/emails/task_reminder_email.ex:36
+#, elixir-autogen, elixir-format
+msgid "Patient: %{name}"
+msgstr "Paciente: %{name}"
+
+#: lib/chironium_web/emails/task_reminder_email.ex:39
+#, elixir-autogen, elixir-format
+msgid "Priority: %{priority}"
+msgstr "Prioridad: %{priority}"
+
+#: lib/chironium_web/emails/components.ex:90
+#, elixir-autogen, elixir-format
+msgid "Sent by Chironium"
+msgstr "Enviado por Chironium"
+
+#: lib/chironium_web/emails/task_reminder_email.ex:21
+#, elixir-autogen, elixir-format
+msgid "Task reminder"
+msgstr "Recordatorio de tarea"
+
+#: lib/chironium_web/emails/task_reminder_email.ex:45
+#, elixir-autogen, elixir-format
+msgid "View task"
+msgstr "Ver tarea"
+
+#: lib/chironium_web/emails/invitation_email.ex:20
+#, elixir-autogen, elixir-format
+msgid "You've been invited"
+msgstr "Te han invitado"
+
+#: lib/chironium_web/emails/invitation_email.ex:34
+#, elixir-autogen, elixir-format
+msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
+msgstr "Como alternativa, abre Chironium, haz clic en el selector de organizacion, \"Unirse con invitacion\", e introduce el siguiente codigo"

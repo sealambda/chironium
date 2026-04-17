@@ -11,113 +11,83 @@ msgstr ""
 "Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/chironium_web/components/core_components.ex:375
+#: lib/chironium_web/components/core_components.ex:368
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "Acciones"
 
-#: lib/chironium_web/components/layouts.ex:101
-#: lib/chironium_web/components/layouts.ex:113
+#: lib/chironium_web/components/layouts.ex:99
+#: lib/chironium_web/components/layouts.ex:111
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "Intentando reconectar"
 
-#: lib/chironium_web/live/sign_in_live.ex:399
+#: lib/chironium_web/live/sign_in_live.ex:269
 #, elixir-autogen, elixir-format
 msgid "By continuing, you agree to our"
 msgstr "Al continuar, aceptas nuestros"
 
-#: lib/chironium_web/live/sign_in_live.ex:168
+#: lib/chironium_web/live/sign_in_live.ex:140
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr "Cambiar idioma"
 
-#: lib/chironium_web/live/sign_in_live.ex:365
+#: lib/chironium_web/live/sign_in_live.ex:235
 #, elixir-autogen, elixir-format
 msgid "Continue with Google"
 msgstr "Continuar con Google"
 
-#: lib/chironium_web/live/sign_in_live.ex:256
-#, elixir-autogen, elixir-format
-msgid "Email address"
-msgstr "Dirección de correo"
-
-#: lib/chironium_web/live/sign_in_live.ex:236
-#, elixir-autogen, elixir-format
-msgid "Enter your email to receive a secure magic link."
-msgstr "Ingresa tu correo para recibir un enlace mágico seguro."
-
-#: lib/chironium_web/live/sign_in_live.ex:342
-#, elixir-autogen, elixir-format
-msgid "Or continue with"
-msgstr "O continuar con"
-
-#: lib/chironium_web/live/sign_in_live.ex:405
+#: lib/chironium_web/live/sign_in_live.ex:281
 #, elixir-autogen, elixir-format
 msgid "Privacy Policy"
 msgstr "Política de Privacidad"
 
-#: lib/chironium_web/live/sign_in_live.ex:297
-#, elixir-autogen, elixir-format
-msgid "Send Magic Link"
-msgstr "Enviar Enlace Mágico"
-
-#: lib/chironium_web/live/sign_in_live.ex:298
-#, elixir-autogen, elixir-format
-msgid "Sending..."
-msgstr "Enviando..."
-
-#: lib/chironium_web/live/sign_in_live.ex:32
+#: lib/chironium_web/live/sign_in_live.ex:26
 #, elixir-autogen, elixir-format
 msgid "Sign In"
 msgstr "Iniciar Sesión"
 
-#: lib/chironium_web/components/layouts.ex:108
+#: lib/chironium_web/components/layouts.ex:106
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "¡Algo salió mal!"
 
-#: lib/chironium_web/live/sign_in_live.ex:202
+#: lib/chironium_web/live/sign_in_live.ex:177
 #, elixir-autogen, elixir-format
 msgid "Switch to dark mode"
 msgstr "Cambiar a modo oscuro"
 
-#: lib/chironium_web/live/sign_in_live.ex:202
+#: lib/chironium_web/live/sign_in_live.ex:176
 #, elixir-autogen, elixir-format
 msgid "Switch to light mode"
 msgstr "Cambiar a modo claro"
 
-#: lib/chironium_web/live/sign_in_live.ex:401
+#: lib/chironium_web/live/sign_in_live.ex:274
 #, elixir-autogen, elixir-format
 msgid "Terms of Service"
 msgstr "Términos de Servicio"
 
-#: lib/chironium_web/components/layouts.ex:96
+#: lib/chironium_web/components/layouts.ex:94
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "No podemos encontrar internet"
 
-#: lib/chironium_web/live/sign_in_live.ex:303
-#, elixir-autogen, elixir-format
-msgid "We'll send a secure link to your email for instant access."
-msgstr "Te enviaremos un enlace seguro a tu correo para acceso instantáneo."
-
-#: lib/chironium_web/live/sign_in_live.ex:233
+#: lib/chironium_web/live/sign_in_live.ex:209
 #, elixir-autogen, elixir-format
 msgid "Welcome Back"
 msgstr "Bienvenido de Nuevo"
 
-#: lib/chironium_web/live/sign_in_live.ex:403
+#: lib/chironium_web/live/sign_in_live.ex:276
 #, elixir-autogen, elixir-format
 msgid "and"
 msgstr "y"
 
-#: lib/chironium_web/components/core_components.ex:75
+#: lib/chironium_web/components/core_components.ex:74
 #, elixir-autogen, elixir-format
 msgid "close"
 msgstr "cerrar"
 
-#: lib/chironium_web/live/sign_in_live.ex:266
+#: lib/chironium_web/live/sign_in_live.ex:212
 #, elixir-autogen, elixir-format
-msgid "you@example.com"
-msgstr "tu@ejemplo.com"
+msgid "Sign in with your Google account to continue."
+msgstr "Inicia sesión con tu cuenta de Google para continuar."
