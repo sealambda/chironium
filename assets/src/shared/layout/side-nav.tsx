@@ -25,7 +25,10 @@ function getVisibleNavItems(hasSelectedOrg: boolean) {
 /**
  * Side navigation for tablet and desktop layouts.
  */
-export function SideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick: () => void }>) {
+export function SideNav({
+  onCreateOrgClick,
+  onJoinOrgClick,
+}: Readonly<{ onCreateOrgClick: () => void; onJoinOrgClick: () => void }>) {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
@@ -47,6 +50,7 @@ export function SideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick: () =>
             availableOrgs={availableOrgs}
             onSelectOrg={selectOrg}
             onCreateClick={onCreateOrgClick}
+            onJoinClick={onJoinOrgClick}
           />
         </div>
       </div>
@@ -67,7 +71,10 @@ export function SideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick: () =>
 /**
  * Mobile foldable sidebar opened by the top-left burger button.
  */
-export function MobileSideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick: () => void }>) {
+export function MobileSideNav({
+  onCreateOrgClick,
+  onJoinOrgClick,
+}: Readonly<{ onCreateOrgClick: () => void; onJoinOrgClick: () => void }>) {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
@@ -87,6 +94,11 @@ export function MobileSideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick:
   const handleCreateOrgClick = () => {
     closeMenu();
     onCreateOrgClick();
+  };
+
+  const handleJoinOrgClick = () => {
+    closeMenu();
+    onJoinOrgClick();
   };
 
   return (
@@ -114,6 +126,7 @@ export function MobileSideNav({ onCreateOrgClick }: Readonly<{ onCreateOrgClick:
                   availableOrgs={availableOrgs}
                   onSelectOrg={handleSelectOrg}
                   onCreateClick={handleCreateOrgClick}
+                  onJoinClick={handleJoinOrgClick}
                   showNameOnMobile
                 />
               </div>

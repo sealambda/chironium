@@ -1,4 +1,4 @@
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { ChevronsUpDown, Plus, Ticket } from "lucide-react";
 
 import type { OrganizationRecord } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
@@ -17,6 +17,7 @@ interface OrgSelectorProps {
   availableOrgs: OrganizationRecord[];
   onSelectOrg: (orgId: string) => void;
   onCreateClick: () => void;
+  onJoinClick: () => void;
   showNameOnMobile?: boolean;
 }
 
@@ -44,6 +45,7 @@ export function OrgSelector({
   availableOrgs,
   onSelectOrg,
   onCreateClick,
+  onJoinClick,
   showNameOnMobile = false,
 }: Readonly<OrgSelectorProps>) {
   const isEmpty = availableOrgs.length === 0;
@@ -53,7 +55,6 @@ export function OrgSelector({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        disabled={isEmpty}
         render={
           <button
             type="button"
@@ -62,9 +63,7 @@ export function OrgSelector({
               "group flex w-full items-center gap-2 rounded-lg px-2 py-2",
               !showNameOnMobile && "justify-center md:justify-start",
               "text-left transition-colors focus-visible:outline-none",
-              isEmpty
-                ? "cursor-not-allowed opacity-50"
-                : "cursor-pointer hover:bg-accent/50 focus-visible:bg-accent/50",
+              "cursor-pointer hover:bg-accent/50 focus-visible:bg-accent/50",
             )}
           />
         }
@@ -80,48 +79,58 @@ export function OrgSelector({
         >
           <span className="truncate font-semibold">{orgName}</span>
         </span>
-        {!isEmpty && (
-          <ChevronsUpDown
-            className={cn(
-              "ml-auto size-4 shrink-0 opacity-50",
-              !showNameOnMobile && "hidden md:block",
-            )}
-          />
-        )}
+        <ChevronsUpDown
+          className={cn(
+            "ml-auto size-4 shrink-0 opacity-50",
+            !showNameOnMobile && "hidden md:block",
+          )}
+        />
       </DropdownMenuTrigger>
-      {!isEmpty && (
-        <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="w-64 rounded-lg">
-          <DropdownMenuLabel className="text-muted-foreground text-xs">
-            {m.nav_organization()}
-          </DropdownMenuLabel>
-          <div className="max-h-80 overflow-y-auto pr-1">
-            {availableOrgs.map((org) => (
-              <DropdownMenuItem
-                key={org.id}
-                onClick={() => onSelectOrg(org.id)}
-                className="gap-2 p-2"
-                data-testid={`org-selector-item-${org.id}`}
-              >
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border font-bold text-xs">
-                  {getOrgMark(org.name)}
-                </span>
-                {org.name}
-              </DropdownMenuItem>
-            ))}
-          </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={onCreateClick}
-            className="gap-2 p-2"
-            data-testid="org-selector-create-button"
-          >
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
-              <Plus className="size-4" />
-            </span>
-            <span className="font-medium text-muted-foreground">{m.org_create()}</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      )}
+      <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="w-64 rounded-lg">
+        {!isEmpty && (
+          <>
+            <DropdownMenuLabel className="text-muted-foreground text-xs">
+              {m.nav_organization()}
+            </DropdownMenuLabel>
+            <div className="max-h-80 overflow-y-auto pr-1">
+              {availableOrgs.map((org) => (
+                <DropdownMenuItem
+                  key={org.id}
+                  onClick={() => onSelectOrg(org.id)}
+                  className="cursor-pointer gap-2 p-2"
+                  data-testid={`org-selector-item-${org.id}`}
+                >
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border font-bold text-xs">
+                    {getOrgMark(org.name)}
+                  </span>
+                  {org.name}
+                </DropdownMenuItem>
+              ))}
+            </div>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        <DropdownMenuItem
+          onClick={onJoinClick}
+          className="cursor-pointer gap-2 p-2"
+          data-testid="org-selector-join-by-invitation-button"
+        >
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
+            <Ticket className="size-4" />
+          </span>
+          <span className="font-medium text-muted-foreground">{m.org_join_by_invitation()}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={onCreateClick}
+          className="cursor-pointer gap-2 p-2"
+          data-testid="org-selector-create-button"
+        >
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
+            <Plus className="size-4" />
+          </span>
+          <span className="font-medium text-muted-foreground">{m.org_create()}</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }

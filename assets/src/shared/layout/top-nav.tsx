@@ -7,12 +7,13 @@ import { MobileSideNav } from "./side-nav";
 
 interface TopNavProps {
   readonly onCreateOrgClick: () => void;
+  readonly onJoinOrgClick: () => void;
 }
 
 /**
  * Top navigation bar matching the Stitch "Clients List" layout.
  */
-export function TopNav({ onCreateOrgClick }: TopNavProps) {
+export function TopNav({ onCreateOrgClick, onJoinOrgClick }: TopNavProps) {
   const { isLoading } = useCurrentUser();
   const { isDetailMode, headerContent } = useDetailMode();
 
@@ -52,7 +53,7 @@ export function TopNav({ onCreateOrgClick }: TopNavProps) {
     <header className={headerClasses}>
       <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
         <div className="sm:hidden">
-          <MobileSideNav onCreateOrgClick={onCreateOrgClick} />
+          <MobileSideNav onCreateOrgClick={onCreateOrgClick} onJoinOrgClick={onJoinOrgClick} />
         </div>
         <div className="min-w-0 flex-1">{headerContent}</div>
       </div>

@@ -135,8 +135,16 @@ function PlanList({
         icon={CreditCard}
         title={m.subscriptions_empty()}
         description={m.subscriptions_empty_desc()}
-        actionLabel={canAddPlans ? m.subscriptions_add_plan() : undefined}
-        onAction={canAddPlans ? onAdd : undefined}
+        actions={
+          canAddPlans
+            ? [
+                {
+                  label: m.subscriptions_add_plan(),
+                  onAction: onAdd,
+                },
+              ]
+            : []
+        }
       />
     );
   }
