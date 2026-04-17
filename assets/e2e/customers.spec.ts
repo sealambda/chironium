@@ -1,12 +1,14 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { TIMEOUT_MS } from "./helpers";
-import { devPlaywrightEnsureUser, devPlaywrightSession } from "./playwright-session";
+import {
+  devPlaywrightEnsureUser,
+  devPlaywrightSession,
+  getPlaywrightE2EEnv,
+} from "./playwright-session";
 
 async function bootstrapSession(page: Page, email: string) {
-  const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000";
-  const secret =
-    process.env.PLAYWRIGHT_E2E_SECRET ?? "local-playwright-e2e-secret-do-not-use-in-prod";
+  const { baseURL, secret } = getPlaywrightE2EEnv();
 
   await devPlaywrightEnsureUser(page.request, { baseURL, secret, email });
   await devPlaywrightSession(page.request, { baseURL, secret, email });

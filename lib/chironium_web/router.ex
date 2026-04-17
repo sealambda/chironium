@@ -106,6 +106,7 @@ defmodule ChironiumWeb.Router do
 
       post "/session", PlaywrightE2EController, :create
       post "/user", PlaywrightE2EController, :ensure_user
+      post "/invitation-code", PlaywrightE2EController, :invitation_code
     end
   end
 

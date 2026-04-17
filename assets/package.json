@@ -22,9 +22,9 @@
     "gql:generate:tada": "gql.tada generate output --tsconfig tsconfig.app.json",
     "gql:generate:legacy": "graphql-codegen --config codegen.ts",
     "gql:check": "gql.tada check --tsconfig tsconfig.app.json",
-    "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui",
-    "e2e:install": "playwright install chromium"
+    "e2e": "pnpm e2e:install && PLAYWRIGHT_BROWSERS_PATH=0 playwright test",
+    "e2e:ui": "pnpm e2e:install && PLAYWRIGHT_BROWSERS_PATH=0 playwright test --ui",
+    "e2e:install": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

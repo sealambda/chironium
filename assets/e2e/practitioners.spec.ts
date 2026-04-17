@@ -6,7 +6,12 @@ import {
   selectPractitionerInReassignDialog,
   TIMEOUT_MS,
 } from "./helpers";
-import { devPlaywrightEnsureUser, devPlaywrightSession } from "./playwright-session";
+import {
+  devPlaywrightEnsureUser,
+  devPlaywrightInvitationCode,
+  devPlaywrightSession,
+  getPlaywrightE2EEnv,
+} from "./playwright-session";
 
 function tableCustomerName(page: Page, fullName: string) {
   return page.getByRole("table").getByText(fullName, { exact: true }).first();
@@ -17,9 +22,7 @@ async function createSessionContext(
   page: Page,
   email: string,
 ): Promise<{ context: BrowserContext; page: Page }> {
-  const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000";
-  const secret =
-    process.env.PLAYWRIGHT_E2E_SECRET ?? "local-playwright-e2e-secret-do-not-use-in-prod";
+  const { baseURL, secret } = getPlaywrightE2EEnv();
   const request = page.request;
   await devPlaywrightEnsureUser(request, { baseURL, secret, email });
 
@@ -80,7 +83,9 @@ async function createOrgAsOwner(page: Page, runId: string) {
   });
 }
 
-async function inviteUser(page: Page, email: string, role: "manager" | "member") {
+async function inviteUser(page: Page, email: string, role: "manager" | "member"): Promise<string> {
+  const { baseURL, secret } = getPlaywrightE2EEnv();
+
   await page.goto("/app/settings");
   await expect(page.getByTestId("settings-heading")).toBeVisible({
     timeout: TIMEOUT_MS,
@@ -97,10 +102,11 @@ async function inviteUser(page: Page, email: string, role: "manager" | "member")
   await expect(page.getByRole("row").filter({ hasText: email })).toBeVisible({
     timeout: TIMEOUT_MS,
   });
+  return devPlaywrightInvitationCode(page.request, { baseURL, secret, email });
 }
 
-async function acceptInvitation(page: Page) {
-  await page.goto("/app");
+async function acceptInvitation(page: Page, inviteCode: string) {
+  await page.goto(`/app?invite_code=${encodeURIComponent(inviteCode)}`);
   const dialog = page.getByTestId("invitation-accept-button");
   await expect(dialog).toBeVisible({ timeout: TIMEOUT_MS });
   await dialog.click();
@@ -171,14 +177,14 @@ test("full invite and customer assignment lifecycle", async ({ browser, page }) 
   const memberOwnedCustomer = "Miriam Member";
 
   await createOrgAsOwner(page, runId);
-  await inviteUser(page, managerEmail, "manager");
+  const managerInviteCode = await inviteUser(page, managerEmail, "manager");
 
   const managerCtx = await createSessionContext(browser, page, managerEmail);
-  await acceptInvitation(managerCtx.page);
-  await inviteUser(managerCtx.page, memberEmail, "member");
+  await acceptInvitation(managerCtx.page, managerInviteCode);
+  const memberInviteCode = await inviteUser(managerCtx.page, memberEmail, "member");
 
   const memberCtx = await createSessionContext(browser, page, memberEmail);
-  await acceptInvitation(memberCtx.page);
+  await acceptInvitation(memberCtx.page, memberInviteCode);
 
   await page.goto("/app/settings");
   await dismissOrganizationInvitationIfPresent(page);

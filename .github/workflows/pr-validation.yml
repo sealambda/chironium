@@ -22,13 +22,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL_BASE: postgres://postgres:postgres@localhost:5432
-      DATABASE_NAME_TEST: chironium_test
-      DATABASE_NAME_DEV: chironium_dev
-      DATABASE_URL_TEST: $DATABASE_URL_BASE/$DATABASE_NAME_TEST
-      DATABASE_URL_DEV: $DATABASE_URL_BASE/$DATABASE_NAME_DEV
-      PLAYWRIGHT_BASE_URL: http://localhost:4000
-      PLAYWRIGHT_E2E_SECRET: local-playwright-e2e-secret-do-not-use-in-prod
       GOOGLE_CLIENT_ID: ci-dummy-google-client-id
       GOOGLE_CLIENT_SECRET: ci-dummy-google-client-secret
     steps:
@@ -76,7 +69,6 @@ jobs:
         run: mix ash.setup --quiet
         env:
           MIX_ENV: dev
-          DATABASE_URL: $DATABASE_URL_DEV
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
@@ -93,29 +85,10 @@ jobs:
       - name: Run assets unit tests
         run: pnpm assets:test
 
-      - name: Install Playwright browser and OS deps
-        run: pnpm --dir assets e2e:install
-
-      - name: Start Phoenix server
-        run: mix phx.server > /tmp/phoenix.log 2>&1 &
-        env:
-          MIX_ENV: dev
-          DATABASE_URL: $DATABASE_URL_DEV
-
-      - name: Wait for server
-        run: |
-          for i in {1..60}; do
-            if curl -fsS -H "x-playwright-e2e-secret: $PLAYWRIGHT_E2E_SECRET" "$PLAYWRIGHT_BASE_URL/sign-in" > /dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "Phoenix server did not become ready in time."
-          tail -n 200 /tmp/phoenix.log
-          exit 1
-
       - name: Run assets E2E tests
         run: pnpm assets:e2e
+        env:
+          MIX_ENV: dev
 
       - name: Upload Playwright report on failure
         if: failure()
