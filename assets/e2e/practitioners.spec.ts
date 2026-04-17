@@ -106,13 +106,20 @@ async function inviteUser(page: Page, email: string, role: "manager" | "member")
 }
 
 async function acceptInvitation(page: Page, inviteCode: string) {
-  await page.goto(`/app?invite_code=${encodeURIComponent(inviteCode)}`);
-  const dialog = page.getByTestId("invitation-accept-button");
-  await expect(dialog).toBeVisible({ timeout: TIMEOUT_MS });
-  await dialog.click();
-  await expect(page.getByTestId("invitation-accept-button")).not.toBeVisible({
+  await page.goto(`/app?inviteCode=${encodeURIComponent(inviteCode)}`);
+
+  const invitationCodeInput = page.getByTestId("invitation-code-input");
+  const acceptButton = page.getByTestId("invitation-accept-button");
+  await expect(invitationCodeInput).toBeVisible({ timeout: TIMEOUT_MS });
+  await expect(invitationCodeInput).toHaveValue(inviteCode, { timeout: TIMEOUT_MS });
+  await expect(acceptButton).toBeVisible({ timeout: TIMEOUT_MS });
+
+  await acceptButton.click();
+
+  await expect(acceptButton).not.toBeVisible({
     timeout: TIMEOUT_MS,
   });
+  await expect(page).not.toHaveURL(/inviteCode=/, { timeout: TIMEOUT_MS });
 }
 
 async function makePractitioner(page: Page, email: string, givenName: string, familyName: string) {

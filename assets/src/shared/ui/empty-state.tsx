@@ -7,21 +7,15 @@ interface EmptyStateProps {
   readonly icon: React.ElementType;
   readonly title: string;
   readonly description?: string;
-  readonly actionLabel?: string;
-  readonly onAction?: () => void;
-  readonly actionTestId?: string;
+  readonly actions?: ReadonlyArray<{
+    label: string;
+    testId?: string;
+    onAction: () => void;
+  }>;
   readonly className?: string;
 }
 
-function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  actionLabel,
-  onAction,
-  actionTestId,
-  className,
-}: EmptyStateProps) {
+function EmptyState({ icon: Icon, title, description, actions = [], className }: EmptyStateProps) {
   return (
     <div
       data-slot="empty-state"
@@ -36,10 +30,21 @@ function EmptyState({
           <div className="font-medium text-muted-foreground">{title}</div>
           {description ? <div className="text-muted-foreground text-sm">{description}</div> : null}
         </div>
-        {actionLabel && onAction ? (
-          <Button variant="outline" size="sm" onClick={onAction} data-testid={actionTestId}>
-            {actionLabel}
-          </Button>
+        {actions.length > 0 ? (
+          <div className="mt-1 flex w-full flex-col gap-2">
+            {actions.map((action) => (
+              <Button
+                key={`${action.label}-${action.testId ?? "action"}`}
+                variant="outline"
+                size="sm"
+                onClick={action.onAction}
+                data-testid={action.testId}
+                className="w-full"
+              >
+                {action.label}
+              </Button>
+            ))}
+          </div>
         ) : null}
       </div>
     </div>

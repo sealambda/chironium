@@ -53,6 +53,6 @@ export default defineConfig({
     cwd: path.join(rootDir, ".."),
     url: `${process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000"}/robots.txt`,
     reuseExistingServer: true,
-    timeout: 100_000,
+    timeout: 200_000,
   },
 });

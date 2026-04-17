@@ -408,9 +408,13 @@ function CustomerList({
         icon={Users}
         title={m.customers_empty()}
         description={m.customers_empty_desc()}
-        actionLabel={m.customer_add()}
-        onAction={onAdd}
-        actionTestId="customers-new-button-empty"
+        actions={[
+          {
+            label: m.customer_add(),
+            testId: "customers-new-button-empty",
+            onAction: onAdd,
+          },
+        ]}
       />
     );
   }

@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { acceptInvitation, rejectInvitation } from "@/features/org/api/org-api";
@@ -14,24 +14,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { Input } from "@/shared/ui/input";
 import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
 type InvitationSubmitAction = "accept" | "reject";
 
-export function PendingInvitationsDialog() {
+interface PendingInvitationsDialogProps {
+  open?: boolean;
+  initialInviteCode?: string;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function PendingInvitationsDialog({
+  open = false,
+  initialInviteCode = "",
+  onOpenChange,
+}: Readonly<PendingInvitationsDialogProps>) {
   const queryClient = useQueryClient();
   const { refreshOrgs } = useOrg();
   const [submittingAction, setSubmittingAction] = useState<InvitationSubmitAction | null>(null);
+  const [inviteCodeInput, setInviteCodeInput] = useState(initialInviteCode);
 
-  const inviteCode = readInviteCodeFromUrl();
-
-  const clearInviteCodeFromUrl = () => {
-    const current = new URL(globalThis.location.href);
-    current.searchParams.delete("invite_code");
-
-    const updatedUrl = `${current.pathname}${current.search}${current.hash}`;
-    globalThis.history.replaceState(globalThis.history.state, "", updatedUrl);
-  };
+  useEffect(() => {
+    setInviteCodeInput(initialInviteCode);
+  }, [initialInviteCode]);
 
   const submitInvitationAction = async (params: {
     action: InvitationSubmitAction;
@@ -45,9 +51,10 @@ export function PendingInvitationsDialog() {
       await params.mutate(params.inviteCode);
       toast.success(params.successMessage);
 
-      clearInviteCodeFromUrl();
       await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
       await refreshOrgs();
+      onOpenChange?.(false);
+      setInviteCodeInput("");
     } catch (error) {
       const message = error instanceof Error ? error.message : params.errorFallbackMessage;
       toast.error(message);
@@ -57,6 +64,7 @@ export function PendingInvitationsDialog() {
   };
 
   const handleReject = async () => {
+    const inviteCode = inviteCodeInput.trim();
     if (!inviteCode) {
       toast.error(m.org_invitation_reject_unavailable());
       return;
@@ -72,8 +80,9 @@ export function PendingInvitationsDialog() {
   };
 
   const handleAccept = async () => {
+    const inviteCode = inviteCodeInput.trim();
     if (!inviteCode) {
-      toast.error(m.org_invitation_accept_unavailable());
+      toast.error(m.org_invitation_code_required());
       return;
     }
 
@@ -87,14 +96,20 @@ export function PendingInvitationsDialog() {
   };
 
   return (
-    <Dialog open={Boolean(inviteCode)} onOpenChange={() => {}}>
-      <DialogContent showCloseButton={false}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{m.org_invitation_dialog_title()}</DialogTitle>
-          <DialogDescription>
-            {inviteCode ? m.org_invitation_dialog_desc({ inviteCode }) : ""}
-          </DialogDescription>
+          <DialogDescription>{m.org_invitation_dialog_desc()}</DialogDescription>
         </DialogHeader>
+
+        <Input
+          id="invitation-code"
+          value={inviteCodeInput}
+          onChange={(event) => setInviteCodeInput(event.target.value)}
+          placeholder={m.org_invitation_code_placeholder()}
+          data-testid="invitation-code-input"
+        />
 
         <DialogFooter>
           <Button
@@ -118,14 +133,4 @@ export function PendingInvitationsDialog() {
       </DialogContent>
     </Dialog>
   );
-}
-
-function readInviteCodeFromUrl(): string | null {
-  const code = new URLSearchParams(globalThis.location.search).get("invite_code");
-  if (!code) {
-    return null;
-  }
-
-  const trimmed = code.trim();
-  return trimmed.length > 0 ? trimmed : null;
 }

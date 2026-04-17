@@ -1,6 +1,3 @@
-import { useState } from "react";
-
-import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { cn } from "@/shared/utils/utils";
 
 import { DetailProvider, useDetailMode } from "./detail-context";
@@ -9,20 +6,23 @@ import { TopNav } from "./top-nav";
 
 interface AppShellProps {
   readonly children: React.ReactNode;
+  readonly onCreateOrgClick: () => void;
+  readonly onJoinOrgClick: () => void;
 }
 
 /**
  * Inner shell component that consumes detail mode context.
  */
-function AppShellInner({ children }: AppShellProps) {
+function AppShellInner({ children, onCreateOrgClick, onJoinOrgClick }: AppShellProps) {
   const { isDetailMode } = useDetailMode();
-  const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
 
   return (
     <div className="flex min-h-svh w-full max-w-full overflow-x-hidden bg-background">
       {/* Side Navigation - Hidden on mobile (compact), visible on tablet+ (medium+). */}
       {/* Also hidden when in detail mode. */}
-      {!isDetailMode && <SideNav onCreateOrgClick={() => setIsCreateOrgOpen(true)} />}
+      {!isDetailMode && (
+        <SideNav onCreateOrgClick={onCreateOrgClick} onJoinOrgClick={onJoinOrgClick} />
+      )}
 
       {/* Main content wrapper. */}
       <div
@@ -33,7 +33,7 @@ function AppShellInner({ children }: AppShellProps) {
         )}
       >
         {/* Top Navigation - Fixed at top. */}
-        <TopNav onCreateOrgClick={() => setIsCreateOrgOpen(true)} />
+        <TopNav onCreateOrgClick={onCreateOrgClick} onJoinOrgClick={onJoinOrgClick} />
 
         {/* Main content area with safe padding for fixed nav and safe areas. */}
         <main
@@ -50,8 +50,6 @@ function AppShellInner({ children }: AppShellProps) {
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>
-
-      <CreateOrgModal open={isCreateOrgOpen} onOpenChange={setIsCreateOrgOpen} />
     </div>
   );
 }
@@ -64,10 +62,12 @@ function AppShellInner({ children }: AppShellProps) {
  * Supports "detail mode" where navigation elements are hidden
  * and custom header content can be rendered.
  */
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, onCreateOrgClick, onJoinOrgClick }: AppShellProps) {
   return (
     <DetailProvider>
-      <AppShellInner>{children}</AppShellInner>
+      <AppShellInner onCreateOrgClick={onCreateOrgClick} onJoinOrgClick={onJoinOrgClick}>
+        {children}
+      </AppShellInner>
     </DetailProvider>
   );
 }
