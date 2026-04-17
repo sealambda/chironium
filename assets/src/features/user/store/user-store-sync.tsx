@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { fetchCurrentUser } from "@/features/user/api/user-api";
+import { type Locale, locales, setLocale as setParaglideLocale } from "@/paraglide/runtime";
 import { USER_QUERY_KEY } from "@/shared/utils/query-keys";
 
 import { useUserStore } from "./user-store";
@@ -43,6 +44,12 @@ export function UserStoreSync() {
       email: data.email,
       name: data.name,
     });
+
+    // Sync the backend preferred locale to Paraglide on initial load.
+    const backendLocale = data.preferredLocale;
+    if (backendLocale && locales.includes(backendLocale as Locale)) {
+      void setParaglideLocale(backendLocale as Locale);
+    }
   }, [data, posthog]);
 
   return null;

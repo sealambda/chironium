@@ -65,3 +65,13 @@ msgstr "Te han invitado"
 #, elixir-autogen, elixir-format
 msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
 msgstr "Como alternativa, abre Chironium, haz clic en el selector de organizacion, \"Unirse con invitacion\", e introduce el siguiente codigo"
+
+#: lib/chironium/workers/notification_email_worker.ex:66
+#, elixir-autogen, elixir-format
+msgid "Task reminder: %{description}"
+msgstr "Recordatorio de tarea: %{description}"
+
+#: lib/chironium/workers/notification_email_worker.ex:41
+#, elixir-autogen, elixir-format
+msgid "You've been invited to %{organization}"
+msgstr "Te han invitado a %{organization}"

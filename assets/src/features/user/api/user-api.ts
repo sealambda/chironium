@@ -12,6 +12,23 @@ const CurrentActorQuery = graphql(`
       name
       familyName
       givenName
+      preferredLocale
+    }
+  }
+`);
+
+// ─── Mutations ───────────────────────────────────────────────────────
+
+const UpdatePreferredLocaleMutation = graphql(`
+  mutation UpdatePreferredLocale($id: ID!, $input: UpdatePreferredLocaleInput!) {
+    updatePreferredLocale(id: $id, input: $input) {
+      result {
+        id
+        preferredLocale
+      }
+      errors {
+        message
+      }
     }
   }
 `);
@@ -39,4 +56,14 @@ export async function fetchCurrentUser(): Promise<UserProfile> {
   }
 
   return user;
+}
+
+/**
+ * Persist the user's preferred locale to the backend.
+ */
+export async function updatePreferredLocale(userId: string, locale: string): Promise<void> {
+  await requestGraphql({
+    document: UpdatePreferredLocaleMutation,
+    variables: { id: userId, input: { preferredLocale: locale } },
+  });
 }

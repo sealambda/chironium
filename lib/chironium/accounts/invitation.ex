@@ -113,12 +113,17 @@ defmodule Chironium.Accounts.Invitation do
                invited_by = context.actor
                result = Ash.load!(result, :organization, authorize?: false)
 
+               # Resolve the invitee's preferred locale from the request context,
+               # falling back to the inviter's preference.
+               locale = resolve_actor_locale(invited_by)
+
                Chironium.Notifications.send(:invitation_created, %{
                  email: to_string(result.email),
                  invited_by_name: invited_by.name || to_string(invited_by.email),
                  organization_name: result.organization.name,
                  code: result.invite_code,
-                 accept_url: invitation_accept_url(result.invite_code)
+                 accept_url: invitation_accept_url(result.invite_code),
+                 locale: locale
                })
 
                {:ok, result}
@@ -377,4 +382,17 @@ defmodule Chironium.Accounts.Invitation do
     )
     |> URI.to_string()
   end
+
+  # Resolve preferred locale from an actor (User or domain principal with embedded User).
+  defp resolve_actor_locale(%Chironium.Accounts.User{preferred_locale: locale})
+       when is_binary(locale),
+       do: locale
+
+  defp resolve_actor_locale(%{
+         __metadata__: %{user: %Chironium.Accounts.User{preferred_locale: locale}}
+       })
+       when is_binary(locale),
+       do: locale
+
+  defp resolve_actor_locale(_), do: "en"
 end

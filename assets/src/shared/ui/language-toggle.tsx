@@ -1,5 +1,8 @@
 import * as Flags from "country-flag-icons/react/3x2";
+import { useCallback } from "react";
 
+import { updatePreferredLocale } from "@/features/user/api/user-api";
+import { useUserStore } from "@/features/user/store/user-store";
 import * as m from "@/paraglide/messages";
 import { type Locale, locales } from "@/paraglide/runtime";
 import { useLocale } from "@/shared/i18n/locale-provider";
@@ -28,10 +31,30 @@ const LOCALE_CONFIG: Record<Locale, { flag: React.ElementType; label: () => stri
  */
 export function LanguageToggle({ className, variant = "default" }: Readonly<LanguageToggleProps>) {
   const { locale: currentLocale, setLocale } = useLocale();
+  const user = useUserStore((s) => s.user);
   const { flag: CurrentFlag, label } = LOCALE_CONFIG[currentLocale];
 
+  const handleLocaleChange = useCallback(
+    (val: Locale | null) => {
+      if (!val) {
+        return;
+      }
+
+      const newLocale = val;
+      setLocale(newLocale);
+
+      // Fire-and-forget: persist locale preference to the backend.
+      if (user?.id) {
+        updatePreferredLocale(user.id, newLocale).catch((e) => {
+          console.error("Failed to update preferred locale", e);
+        });
+      }
+    },
+    [setLocale, user?.id],
+  );
+
   return (
-    <Select value={currentLocale} onValueChange={(val) => setLocale(val as Locale)}>
+    <Select value={currentLocale} onValueChange={handleLocaleChange}>
       <SelectTrigger
         className={cn(
           "w-full",

@@ -14,6 +14,7 @@ defmodule ChironiumWeb.Router do
     plug ChironiumWeb.Plugs.SetPosthogContext
     plug :set_actor, :user
     plug ChironiumWeb.SetTenant
+    plug ChironiumWeb.Plugs.SetLocale
     plug AshGraphql.Plug
   end
 
@@ -27,6 +28,7 @@ defmodule ChironiumWeb.Router do
     plug :load_from_session
     plug ChironiumWeb.Plugs.SetPosthogContext
     plug ChironiumWeb.SetTenant
+    plug ChironiumWeb.Plugs.SetLocale
   end
 
   scope "/gql" do
