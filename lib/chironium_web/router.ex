@@ -11,6 +11,7 @@ defmodule ChironiumWeb.Router do
     # TODO Re-enable in prod, just for testing with /gql/playground
     # plug :protect_from_forgery
     plug :load_from_session
+    plug ChironiumWeb.Plugs.SetPosthogContext
     plug :set_actor, :user
     plug ChironiumWeb.SetTenant
     plug AshGraphql.Plug
@@ -24,6 +25,7 @@ defmodule ChironiumWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug ChironiumWeb.Plugs.SetPosthogContext
     plug ChironiumWeb.SetTenant
   end
 

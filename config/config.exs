@@ -144,6 +144,10 @@ config :chironium, ChironiumWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :chironium, Chironium.Mailer, adapter: Swoosh.Adapters.Local
 
+config :posthog,
+  enable: false,
+  test_mode: config_env() == :test
+
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
