@@ -10,6 +10,7 @@ defmodule ChironiumWeb.PlaywrightE2EController do
   use AshAuthentication.Phoenix.Controller
 
   alias AshAuthentication.Jwt
+  alias Chironium.Accounts.Invitation
   alias Chironium.Dev.PlaywrightE2EFixtures
 
   require Ash.Query
@@ -77,6 +78,38 @@ defmodule ChironiumWeb.PlaywrightE2EController do
             |> text(
               "User not found for email #{email}. POST /dev/playwright/user with that email first."
             )
+        end
+      end
+    end
+  end
+
+  def invitation_code(conn, params) do
+    if not secret_ok?(conn) do
+      forbidden(conn)
+    else
+      email = normalize_email(params["email"])
+
+      if email == "" do
+        conn |> put_status(:bad_request) |> text(~s(Missing "email" in JSON body.))
+      else
+        invitation_query =
+          Invitation
+          |> Ash.Query.filter(email == ^email and state == :pending)
+          |> Ash.Query.sort(inserted_at: :desc)
+
+        case Ash.read_one(invitation_query, authorize?: false) do
+          {:ok, nil} ->
+            conn
+            |> put_status(:not_found)
+            |> text("No pending invitation found for #{email}.")
+
+          {:ok, invitation} ->
+            conn |> put_status(:ok) |> json(%{inviteCode: to_string(invitation.invite_code)})
+
+          {:error, _error} ->
+            conn
+            |> put_status(:internal_server_error)
+            |> text("Failed to fetch pending invitation for #{email}.")
         end
       end
     end

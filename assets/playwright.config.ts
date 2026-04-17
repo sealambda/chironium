@@ -10,7 +10,7 @@ const playwrightSecret =
 /**
  * E2E runs against the Phoenix origin (session cookies); the SPA lives under `/app/*`.
  *
- * Prerequisite: `MIX_ENV=dev mix phx.server`, then `pnpm --dir assets e2e:install` (once).
+ * Prerequisite: `pnpm --dir assets e2e:install` (once).
  * Global setup creates an owner session; scenarios create orgs, invitations, and customers in-flow.
  *
  * Default local secret matches dev.exs when `PLAYWRIGHT_E2E_SECRET` is unset (see global-setup).
@@ -48,4 +48,11 @@ export default defineConfig({
       },
     },
   ],
+  webServer: {
+    command: `MIX_ENV=dev PLAYWRIGHT_E2E_SECRET="${playwrightSecret}" mix phx.server`,
+    cwd: path.join(rootDir, ".."),
+    url: `${process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:4000"}/robots.txt`,
+    reuseExistingServer: true,
+    timeout: 100_000,
+  },
 });
