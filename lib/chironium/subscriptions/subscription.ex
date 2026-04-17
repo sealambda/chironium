@@ -84,6 +84,7 @@ defmodule Chironium.Subscriptions.Subscription do
 
     policy action_type(:read) do
       authorize_if Chironium.CRM.Checks.AccessedFromRelationship
+      authorize_if Chironium.Subscriptions.Checks.SubscriptionVisibleToActor
     end
 
     policy action_type([:create, :update, :destroy]) do
