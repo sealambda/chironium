@@ -61,9 +61,9 @@ RUN mkdir config
 COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
 
-COPY priv priv
-
 COPY lib lib
+COPY priv priv
+RUN mix ash.codegen
 
 # install node deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
