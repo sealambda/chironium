@@ -4,13 +4,21 @@ defmodule Chironium.Workers.NotificationEmailWorker do
   """
 
   use Oban.Worker, queue: :notifications
+  use Gettext, backend: ChironiumWeb.Gettext
 
   alias Chironium.Mailer
   alias Chironium.Mailer.Renderer
 
+  @fallback_locale "en"
+
   @impl true
   def perform(%Oban.Job{args: %{"type" => type, "params" => params}}) do
-    email = build_email(type, params)
+    locale = params["locale"] || @fallback_locale
+
+    email =
+      Gettext.with_locale(ChironiumWeb.Gettext, locale, fn ->
+        build_email(type, params)
+      end)
 
     case Mailer.deliver(email) do
       {:ok, _} -> :ok
@@ -29,10 +37,15 @@ defmodule Chironium.Workers.NotificationEmailWorker do
 
     {from_name, from_address} = from_address()
 
+    subject =
+      dgettext("emails", "You've been invited to %{organization}",
+        organization: params["organization_name"]
+      )
+
     Swoosh.Email.new()
     |> Swoosh.Email.to(params["email"])
     |> Swoosh.Email.from({from_name, from_address})
-    |> Swoosh.Email.subject("You've been invited to #{params["organization_name"]}")
+    |> Swoosh.Email.subject(subject)
     |> Swoosh.Email.html_body(html)
     |> Swoosh.Email.text_body(text)
   end
@@ -49,10 +62,13 @@ defmodule Chironium.Workers.NotificationEmailWorker do
 
     {from_name, from_address} = from_address()
 
+    subject =
+      dgettext("emails", "Task reminder: %{description}", description: params["task_description"])
+
     Swoosh.Email.new()
     |> Swoosh.Email.to(params["email"])
     |> Swoosh.Email.from({from_name, from_address})
-    |> Swoosh.Email.subject("Task reminder: #{params["task_description"]}")
+    |> Swoosh.Email.subject(subject)
     |> Swoosh.Email.html_body(html)
     |> Swoosh.Email.text_body(text)
   end

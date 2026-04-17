@@ -67,6 +67,10 @@ defmodule Chironium.Accounts.User do
     queries do
       read_one :get_user, :read
     end
+
+    mutations do
+      update :update_preferred_locale, :update_preferred_locale
+    end
   end
 
   actions do
@@ -82,6 +86,11 @@ defmodule Chironium.Accounts.User do
     read :get_by_email do
       description "Looks up a user by email."
       get_by :email
+    end
+
+    update :update_preferred_locale do
+      description "Update the user's preferred locale for emails and notifications."
+      accept [:preferred_locale]
     end
 
     create :register_with_google do
@@ -112,10 +121,15 @@ defmodule Chironium.Accounts.User do
     end
 
     policy action(:read) do
+      authorize_if expr(id == ^actor(:id))
       authorize_if accessing_from(Chironium.Accounts.Organization, :owner)
       authorize_if accessing_from(Chironium.Accounts.Organization, :users)
       authorize_if accessing_from(Chironium.Accounts.OrganizationUsers, :user)
       authorize_if relates_to_actor_via([:organization_memberships, :organization, :users])
+    end
+
+    policy action(:update_preferred_locale) do
+      authorize_if expr(id == ^actor(:id))
     end
   end
 
@@ -163,6 +177,18 @@ defmodule Chironium.Accounts.User do
       description """
       The user's given name(s) or first name(s).
       Might be provided when a name claim is present.
+      """
+    end
+
+    attribute :preferred_locale, :string do
+      public? true
+      allow_nil? false
+      default "en"
+      constraints allow_empty?: false, match: ~r/\A(en|es)\z/
+
+      description """
+      The user's preferred locale for emails and notifications.
+      Defaults to "en" (English) for the current user base.
       """
     end
   end

@@ -26,7 +26,7 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
     patient.id
     |> resolve_practitioners(tenant)
     |> Enum.each(fn practitioner ->
-      email = resolve_practitioner_email(practitioner, tenant)
+      {email, locale} = resolve_practitioner_contact(practitioner, tenant)
 
       if email do
         Chironium.Notifications.send(:task_reminder, %{
@@ -35,7 +35,8 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
           task_description: task.description || "Untitled task",
           task_priority: task.priority && to_string(task.priority),
           patient_name: patient_name,
-          task_url: "#{ChironiumWeb.Endpoint.url()}/tasks/#{task.id}"
+          task_url: "#{ChironiumWeb.Endpoint.url()}/tasks/#{task.id}",
+          locale: locale
         })
       end
     end)
@@ -65,7 +66,7 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
     format_human_name(practitioner.name)
   end
 
-  defp resolve_practitioner_email(practitioner, tenant) do
+  defp resolve_practitioner_contact(practitioner, tenant) do
     org_id = Chironium.Accounts.Authorization.organization_id_from_tenant(tenant)
 
     grant =
@@ -79,7 +80,13 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
       |> Ash.Query.load(:user)
       |> Ash.read_one!(authorize?: false, tenant: tenant)
 
-    if grant && grant.user, do: to_string(grant.user.email), else: nil
+    case grant do
+      %{user: %{email: email, preferred_locale: locale}} when not is_nil(email) ->
+        {to_string(email), locale || "en"}
+
+      _ ->
+        {nil, "en"}
+    end
   end
 
   defp format_human_name(nil), do: nil

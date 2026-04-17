@@ -1,5 +1,6 @@
 import { ClientError, GraphQLClient, type RequestOptions, type Variables } from "graphql-request";
 
+import { getLocale } from "@/paraglide/runtime";
 import { API_PATHS, AUTH_URLS } from "@/shared/utils/url-utils";
 
 import { getAuthHeaders } from "./request";
@@ -40,6 +41,7 @@ export async function requestGraphql<TResult>({
   const client = new GraphQLClient(endpoint, {
     credentials: "include",
     headers: getAuthHeaders({
+      "x-chironium-locale": getLocale(),
       ...(organizationId ? { "x-chironium-organizationid": `org_${organizationId}` } : {}),
     }),
   });
