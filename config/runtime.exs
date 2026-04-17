@@ -38,6 +38,24 @@ end
 
 port = System.get_env("PORT", "4000")
 
+posthog_api_key = System.get_env("VITE_POSTHOG_KEY")
+
+posthog_enabled =
+  case posthog_api_key do
+    nil -> false
+    "" -> false
+    _ -> true
+  end
+
+config :posthog,
+  enable: posthog_enabled,
+  enable_error_tracking: posthog_enabled,
+  test_mode: config_env() == :test,
+  api_host:
+    System.get_env("VITE_POSTHOG_HOST") || "https://eu.i.posthog.com",
+  api_key: posthog_api_key || "disabled",
+  in_app_otp_apps: [:chironium]
+
 default_host =
   System.get_env("PHX_HOST") ||
     if config_env() == :prod do
