@@ -65,20 +65,16 @@ function OrgLanguageField({ value, editable, onChange }: Readonly<OrgLanguageFie
 interface OrganizationCardProps {
   organization: OrganizationSettingsData | null | undefined;
   selectedOrg: { id: string; name: string; slug: string };
-  currentUserId: string | undefined;
+  canEditLocale: boolean;
   onPreferredLocaleChanged: () => Promise<void> | void;
 }
 
 function OrganizationCard({
   organization,
   selectedOrg,
-  currentUserId,
+  canEditLocale,
   onPreferredLocaleChanged,
 }: Readonly<OrganizationCardProps>) {
-  const isOrgOwner = Boolean(
-    organization && currentUserId && organization.owner.id === currentUserId,
-  );
-
   const orgLocaleValue: Locale = toLocaleOrDefault(organization?.preferredLocale);
 
   const handleLocaleChange = async (value: Locale | null) => {
@@ -120,7 +116,7 @@ function OrganizationCard({
           <dd>
             <OrgLanguageField
               value={orgLocaleValue}
-              editable={isOrgOwner}
+              editable={canEditLocale}
               onChange={(locale) => {
                 void handleLocaleChange(locale);
               }}
@@ -224,7 +220,7 @@ export function SettingsPage() {
       <OrganizationCard
         organization={organization}
         selectedOrg={selectedOrg}
-        currentUserId={currentUser?.id}
+        canEditLocale={canManageMembers}
         onPreferredLocaleChanged={invalidateSettings}
       />
 
