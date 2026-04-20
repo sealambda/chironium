@@ -113,9 +113,9 @@ defmodule Chironium.Accounts.Invitation do
                invited_by = context.actor
                result = Ash.load!(result, :organization, authorize?: false)
 
-               # Resolve the invitee's preferred locale from the request context,
-               # falling back to the inviter's preference.
-               locale = resolve_actor_locale(invited_by)
+               # Prefer the invitee's own locale when the user already exists on
+               # the platform; otherwise fall back to the organization's locale.
+               locale = resolve_invitee_locale(result.email, result.organization)
 
                Chironium.Notifications.send(:invitation_created, %{
                  email: to_string(result.email),
@@ -390,16 +390,26 @@ defmodule Chironium.Accounts.Invitation do
     |> URI.to_string()
   end
 
-  # Resolve preferred locale from an actor (User or domain principal with embedded User).
-  defp resolve_actor_locale(%Chironium.Accounts.User{preferred_locale: locale})
-       when is_binary(locale),
-       do: locale
+  # Resolve the locale used for the invitation email. When the invitee is
+  # already a platform user we honour their personal preference; otherwise we
+  # fall back to the organization's preferred locale so the recipient reads the
+  # email in the language chosen by the org admins.
+  defp resolve_invitee_locale(email, %Chironium.Accounts.Organization{} = organization) do
+    case lookup_user_locale_by_email(email) do
+      {:ok, locale} -> locale
+      :not_found -> organization.preferred_locale || "en"
+    end
+  end
 
-  defp resolve_actor_locale(%{
-         __metadata__: %{user: %Chironium.Accounts.User{preferred_locale: locale}}
-       })
-       when is_binary(locale),
-       do: locale
+  defp lookup_user_locale_by_email(email) do
+    case Chironium.Accounts.User
+         |> Ash.Query.for_read(:get_by_email, %{email: email})
+         |> Ash.read_one(authorize?: false) do
+      {:ok, %Chironium.Accounts.User{preferred_locale: locale}} when is_binary(locale) ->
+        {:ok, locale}
 
-  defp resolve_actor_locale(_), do: "en"
+      _ ->
+        :not_found
+    end
+  end
 end
