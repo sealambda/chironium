@@ -371,8 +371,15 @@ defmodule Chironium.Accounts.Invitation do
   end
 
   defp invitation_accept_url(invite_code) do
+    endpoint_uri = URI.parse(ChironiumWeb.Endpoint.url())
     app_url = Application.get_env(:chironium, :app_url, "/app")
-    uri = URI.parse(app_url)
+    app_uri = URI.parse(app_url)
+
+    uri =
+      endpoint_uri
+      |> Map.put(:path, app_uri.path || "/app")
+      |> Map.put(:query, app_uri.query)
+
     params = URI.decode_query(uri.query || "")
 
     uri
