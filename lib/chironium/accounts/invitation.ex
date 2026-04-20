@@ -385,7 +385,7 @@ defmodule Chironium.Accounts.Invitation do
     uri
     |> Map.put(
       :query,
-      Map.put(params, "invite_code", to_string(invite_code)) |> URI.encode_query()
+      Map.put(params, "inviteCode", to_string(invite_code)) |> URI.encode_query()
     )
     |> URI.to_string()
   end

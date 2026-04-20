@@ -3,7 +3,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 /**
  * Index route redirects to customers, preserving search params.
  * Preserving search is required for deep links such as invitation emails
- * (`/app?invite_code=XYZ`), where downstream layouts (e.g. the pending
+ * (`/app?inviteCode=XYZ`), where downstream layouts (e.g. the pending
  * invitations dialog) read the code from the URL.
  *
  * No auth check needed - Phoenix guarantees authentication.
