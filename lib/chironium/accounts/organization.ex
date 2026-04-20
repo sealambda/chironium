@@ -68,8 +68,9 @@ defmodule Chironium.Accounts.Organization do
     end
 
     policy action(:update) do
-      description "Only the organisation owner can update organisation details."
+      description "Organisation owners and power users can update organisation details."
       authorize_if relates_to_actor_via(:owner)
+      authorize_if Chironium.Accounts.Checks.PowerUser
     end
 
     policy action_type(:read) do
