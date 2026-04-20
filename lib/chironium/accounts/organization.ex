@@ -29,6 +29,7 @@ defmodule Chironium.Accounts.Organization do
 
     mutations do
       create :create_organization, :create
+      update :update_organization, :update
       update :invite_users_to_organization, :invite_users
     end
   end
@@ -38,7 +39,7 @@ defmodule Chironium.Accounts.Organization do
   end
 
   actions do
-    defaults [:read, :destroy, update: [:name, :slug]]
+    defaults [:read, :destroy, update: [:name, :slug, :preferred_locale]]
 
     create :create do
       accept [:name, :slug]
@@ -88,6 +89,19 @@ defmodule Chironium.Accounts.Organization do
       allow_nil? false
       public? true
       constraints match: ~r/^[a-z0-9]+(-[a-z0-9]+)*$/, casing: :lower, max_length: 64
+    end
+
+    attribute :preferred_locale, :string do
+      public? true
+      allow_nil? false
+      default "en"
+      constraints allow_empty?: false, match: ~r/\A(en|es)\z/
+
+      description """
+      The organization's preferred locale for notifications sent to non-members
+      (e.g., invitation emails for recipients who haven't signed up yet).
+      Defaults to "en".
+      """
     end
   end
 

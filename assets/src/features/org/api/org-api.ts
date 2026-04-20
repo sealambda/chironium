@@ -29,6 +29,7 @@ const GetOrganizationSettingsQuery = graphql(`
       id
       name
       slug
+      preferredLocale
       owner {
         id
         email
@@ -104,6 +105,20 @@ const CreateSubscriptionPlanMutation = graphql(`
           amount
           currency
         }
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const UpdateOrganizationMutation = graphql(`
+  mutation UpdateOrganization($id: ID!, $input: UpdateOrganizationInput) {
+    updateOrganization(id: $id, input: $input) {
+      result {
+        id
+        preferredLocale
       }
       errors {
         message
@@ -253,6 +268,7 @@ export interface OrganizationSettingsData {
   id: string;
   name: string;
   slug: string;
+  preferredLocale: string;
   owner: OrganizationMemberUser;
   organizationUsers: OrganizationMembershipRow[];
   invitations: Array<{
@@ -293,6 +309,7 @@ export async function fetchOrganizationSettings(
     id: data.getOrganization.id,
     name: data.getOrganization.name,
     slug: data.getOrganization.slug,
+    preferredLocale: data.getOrganization.preferredLocale,
     owner: {
       id: data.getOrganization.owner.id,
       email: data.getOrganization.owner.email,
@@ -502,6 +519,23 @@ export async function rejectInvitation(inviteCode: string): Promise<void> {
   });
 
   unwrapMutationResult(result.rejectInvitation, "Failed to reject invitation.");
+}
+
+/** Update the organization's preferred locale for invitation emails. */
+export async function updateOrganizationPreferredLocale(params: {
+  organizationId: string;
+  preferredLocale: string;
+}): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateOrganizationMutation,
+    variables: {
+      id: params.organizationId,
+      input: { preferredLocale: params.preferredLocale },
+    },
+    organizationId: params.organizationId,
+  });
+
+  unwrapMutationResult(result.updateOrganization, "Failed to update organization settings.");
 }
 
 /** Revoke a pending invitation from organization settings. */

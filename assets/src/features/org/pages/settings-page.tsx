@@ -4,7 +4,12 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { queryClient } from "@/app/providers/query-client";
-import { fetchOrganizationSettings, revokeInvitation } from "@/features/org/api/org-api";
+import {
+  fetchOrganizationSettings,
+  type OrganizationSettingsData,
+  revokeInvitation,
+  updateOrganizationPreferredLocale,
+} from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
   EditMemberRoleDialog,
@@ -25,13 +30,107 @@ import {
 } from "@/features/org/utils/settings-member-table-model";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
+import type { Locale } from "@/paraglide/runtime";
+import { toLocaleOrDefault } from "@/shared/i18n/locales";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
+import { LocaleFlagLabel, LocaleSelect } from "@/shared/ui/locale-select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { orgSettingsQueryKey, practitionersBulkReassignQueryKey } from "@/shared/utils/query-keys";
 import { cn } from "@/shared/utils/utils";
+
+interface OrgLanguageFieldProps {
+  value: Locale;
+  editable: boolean;
+  onChange: (locale: Locale | null) => void;
+}
+
+function OrgLanguageField({ value, editable, onChange }: Readonly<OrgLanguageFieldProps>) {
+  if (!editable) {
+    return <LocaleFlagLabel locale={value} />;
+  }
+
+  return (
+    <LocaleSelect
+      value={value}
+      onChange={onChange}
+      triggerClassName="w-40"
+      data-testid="settings-org-language-select"
+    />
+  );
+}
+
+interface OrganizationCardProps {
+  organization: OrganizationSettingsData | null | undefined;
+  selectedOrg: { id: string; name: string; slug: string };
+  currentUserId: string | undefined;
+  onPreferredLocaleChanged: () => Promise<void> | void;
+}
+
+function OrganizationCard({
+  organization,
+  selectedOrg,
+  currentUserId,
+  onPreferredLocaleChanged,
+}: Readonly<OrganizationCardProps>) {
+  const isOrgOwner = Boolean(
+    organization && currentUserId && organization.owner.id === currentUserId,
+  );
+
+  const orgLocaleValue: Locale = toLocaleOrDefault(organization?.preferredLocale);
+
+  const handleLocaleChange = async (value: Locale | null) => {
+    if (!organization || value === organization.preferredLocale || value === null) {
+      return;
+    }
+
+    try {
+      await updateOrganizationPreferredLocale({
+        organizationId: organization.id,
+        preferredLocale: value,
+      });
+      toast.success(m.settings_org_language_update_success());
+      await onPreferredLocaleChanged();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : m.settings_org_language_update_error();
+      toast.error(message);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{m.settings_org_section_title()}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <dl className="grid gap-3 text-sm sm:grid-cols-[180px_1fr]">
+          <dt className="text-muted-foreground">{m.settings_org_name_label()}</dt>
+          <dd>{organization?.name ?? selectedOrg.name}</dd>
+
+          <dt className="text-muted-foreground">{m.settings_org_id_label()}</dt>
+          <dd className="break-all">{organization?.id ?? selectedOrg.id}</dd>
+
+          <dt className="text-muted-foreground">{m.settings_org_slug_label()}</dt>
+          <dd>{organization?.slug ?? selectedOrg.slug}</dd>
+
+          <dt className="text-muted-foreground">{m.settings_org_language_label()}</dt>
+          <dd>
+            <OrgLanguageField
+              value={orgLocaleValue}
+              editable={isOrgOwner}
+              onChange={(locale) => {
+                void handleLocaleChange(locale);
+              }}
+            />
+          </dd>
+        </dl>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function SettingsPage() {
   const { user: currentUser } = useCurrentUser();
@@ -122,23 +221,12 @@ export function SettingsPage() {
         </h1>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{m.settings_org_section_title()}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid gap-3 text-sm sm:grid-cols-[180px_1fr]">
-            <dt className="text-muted-foreground">{m.settings_org_name_label()}</dt>
-            <dd>{organization?.name ?? selectedOrg.name}</dd>
-
-            <dt className="text-muted-foreground">{m.settings_org_id_label()}</dt>
-            <dd className="break-all">{organization?.id ?? selectedOrg.id}</dd>
-
-            <dt className="text-muted-foreground">{m.settings_org_slug_label()}</dt>
-            <dd>{organization?.slug ?? selectedOrg.slug}</dd>
-          </dl>
-        </CardContent>
-      </Card>
+      <OrganizationCard
+        organization={organization}
+        selectedOrg={selectedOrg}
+        currentUserId={currentUser?.id}
+        onPreferredLocaleChanged={invalidateSettings}
+      />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
