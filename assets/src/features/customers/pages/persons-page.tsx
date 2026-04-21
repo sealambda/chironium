@@ -24,6 +24,10 @@ import {
 } from "@/features/customers/api/persons-api";
 import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import {
+  getStoredPersonFilterPreference,
+  storePersonFilterPreference,
+} from "@/features/customers/model/person-filter-preferences";
+import {
   getStoredPersonSortPreference,
   storePersonSortPreference,
 } from "@/features/customers/model/person-sort-preferences";
@@ -134,7 +138,9 @@ export function CustomersPage() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [assignmentFilter, setAssignmentFilter] = useState<CustomerAssignmentFilter>(null);
+  const [assignmentFilter, setAssignmentFilter] = useState<CustomerAssignmentFilter>(() =>
+    getStoredPersonFilterPreference(),
+  );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [search, setSearch] = useState("");
   const [sortOption, setSortOption] = useState<PersonListSortOption>(
@@ -195,10 +201,8 @@ export function CustomersPage() {
   };
 
   const handleFilterApply = (nextFilter: CustomerAssignmentFilter) => {
-    if (!nextFilter) {
-      setAssignmentFilter(null);
-      return;
-    }
+    storePersonFilterPreference(nextFilter);
+
     setAssignmentFilter(nextFilter);
   };
 
