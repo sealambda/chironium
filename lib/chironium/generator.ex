@@ -278,28 +278,21 @@ defmodule Chironium.Generator do
   def condition(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
 
-    [
-      defaults: [
-        clinical_status: StreamData.repeatedly(fn -> Enum.random([:active, :inactive, :resolved]) end),
-        verification_status: :confirmed,
-        code:
-          StreamData.repeatedly(fn ->
-            {snomed_code, display} = Enum.random(@snomed_conditions)
+    StreamData.repeatedly(fn ->
+      temporal = random_condition_temporal()
 
-            %{
-              coding: [%{system: @snomed_system, code: snomed_code}],
-              text: display
-            }
-          end),
-        note:
-          StreamData.repeatedly(fn ->
-            [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
-          end)
-      ],
-      overrides: data_opts
-    ]
-    |> Keyword.merge(ash_opts)
-    |> then(&changeset_generator(Chironium.Health.Condition, :create, &1))
+      params =
+        [
+          verification_status: :confirmed,
+          code: random_condition_code(),
+          note: [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+        ]
+        |> Keyword.merge(temporal)
+        |> Keyword.merge(data_opts)
+
+      Chironium.Health.Condition
+      |> Ash.Changeset.for_create(:create, Map.new(params), ash_opts)
+    end)
   end
 
   def goal(opts \\ []) do
@@ -328,55 +321,43 @@ defmodule Chironium.Generator do
   def medication_statement(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
 
-    [
-      defaults: [
-        status: :recorded,
-        medication:
-          StreamData.repeatedly(fn ->
-            {rxnorm_code, display} = Enum.random(@rxnorm_medications)
+    StreamData.repeatedly(fn ->
+      temporal = random_medication_temporal()
 
-            %{
-              coding: [%{system: @rxnorm_system, code: rxnorm_code}],
-              text: display
-            }
-          end),
-        note:
-          StreamData.repeatedly(fn ->
-            [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
-          end)
-      ],
-      overrides: data_opts
-    ]
-    |> Keyword.merge(ash_opts)
-    |> then(&changeset_generator(Chironium.Health.MedicationStatement, :create, &1))
+      params =
+        [
+          status: :recorded,
+          medication: random_medication_code(),
+          note: [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+        ]
+        |> Keyword.merge(temporal)
+        |> Keyword.merge(data_opts)
+
+      Chironium.Health.MedicationStatement
+      |> Ash.Changeset.for_create(:create, Map.new(params), ash_opts)
+    end)
   end
 
   def allergy_intolerance(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
 
-    [
-      defaults: [
-        clinical_status: StreamData.repeatedly(fn -> Enum.random([:active, :inactive]) end),
-        verification_status: StreamData.repeatedly(fn -> Enum.random([:confirmed, :presumed]) end),
-        type: StreamData.repeatedly(fn -> Enum.random([:allergy, :intolerance]) end),
-        code:
-          StreamData.repeatedly(fn ->
-            {snomed_code, display} = Enum.random(@snomed_allergens)
+    StreamData.repeatedly(fn ->
+      temporal = random_allergy_intolerance_temporal()
 
-            %{
-              coding: [%{system: @snomed_system, code: snomed_code}],
-              text: display
-            }
-          end),
-        note:
-          StreamData.repeatedly(fn ->
-            [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
-          end)
-      ],
-      overrides: data_opts
-    ]
-    |> Keyword.merge(ash_opts)
-    |> then(&changeset_generator(Chironium.Health.AllergyIntolerance, :create, &1))
+      params =
+        [
+          clinical_status: Enum.random([:active, :inactive]),
+          verification_status: Enum.random([:confirmed, :presumed]),
+          type: Enum.random([:allergy, :intolerance]),
+          code: random_allergen_code(),
+          note: [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+        ]
+        |> Keyword.merge(temporal)
+        |> Keyword.merge(data_opts)
+
+      Chironium.Health.AllergyIntolerance
+      |> Ash.Changeset.for_create(:create, Map.new(params), ash_opts)
+    end)
   end
 
   def nutrition_plan(opts \\ []) do
@@ -461,5 +442,202 @@ defmodule Chironium.Generator do
 
   defp random_float(min, max) do
     Float.round(min + :rand.uniform() * (max - min), 1)
+  end
+
+  defp random_condition_code do
+    {code, display} = Enum.random(@snomed_conditions)
+    %{coding: [%{system: @snomed_system, code: code}], text: display}
+  end
+
+  defp random_allergen_code do
+    {code, display} = Enum.random(@snomed_allergens)
+    %{coding: [%{system: @snomed_system, code: code}], text: display}
+  end
+
+  defp random_medication_code do
+    {code, display} = Enum.random(@rxnorm_medications)
+    %{coding: [%{system: @rxnorm_system, code: code}], text: display}
+  end
+
+  # Returns a keyword list with all condition temporal fields plus clinical_status.
+  # onset, abatement, and clinical_status are generated coherently:
+  # - resolved/inactive/remission status only appears when abatement is set
+  # - abatement is always after onset when an onset datetime is known
+  # - recorded_date is always on or after onset_date_time
+  defp random_condition_temporal do
+    onset_days_ago = Enum.random(30..3650)
+    onset_dt = DateTime.add(DateTime.utc_now(), -onset_days_ago * 86_400, :second)
+
+    {onset_date_time, onset_age, onset_period} =
+      case Enum.random([:date_time, :date_time, :age, :period, :none]) do
+        :date_time ->
+          {onset_dt, nil, nil}
+
+        :age ->
+          years = max(1, div(onset_days_ago, 365))
+          {nil, %{value: years, code: :a}, nil}
+
+        :period ->
+          {nil, nil, %{start: onset_dt}}
+
+        :none ->
+          {nil, nil, nil}
+      end
+
+    recorded_date =
+      case onset_date_time do
+        nil ->
+          DateTime.add(DateTime.utc_now(), -Enum.random(0..365) * 86_400, :second)
+
+        dt ->
+          days_since = div(DateTime.diff(DateTime.utc_now(), dt, :second), 86_400)
+          delay = if days_since > 0, do: Enum.random(0..days_since), else: 0
+          DateTime.add(dt, delay * 86_400, :second)
+      end
+
+    # 40% chance the condition has resolved or entered remission.
+    if Enum.random(1..10) <= 4 do
+      onset_ref = onset_date_time || (onset_period && onset_period[:start])
+
+      abatement_dt =
+        case onset_ref do
+          nil ->
+            DateTime.add(DateTime.utc_now(), -Enum.random(1..onset_days_ago) * 86_400, :second)
+
+          dt ->
+            days_since = max(1, div(DateTime.diff(DateTime.utc_now(), dt, :second), 86_400))
+            DateTime.add(dt, Enum.random(1..days_since) * 86_400, :second)
+        end
+
+      {abatement_date_time, abatement_period} =
+        if Enum.random(1..2) == 1,
+          do: {abatement_dt, nil},
+          else: {nil, %{start: abatement_dt}}
+
+      [
+        clinical_status: Enum.random([:inactive, :remission, :resolved]),
+        onset_date_time: onset_date_time,
+        onset_age: onset_age,
+        onset_period: onset_period,
+        abatement_date_time: abatement_date_time,
+        abatement_period: abatement_period,
+        recorded_date: recorded_date
+      ]
+    else
+      [
+        clinical_status: Enum.random([:active, :recurrence, :relapse]),
+        onset_date_time: onset_date_time,
+        onset_age: onset_age,
+        onset_period: onset_period,
+        abatement_date_time: nil,
+        abatement_period: nil,
+        recorded_date: recorded_date
+      ]
+    end
+  end
+
+  # Returns a keyword list with all allergy intolerance temporal fields.
+  # recorded_date is always on or after onset_date_time.
+  # last_occurrence is always on or after onset_date_time when onset is known.
+  defp random_allergy_intolerance_temporal do
+    onset_days_ago = Enum.random(30..3650)
+    onset_dt = DateTime.add(DateTime.utc_now(), -onset_days_ago * 86_400, :second)
+
+    {onset_date_time, onset_age, onset_period} =
+      case Enum.random([:date_time, :date_time, :age, :period, :none]) do
+        :date_time ->
+          {onset_dt, nil, nil}
+
+        :age ->
+          years = max(1, div(onset_days_ago, 365))
+          {nil, %{value: years, code: :a}, nil}
+
+        :period ->
+          {nil, nil, %{start: onset_dt}}
+
+        :none ->
+          {nil, nil, nil}
+      end
+
+    recorded_date =
+      case onset_date_time do
+        nil ->
+          DateTime.add(DateTime.utc_now(), -Enum.random(0..365) * 86_400, :second)
+
+        dt ->
+          days_since = div(DateTime.diff(DateTime.utc_now(), dt, :second), 86_400)
+          delay = if days_since > 0, do: Enum.random(0..days_since), else: 0
+          DateTime.add(dt, delay * 86_400, :second)
+      end
+
+    # 50% chance there is a recorded last occurrence.
+    last_occurrence =
+      if Enum.random(1..2) == 1 do
+        case onset_date_time do
+          nil ->
+            DateTime.add(DateTime.utc_now(), -Enum.random(0..365) * 86_400, :second)
+
+          dt ->
+            days_since = max(1, div(DateTime.diff(DateTime.utc_now(), dt, :second), 86_400))
+            DateTime.add(dt, Enum.random(0..days_since) * 86_400, :second)
+        end
+      end
+
+    [
+      onset_date_time: onset_date_time,
+      onset_age: onset_age,
+      onset_period: onset_period,
+      recorded_date: recorded_date,
+      last_occurrence: last_occurrence
+    ]
+  end
+
+  # Returns a keyword list with medication statement temporal fields.
+  # date_asserted is always on or after effective_date_time when set.
+  defp random_medication_temporal do
+    effective_days_ago = Enum.random(1..730)
+    effective_dt = DateTime.add(DateTime.utc_now(), -effective_days_ago * 86_400, :second)
+
+    {effective_date_time, effective_period} =
+      case Enum.random([:date_time, :period, :none]) do
+        :date_time ->
+          {effective_dt, nil}
+
+        :period ->
+          # 50% chance the medication course has ended; requires at least 7 days of history.
+          end_dt =
+            if Enum.random(1..2) == 1 && effective_days_ago > 7 do
+              duration_days = Enum.random(7..min(365, effective_days_ago))
+              candidate = DateTime.add(effective_dt, duration_days * 86_400, :second)
+              if DateTime.compare(candidate, DateTime.utc_now()) == :lt, do: candidate
+            end
+
+          period =
+            if end_dt,
+              do: %{start: effective_dt, end: end_dt},
+              else: %{start: effective_dt}
+
+          {nil, period}
+
+        :none ->
+          {nil, nil}
+      end
+
+    date_asserted =
+      case effective_date_time do
+        nil ->
+          DateTime.add(DateTime.utc_now(), -Enum.random(0..180) * 86_400, :second)
+
+        dt ->
+          days_since = div(DateTime.diff(DateTime.utc_now(), dt, :second), 86_400)
+          delay = if days_since > 0, do: Enum.random(0..days_since), else: 0
+          DateTime.add(dt, delay * 86_400, :second)
+      end
+
+    [
+      effective_date_time: effective_date_time,
+      effective_period: effective_period,
+      date_asserted: date_asserted
+    ]
   end
 end

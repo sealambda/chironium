@@ -38,6 +38,10 @@ defmodule Chironium.Health.MedicationStatement do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
+  validations do
+    validate attributes_present([:effective_date_time, :effective_period], at_most: 1)
+  end
+
   policies do
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
@@ -64,6 +68,21 @@ defmodule Chironium.Health.MedicationStatement do
 
     attribute :medication, Chironium.Datatypes.CodeableConcept do
       description "What medication was taken."
+      public? true
+    end
+
+    attribute :effective_date_time, :datetime do
+      description "The date/time when the medication is/was/will be taken"
+      public? true
+    end
+
+    attribute :effective_period, Chironium.Datatypes.Period do
+      description "The interval when the medication is/was/will be taken"
+      public? true
+    end
+
+    attribute :date_asserted, :datetime do
+      description "When the usage was asserted"
       public? true
     end
 
