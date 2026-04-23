@@ -37,6 +37,10 @@ defmodule Chironium.Health.AllergyIntolerance do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
+  validations do
+    validate attributes_present([:onset_date_time, :onset_age, :onset_period], at_most: 1)
+  end
+
   policies do
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
@@ -65,6 +69,31 @@ defmodule Chironium.Health.AllergyIntolerance do
     end
 
     attribute :code, Chironium.Datatypes.CodeableConcept do
+      public? true
+    end
+
+    attribute :onset_date_time, :datetime do
+      description "When allergy or intolerance was identified"
+      public? true
+    end
+
+    attribute :onset_age, Chironium.Datatypes.Age do
+      description "Age at which the allergy or intolerance was identified"
+      public? true
+    end
+
+    attribute :onset_period, Chironium.Datatypes.Period do
+      description "Period when allergy or intolerance was identified"
+      public? true
+    end
+
+    attribute :recorded_date, :datetime do
+      description "Date allergy or intolerance was first recorded"
+      public? true
+    end
+
+    attribute :last_occurrence, :datetime do
+      description "Date/time of last known occurrence of a reaction"
       public? true
     end
 

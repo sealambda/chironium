@@ -37,6 +37,11 @@ defmodule Chironium.Health.Condition do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
+  validations do
+    validate attributes_present([:onset_date_time, :onset_age, :onset_period], at_most: 1)
+    validate attributes_present([:abatement_date_time, :abatement_period], at_most: 1)
+  end
+
   policies do
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
@@ -61,6 +66,36 @@ defmodule Chironium.Health.Condition do
     end
 
     attribute :code, Chironium.Datatypes.CodeableConcept do
+      public? true
+    end
+
+    attribute :onset_date_time, :datetime do
+      description "Estimated or actual date or date-time the condition began"
+      public? true
+    end
+
+    attribute :onset_age, Chironium.Datatypes.Age do
+      description "Estimated or actual age at which the condition began"
+      public? true
+    end
+
+    attribute :onset_period, Chironium.Datatypes.Period do
+      description "Estimated or actual period the condition began"
+      public? true
+    end
+
+    attribute :abatement_date_time, :datetime do
+      description "When in resolution/remission"
+      public? true
+    end
+
+    attribute :abatement_period, Chironium.Datatypes.Period do
+      description "Period of resolution/remission"
+      public? true
+    end
+
+    attribute :recorded_date, :datetime do
+      description "Date condition was first recorded"
       public? true
     end
 
