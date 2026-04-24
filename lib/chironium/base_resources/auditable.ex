@@ -10,8 +10,7 @@ defmodule Chironium.BaseResources.Auditable do
       paper_trail do
         belongs_to_actor :changed_by, Chironium.Accounts.User do
           domain Chironium.Accounts
-          # TODO Need to add a policy to allow access to the User
-          # public? true
+          public? true
         end
 
         ignore_attributes [:created_at, :updated_at]
@@ -23,6 +22,7 @@ defmodule Chironium.BaseResources.Auditable do
         # mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, ["TODO".to_atom()]}
 
         relationship_opts public?: true
+        public_timestamps? true
         version_extensions extensions: [AshGraphql.Resource]
       end
     end
