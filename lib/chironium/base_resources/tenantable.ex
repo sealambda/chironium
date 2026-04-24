@@ -10,6 +10,7 @@ defmodule Chironium.BaseResources.Tenantable do
       paper_trail do
         belongs_to_actor :changed_by_practitioner, Chironium.Health.Practitioner do
           domain Chironium.Health
+          public? true
         end
       end
     end
