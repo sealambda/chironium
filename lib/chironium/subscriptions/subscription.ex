@@ -25,6 +25,10 @@ defmodule Chironium.Subscriptions.Subscription do
     mutations do
       create :create_subscription, :create
       update :update_subscription, :update_subscription
+      update :suspend_subscription, :suspend
+      update :resume_subscription, :resume
+      update :cancel_subscription, :cancel
+      update :expire_subscription, :expire
     end
   end
 
@@ -52,6 +56,7 @@ defmodule Chironium.Subscriptions.Subscription do
         allow_nil? false
       end
 
+      accept [:start_date]
       change manage_relationship(:subscriber, type: :create)
     end
 
@@ -64,16 +69,45 @@ defmodule Chironium.Subscriptions.Subscription do
     end
 
     update :suspend do
-      # TODO Record the access interval
+      require_atomic? false
+
+      argument :reason, :string do
+        allow_nil? true
+      end
+
+      argument :suspended_at, :date do
+        default &Date.utc_today/0
+        allow_nil? false
+      end
+
+      validate Chironium.Subscriptions.Validations.ValidateSuspendedAt
+
       change transition_state(:suspended)
+      change Chironium.Subscriptions.Changes.OpenPause
     end
 
     update :cancel do
+      require_atomic? false
+
+      argument :end_date, :date do
+        default &Date.utc_today/0
+        allow_nil? false
+      end
+
+      change Chironium.Subscriptions.Changes.ClosePause
       change transition_state(:canceled)
     end
 
     update :resume do
+      require_atomic? false
+
+      argument :end_date, :date do
+        default &Date.utc_today/0
+        allow_nil? false
+      end
+
       change transition_state(:active)
+      change Chironium.Subscriptions.Changes.ClosePause
     end
   end
 
@@ -100,6 +134,12 @@ defmodule Chironium.Subscriptions.Subscription do
     end
   end
 
+  calculations do
+    calculate :effective_end_date, :date, Chironium.Subscriptions.Calculations.EffectiveEndDate do
+      public? true
+    end
+  end
+
   relationships do
     belongs_to :subscriber, Chironium.CRM.Person do
       public? true
@@ -109,6 +149,10 @@ defmodule Chironium.Subscriptions.Subscription do
     belongs_to :plan, Chironium.Subscriptions.Plan do
       public? true
       allow_nil? false
+    end
+
+    has_many :pauses, Chironium.Subscriptions.SubscriptionPause do
+      public? true
     end
   end
 end

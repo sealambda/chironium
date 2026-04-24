@@ -23,5 +23,6 @@ defmodule Chironium.Subscriptions do
   resources do
     resource Chironium.Subscriptions.Plan
     resource Chironium.Subscriptions.Subscription
+    resource Chironium.Subscriptions.SubscriptionPause
   end
 end
