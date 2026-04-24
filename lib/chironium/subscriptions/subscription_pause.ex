@@ -68,7 +68,10 @@ defmodule Chironium.Subscriptions.SubscriptionPause do
     end
 
     policy action_type([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      # Restrict mutations to prevent desync with subscription state machine.
+      # Pauses can only be modified by actors who can access (read) the parent subscription.
+      authorize_if Chironium.CRM.Checks.AccessedFromRelationship
+      authorize_if relates_to_actor_via(:subscription, action: :read, on_result: :authorize_if)
     end
   end
 
