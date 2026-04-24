@@ -12,6 +12,7 @@ catalogs:
 
 overrides:
   picomatch: ^4.0.4
+  uuid: ^14.0.0
 
 importers:
 
@@ -39,8 +40,8 @@ importers:
         specifier: ^13.11.2
         version: 13.11.2(react@19.2.4)
       '@inlang/paraglide-js':
-        specifier: ^2.15.3
-        version: 2.15.3
+        specifier: ^2.16.0
+        version: 2.16.0
       '@posthog/react':
         specifier: ^1.9.0
         version: 1.9.0(@types/react@19.2.14)(posthog-js@1.369.0)(react@19.2.4)
@@ -1771,8 +1772,8 @@ packages:
     peerDependencies:
       react: ^16.13 || ^17 || ^18 || ^19
 
-  '@inlang/paraglide-js@2.15.3':
-    resolution: {integrity: sha512-gneANUhYEPnSjxbKp3QCwmMqQecG+1QWuJSAl3jiPprn2+LeaZu3BgnofRKpo8gkYzB6oE3AY2ecZBXu3UrpOw==}
+  '@inlang/paraglide-js@2.16.0':
+    resolution: {integrity: sha512-O7KKvVoTsGqPRt1VfSvd0UyfSjU2qHiABx968M2decgG7Af6TddW3dTJrTS3I78nOUgRAlYwCYfKefSGD4rGMA==}
     hasBin: true
 
   '@inlang/recommend-sherlock@0.2.1':
@@ -6881,12 +6882,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  uuid@10.0.0:
-    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    hasBin: true
-
-  uuid@13.0.0:
-    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+  uuid@14.0.0:
+    resolution: {integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==}
     hasBin: true
 
   uvu@0.5.6:
@@ -9591,7 +9588,7 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  '@inlang/paraglide-js@2.15.3':
+  '@inlang/paraglide-js@2.16.0':
     dependencies:
       '@inlang/recommend-sherlock': 0.2.1
       '@inlang/sdk': 2.9.1
@@ -9613,7 +9610,7 @@ snapshots:
       '@sinclair/typebox': 0.31.28
       kysely: 0.28.15
       sqlite-wasm-kysely: 0.3.0(kysely@0.28.15)
-      uuid: 13.0.0
+      uuid: 14.0.0
     transitivePeerDependencies:
       - babel-plugin-macros
 
@@ -9984,7 +9981,7 @@ snapshots:
       js-sha256: 0.11.1
       kysely: 0.28.15
       sqlite-wasm-kysely: 0.3.0(kysely@0.28.15)
-      uuid: 10.0.0
+      uuid: 14.0.0
     transitivePeerDependencies:
       - babel-plugin-macros
 
@@ -15495,9 +15492,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  uuid@10.0.0: {}
-
-  uuid@13.0.0: {}
+  uuid@14.0.0: {}
 
   uvu@0.5.6:
     dependencies:

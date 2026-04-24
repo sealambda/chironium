@@ -29,7 +29,8 @@
   },
   "pnpm": {
     "overrides": {
-      "picomatch": "^4.0.4"
+      "picomatch": "^4.0.4",
+      "uuid": "^14.0.0"
     },
     "ignoredBuiltDependencies": [
       "core-js",
@@ -39,5 +40,5 @@
       "unrs-resolver"
     ]
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@10.33.2"
 }
