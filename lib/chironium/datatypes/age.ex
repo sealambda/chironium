@@ -18,9 +18,9 @@ defmodule Chironium.Datatypes.Age do
   end
 
   validations do
-    validate present(:value) do
+    validate present(:code) do
       description "There SHALL be a code if there is a value and it SHALL be an expression of time."
-      where present(:code)
+      where present(:value)
     end
 
     validate attribute_equals(:system, "http://unitsofmeasure.org") do

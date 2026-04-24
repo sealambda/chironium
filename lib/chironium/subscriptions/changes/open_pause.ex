@@ -11,7 +11,7 @@ defmodule Chironium.Subscriptions.Changes.OpenPause do
 
   @impl true
   def change(changeset, _opts, _context) do
-    Ash.Changeset.after_action(changeset, fn _changeset, subscription ->
+    Ash.Changeset.after_action(changeset, fn cs, subscription ->
       reason = Ash.Changeset.get_argument(changeset, :reason)
       start_date = Ash.Changeset.get_argument(changeset, :suspended_at)
 
@@ -20,7 +20,8 @@ defmodule Chironium.Subscriptions.Changes.OpenPause do
         :open,
         %{subscription_id: subscription.id, start_date: start_date, reason: reason},
         authorize?: false,
-        tenant: changeset.tenant
+        actor: cs.context[:private][:actor],
+        tenant: cs.tenant
       )
       |> Ash.create!()
 

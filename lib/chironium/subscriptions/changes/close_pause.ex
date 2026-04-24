@@ -35,6 +35,7 @@ defmodule Chironium.Subscriptions.Changes.ClosePause do
           pause
           |> Ash.Changeset.for_update(:close, %{end_date: end_date},
             authorize?: false,
+            actor: changeset.context[:private][:actor],
             tenant: changeset.tenant
           )
           |> Ash.update!()
