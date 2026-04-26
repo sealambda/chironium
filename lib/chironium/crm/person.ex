@@ -14,6 +14,12 @@ defmodule Chironium.CRM.Person do
     end
   end
 
+  archive do
+    archive_related [
+      :patients
+    ]
+  end
+
   graphql do
     type :person
 

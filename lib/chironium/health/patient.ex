@@ -16,6 +16,18 @@ defmodule Chironium.Health.Patient do
     table "patients"
   end
 
+  archive do
+    archive_related [
+      :allergy_intolerances,
+      :conditions,
+      :goals,
+      :medication_statements,
+      :observations,
+      :care_teams,
+      :nutrition_plans
+    ]
+  end
+
   graphql do
     type :patient
 
