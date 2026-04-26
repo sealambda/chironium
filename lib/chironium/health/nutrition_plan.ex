@@ -6,7 +6,12 @@ defmodule Chironium.Health.NutritionPlan do
     domain: Chironium.Health,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshAdmin.Resource]
+    extensions: [
+      AshGraphql.Resource,
+      AshPaperTrail.Resource,
+      AshAdmin.Resource,
+      AshArchival.Resource
+    ]
 
   admin do
     show_calculations [
@@ -25,6 +30,12 @@ defmodule Chironium.Health.NutritionPlan do
     table "nutrition_plans"
   end
 
+  paper_trail do
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:nutrition_plan]}
+
+    attributes_as_attributes [:target_kcal, :protein_g, :carbs_g, :fat_g]
+  end
+
   graphql do
     type :nutrition_plan
 
@@ -35,12 +46,6 @@ defmodule Chironium.Health.NutritionPlan do
     queries do
       list :list_nutrition_plans, :read
     end
-  end
-
-  paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:nutrition_plan]}
-
-    attributes_as_attributes [:target_kcal, :protein_g, :carbs_g, :fat_g]
   end
 
   actions do
