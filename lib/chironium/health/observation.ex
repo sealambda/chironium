@@ -26,6 +26,8 @@ defmodule Chironium.Health.Observation do
   @unit_of_measure_code_cm "cm"
   @unit_of_measure_code_bmi "kg/m2"
   @unit_of_measure_code_ratio "1"
+  @unit_of_measure_code_day "d"
+  @unit_of_measure_code_year "a"
 
   @loinc_system "http://loinc.org"
   @loinc_code_body_weight "29463-7"
@@ -42,8 +44,9 @@ defmodule Chironium.Health.Observation do
   @loinc_code_arm_right_circumference "56072-2"
   @loinc_code_thigh_right_circumference "8286-7"
 
-  # @loinc_code_menstrual_period_start "8665-2"
-  # @loinc_code_menstrual_period_duration "3144-3"
+  @loinc_code_menstrual_period_start "8665-2"
+  @loinc_code_menstrual_period_duration "3144-3"
+  @loinc_code_menarche_age "63888-2"
 
   # @loinc_code_thigh_left_circumference "8285-9" - not sure why left is available for thigh but not for arm... just for reference
 
@@ -79,6 +82,9 @@ defmodule Chironium.Health.Observation do
       create :log_waist_circumference, :log_waist_circumference
       create :log_arm_circumference, :log_arm_circumference
       create :log_thigh_circumference, :log_thigh_circumference
+      create :log_menstrual_period_start, :log_menstrual_period_start
+      create :log_menstrual_period_duration, :log_menstrual_period_duration
+      create :log_menarche_age, :log_menarche_age
 
       update :update_observation, :update
 
@@ -100,6 +106,9 @@ defmodule Chironium.Health.Observation do
       list :list_waist_circumference_observations, :read_waist_circumference
       list :list_arm_circumference_observations, :read_arm_circumference
       list :list_thigh_circumference_observations, :read_thigh_circumference
+      list :list_menstrual_period_start_observations, :read_menstrual_period_start
+      list :list_menstrual_period_duration_observations, :read_menstrual_period_duration
+      list :list_menarche_age_observations, :read_menarche_age
     end
   end
 
@@ -693,6 +702,128 @@ defmodule Chironium.Health.Observation do
                )
              )
     end
+
+    ### Menstrual Period Start
+    create :log_menstrual_period_start do
+      description """
+      Log the start of a menstrual period.
+
+      The clinically relevant time of the observation (`effective_date_time`)
+      is taken as the period start and mirrored to `value_date_time` so the
+      same value can be retrieved through the FHIR `valueDateTime` slot.
+      """
+
+      accept [:subject_id, :note, :effective_date_time]
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_menstrual_period_start
+                 }
+               ]
+             })
+
+      change fn changeset, _context ->
+        started_at = Ash.Changeset.get_attribute(changeset, :effective_date_time)
+        Ash.Changeset.change_attribute(changeset, :value_date_time, started_at)
+      end
+    end
+
+    read :read_menstrual_period_start do
+      description "Read all menstrual period start observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_menstrual_period_start}]}
+               )
+             )
+    end
+
+    ### Menstrual Period Duration
+    create :log_menstrual_period_duration do
+      description "Log the duration of the last menstrual period in days."
+      accept [:subject_id, :note, :effective_date_time]
+
+      argument :duration_days, :integer do
+        description "The menstrual period duration in days"
+        constraints min: 0
+        allow_nil? false
+      end
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_menstrual_period_duration
+                 }
+               ]
+             })
+
+      change set_attribute(:value_quantity, %{
+               system: @unit_of_measure_system,
+               code: @unit_of_measure_code_day,
+               value: arg(:duration_days)
+             })
+    end
+
+    read :read_menstrual_period_duration do
+      description "Read all menstrual period duration observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{
+                   coding: [%{system: @loinc_system, code: @loinc_code_menstrual_period_duration}]
+                 }
+               )
+             )
+    end
+
+    ### Age at First Menstrual Period (Menarche)
+    create :log_menarche_age do
+      description "Log the age (in years) at which the patient had their first menstrual period."
+      accept [:subject_id, :note, :effective_date_time]
+
+      argument :age_years, :integer do
+        description "The age in years at first menstrual period"
+        constraints min: 0
+        allow_nil? false
+      end
+
+      change set_attribute(:code, %{
+               coding: [
+                 %{
+                   system: @loinc_system,
+                   code: @loinc_code_menarche_age
+                 }
+               ]
+             })
+
+      change set_attribute(:value_quantity, %{
+               system: @unit_of_measure_system,
+               code: @unit_of_measure_code_year,
+               value: arg(:age_years)
+             })
+    end
+
+    read :read_menarche_age do
+      description "Read all age-at-menarche observations."
+      pagination default_limit: 1, keyset?: true
+
+      filter expr(
+               fragment(
+                 "? @> ?::jsonb",
+                 code,
+                 %{coding: [%{system: @loinc_system, code: @loinc_code_menarche_age}]}
+               )
+             )
+    end
   end
 
   policies do
@@ -714,7 +845,8 @@ defmodule Chironium.Health.Observation do
                [
                  :value_quantity,
                  :value_codeable_concept,
-                 :value_string
+                 :value_string,
+                 :value_date_time
                ],
                exactly: 1
              )
@@ -752,6 +884,11 @@ defmodule Chironium.Health.Observation do
     end
 
     attribute :value_string, :string do
+      description "Actual result"
+      public? true
+    end
+
+    attribute :value_date_time, :datetime do
       description "Actual result"
       public? true
     end
