@@ -13,7 +13,8 @@
     "assets:lint": "pnpm --filter chironium-assets lint",
     "assets:lint:fix": "pnpm --filter chironium-assets lint:fix",
     "assets:format": "pnpm --filter chironium-assets format",
-    "assets:format:check": "pnpm --filter chironium-assets format:check",
+    "assets:format:check": "pnpm --filter chironium-assets format",
+    "assets:format:fix": "pnpm --filter chironium-assets format:fix",
     "assets:typecheck": "pnpm --filter chironium-assets typecheck",
     "assets:check": "pnpm --filter chironium-assets check",
     "assets:check:fix": "pnpm --filter chironium-assets check:fix",
@@ -25,20 +26,29 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
-    "husky": "^9.1.7"
+    "husky": "~9.1.7"
   },
   "pnpm": {
     "overrides": {
-      "picomatch": "^4.0.4",
-      "uuid": "^14.0.0"
+      "picomatch": "~4.0.4"
     },
-    "ignoredBuiltDependencies": [
-      "core-js",
-      "esbuild",
-      "msw",
-      "protobufjs",
-      "unrs-resolver"
-    ]
+    "peerDependencyRules": {
+      "//": "Suppress peer warnings from deps/phoenix's internal dev toolchain (eslint, jest, @typescript-eslint). Those tools are pinned by Phoenix and not consumed by our build; the mismatches don't affect us. allowedVersions acknowledges the installed version scoped to each violating pair rather than overriding what's installed. Docs: https://pnpm.io/package_json#pnpmpeerdependencyrulesallowedversions",
+      "allowedVersions": {
+        "@typescript-eslint/eslint-plugin>typescript": "6",
+        "@typescript-eslint/parser>typescript": "6",
+        "@typescript-eslint/utils>typescript": "6",
+        "@typescript-eslint/type-utils>typescript": "6",
+        "@typescript-eslint/typescript-estree>typescript": "6",
+        "@typescript-eslint/project-service>typescript": "6",
+        "@typescript-eslint/tsconfig-utils>typescript": "6",
+        "eslint-plugin-jest>typescript": "6",
+        "@typescript-eslint/eslint-plugin>eslint": "10",
+        "@typescript-eslint/parser>eslint": "10",
+        "@typescript-eslint/type-utils>eslint": "10",
+        "@typescript-eslint/utils>eslint": "10"
+      }
+    }
   },
   "packageManager": "pnpm@10.33.2"
 }
