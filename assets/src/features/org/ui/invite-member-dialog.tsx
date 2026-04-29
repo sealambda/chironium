@@ -7,8 +7,8 @@ import {
 } from "@/features/org/api/org-api";
 import { ORGANIZATION_MEMBER_ROLE_OPTIONS } from "@/features/org/constants/organization-member-role-options";
 import { createPractitioner } from "@/features/practitioners/api/practitioners-api";
-import type { OrganizationUserRole } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
+import type { OrganizationUserRole } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import {
