@@ -72,20 +72,11 @@ export const personQueryKeys = {
   subscriptions(personId: string, organizationId: string) {
     return ["person", personId, "subscriptions", organizationId] as const;
   },
-  anthropometry(personId: string, organizationId: string) {
-    return ["person", personId, "anthropometry", organizationId] as const;
-  },
-  observations(personId: string, organizationId: string) {
-    return ["person", personId, "observations", organizationId] as const;
-  },
   menstrualCycle(personId: string, organizationId: string) {
     return ["person", personId, "menstrualCycle", organizationId] as const;
   },
-  foodPreferences(personId: string, organizationId: string) {
-    return ["person", personId, "foodPreferences", organizationId] as const;
-  },
-  foodPreferencesScope(personId: string) {
-    return ["person", personId, "foodPreferences"] as const;
+  menstrualCycleScope(personId: string) {
+    return ["person", personId, "menstrualCycle"] as const;
   },
   goals(personId: string, organizationId: string) {
     return ["person", personId, "goals", organizationId] as const;
@@ -126,22 +117,22 @@ export const personQueryKeys = {
   observationsListScope(personId: string) {
     return ["person", personId, "observationsList"] as const;
   },
-  observationsScope(personId: string) {
-    return ["person", personId, "observations"] as const;
-  },
   anthropometryHistory(personId: string, organizationId: string) {
     return ["person", personId, "anthropometryHistory", organizationId] as const;
   },
   anthropometryHistoryScope(personId: string) {
     return ["person", personId, "anthropometryHistory"] as const;
   },
-  anthropometryScope(personId: string) {
-    return ["person", personId, "anthropometry"] as const;
-  },
   reviewTasks(personId: string, organizationId: string, patientId: string) {
     return ["person", personId, "review-tasks", organizationId, patientId] as const;
   },
   reviewTasksScope(personId: string) {
     return ["person", personId, "review-tasks"] as const;
+  },
+  patientTasks(personId: string, organizationId: string, patientId: string) {
+    return ["person", personId, "patient-tasks", organizationId, patientId] as const;
+  },
+  patientTasksScope(personId: string) {
+    return ["person", personId, "patient-tasks"] as const;
   },
 };
