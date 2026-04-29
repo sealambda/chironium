@@ -143,10 +143,7 @@ function NumericInputField({
           onBlur={field.handleBlur}
           placeholder={placeholder}
           aria-invalid={field.state.meta.errors.length > 0}
-          className={cn(
-            "text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-            withSteppers ? "pr-9 pl-9" : undefined,
-          )}
+          className={cn("appearance-none text-center", withSteppers ? "pr-9 pl-9" : undefined)}
         />
         {withSteppers ? (
           <>
@@ -155,6 +152,7 @@ function NumericInputField({
               onClick={handleDecrement}
               disabled={!field.state.value || numValue <= 0}
               className="absolute inset-y-0 left-0 flex cursor-pointer items-center px-2.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+              aria-label={m.common_decrease_field({ field: label })}
             >
               <Minus className="size-3.5" />
             </button>
@@ -162,6 +160,7 @@ function NumericInputField({
               type="button"
               onClick={handleIncrement}
               className="absolute inset-y-0 right-0 flex cursor-pointer items-center px-2.5 text-muted-foreground hover:text-foreground"
+              aria-label={m.common_increase_field({ field: label })}
             >
               <Plus className="size-3.5" />
             </button>
@@ -272,10 +271,7 @@ export function AnthropometryFormFields({
       {showMore ? (
         <>
           <div
-            className={cn(
-              "grid gap-4",
-              withSteppers ? "mx-auto w-full max-w-[calc(50%-0.5rem)]" : "grid-cols-2",
-            )}
+            className={cn("grid gap-4", withSteppers ? "mx-auto w-full max-w-xs" : "grid-cols-2")}
           >
             <form.Field name="chestCm" validators={getValidators("chestCm")}>
               {(field: AnyFieldApi) => (

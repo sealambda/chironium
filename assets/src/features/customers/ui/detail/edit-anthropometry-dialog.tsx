@@ -88,9 +88,6 @@ export function EditAnthropometryDialog({
         await queryClient.invalidateQueries({
           queryKey: personQueryKeys.anthropometryHistoryScope(personId),
         });
-        await queryClient.invalidateQueries({
-          queryKey: personQueryKeys.anthropometryScope(personId),
-        });
         toast.success(m.anthropometry_edit_success());
         onOpenChange(false);
       } catch {
