@@ -13,6 +13,13 @@ config :phoenix_vite, PhoenixVite.Npm,
     args: ~w(exec -- vite),
     cd: Path.expand("../assets", __DIR__),
     env: %{"MIX_BUILD_PATH" => Mix.Project.build_path()}
+  ],
+  # Standalone Tailwind CLI for the Phoenix-only stylesheet (`assets/css/app.css`).
+  # Compiled outside of Vite to isolate daisyUI from the SPA build pipeline.
+  # Docs: https://tailwindcss.com/docs/installation/tailwind-cli
+  tailwindcss: [
+    args: ~w(exec -- tailwindcss),
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 config :ex_cldr, default_backend: Chironium.Cldr

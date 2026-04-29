@@ -36,7 +36,16 @@ config :chironium, ChironiumWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "P/uhoGryzby+RxBF3JAVktIHKrN1+pDoN3X4O0YdcRHJ86MmAQ3HAiDz4poVq67B",
   watchers: [
-    vite: {PhoenixVite.Npm, :run, [:vite, ~w(dev)]}
+    # Vite handles the SPA bundle (React + shadcn) and HMR for `src/**` and `js/**`.
+    vite: {PhoenixVite.Npm, :run, [:vite, ~w(dev)]},
+    # Standalone Tailwind CLI compiles the Phoenix-only stylesheet (daisyUI +
+    # Tailwind v4 for server-rendered auth pages) directly to
+    # `priv/static/assets/app.css`. Kept out of Vite to isolate the SPA build
+    # from daisyUI's CSS plugin resolution.
+    # Docs: https://tailwindcss.com/docs/installation/tailwind-cli
+    phoenix_css:
+      {PhoenixVite.Npm, :run,
+       [:tailwindcss, ~w(--input css/app.css --output ../priv/static/assets/app.css --watch)]}
   ],
   static_url: [host: "localhost", port: 5173]
 

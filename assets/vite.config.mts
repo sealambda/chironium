@@ -69,14 +69,25 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       // Entry points for phoenix_vite manifest integration.
-      // CSS is listed separately for PhoenixVite.Components.assets to generate correct link tags.
-      input: ["js/app.js", "css/app.css", "src/main.tsx"],
+      // Note: Phoenix-only CSS (`css/app.css`, which uses daisyUI for the
+      // server-rendered auth pages) is intentionally NOT bundled by Vite. It is
+      // compiled by the standalone `@tailwindcss/cli` to
+      // `priv/static/assets/app.css` and served by Phoenix's `Plug.Static`.
+      // This isolates rolldown/Vite from daisyUI's plugin CSS resolution and
+      // keeps the SPA bundle smaller. See `pnpm phoenix-css:build`.
+      input: ["js/app.js", "src/main.tsx"],
       output: {
         // Vendor chunk for better caching.
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          router: ["@tanstack/react-router"],
-          query: ["@tanstack/react-query"],
+        manualChunks(id) {
+          if (id.includes("node_modules/react-dom") || id.includes("node_modules/react/")) {
+            return "vendor";
+          }
+          if (id.includes("node_modules/@tanstack/react-router")) {
+            return "router";
+          }
+          if (id.includes("node_modules/@tanstack/react-query")) {
+            return "query";
+          }
         },
       },
     },
