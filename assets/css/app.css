@@ -1,8 +1,24 @@
-/* Phoenix Backend Styles - Server-Rendered Auth Pages Only
- * This stylesheet is ONLY for Phoenix LiveView backend templates (auth pages).
- * For React frontend styles, see src/styles/index.css (ShadCN).
- * See the Tailwind configuration guide for advanced usage:
- * https://tailwindcss.com/docs/configuration
+/* Phoenix Backend Styles — Server-Rendered Pages Only.
+ *
+ * Scope: this stylesheet is consumed exclusively by Phoenix LiveView templates
+ * (auth pages, LiveDashboard, AshAdmin, etc.). The React SPA pulls its styles
+ * from `src/styles/index.css` (Tailwind v4 + shadcn) via `src/main.tsx`.
+ *
+ * Build pipeline: compiled by the standalone `@tailwindcss/cli` (NOT by Vite)
+ * to `../priv/static/assets/app.css`, served by Phoenix's `Plug.Static`.
+ * The CLI is the official Tailwind Labs build tool and ships daisyUI's CSS
+ * plugin support without going through rolldown's module resolver — which is
+ * what made `@tailwindcss/vite` + daisyUI fail in the current Vite 8 RC line.
+ *
+ * Entry points:
+ *   - `pnpm phoenix-css:build` (one-shot, minified, prod).
+ *   - `pnpm phoenix-css:dev`   (watch mode, dev). Wired as a Phoenix watcher
+ *     in `config/dev.exs` so it starts alongside the Vite dev server.
+ *
+ * References:
+ *   - Tailwind CLI:        https://tailwindcss.com/docs/installation/tailwind-cli
+ *   - daisyUI v5 install:  https://daisyui.com/docs/install/
+ *   - Phoenix watchers:    https://hexdocs.pm/phoenix/Phoenix.Endpoint.html#module-runtime-configuration
  */
 
 @import "tailwindcss" source(none);
