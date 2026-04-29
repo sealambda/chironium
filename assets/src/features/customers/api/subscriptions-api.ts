@@ -2,18 +2,31 @@ import type { VariablesOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import {
+  CancelSubscriptionMutation,
   CreateSubscriptionMutation,
+  DeleteSubscriptionPauseMutation,
   ListSubscriptionPlansQuery,
   ListSubscriptionsQuery,
+  ResumeSubscriptionMutation,
   type SubscriptionListItem,
   type SubscriptionPlan,
   type SubscriptionRecord,
   SubscriptionsByPersonQuery,
+  SuspendSubscriptionMutation,
   UpdateSubscriptionMutation,
+  UpdateSubscriptionPauseMutation,
 } from "@/shared/types/subscriptions";
 
 type CreateSubscriptionInput = NonNullable<VariablesOf<typeof CreateSubscriptionMutation>["input"]>;
 type UpdateSubscriptionInput = NonNullable<VariablesOf<typeof UpdateSubscriptionMutation>["input"]>;
+type SuspendSubscriptionInput = NonNullable<
+  VariablesOf<typeof SuspendSubscriptionMutation>["input"]
+>;
+type ResumeSubscriptionInput = NonNullable<VariablesOf<typeof ResumeSubscriptionMutation>["input"]>;
+type CancelSubscriptionInput = NonNullable<VariablesOf<typeof CancelSubscriptionMutation>["input"]>;
+type UpdateSubscriptionPauseInput = NonNullable<
+  VariablesOf<typeof UpdateSubscriptionPauseMutation>["input"]
+>;
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -90,6 +103,100 @@ export async function updateSubscription(
   });
 
   unwrapMutationResult(result.updateSubscription, "Failed to update subscription.");
+}
+
+/** Suspend an active subscription, optionally recording a reason. */
+export async function suspendSubscription(
+  id: string,
+  data: Pick<SuspendSubscriptionInput, "reason" | "suspendedAt">,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: SuspendSubscriptionMutation,
+    variables: {
+      id,
+      input: {
+        reason: data.reason?.trim() || undefined,
+        suspendedAt: data.suspendedAt || undefined,
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.suspendSubscription, "Failed to suspend subscription.");
+}
+
+/** Resume a suspended/expired/canceled subscription, closing any open pause. */
+export async function resumeSubscription(
+  id: string,
+  data: Pick<ResumeSubscriptionInput, "endDate">,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: ResumeSubscriptionMutation,
+    variables: {
+      id,
+      input: {
+        endDate: data.endDate || undefined,
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.resumeSubscription, "Failed to resume subscription.");
+}
+
+/** Cancel a subscription, closing any open pause as of the provided end date. */
+export async function cancelSubscription(
+  id: string,
+  data: Pick<CancelSubscriptionInput, "endDate">,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: CancelSubscriptionMutation,
+    variables: {
+      id,
+      input: {
+        endDate: data.endDate || undefined,
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.cancelSubscription, "Failed to cancel subscription.");
+}
+
+/** Update an existing pause's window or reason. */
+export async function updateSubscriptionPause(
+  id: string,
+  data: Pick<UpdateSubscriptionPauseInput, "startDate" | "endDate" | "reason">,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateSubscriptionPauseMutation,
+    variables: {
+      id,
+      input: {
+        startDate: data.startDate || undefined,
+        endDate: data.endDate || undefined,
+        reason: data.reason?.trim() || undefined,
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.updateSubscriptionPause, "Failed to update pause.");
+}
+
+/** Delete a pause record. */
+export async function deleteSubscriptionPause(id: string, organizationId: string): Promise<void> {
+  const result = await requestGraphql({
+    document: DeleteSubscriptionPauseMutation,
+    variables: { id },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.deleteSubscriptionPause, "Failed to delete pause.");
 }
 
 /** Fetch all available subscription plans for the organization. */
