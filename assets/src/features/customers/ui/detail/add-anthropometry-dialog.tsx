@@ -15,6 +15,7 @@ import {
 } from "@/features/customers/ui/detail/anthropometry-form-fields";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -29,7 +30,9 @@ import { personQueryKeys } from "@/shared/utils/query-keys";
 interface AddAnthropometryDialogProps {
   readonly personId: string;
   readonly patientId: string | null;
-  readonly children: React.ReactNode;
+  readonly children?: React.ReactNode;
+  readonly open?: boolean;
+  readonly onOpenChange?: (open: boolean) => void;
 }
 
 const EMPTY_VALUES: AnthropometryFormValues = {
@@ -48,8 +51,14 @@ export function AddAnthropometryDialog({
   personId,
   patientId,
   children,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: Readonly<AddAnthropometryDialogProps>) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useControllableState({
+    value: controlledOpen,
+    defaultValue: false,
+    onChange: controlledOnOpenChange,
+  });
   const [saving, setSaving] = useState(false);
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
@@ -72,7 +81,7 @@ export function AddAnthropometryDialog({
       try {
         await logAnthropometry(data, patientId, selectedOrg?.id ?? "");
         await queryClient.invalidateQueries({
-          queryKey: personQueryKeys.anthropometryScope(personId),
+          queryKey: personQueryKeys.anthropometryHistoryScope(personId),
         });
         toast.success(m.anthropometry_add_success());
         setOpen(false);
@@ -87,7 +96,7 @@ export function AddAnthropometryDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children as React.ReactElement} />
+      {children !== undefined && <DialogTrigger render={children as React.ReactElement} />}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{m.anthropometry_add()}</DialogTitle>

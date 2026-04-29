@@ -1,191 +1,117 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Pill } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
-import {
-  type MedicationItem as ApiMedicationItem,
-  createMedicationsFromTags,
-} from "@/features/customers/api/medications-api";
-import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
-import {
-  CustomerDetailEmptyCard,
-  CustomerDetailEmptyCardAddRow,
-} from "@/features/customers/ui/detail/customer-detail-empty-card";
-import { CustomerDetailTagsCardSkeleton } from "@/features/customers/ui/detail/customer-detail-tags-card-skeleton";
-import { TagColumn } from "@/features/customers/ui/detail/tag-column";
+import type { MedicationItem } from "@/features/customers/api/medications-api";
+import { MedicationDetailDialog } from "@/features/customers/ui/detail/medication-detail-dialog";
+import { MedicationPill } from "@/features/customers/ui/detail/medication-pill";
+import { MedicationRemoveDialog } from "@/features/customers/ui/detail/medication-remove-dialog";
+import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import type { TerminologyTag } from "@/shared/types/terminology";
-import { Button } from "@/shared/ui/button";
-import { CardAddButton } from "@/shared/ui/card-add-button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
-import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
-
-// ─── Props ───────────────────────────────────────────────────────────
 
 interface MedicationsCardProps {
-  personId: string;
-  patientId: string | null;
-  items: MedicationsCardItem[];
-  isLoading?: boolean;
+  readonly items: MedicationItem[];
+  readonly isLoading?: boolean;
+  readonly compact?: boolean;
+  readonly personId?: string;
+  readonly organizationId?: string;
 }
 
-type MedicationsCardItem = Pick<ApiMedicationItem, "medication">;
-
-// ─── Helpers ─────────────────────────────────────────────────────────
-
-function medicationsLabels(items: MedicationsCardItem[]): string[] {
-  return items.map((item) => displayTextFromCodeableConcept(item.medication)).filter(Boolean);
+/** Active items are those not soft-removed via status. */
+function filterActive(items: MedicationItem[]): MedicationItem[] {
+  return items.filter((item) => item.status !== "ENTERED_IN_ERROR");
 }
 
-// ─── Add dialog ──────────────────────────────────────────────────────
-
-interface AddMedicationsDialogProps {
-  personId: string;
-  patientId: string | null;
-  children: React.ReactNode;
+function nameOf(item: MedicationItem): string {
+  return displayTextFromCodeableConcept(item.medication) ?? "";
 }
 
-function AddMedicationsDialog({
-  personId,
-  patientId,
-  children,
-}: Readonly<AddMedicationsDialogProps>) {
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [tags, setTags] = useState<TerminologyTag[]>([]);
-  const { selectedOrg } = useOrg();
-  const queryClient = useQueryClient();
-
-  const resetForm = () => {
-    setTags([]);
-  };
-
-  const handleSubmit = async () => {
-    if (tags.length === 0 || !patientId) {
-      if (!patientId) {
-        toast.error(m.onboarding_error());
-      }
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await createMedicationsFromTags(tags, patientId, selectedOrg?.id ?? "");
-
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.medicationsScope(personId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(personId),
-      });
-
-      toast.success(m.medication_add_success());
-      setOpen(false);
-      resetForm();
-    } catch {
-      toast.error(m.onboarding_error());
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{m.medication_dialog_title()}</DialogTitle>
-        </DialogHeader>
-
-        <TerminologyTagInput
-          label={m.medication_list_label()}
-          placeholder={m.medication_field_placeholder()}
-          tags={tags}
-          onAdd={(tag) => setTags((prev) => [...prev, tag])}
-          onRemove={(i) => setTags((prev) => prev.filter((_, idx) => idx !== i))}
-          organizationId={selectedOrg?.id ?? ""}
-          conceptContext="MEDICATION"
-          addLabel={m.common_add()}
-          disabled={saving}
-        />
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            {m.common_cancel()}
-          </Button>
-          <Button onClick={() => void handleSubmit()} disabled={saving || tags.length === 0}>
-            {saving ? m.common_saving() : m.medication_dialog_submit()}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+function isPastUse(item: MedicationItem): boolean {
+  return Boolean(item.effectivePeriod?.end);
 }
-
-// ─── Main component ──────────────────────────────────────────────────
 
 export function MedicationsCard({
-  personId,
-  patientId,
   items,
   isLoading,
-}: Readonly<MedicationsCardProps>) {
-  if (isLoading) {
-    return <CustomerDetailTagsCardSkeleton columns={1} />;
-  }
+  compact,
+  personId,
+  organizationId,
+}: MedicationsCardProps) {
+  const [editingItem, setEditingItem] = useState<MedicationItem | null>(null);
+  const [removingItem, setRemovingItem] = useState<MedicationItem | null>(null);
 
-  const labels = medicationsLabels(items);
-  const isEmpty = labels.length === 0;
+  const canInteract = Boolean(personId && organizationId);
+  const safePersonId = personId ?? "";
+  const safeOrgId = organizationId ?? "";
 
-  if (isEmpty) {
-    return (
-      <CustomerDetailEmptyCard
-        header={
-          <CustomerDetailEmptyCardAddRow>
-            <AddMedicationsDialog personId={personId} patientId={patientId}>
-              <CardAddButton label={m.medication_add()} />
-            </AddMedicationsDialog>
-          </CustomerDetailEmptyCardAddRow>
-        }
-        icon={Pill}
-        title={m.medication_empty()}
-        description={m.medication_empty_desc()}
-      />
-    );
-  }
+  const active = filterActive(items);
+  const entries = active
+    .map((item) => ({ item, label: nameOf(item) }))
+    .filter((entry) => entry.label);
 
   return (
-    <div className="relative flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-      <AddMedicationsDialog personId={personId} patientId={patientId}>
-        <CardAddButton
-          label={m.medication_add()}
-          className="absolute top-4 right-4 lg:top-5 lg:right-5"
-        />
-      </AddMedicationsDialog>
+    <>
+      <TagsCardShell
+        isLoading={isLoading}
+        isEmpty={entries.length === 0}
+        emptyIcon={Pill}
+        emptyTitle={m.medication_empty()}
+        emptyDescription={m.medication_empty_desc()}
+        compact={compact}
+      >
+        <div className="space-y-3">
+          <p className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">
+            {m.medication_list_label()}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {entries.map(({ item, label }) => (
+              <MedicationPill
+                key={item.id}
+                isPast={isPastUse(item)}
+                onClick={canInteract ? () => setEditingItem(item) : undefined}
+              >
+                {label}
+              </MedicationPill>
+            ))}
+          </div>
+        </div>
+      </TagsCardShell>
 
-      <TagColumn
-        label={m.medication_list_label()}
-        tags={labels}
-        tagClassName="border-violet-200 bg-violet-50 text-violet-900"
-        emptyText={m.medication_none_listed()}
-      />
+      {canInteract && (
+        <>
+          <MedicationDetailDialog
+            mode="edit"
+            item={editingItem ?? undefined}
+            personId={safePersonId}
+            organizationId={safeOrgId}
+            open={editingItem !== null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setEditingItem(null);
+              }
+            }}
+            onRemoveClick={() => {
+              setRemovingItem(editingItem);
+              setEditingItem(null);
+            }}
+          />
 
-      <CardHistoryLinkFooter
-        customerId={personId}
-        to="/customers/$customerId/medications"
-        label={m.medication_view_history()}
-      />
-    </div>
+          {removingItem !== null && (
+            <MedicationRemoveDialog
+              id={removingItem.id}
+              name={nameOf(removingItem)}
+              personId={safePersonId}
+              organizationId={safeOrgId}
+              open={removingItem !== null}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setRemovingItem(null);
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+    </>
   );
 }
