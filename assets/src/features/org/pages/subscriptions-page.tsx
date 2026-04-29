@@ -58,7 +58,7 @@ export function SubscriptionsPage() {
     queryClient.invalidateQueries({ queryKey: subscriptionPlansQueryKey(selectedOrg?.id ?? "") });
 
   useEffect(() => {
-    if (!selectedOrg || plansLoading || Boolean(plansError)) {
+    if (!selectedOrg || plansLoading || plansError) {
       setHeaderContent(null);
       return;
     }
