@@ -11,13 +11,14 @@ marked.setOptions({
 interface MarkdownContentProps {
   readonly content: string;
   readonly className?: string;
+  readonly ref?: React.Ref<HTMLDivElement>;
 }
 
 /**
  * Renders a markdown string as styled HTML.
  * Uses `marked` for parsing and Tailwind utilities for typography.
  */
-export function MarkdownContent({ content, className }: MarkdownContentProps) {
+export function MarkdownContent({ content, className, ref }: MarkdownContentProps) {
   const html = useMemo(() => {
     if (!content) {
       return "";
@@ -31,6 +32,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
 
   return (
     <div
+      ref={ref}
       className={cn(
         "markdown-content text-foreground/80 text-sm leading-relaxed",
         "[&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:font-semibold [&_h1]:text-base [&_h1]:text-foreground",
