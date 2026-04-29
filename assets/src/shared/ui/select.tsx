@@ -174,8 +174,8 @@ export {
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectPositioner,
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-  SelectPositioner,
 };

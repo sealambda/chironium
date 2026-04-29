@@ -51,5 +51,5 @@ function EmptyState({ icon: Icon, title, description, actions = [], className }:
   );
 }
 
-export { EmptyState };
 export type { EmptyStateProps };
+export { EmptyState };

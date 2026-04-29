@@ -296,4 +296,4 @@ export function PhoneInput({
   );
 }
 
-export type { PhoneValidationStatus, PhoneAnalysis, CountryCode };
+export type { CountryCode, PhoneAnalysis, PhoneValidationStatus };
