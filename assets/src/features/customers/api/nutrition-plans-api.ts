@@ -14,6 +14,22 @@ const NutritionPlansByPersonQuery = graphql(`
           proteinG
           carbsG
           fatG
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
+          }
         }
       }
     }

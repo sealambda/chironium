@@ -16,6 +16,40 @@ export function formatClinicalHistoryDate(value: string | null | undefined): str
   }
 }
 
+interface OnsetSource {
+  onsetDateTime?: string | null;
+  onsetAge?: { value?: string | number | null; code?: string | null } | null;
+  onsetPeriod?: { start?: string | null; end?: string | null } | null;
+}
+
+function formatAge(age: OnsetSource["onsetAge"]): string | null {
+  if (age?.value == null) {
+    return null;
+  }
+  const amount = typeof age.value === "string" ? age.value : String(age.value);
+  return age.code ? `${amount} ${age.code}` : amount;
+}
+
+export function formatPeriod(period: OnsetSource["onsetPeriod"]): string | null {
+  if (!period?.start && !period?.end) {
+    return null;
+  }
+  const start = period.start ? formatClinicalHistoryDate(period.start) : "";
+  const end = period.end ? formatClinicalHistoryDate(period.end) : "";
+  if (start && end) {
+    return `${start} - ${end}`;
+  }
+  return start || end || null;
+}
+
+/** Formats onset using FHIR precedence: dateTime > age > period. */
+export function formatOnset(source: OnsetSource): string | null {
+  if (source.onsetDateTime) {
+    return formatClinicalHistoryDate(source.onsetDateTime);
+  }
+  return formatAge(source.onsetAge) ?? formatPeriod(source.onsetPeriod);
+}
+
 function humanizeUnknownEnumToken(value: string): string {
   return value.charAt(0) + value.slice(1).toLowerCase().replaceAll("_", " ");
 }

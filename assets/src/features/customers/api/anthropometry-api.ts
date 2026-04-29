@@ -1,3 +1,4 @@
+import type { VersionActorSource } from "@/features/customers/types/activity-feed";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
@@ -6,8 +7,8 @@ import { toDateTimeInput } from "@/shared/utils/date-time-input";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
-const AnthropometryLatestQuery = graphql(`
-  query AnthropometryLatest(
+const ListAnthropometryObservationsQuery = graphql(`
+  query ListAnthropometryObservations(
     $filter: ObservationFilterInput!
     $sort: [ObservationSortInput]
     $first: Int
@@ -25,6 +26,22 @@ const AnthropometryLatestQuery = graphql(`
           authorReference
           authorString
         }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
+        }
       }
     }
     height: listBodyHeightObservations(filter: $filter, sort: $sort, first: $first) {
@@ -39,6 +56,22 @@ const AnthropometryLatestQuery = graphql(`
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -55,6 +88,22 @@ const AnthropometryLatestQuery = graphql(`
           authorReference
           authorString
         }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
+        }
       }
     }
     chest: listChestCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
@@ -69,6 +118,22 @@ const AnthropometryLatestQuery = graphql(`
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -85,6 +150,22 @@ const AnthropometryLatestQuery = graphql(`
           authorReference
           authorString
         }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
+        }
       }
     }
     hip: listHipCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
@@ -99,6 +180,22 @@ const AnthropometryLatestQuery = graphql(`
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -115,6 +212,22 @@ const AnthropometryLatestQuery = graphql(`
           authorReference
           authorString
         }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
+        }
       }
     }
     thigh: listThighCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
@@ -130,6 +243,22 @@ const AnthropometryLatestQuery = graphql(`
           authorReference
           authorString
         }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
+        }
       }
     }
     whr: listWaistHipRatioObservations(filter: $filter, sort: $sort, first: $first) {
@@ -144,6 +273,22 @@ const AnthropometryLatestQuery = graphql(`
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -250,8 +395,8 @@ const LogThighCircumferenceMutation = graphql(`
   }
 `);
 
-const UpdateObservationMutation = graphql(`
-  mutation UpdateObservation($id: ID!, $input: UpdateObservationInput) {
+const UpdateAnthropometryObservationMutation = graphql(`
+  mutation UpdateAnthropometryObservation($id: ID!, $input: UpdateObservationInput) {
     updateObservation(id: $id, input: $input) {
       result {
         id
@@ -263,8 +408,8 @@ const UpdateObservationMutation = graphql(`
   }
 `);
 
-const DeleteObservationMutation = graphql(`
-  mutation DeleteObservation($id: ID!) {
+const DeleteAnthropometryObservationMutation = graphql(`
+  mutation DeleteAnthropometryObservation($id: ID!) {
     deleteObservation(id: $id) {
       result {
         id
@@ -316,6 +461,7 @@ export interface AnthropometricSnapshot {
   observations?: Partial<Record<AnthropometryObservationKey, AnthropometryObservationRef>>;
   primaryObservationId?: string;
   notes?: AnthropometryAnnotation[];
+  paperTrailVersions?: VersionActorSource[];
 }
 
 /** Keys for circumference measurement fields on an anthropometric snapshot. */
@@ -355,7 +501,7 @@ export interface AnthropometryAnnotationInput {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-type AnthropometryResult = ResultOf<typeof AnthropometryLatestQuery>;
+type AnthropometryResult = ResultOf<typeof ListAnthropometryObservationsQuery>;
 type ObservationPage = AnthropometryResult["weight"];
 type ObservationRecord = NonNullable<NonNullable<ObservationPage>["results"]>[number];
 
@@ -366,10 +512,6 @@ export function extractValue(obs: ObservationRecord | undefined): number | undef
   }
   const n = Number.parseFloat(obs.valueQuantity.value);
   return Number.isNaN(n) ? undefined : n;
-}
-
-export function extractDate(obs: ObservationRecord | undefined): string {
-  return obs?.effectiveDateTime ?? "";
 }
 
 function extractNote(obs: ObservationRecord | undefined): AnthropometryAnnotation[] {
@@ -388,184 +530,14 @@ function getObservationRef(
   };
 }
 
-function pickPrimaryObservation(records: Array<ObservationRecord | undefined>): {
-  id?: string;
-  notes: AnthropometryAnnotation[];
-} {
-  for (const record of records) {
-    if (record?.id) {
-      return {
-        id: record.id,
-        notes: extractNote(record),
-      };
-    }
-  }
-  return { id: undefined, notes: [] };
-}
-
-function buildObservationRefs(
-  records: Partial<Record<AnthropometryObservationKey, ObservationRecord | undefined>>,
-): Partial<Record<AnthropometryObservationKey, AnthropometryObservationRef>> {
-  const refs: Partial<Record<AnthropometryObservationKey, AnthropometryObservationRef>> = {};
-  for (const [key, record] of Object.entries(records) as [
-    AnthropometryObservationKey,
-    ObservationRecord | undefined,
-  ][]) {
-    const ref = getObservationRef(record);
-    if (ref) {
-      refs[key] = ref;
-    }
-  }
-  return refs;
-}
-
-/**
- * Assemble a snapshot from parallel observation pages at the given index.
- * Returns null if no measurement exists at that position across all pages.
- */
-function buildSnapshot(
-  weight: ObservationPage,
-  height: ObservationPage,
-  bmi: ObservationPage,
-  chest: ObservationPage,
-  waist: ObservationPage,
-  hip: ObservationPage,
-  arm: ObservationPage,
-  thigh: ObservationPage,
-  whr: ObservationPage,
-  index: number,
-): AnthropometricSnapshot | null {
-  const weightRecord = weight?.results?.[index];
-  const heightRecord = height?.results?.[index];
-  const bmiRecord = bmi?.results?.[index];
-  const chestRecord = chest?.results?.[index];
-  const waistRecord = waist?.results?.[index];
-  const hipRecord = hip?.results?.[index];
-  const armRecord = arm?.results?.[index];
-  const thighRecord = thigh?.results?.[index];
-  const whrRecord = whr?.results?.[index];
-
-  const date =
-    extractDate(weightRecord) ||
-    extractDate(heightRecord) ||
-    extractDate(bmiRecord) ||
-    extractDate(chestRecord) ||
-    extractDate(waistRecord) ||
-    extractDate(hipRecord) ||
-    extractDate(armRecord) ||
-    extractDate(thighRecord) ||
-    extractDate(whrRecord);
-
-  // A snapshot requires at least one observation at the given index.
-  if (!date) {
-    return null;
-  }
-
-  const primary = pickPrimaryObservation([
-    weightRecord,
-    heightRecord,
-    chestRecord,
-    waistRecord,
-    hipRecord,
-    armRecord,
-    thighRecord,
-    bmiRecord,
-    whrRecord,
-  ]);
-
-  return {
-    date,
-    weight: extractValue(weightRecord),
-    height: extractValue(heightRecord),
-    bmi: extractValue(bmiRecord),
-    whr: extractValue(whrRecord),
-    chest: extractValue(chestRecord),
-    waist: extractValue(waistRecord),
-    hip: extractValue(hipRecord),
-    arm: extractValue(armRecord),
-    thigh: extractValue(thighRecord),
-    observations: buildObservationRefs({
-      weight: weightRecord,
-      height: heightRecord,
-      bmi: bmiRecord,
-      whr: whrRecord,
-      chest: chestRecord,
-      waist: waistRecord,
-      hip: hipRecord,
-      arm: armRecord,
-      thigh: thighRecord,
-    }),
-    primaryObservationId: primary.id,
-    notes: primary.notes,
-  };
-}
-
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
- * Fetch the two most recent anthropometric snapshots for a person.
- * Returns [latest, previous] — used for delta calculations in the UI.
- */
-export async function fetchAnthropometry(
-  personId: string,
-  organizationId: string,
-): Promise<AnthropometricSnapshot[]> {
-  if (!personId || !organizationId) {
-    return [];
-  }
-
-  const data = await requestGraphql({
-    document: AnthropometryLatestQuery,
-    variables: {
-      filter: { subject: { personId: { eq: personId } } },
-      sort: [{ field: "EFFECTIVE_DATE_TIME", order: "DESC" }],
-      first: 2,
-    },
-    organizationId,
-  });
-
-  const snapshots: AnthropometricSnapshot[] = [];
-
-  const latest = buildSnapshot(
-    data.weight,
-    data.height,
-    data.bmi,
-    data.chest,
-    data.waist,
-    data.hip,
-    data.arm,
-    data.thigh,
-    data.whr,
-    0,
-  );
-  if (latest) {
-    snapshots.push(latest);
-  }
-
-  const previous = buildSnapshot(
-    data.weight,
-    data.height,
-    data.bmi,
-    data.chest,
-    data.waist,
-    data.hip,
-    data.arm,
-    data.thigh,
-    data.whr,
-    1,
-  );
-  if (previous) {
-    snapshots.push(previous);
-  }
-
-  return snapshots;
-}
-
-/**
- * Fetch full anthropometric history for a person (up to 250 records per measurement type).
- * Observations are grouped by calendar date so that measurements recorded on different
- * days are never merged into the same snapshot.
- * Returns snapshots sorted DESC by date.
+ * Fetch the full anthropometric history for a person (up to 250 records per measurement type).
+ *
+ * Observations are grouped by calendar date so measurements recorded on different days are
+ * never merged into the same snapshot. Returns snapshots sorted DESC by date — consumers that
+ * only need the latest entries can read `result[0]` (most recent) and `result[1]` (previous).
  */
 export async function fetchAnthropometryHistory(
   personId: string,
@@ -576,7 +548,7 @@ export async function fetchAnthropometryHistory(
   }
 
   const data = await requestGraphql({
-    document: AnthropometryLatestQuery,
+    document: ListAnthropometryObservationsQuery,
     variables: {
       filter: { subject: { personId: { eq: personId } } },
       sort: [{ field: "EFFECTIVE_DATE_TIME", order: "DESC" }],
@@ -767,7 +739,7 @@ async function updateQuantityObservation(
   organizationId: string,
 ): Promise<void> {
   const result = await requestGraphql({
-    document: UpdateObservationMutation,
+    document: UpdateAnthropometryObservationMutation,
     variables: {
       id,
       input: {
@@ -832,7 +804,7 @@ export async function updateAnthropometryNotes(
   }
 
   const result = await requestGraphql({
-    document: UpdateObservationMutation,
+    document: UpdateAnthropometryObservationMutation,
     variables: {
       id: observationId,
       input: {
@@ -866,7 +838,7 @@ export async function deleteAnthropometryEntry(
   await Promise.all(
     ids.map(async (id) => {
       const result = await requestGraphql({
-        document: DeleteObservationMutation,
+        document: DeleteAnthropometryObservationMutation,
         variables: { id },
         organizationId,
       });

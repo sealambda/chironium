@@ -1,6 +1,6 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { codeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
-import { graphql, type ResultOf } from "@/graphql";
+import { graphql, type ResultOf, type VariablesOf } from "@/graphql";
 import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -25,11 +25,33 @@ const GetPatientMedicationsQuery = graphql(`
             display(locale: $locale)
           }
         }
+        effectiveDateTime
+        effectivePeriod {
+          start
+          end
+        }
+        dateAsserted
         note {
           text
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -90,6 +112,17 @@ export type MedicationItem = NonNullable<
   NonNullable<ResultOf<typeof GetPatientMedicationsQuery>["getPatient"]>["medicationStatements"]
 >[number];
 
+type CreateMedicationStatementInput = NonNullable<
+  VariablesOf<typeof CreateMedicationStatementMutation>["input"]
+>;
+
+export type MedicationCreateOptions = Partial<
+  Pick<
+    CreateMedicationStatementInput,
+    "status" | "effectiveDateTime" | "effectivePeriod" | "dateAsserted"
+  >
+>;
+
 /** Form data for the medications onboarding step. */
 export interface MedicationsFormData {
   medications: TerminologyTag[];
@@ -118,12 +151,13 @@ export async function fetchMedications(
 }
 
 /**
- * Create one medication record per tag (active, confirmed).
+ * Create one MedicationStatement per tag.
  */
 export async function createMedicationsFromTags(
   tags: TerminologyTag[],
   patientId: string,
   organizationId: string,
+  options: MedicationCreateOptions = {},
 ): Promise<void> {
   const makeRecord = (tag: TerminologyTag) =>
     (async () => {
@@ -131,20 +165,12 @@ export async function createMedicationsFromTags(
         document: CreateMedicationStatementMutation,
         variables: {
           input: {
-            status: "RECORDED",
+            status: options.status ?? "RECORDED",
+            effectiveDateTime: options.effectiveDateTime,
+            effectivePeriod: options.effectivePeriod,
+            dateAsserted: options.dateAsserted,
             subjectId: patientId,
-            medication: tag.coding
-              ? {
-                  text: tag.label,
-                  coding: [
-                    {
-                      system: tag.coding.system,
-                      code: tag.coding.code,
-                      version: tag.coding.version ?? undefined,
-                    },
-                  ],
-                }
-              : { text: tag.label },
+            medication: codeInputFromTerminologyTag(tag),
           },
         },
         organizationId,
@@ -219,4 +245,49 @@ export async function deleteMedicationStatement(id: string, organizationId: stri
     organizationId,
   });
   unwrapMutationResult(result.deleteMedicationStatement, "Failed to delete medication.");
+}
+
+// ─── Detail update ────────────────────────────────────────────────────
+
+/**
+ * Form values for the medication detail dialog. Date fields are ISO date
+ * strings (`YYYY-MM-DD`); empty strings indicate the field was cleared.
+ */
+export interface MedicationFormInput {
+  name: string;
+  course: "current" | "past";
+  startDate: string;
+  endDate: string;
+}
+
+function dateInputToUtcStart(value: string): string | undefined {
+  return value ? `${value}T09:00:00.000Z` : undefined;
+}
+
+function dateInputToUtcEnd(value: string): string | undefined {
+  return value ? `${value}T23:59:59.999Z` : undefined;
+}
+
+/** Update name, course, effective period, and assertion date on a medication. */
+export async function updateMedication(
+  id: string,
+  data: MedicationFormInput,
+  organizationId: string,
+): Promise<void> {
+  const start = dateInputToUtcStart(data.startDate);
+  const end = data.course === "past" ? dateInputToUtcEnd(data.endDate) : undefined;
+
+  const result = await requestGraphql({
+    document: UpdateMedicationStatementMutation,
+    variables: {
+      id,
+      input: {
+        medication: { text: data.name },
+        effectivePeriod: start || end ? { start, end } : undefined,
+        effectiveDateTime: undefined,
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateMedicationStatement, "Failed to update medication.");
 }
