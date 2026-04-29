@@ -30,6 +30,7 @@ const PatientDetailByPersonQuery = graphql(`
           id
           type
           clinicalStatus
+          verificationStatus
           code {
             text
             coding {
@@ -39,11 +40,38 @@ const PatientDetailByPersonQuery = graphql(`
               display(locale: $locale)
             }
           }
+          onsetDateTime
+          onsetAge {
+            value
+            code
+          }
+          onsetPeriod {
+            start
+            end
+          }
+          recordedDate
+          lastOccurrence
           note {
             text
             time
             authorReference
             authorString
+          }
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
           }
         }
         conditions {
@@ -59,11 +87,42 @@ const PatientDetailByPersonQuery = graphql(`
               display(locale: $locale)
             }
           }
+          onsetDateTime
+          onsetAge {
+            value
+            code
+          }
+          onsetPeriod {
+            start
+            end
+          }
+          abatementDateTime
+          abatementPeriod {
+            start
+            end
+          }
+          recordedDate
           note {
             text
             time
             authorReference
             authorString
+          }
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
           }
         }
         medicationStatements {
@@ -78,11 +137,33 @@ const PatientDetailByPersonQuery = graphql(`
               display(locale: $locale)
             }
           }
+          effectiveDateTime
+          effectivePeriod {
+            start
+            end
+          }
+          dateAsserted
           note {
             text
             time
             authorReference
             authorString
+          }
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
           }
         }
         goals(
@@ -99,6 +180,28 @@ const PatientDetailByPersonQuery = graphql(`
           startDate
           dueDate
           category
+          note {
+            text
+            time
+            authorString
+            authorReference
+          }
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
+          }
         }
         nutritionPlans {
           id
@@ -106,6 +209,22 @@ const PatientDetailByPersonQuery = graphql(`
           proteinG
           carbsG
           fatG
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
+          }
         }
       }
     }

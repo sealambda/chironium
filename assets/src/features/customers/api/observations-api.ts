@@ -65,8 +65,66 @@ const ListObservationsQuery = graphql(`
           authorReference
           authorString
         }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
+        }
       }
       endKeyset
+    }
+  }
+`);
+
+const ListMenstrualCycleObservationsQuery = graphql(`
+  query ListMenstrualCycleObservations(
+    $filter: ObservationFilterInput!
+    $sort: [ObservationSortInput]
+    $first: Int
+  ) {
+    starts: listMenstrualPeriodStartObservations(filter: $filter, sort: $sort, first: $first) {
+      results {
+        id
+        effectiveDateTime
+        valueDateTime
+        note {
+          text
+          time
+          authorReference
+          authorString
+        }
+      }
+    }
+    durations: listMenstrualPeriodDurationObservations(
+      filter: $filter
+      sort: $sort
+      first: $first
+    ) {
+      results {
+        id
+        effectiveDateTime
+        valueQuantity {
+          value
+          unit
+        }
+        note {
+          text
+          time
+          authorReference
+          authorString
+        }
+      }
     }
   }
 `);
@@ -76,6 +134,34 @@ const ListObservationsQuery = graphql(`
 const CreateObservationMutation = graphql(`
   mutation CreateObservation($input: CreateObservationInput!) {
     createObservation(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const LogMenstrualPeriodStartMutation = graphql(`
+  mutation LogMenstrualPeriodStart($input: LogMenstrualPeriodStartInput!) {
+    logMenstrualPeriodStart(input: $input) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const LogMenstrualPeriodDurationMutation = graphql(`
+  mutation LogMenstrualPeriodDuration($input: LogMenstrualPeriodDurationInput!) {
+    logMenstrualPeriodDuration(input: $input) {
       result {
         id
         status
@@ -129,6 +215,13 @@ export interface MenstrualCycleFormData {
   notes: string;
 }
 
+/** Form data for recording a menstrual period from the person detail page. */
+export interface MenstrualCycleRecordFormData {
+  startDate: string;
+  durationDays: number | null;
+  notes: string;
+}
+
 /** Form data for creating or editing a clinical note observation. */
 export interface ClinicalNoteFormData {
   body: string;
@@ -159,6 +252,7 @@ export interface ObservationsPage {
 export interface MenstrualCycleSummary {
   startDate: string | null;
   endDate: string | null;
+  durationDays: number | null;
   notes: string | null;
 }
 
@@ -209,6 +303,77 @@ export async function createMenstrualCycleObservation(
   });
 
   unwrapMutationResult(result.createObservation, "Failed to create menstrual cycle observation.");
+}
+
+function buildObservationNoteInput(text: string, userId: string, userName: string) {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  return [
+    {
+      text: trimmed,
+      ...toAuthorInput({
+        authorReference: userId || null,
+        authorString: userName || null,
+      }),
+      time: new Date().toISOString(),
+    },
+  ];
+}
+
+/**
+ * Log a menstrual period using the first-class period start and duration actions.
+ */
+export async function logMenstrualCycle(
+  data: MenstrualCycleRecordFormData,
+  subjectId: string,
+  organizationId: string,
+  userId: string,
+  userName: string,
+): Promise<void> {
+  const startDate = data.startDate.trim();
+  if (!startDate) {
+    return;
+  }
+
+  const effectiveDateTime = toDateTimeInput(startDate, null);
+  if (!effectiveDateTime) {
+    throw new Error(`Menstrual period start date "${startDate}" is not a valid date.`);
+  }
+
+  const note = buildObservationNoteInput(data.notes, userId, userName);
+  const startResult = await requestGraphql({
+    document: LogMenstrualPeriodStartMutation,
+    variables: {
+      input: {
+        subjectId,
+        effectiveDateTime,
+        note,
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(startResult.logMenstrualPeriodStart, "Failed to log period start.");
+
+  if (data.durationDays != null && data.durationDays > 0) {
+    const durationResult = await requestGraphql({
+      document: LogMenstrualPeriodDurationMutation,
+      variables: {
+        input: {
+          subjectId,
+          effectiveDateTime,
+          durationDays: data.durationDays,
+        },
+      },
+      organizationId,
+    });
+    unwrapMutationResult(
+      durationResult.logMenstrualPeriodDuration,
+      "Failed to log period duration.",
+    );
+  }
 }
 
 /**
@@ -350,7 +515,73 @@ function parseMenstrualCycleSummary(rawText: string): MenstrualCycleSummary {
     }
   }
 
-  return { startDate, endDate, notes };
+  return { startDate, endDate, durationDays: null, notes };
+}
+
+type MenstrualCycleObservationsResult = ResultOf<typeof ListMenstrualCycleObservationsQuery>;
+type MenstrualCycleObservationPage = MenstrualCycleObservationsResult["starts"];
+type MenstrualCycleObservationRecord = NonNullable<
+  NonNullable<MenstrualCycleObservationPage>["results"]
+>[number];
+
+function toDateOnly(value: string | null | undefined): string | null {
+  return value ? value.slice(0, 10) : null;
+}
+
+function parseDurationDays(value: string | number | null | undefined): number | null {
+  if (value == null) {
+    return null;
+  }
+  const durationDays = Number.parseInt(String(value), 10);
+  return Number.isFinite(durationDays) ? durationDays : null;
+}
+
+function addInclusiveDuration(startDate: string, durationDays: number): string | null {
+  if (durationDays < 1) {
+    return null;
+  }
+
+  const date = new Date(`${startDate}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  date.setUTCDate(date.getUTCDate() + durationDays - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function firstNoteText(
+  ...records: Array<Pick<MenstrualCycleObservationRecord, "note"> | null | undefined>
+): string | null {
+  for (const record of records) {
+    const text = record?.note?.find((note) => note.text?.trim())?.text?.trim();
+    if (text) {
+      return text;
+    }
+  }
+  return null;
+}
+
+function summarizeFirstClassMenstrualCycle(
+  data: MenstrualCycleObservationsResult,
+): MenstrualCycleSummary | null {
+  const startRecord = data.starts?.results?.[0];
+  const startDate = toDateOnly(startRecord?.valueDateTime ?? startRecord?.effectiveDateTime);
+  if (!startDate) {
+    return null;
+  }
+
+  const matchingDuration = data.durations?.results?.find(
+    (record) => toDateOnly(record.effectiveDateTime) === startDate,
+  );
+  const durationDays = parseDurationDays(matchingDuration?.valueQuantity?.value);
+
+  return {
+    startDate,
+    endDate: durationDays != null ? addInclusiveDuration(startDate, durationDays) : null,
+    durationDays,
+    notes: firstNoteText(startRecord, matchingDuration),
+  };
 }
 
 export async function fetchLatestMenstrualCycle(
@@ -359,6 +590,21 @@ export async function fetchLatestMenstrualCycle(
 ): Promise<MenstrualCycleSummary | null> {
   if (!personId || !organizationId) {
     return null;
+  }
+
+  const specializedResult = await requestGraphql({
+    document: ListMenstrualCycleObservationsQuery,
+    variables: {
+      filter: buildSubjectFilter(personId),
+      sort: SORT_NEWEST_FIRST,
+      first: 10,
+    },
+    organizationId,
+  });
+
+  const specializedSummary = summarizeFirstClassMenstrualCycle(specializedResult);
+  if (specializedSummary) {
+    return specializedSummary;
   }
 
   const result = await requestGraphql({
@@ -392,22 +638,14 @@ export interface ParsedClinicalNote {
 
 /**
  * Split a clinical-note valueString into title and body.
- * Parses both the current markdown format (`# Title\n\nBody`) and the
- * legacy colon format (`Title: Body`) for backward compatibility.
+ * Expected format: `# Title\n\nBody`.
  */
 export function parseClinicalNote(obs: ObservationItem): ParsedClinicalNote {
   const raw = obs.valueString ?? "";
 
-  // Current format: "# Title\n\nBody"
   const mdMatch = /^#\s+(.+?)\n+([\s\S]*)$/.exec(raw);
-  if (mdMatch) {
+  if (mdMatch?.[1] !== undefined && mdMatch[2] !== undefined) {
     return { title: mdMatch[1].trim(), body: mdMatch[2].trim() };
-  }
-
-  // Legacy format: "Title: Body"
-  const colonIdx = raw.indexOf(": ");
-  if (colonIdx > 0 && colonIdx < 120) {
-    return { title: raw.slice(0, colonIdx), body: raw.slice(colonIdx + 2) };
   }
 
   return { title: raw, body: "" };

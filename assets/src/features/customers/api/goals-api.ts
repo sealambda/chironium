@@ -1,7 +1,7 @@
-import type { GoalCategory, GoalPriority } from "@/gql/graphql";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
+import type { GoalCategory, GoalPriority } from "@/shared/types/schema-enums";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
@@ -25,6 +25,22 @@ const AllGoalsByPersonQuery = graphql(`
             time
             authorString
             authorReference
+          }
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
           }
         }
       }
@@ -85,23 +101,6 @@ export type GoalRecord = NonNullable<
     NonNullable<ResultOf<typeof AllGoalsByPersonQuery>["listPatients"]>["results"]
   >[number]["goals"]
 >[number];
-
-interface GoalMutationPayload<T> {
-  result?: T | null;
-  errors?: { message?: string | null }[] | null;
-}
-
-interface CreateGoalMutationResult {
-  createGoal: GoalMutationPayload<{ id: string; lifecycleStatus: string }>;
-}
-
-interface UpdateGoalMutationResult {
-  updateGoal: GoalMutationPayload<{ id: string; description?: { text?: string | null } | null }>;
-}
-
-interface DeleteGoalMutationResult {
-  deleteGoal: GoalMutationPayload<{ id: string }>;
-}
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -165,7 +164,7 @@ export async function createGoal({
   startDate,
   dueDate,
 }: CreateGoalParams): Promise<void> {
-  const result = await requestGraphql<CreateGoalMutationResult>({
+  const result = await requestGraphql({
     document: CreateGoalMutation,
     variables: {
       input: {
@@ -203,7 +202,7 @@ export async function updateGoal({
   startDate,
   dueDate,
 }: UpdateGoalParams): Promise<void> {
-  const result = await requestGraphql<UpdateGoalMutationResult>({
+  const result = await requestGraphql({
     document: UpdateGoalMutation,
     variables: {
       id,
@@ -225,7 +224,7 @@ export async function updateGoal({
  * Delete a goal.
  */
 export async function deleteGoal(goalId: string, organizationId: string): Promise<void> {
-  const result = await requestGraphql<DeleteGoalMutationResult>({
+  const result = await requestGraphql({
     document: DeleteGoalMutation,
     variables: { id: goalId },
     organizationId,
