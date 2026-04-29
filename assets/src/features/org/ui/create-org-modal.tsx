@@ -93,6 +93,10 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
   const stepLabels = STEPS.map((s) => ({ label: s.label() }));
   const currentStepMeta = STEPS[currentStep];
 
+  if (!currentStepMeta) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent data-testid="create-org-dialog">
