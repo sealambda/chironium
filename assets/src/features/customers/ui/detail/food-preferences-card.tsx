@@ -1,238 +1,153 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Utensils } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
-import { createFoodObservations } from "@/features/customers/api/food-preferences-api";
-import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
-import {
-  CustomerDetailEmptyCard,
-  CustomerDetailEmptyCardAddRow,
-} from "@/features/customers/ui/detail/customer-detail-empty-card";
-import { TagColumn } from "@/features/customers/ui/detail/tag-column";
-import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
+import { FoodPreferenceDetailDialog } from "@/features/customers/ui/detail/food-preference-detail-dialog";
+import { FoodPreferencePill } from "@/features/customers/ui/detail/food-preference-pill";
+import { FoodPreferenceRemoveDialog } from "@/features/customers/ui/detail/food-preference-remove-dialog";
+import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import * as m from "@/paraglide/messages";
-import type { TerminologyTag } from "@/shared/types/terminology";
-import { Button } from "@/shared/ui/button";
-import { CardAddButton } from "@/shared/ui/card-add-button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
-
-// ─── Props ───────────────────────────────────────────────────────────
+import { cn } from "@/shared/utils/utils";
 
 interface FoodPreferencesCardProps {
-  personId: string;
-  patientId: string | null;
-  included: string[];
-  excluded: string[];
-  isLoading?: boolean;
+  readonly history: FoodPreferenceHistoryItem[];
+  readonly isLoading?: boolean;
+  readonly compact?: boolean;
+  readonly personId?: string;
+  readonly organizationId?: string;
 }
 
-// ─── Add dialog ──────────────────────────────────────────────────────
-
-interface AddFoodPreferenceDialogProps {
-  personId: string;
-  patientId: string | null;
-  children: React.ReactNode;
+function labelOf(item: FoodPreferenceHistoryItem): string {
+  return item.items?.trim() || item.codings[0]?.display?.trim() || item.codings[0]?.code || "";
 }
 
-function AddFoodPreferenceDialog({
-  personId,
-  patientId,
-  children,
-}: Readonly<AddFoodPreferenceDialogProps>) {
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [included, setIncluded] = useState<TerminologyTag[]>([]);
-  const [excluded, setExcluded] = useState<TerminologyTag[]>([]);
-  const { selectedOrg } = useOrg();
-  const { user } = useCurrentUser();
-  const queryClient = useQueryClient();
+interface ColumnProps {
+  readonly label: string;
+  readonly variant: "inclusion" | "exclusion";
+  readonly entries: { item: FoodPreferenceHistoryItem; label: string }[];
+  readonly emptyText: string;
+  readonly canInteract: boolean;
+  readonly onPillClick: (item: FoodPreferenceHistoryItem) => void;
+  readonly className?: string;
+}
 
-  const hasContent = included.length > 0 || excluded.length > 0;
-
-  const resetForm = () => {
-    setIncluded([]);
-    setExcluded([]);
-  };
-
-  const handleSubmit = async () => {
-    if (!hasContent || !patientId) {
-      if (!patientId) {
-        toast.error(m.onboarding_error());
-      }
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await createFoodObservations(
-        { included, excluded },
-        patientId,
-        selectedOrg?.id ?? "",
-        user?.id ?? "",
-        user?.name ?? "",
-      );
-
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.foodPreferencesScope(personId),
-      });
-
-      toast.success(m.food_preferences_add_success());
-      setOpen(false);
-      resetForm();
-    } catch {
-      toast.error(m.onboarding_error());
-    } finally {
-      setSaving(false);
-    }
-  };
-
+function Column({
+  label,
+  variant,
+  entries,
+  emptyText,
+  canInteract,
+  onPillClick,
+  className,
+}: ColumnProps) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{m.food_preferences_dialog_title()}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <TerminologyTagInput
-            label={m.food_preferences_includes_label()}
-            placeholder={m.field_food_included_placeholder()}
-            tags={included}
-            onAdd={(tag) => setIncluded((prev) => [...prev, tag])}
-            onRemove={(i) => setIncluded((prev) => prev.filter((_, idx) => idx !== i))}
-            organizationId={selectedOrg?.id ?? ""}
-            conceptContext="FOOD"
-            addLabel={m.common_add()}
-            disabled={saving}
-          />
-          <TerminologyTagInput
-            label={m.food_preferences_avoids_label()}
-            placeholder={m.field_food_excluded_placeholder()}
-            tags={excluded}
-            onAdd={(tag) => setExcluded((prev) => [...prev, tag])}
-            onRemove={(i) => setExcluded((prev) => prev.filter((_, idx) => idx !== i))}
-            organizationId={selectedOrg?.id ?? ""}
-            conceptContext="FOOD"
-            addLabel={m.common_add()}
-            disabled={saving}
-          />
+    <div className={cn("space-y-3", className)}>
+      <p className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">{label}</p>
+      {entries.length === 0 ? (
+        <p className="text-muted-foreground text-sm italic">{emptyText}</p>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {entries.map(({ item, label: text }) => (
+            <FoodPreferencePill
+              key={item.id}
+              variant={variant}
+              onClick={canInteract ? () => onPillClick(item) : undefined}
+            >
+              {text}
+            </FoodPreferencePill>
+          ))}
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            {m.common_cancel()}
-          </Button>
-          <Button onClick={handleSubmit} disabled={saving || !hasContent}>
-            {saving ? m.common_saving() : m.food_preferences_dialog_submit()}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ─── Loading skeleton ────────────────────────────────────────────────
-
-function FoodPreferencesCardSkeleton() {
-  return (
-    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Skeleton className="mx-auto h-4 w-16" />
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={String(i)} className="h-7 w-18 rounded-full" />
-            ))}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Skeleton className="mx-auto h-4 w-20" />
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {Array.from({ length: 2 }, (_, i) => (
-              <Skeleton key={String(i)} className="h-7 w-22 rounded-full" />
-            ))}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
-
-// ─── Main component ──────────────────────────────────────────────────
 
 export function FoodPreferencesCard({
-  personId,
-  patientId,
-  included,
-  excluded,
+  history,
   isLoading,
-}: Readonly<FoodPreferencesCardProps>) {
-  if (isLoading) {
-    return <FoodPreferencesCardSkeleton />;
-  }
+  compact,
+  personId,
+  organizationId,
+}: FoodPreferencesCardProps) {
+  const [viewingItem, setViewingItem] = useState<FoodPreferenceHistoryItem | null>(null);
+  const [removingItem, setRemovingItem] = useState<FoodPreferenceHistoryItem | null>(null);
 
-  const isEmpty = included.length === 0 && excluded.length === 0;
+  const canInteract = Boolean(personId && organizationId);
+  const safePersonId = personId ?? "";
+  const safeOrgId = organizationId ?? "";
 
-  if (isEmpty) {
-    return (
-      <CustomerDetailEmptyCard
-        header={
-          <CustomerDetailEmptyCardAddRow>
-            <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
-              <CardAddButton label={m.food_preferences_add()} />
-            </AddFoodPreferenceDialog>
-          </CustomerDetailEmptyCardAddRow>
-        }
-        icon={Utensils}
-        title={m.food_preferences_empty()}
-        description={m.food_preferences_empty_desc()}
-      />
-    );
-  }
+  const included = history
+    .filter((item) => item.type === "inclusion")
+    .map((item) => ({ item, label: labelOf(item) }))
+    .filter((entry) => entry.label);
+  const excluded = history
+    .filter((item) => item.type === "exclusion")
+    .map((item) => ({ item, label: labelOf(item) }))
+    .filter((entry) => entry.label);
 
   return (
-    <div className="relative flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-      <AddFoodPreferenceDialog personId={personId} patientId={patientId}>
-        <CardAddButton
-          label={m.food_preferences_add()}
-          className="absolute top-4 right-4 lg:top-5 lg:right-5"
-        />
-      </AddFoodPreferenceDialog>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <TagColumn
-          label={m.food_preferences_avoids_label()}
-          tags={excluded}
-          tagClassName="border-yellow-200 bg-yellow-50 text-yellow-800"
-          emptyText={m.food_preferences_none_avoided()}
-        />
-        <TagColumn
+    <>
+      <TagsCardShell
+        isLoading={isLoading}
+        isEmpty={included.length === 0 && excluded.length === 0}
+        emptyIcon={Utensils}
+        emptyTitle={m.food_preferences_empty()}
+        emptyDescription={m.food_preferences_empty_desc()}
+        compact={compact}
+        columns={2}
+      >
+        <Column
           label={m.food_preferences_includes_label()}
-          tags={included}
-          tagClassName="border-emerald-200 bg-emerald-50 text-emerald-800"
+          variant="inclusion"
+          entries={included}
           emptyText={m.food_preferences_none_included()}
-          className="sm:border-border sm:border-l sm:pl-4"
+          canInteract={canInteract}
+          onPillClick={setViewingItem}
+          className="pr-3"
         />
-      </div>
+        <Column
+          label={m.food_preferences_avoids_label()}
+          variant="exclusion"
+          entries={excluded}
+          emptyText={m.food_preferences_none_avoided()}
+          canInteract={canInteract}
+          onPillClick={setViewingItem}
+          className="pl-3"
+        />
+      </TagsCardShell>
 
-      <CardHistoryLinkFooter
-        customerId={personId}
-        to="/customers/$customerId/food-preferences"
-        label={m.food_preferences_view_history()}
-      />
-    </div>
+      {canInteract ? (
+        <>
+          <FoodPreferenceDetailDialog
+            item={viewingItem}
+            open={viewingItem !== null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setViewingItem(null);
+              }
+            }}
+            onRemoveClick={() => {
+              setRemovingItem(viewingItem);
+              setViewingItem(null);
+            }}
+          />
+
+          {removingItem !== null ? (
+            <FoodPreferenceRemoveDialog
+              id={removingItem.id}
+              name={labelOf(removingItem)}
+              personId={safePersonId}
+              organizationId={safeOrgId}
+              open={removingItem !== null}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setRemovingItem(null);
+                }
+              }}
+            />
+          ) : null}
+        </>
+      ) : null}
+    </>
   );
 }
