@@ -1,11 +1,13 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
-import { fetchAnthropometry } from "@/features/customers/api/anthropometry-api";
-import { fetchFoodPreferences } from "@/features/customers/api/food-preferences-api";
+import { fetchAnthropometryHistory } from "@/features/customers/api/anthropometry-api";
 import {
-  fetchLatestMenstrualCycle,
-  fetchObservationsSummary,
-} from "@/features/customers/api/observations-api";
+  type FoodPreferencesData,
+  fetchFoodPreferencesHistory,
+  selectFoodPreferenceLabels,
+} from "@/features/customers/api/food-preferences-api";
+import { fetchLatestMenstrualCycle } from "@/features/customers/api/observations-api";
 import { fetchPatientDetail } from "@/features/customers/api/patients-api";
 import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -15,6 +17,8 @@ import { personQueryKeys } from "@/shared/utils/query-keys";
 function combineLoadingState(...queries: UseQueryResult<unknown, Error>[]) {
   return queries.some((q) => q.isLoading);
 }
+
+const EMPTY_FOOD_PREFERENCE_LABELS: FoodPreferencesData = { included: [], excluded: [] };
 
 /**
  * Hook to fetch and manage all person detail data.
@@ -47,14 +51,11 @@ export function usePersonDetail(personId: string) {
     enabled,
   });
 
-  const anthropometry = useQuery({
-    queryKey: personQueryKeys.anthropometry(personId, organizationId),
-    queryFn: () => fetchAnthropometry(personId, organizationId),
-    enabled: healthEnabled,
-  });
-  const observations = useQuery({
-    queryKey: personQueryKeys.observations(personId, organizationId),
-    queryFn: () => fetchObservationsSummary(personId, organizationId),
+  // Full anthropometric history. Consumers that only need the latest entries
+  // read `data?.[0]` (most recent) and `data?.[1]` (previous).
+  const anthropometryHistory = useQuery({
+    queryKey: personQueryKeys.anthropometryHistory(personId, organizationId),
+    queryFn: () => fetchAnthropometryHistory(personId, organizationId),
     enabled: healthEnabled,
   });
   const menstrualCycle = useQuery({
@@ -62,11 +63,20 @@ export function usePersonDetail(personId: string) {
     queryFn: () => fetchLatestMenstrualCycle(personId, organizationId),
     enabled: healthEnabled,
   });
-  const foodPreferences = useQuery({
-    queryKey: personQueryKeys.foodPreferences(personId, organizationId),
-    queryFn: () => fetchFoodPreferences(personId, organizationId),
+  // Full food preference and aversion history. Aggregated chip labels are derived below.
+  const foodPreferencesHistory = useQuery({
+    queryKey: personQueryKeys.foodPreferencesHistory(personId, organizationId),
+    queryFn: () => fetchFoodPreferencesHistory(personId, organizationId),
     enabled: healthEnabled,
   });
+
+  const foodPreferenceLabels = useMemo<FoodPreferencesData>(
+    () =>
+      foodPreferencesHistory.data
+        ? selectFoodPreferenceLabels(foodPreferencesHistory.data)
+        : EMPTY_FOOD_PREFERENCE_LABELS,
+    [foodPreferencesHistory.data],
+  );
 
   const goals = {
     data: patientDetail.data?.goals ?? [],
@@ -95,8 +105,7 @@ export function usePersonDetail(personId: string) {
   const isLoading = combineLoadingState(
     patientDetail,
     subscriptions,
-    anthropometry,
-    observations,
+    anthropometryHistory,
     menstrualCycle,
   );
 
@@ -105,12 +114,12 @@ export function usePersonDetail(personId: string) {
     hasPatient,
     person,
     subscriptions,
-    anthropometry,
+    anthropometryHistory,
     nutritionPlans,
     goals,
-    observations,
     menstrualCycle,
-    foodPreferences,
+    foodPreferencesHistory,
+    foodPreferenceLabels,
     allergyIntolerances,
     conditions,
     medications,
