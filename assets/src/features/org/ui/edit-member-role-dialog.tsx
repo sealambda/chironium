@@ -3,8 +3,8 @@ import { toast } from "sonner";
 
 import { updateOrganizationUserRole } from "@/features/org/api/org-api";
 import { ORGANIZATION_MEMBER_ROLE_OPTIONS } from "@/features/org/constants/organization-member-role-options";
-import type { OrganizationUserRole } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
+import type { OrganizationUserRole } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
