@@ -35,12 +35,35 @@ export const SubscriptionsByPersonQuery = graphql(`
         id
         state
         startDate
+        effectiveEndDate
         plan {
           id
           name
           duration {
             code
             value
+          }
+        }
+        pauses {
+          id
+          startDate
+          endDate
+          reason
+        }
+        paperTrailVersions {
+          versionInsertedAt
+          versionActionName
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
           }
         }
       }
@@ -99,6 +122,77 @@ export const UpdateSubscriptionMutation = graphql(`
   }
 `);
 
+export const SuspendSubscriptionMutation = graphql(`
+  mutation SuspendSubscription($id: ID!, $input: SuspendSubscriptionInput!) {
+    suspendSubscription(id: $id, input: $input) {
+      result {
+        id
+        state
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+export const ResumeSubscriptionMutation = graphql(`
+  mutation ResumeSubscription($id: ID!, $input: ResumeSubscriptionInput!) {
+    resumeSubscription(id: $id, input: $input) {
+      result {
+        id
+        state
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+export const CancelSubscriptionMutation = graphql(`
+  mutation CancelSubscription($id: ID!, $input: CancelSubscriptionInput!) {
+    cancelSubscription(id: $id, input: $input) {
+      result {
+        id
+        state
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+export const UpdateSubscriptionPauseMutation = graphql(`
+  mutation UpdateSubscriptionPause($id: ID!, $input: UpdateSubscriptionPauseInput!) {
+    updateSubscriptionPause(id: $id, input: $input) {
+      result {
+        id
+        startDate
+        endDate
+        reason
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+export const DeleteSubscriptionPauseMutation = graphql(`
+  mutation DeleteSubscriptionPause($id: ID!) {
+    deleteSubscriptionPause(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** Subscription with state, start date, subscriber ID, and plan duration. Used for list merging. */
@@ -115,3 +209,6 @@ export type SubscriptionRecord = NonNullable<
 export type SubscriptionPlan = NonNullable<
   NonNullable<ResultOf<typeof ListSubscriptionPlansQuery>["listSubscriptionPlans"]>["results"]
 >[number];
+
+/** A single pause window on a subscription. */
+export type SubscriptionPause = NonNullable<SubscriptionRecord["pauses"]>[number];
