@@ -1,46 +1,176 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UserPlus } from "lucide-react";
+import { Plus, UserPlus } from "lucide-react";
+import { useState } from "react";
 
+import type { GoalRecord } from "@/features/customers/api/goals-api";
 import { createPatientForPerson } from "@/features/customers/api/patients-api";
 import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
+import type { FeedEventKind } from "@/features/customers/types/activity-feed";
+import { ActivityFeedCard } from "@/features/customers/ui/detail/activity-feed/activity-feed-card";
+import { FeedFilterChips } from "@/features/customers/ui/detail/activity-feed/feed-filter-chips";
 import { AllergyIntoleranceCard } from "@/features/customers/ui/detail/allergy-intolerance-card";
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
 import { ConditionsCard } from "@/features/customers/ui/detail/conditions-card";
 import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-preferences-card";
 import { MedicationsCard } from "@/features/customers/ui/detail/medications-card";
 import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
-import { NutritionPlanSummaryCard } from "@/features/customers/ui/detail/nutrition-plan-summary-card";
-import { ObservationsCard } from "@/features/customers/ui/detail/observations-card";
-import { PersonProfileCard } from "@/features/customers/ui/detail/person-profile-card";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
+import { formatPersonName } from "@/shared/utils/person-utils";
 import { personQueryKeys } from "@/shared/utils/query-keys";
+
+// Stable empty-array references to avoid re-creating on every render.
+const EMPTY_GOALS: GoalRecord[] = [];
+const EMPTY_SUBSCRIPTIONS: SubscriptionRecord[] = [];
 
 interface PersonDetailContentProps {
   personId: string;
   detail: ReturnType<typeof usePersonDetail>;
+  openAddRecord?: () => void;
 }
 
-export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailContentProps>) {
+interface PatientDetailCardsProps {
+  personId: string;
+  patientId: string | null;
+  detail: ReturnType<typeof usePersonDetail>;
+  organizationId: string;
+  openAddRecord?: () => void;
+}
+
+function PatientDetailCards({
+  personId,
+  patientId,
+  detail,
+  organizationId,
+  openAddRecord,
+}: Readonly<PatientDetailCardsProps>) {
+  const {
+    person,
+    anthropometryHistory,
+    goals,
+    subscriptions,
+    conditions,
+    allergyIntolerances,
+    medications,
+    foodPreferencesHistory,
+    menstrualCycle,
+  } = detail;
+  const personGoals = goals.data ?? EMPTY_GOALS;
+  const personSubscriptions = subscriptions.data ?? EMPTY_SUBSCRIPTIONS;
+  const personConditions = conditions.data ?? [];
+  const personAllergyIntolerances = allergyIntolerances.data ?? [];
+  const personMedications = medications.data ?? [];
+  const anthropometryEntries = anthropometryHistory.data ?? [];
+  const foodPreferenceEntries = foodPreferencesHistory.data ?? [];
+  const menstrualCycleData = menstrualCycle.data ?? null;
+
+  const [activeFilter, setFilter] = useState<FeedEventKind | "all">("all");
+
+  return (
+    <div className="space-y-6">
+      {/* Mini-dashboard: clinical summary cards in a responsive grid */}
+      <section aria-label={m.clinical_summary()}>
+        <div className="mb-3 flex h-8 items-center px-1">
+          <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+            {m.clinical_summary()}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <AnthropometryCard
+            history={anthropometryEntries}
+            isLoading={anthropometryHistory.isLoading}
+            birthDate={person?.birthDate}
+            gender={person?.gender}
+            compact
+          />
+          <ConditionsCard
+            items={personConditions}
+            isLoading={conditions.isLoading}
+            compact
+            personId={personId}
+            organizationId={organizationId}
+          />
+          <MedicationsCard
+            items={personMedications}
+            isLoading={medications.isLoading}
+            compact
+            personId={personId}
+            organizationId={organizationId}
+          />
+          <MenstrualCycleCard
+            cycle={menstrualCycleData}
+            isLoading={menstrualCycle.isLoading}
+            compact
+          />
+          <AllergyIntoleranceCard
+            items={personAllergyIntolerances}
+            isLoading={allergyIntolerances.isLoading}
+            compact
+            personId={personId}
+            patientId={patientId}
+            organizationId={organizationId}
+          />
+          <FoodPreferencesCard
+            history={foodPreferencesHistory.data ?? []}
+            isLoading={foodPreferencesHistory.isLoading}
+            compact
+            personId={personId}
+            organizationId={organizationId}
+          />
+        </div>
+      </section>
+
+      {/* Activity feed — full width below the mini-dashboard */}
+      <div className="space-y-3">
+        <div className="flex h-8 items-center justify-between px-1">
+          <h2 className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">
+            {m.activity_title()}
+          </h2>
+          {openAddRecord != null ? (
+            <Button
+              size="sm"
+              onClick={openAddRecord}
+              aria-label={m.add_record_title()}
+              className="gap-1.5"
+            >
+              <Plus className="size-4" aria-hidden />
+              <span className="hidden lg:inline">{m.add_record_title()}</span>
+            </Button>
+          ) : null}
+        </div>
+        <div className="pb-0.5">
+          <FeedFilterChips active={activeFilter} onChange={setFilter} />
+        </div>
+        <ActivityFeedCard
+          personId={personId}
+          patientId={patientId}
+          organizationId={organizationId}
+          goals={personGoals}
+          subscriptions={personSubscriptions}
+          conditions={personConditions}
+          allergyIntolerances={personAllergyIntolerances}
+          medications={personMedications}
+          anthropometry={anthropometryEntries}
+          foodPreferences={foodPreferenceEntries}
+          activeFilter={activeFilter}
+          personName={person?.name ? formatPersonName(person.name) : null}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function PersonDetailContent({
+  personId,
+  detail,
+  openAddRecord,
+}: Readonly<PersonDetailContentProps>) {
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
-  const {
-    person,
-    hasPatient,
-    patientId,
-    activeNutritionPlan,
-    anthropometry,
-    nutritionPlans,
-    goals,
-    observations,
-    menstrualCycle,
-    foodPreferences,
-    allergyIntolerances,
-    conditions,
-    medications,
-  } = detail;
+  const { hasPatient, patientId } = detail;
 
   const { mutate: createPatient, isPending } = useMutation({
     mutationFn: () => createPatientForPerson(personId, selectedOrg?.id ?? ""),
@@ -50,86 +180,16 @@ export function PersonDetailContent({ personId, detail }: Readonly<PersonDetailC
       }),
   });
 
-  const latestSnapshot = anthropometry.data?.[0];
-
   return (
     <div className="space-y-4 lg:space-y-6">
-      {person ? (
-        <PersonProfileCard
-          person={person}
+      {hasPatient ? (
+        <PatientDetailCards
           personId={personId}
           patientId={patientId}
-          goals={goals.data ?? []}
-          currentSubscription={detail.currentSubscription}
-          isGoalsLoading={goals.isLoading}
+          detail={detail}
+          organizationId={selectedOrg?.id ?? ""}
+          openAddRecord={openAddRecord}
         />
-      ) : null}
-
-      {hasPatient ? (
-        <>
-          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
-            <AnthropometryCard
-              personId={personId}
-              patientId={patientId}
-              history={anthropometry.data ?? []}
-              isLoading={anthropometry.isLoading}
-            />
-            <NutritionPlanSummaryCard
-              personId={personId}
-              patientId={patientId}
-              plan={activeNutritionPlan}
-              isLoading={nutritionPlans.isLoading}
-              latestWeight={latestSnapshot?.weight}
-              latestHeight={latestSnapshot?.height}
-              birthDate={person?.birthDate ?? undefined}
-              gender={person?.gender ?? undefined}
-            />
-          </div>
-
-          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
-            <ConditionsCard
-              personId={personId}
-              patientId={patientId}
-              items={conditions.data ?? []}
-              isLoading={conditions.isLoading}
-            />
-            <AllergyIntoleranceCard
-              personId={personId}
-              patientId={patientId}
-              items={allergyIntolerances.data ?? []}
-              isLoading={allergyIntolerances.isLoading}
-            />
-          </div>
-
-          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
-            <MedicationsCard
-              personId={personId}
-              patientId={patientId}
-              items={medications.data ?? []}
-              isLoading={medications.isLoading}
-            />
-            <FoodPreferencesCard
-              personId={personId}
-              patientId={patientId}
-              included={foodPreferences.data?.included ?? []}
-              excluded={foodPreferences.data?.excluded ?? []}
-              isLoading={foodPreferences.isLoading}
-            />
-          </div>
-
-          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
-            <MenstrualCycleCard
-              cycle={menstrualCycle.data ?? null}
-              isLoading={menstrualCycle.isLoading}
-            />
-            <ObservationsCard
-              personId={personId}
-              patientId={patientId}
-              observations={observations.data ?? null}
-              isLoading={observations.isLoading}
-            />
-          </div>
-        </>
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border border-dashed p-8 text-center">
           <UserPlus className="size-8 text-muted-foreground" />

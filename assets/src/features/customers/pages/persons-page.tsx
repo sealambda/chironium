@@ -207,7 +207,7 @@ export function CustomersPage() {
   };
 
   useEffect(() => {
-    if (!selectedOrg || isLoading || Boolean(error)) {
+    if (!selectedOrg || isLoading || error) {
       setHeaderContent(null);
       return;
     }

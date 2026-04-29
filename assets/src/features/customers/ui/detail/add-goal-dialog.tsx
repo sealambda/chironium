@@ -5,8 +5,9 @@ import { toast } from "sonner";
 import { createGoal, type GoalRecord, updateGoal } from "@/features/customers/api/goals-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
-import type { GoalCategory, GoalPriority } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
+import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import type { GoalCategory, GoalPriority } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {
@@ -29,8 +30,6 @@ import {
 } from "@/shared/ui/select";
 import { personQueryKeys } from "@/shared/utils/query-keys";
 
-// ─── Constants ────────────────────────────────────────────────────────
-
 const PRIORITY_OPTIONS = [
   { value: "HIGH_PRIORITY", label: () => m.goals_priority_high() },
   { value: "MEDIUM_PRIORITY", label: () => m.goals_priority_medium() },
@@ -45,8 +44,6 @@ const CATEGORY_OPTIONS = [
   { value: "SAFETY", label: () => m.goals_category_safety() },
 ] as const;
 
-// ─── Props ────────────────────────────────────────────────────────────
-
 interface AddGoalDialogProps {
   personId: string;
   patientId: string | null;
@@ -56,17 +53,19 @@ interface AddGoalDialogProps {
   editGoal?: GoalRecord | null;
 }
 
-// ─── Component ────────────────────────────────────────────────────────
-
 export function AddGoalDialog({
   personId,
   patientId,
   children,
-  open,
-  onOpenChange,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
   editGoal,
 }: Readonly<AddGoalDialogProps>) {
-  const [internalOpen, setInternalOpen] = useState(false);
+  const [open, setOpen] = useControllableState({
+    value: controlledOpen,
+    defaultValue: false,
+    onChange: controlledOnOpenChange,
+  });
   const [saving, setSaving] = useState(false);
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("");
@@ -77,8 +76,6 @@ export function AddGoalDialog({
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
   const isEditing = Boolean(editGoal);
-  const isControlled = open !== undefined;
-  const resolvedOpen = isControlled ? open : internalOpen;
   let submitLabel = m.common_add();
   if (isEditing) {
     submitLabel = m.common_save();
@@ -98,7 +95,7 @@ export function AddGoalDialog({
   };
 
   useEffect(() => {
-    if (!resolvedOpen) {
+    if (!open) {
       return;
     }
 
@@ -116,14 +113,7 @@ export function AddGoalDialog({
     setCategory(editGoal.category?.[0] ?? "");
     setStartDate(editGoal.startDate ?? "");
     setDueDate(editGoal.dueDate ?? "");
-  }, [editGoal, resolvedOpen]);
-
-  const setResolvedOpen = (next: boolean) => {
-    onOpenChange?.(next);
-    if (!isControlled) {
-      setInternalOpen(next);
-    }
-  };
+  }, [editGoal, open]);
 
   const parsedPriority = priority as GoalPriority;
   const parsedCategory = category as GoalCategory;
@@ -183,7 +173,7 @@ export function AddGoalDialog({
       });
 
       toast.success(isEditing ? m.goals_edit_success() : m.goals_add_success());
-      setResolvedOpen(false);
+      setOpen(false);
       resetForm();
     } catch {
       toast.error(m.onboarding_error());
@@ -193,7 +183,7 @@ export function AddGoalDialog({
   };
 
   return (
-    <Dialog open={resolvedOpen} onOpenChange={setResolvedOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       {children ? <DialogTrigger render={children as React.ReactElement} /> : null}
       <DialogContent>
         <DialogHeader>
@@ -275,7 +265,7 @@ export function AddGoalDialog({
         </FieldGroup>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setResolvedOpen(false)} disabled={saving}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
             {m.common_cancel()}
           </Button>
           <Button onClick={handleSubmit} loading={saving} disabled={!hasContent}>
