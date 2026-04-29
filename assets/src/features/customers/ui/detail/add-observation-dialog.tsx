@@ -6,20 +6,29 @@ import { createClinicalNoteObservations } from "@/features/customers/api/observa
 import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface AddObservationDialogProps {
   personId: string;
   patientId: string | null;
-  children: ReactNode;
+  children?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function AddObservationDialog({
   personId,
   patientId,
   children,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: Readonly<AddObservationDialogProps>) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useControllableState({
+    value: controlledOpen,
+    defaultValue: false,
+    onChange: controlledOnOpenChange,
+  });
   const [saving, setSaving] = useState(false);
   const [body, setBody] = useState("");
   const [effectiveDate, setEffectiveDate] = useState("");
@@ -42,14 +51,9 @@ export function AddObservationDialog({
         patientId,
         selectedOrg?.id ?? "",
       );
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: personQueryKeys.observationsScope(personId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: personQueryKeys.observationsListScope(personId),
-        }),
-      ]);
+      await queryClient.invalidateQueries({
+        queryKey: personQueryKeys.observationsListScope(personId),
+      });
       toast.success(m.observations_add_success());
       setOpen(false);
       setBody("");

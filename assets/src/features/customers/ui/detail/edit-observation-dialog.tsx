@@ -62,14 +62,9 @@ export function EditObservationDialog({
         { body: body.trim(), effectiveDate, effectiveTime },
         selectedOrg?.id ?? "",
       );
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: personQueryKeys.observationsScope(personId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: personQueryKeys.observationsListScope(personId),
-        }),
-      ]);
+      await queryClient.invalidateQueries({
+        queryKey: personQueryKeys.observationsListScope(personId),
+      });
       toast.success(m.observations_edit_success());
       onOpenChange(false);
     } catch {
