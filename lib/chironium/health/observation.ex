@@ -907,4 +907,92 @@ defmodule Chironium.Health.Observation do
       public? true
     end
   end
+
+  calculations do
+    calculate :observation_type,
+              Chironium.Health.Observation.ObservationType,
+              expr(
+                cond do
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_body_weight}]
+                  }) ->
+                    :body_weight
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_body_height}]
+                  }) ->
+                    :body_height
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_bmi}]
+                  }) ->
+                    :bmi
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @snomed_system, code: @snomed_waist_hip_ratio}]
+                  }) ->
+                    :waist_hip_ratio
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_chest_circumference}]
+                  }) ->
+                    :chest_circumference
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_hip_circumference}]
+                  }) ->
+                    :hip_circumference
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_waist_circumference}]
+                  }) ->
+                    :waist_circumference
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_arm_right_circumference}]
+                  }) ->
+                    :arm_circumference
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [
+                      %{system: @loinc_system, code: @loinc_code_thigh_right_circumference}
+                    ]
+                  }) ->
+                    :thigh_circumference
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_menstrual_period_start}]
+                  }) ->
+                    :menstrual_period_start
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [
+                      %{system: @loinc_system, code: @loinc_code_menstrual_period_duration}
+                    ]
+                  }) ->
+                    :menstrual_period_duration
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @loinc_system, code: @loinc_code_menarche_age}]
+                  }) ->
+                    :menarche_age
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @snomed_system, code: @snomed_food_preference}]
+                  }) ->
+                    :food_preference
+
+                  fragment("? @> ?::jsonb", code, %{
+                    coding: [%{system: @snomed_system, code: @snomed_food_aversion}]
+                  }) ->
+                    :food_aversion
+
+                  true ->
+                    nil
+                end
+              ) do
+      description "Observation type derived from FHIR code, for ergonomic filtering without hardcoding terminology system/code pairs."
+      public? true
+    end
+  end
 end
