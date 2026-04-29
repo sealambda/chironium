@@ -31,22 +31,44 @@ const ListTasksQuery = graphql(`
   }
 `);
 
-const ListPlanReviewTasksForPatientQuery = graphql(`
-  query ListPlanReviewTasksForPatient($patientId: ID!) {
+const ListTasksForPatientQuery = graphql(`
+  query ListTasksForPatient($patientId: ID!) {
     listTasks(
       first: 250
-      sort: [{ field: REQUESTED_PERIOD_START_SORT_KEY, order: ASC }]
-      filter: {
-        intent: { eq: PLAN }
-        forPatientId: { eq: $patientId }
-        status: { in: [ACCEPTED, READY] }
-      }
+      sort: [{ field: REQUESTED_PERIOD_START_SORT_KEY, order: DESC }]
+      filter: { forPatientId: { eq: $patientId } }
     ) {
       results {
         id
+        intent
+        status
+        priority
+        description
         requestedPeriod {
           start
           end
+        }
+        note {
+          text
+          time
+          authorString
+          authorReference
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -108,8 +130,8 @@ const CompleteTaskMutation = graphql(`
 export type Task = NonNullable<
   NonNullable<ResultOf<typeof ListTasksQuery>["listTasks"]>["results"]
 >[number];
-export type PendingPlanReviewTask = NonNullable<
-  NonNullable<ResultOf<typeof ListPlanReviewTasksForPatientQuery>["listTasks"]>["results"]
+export type PatientTask = NonNullable<
+  NonNullable<ResultOf<typeof ListTasksForPatientQuery>["listTasks"]>["results"]
 >[number];
 
 const SORT_BY_REQUESTED_PERIOD_START = [
@@ -134,23 +156,6 @@ export async function fetchTasks(organizationId: string): Promise<Task[]> {
   return tasks;
 }
 
-export async function fetchPendingPlanReviewTasksForPatient(
-  patientId: string,
-  organizationId: string,
-): Promise<PendingPlanReviewTask[]> {
-  if (!patientId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql({
-    document: ListPlanReviewTasksForPatientQuery,
-    variables: { patientId },
-    organizationId,
-  });
-
-  return result.listTasks?.results ?? [];
-}
-
 export interface CreateTaskParams {
   organizationId: string;
   patientId: string;
@@ -170,7 +175,7 @@ export async function createTask({
     document: CreateTaskMutation,
     variables: {
       input: {
-        intent: "PLAN",
+        intent: "UNKNOWN",
         forPatientId: patientId,
         description: description.trim(),
         priority: "ROUTINE",
@@ -216,4 +221,22 @@ export async function completeReviewTask(taskId: string, organizationId: string)
     organizationId,
   });
   unwrapMutationResult(completed.completeTask, "Failed to complete task.");
+}
+
+/** Fetch all tasks for a specific patient (all intents, all statuses). Used by the activity feed. */
+export async function fetchTasksForPatient(
+  patientId: string,
+  organizationId: string,
+): Promise<PatientTask[]> {
+  if (!patientId || !organizationId) {
+    return [];
+  }
+
+  const result = await requestGraphql({
+    document: ListTasksForPatientQuery,
+    variables: { patientId },
+    organizationId,
+  });
+
+  return result.listTasks?.results ?? [];
 }
