@@ -72,8 +72,9 @@ function ToggleGroup({
       onValueChange={(newValue) => {
         // For single selection, take the last item (the newly pressed one).
         // Don't allow deselecting all items.
-        if (newValue.length > 0) {
-          onValueChange(newValue[newValue.length - 1]);
+        const last = newValue[newValue.length - 1];
+        if (last !== undefined) {
+          onValueChange(last);
         }
       }}
       disabled={disabled}
