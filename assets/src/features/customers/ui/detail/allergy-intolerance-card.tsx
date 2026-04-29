@@ -1,225 +1,144 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
-import {
-  type AllergyIntoleranceItem as ApiAllergyIntoleranceItem,
-  createAllergiesAndIntolerances,
-} from "@/features/customers/api/allergy-intolerance-api";
-import { CardHistoryLinkFooter } from "@/features/customers/ui/detail/card-footer";
-import {
-  CustomerDetailEmptyCard,
-  CustomerDetailEmptyCardAddRow,
-} from "@/features/customers/ui/detail/customer-detail-empty-card";
-import { CustomerDetailTagsCardSkeleton } from "@/features/customers/ui/detail/customer-detail-tags-card-skeleton";
-import { TagColumn } from "@/features/customers/ui/detail/tag-column";
-import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
-import { useOrg } from "@/features/org/hooks/use-org";
+import type { AllergyIntoleranceItem } from "@/features/customers/api/allergy-intolerance-api";
+import { AllergyDetailDialog } from "@/features/customers/ui/detail/allergy-detail-dialog";
+import { AllergyPill } from "@/features/customers/ui/detail/allergy-pill";
+import { AllergyRemoveDialog } from "@/features/customers/ui/detail/allergy-remove-dialog";
+import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import * as m from "@/paraglide/messages";
-import type { TerminologyTag } from "@/shared/types/terminology";
-import { Button } from "@/shared/ui/button";
-import { CardAddButton } from "@/shared/ui/card-add-button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
-import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
-
-// ─── Props ───────────────────────────────────────────────────────────
 
 interface AllergyIntoleranceCardProps {
-  personId: string;
-  patientId: string | null;
-  items: AllergyIntoleranceItem[];
-  isLoading?: boolean;
+  readonly items: AllergyIntoleranceItem[];
+  readonly isLoading?: boolean;
+  readonly compact?: boolean;
+  readonly personId?: string;
+  readonly patientId?: string | null;
+  readonly organizationId?: string;
 }
 
-type AllergyIntoleranceItem = Pick<ApiAllergyIntoleranceItem, "type" | "code">;
+const isActive = (item: AllergyIntoleranceItem) =>
+  item.verificationStatus !== "ENTERED_IN_ERROR" && item.verificationStatus !== "REFUTED";
 
-// ─── Helpers ─────────────────────────────────────────────────────────
+const nameOf = (item: AllergyIntoleranceItem): string =>
+  item.code?.text ?? item.code?.coding?.[0]?.display ?? "";
 
-function parseItemTags(items: AllergyIntoleranceItem[], type: string): string[] {
-  return items
-    .filter((item) => item.type === type)
-    .map((item) => displayTextFromCodeableConcept(item.code))
-    .filter(Boolean);
+interface AllergyColumnProps {
+  readonly label: string;
+  readonly items: readonly AllergyIntoleranceItem[];
+  readonly emptyText: string;
+  readonly className?: string;
+  readonly onEdit?: (item: AllergyIntoleranceItem) => void;
 }
 
-// ─── Add dialog ──────────────────────────────────────────────────────
-
-interface AddAllergyIntoleranceDialogProps {
-  personId: string;
-  patientId: string | null;
-  children: React.ReactNode;
-}
-
-function AddAllergyIntoleranceDialog({
-  personId,
-  patientId,
-  children,
-}: Readonly<AddAllergyIntoleranceDialogProps>) {
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [allergies, setAllergies] = useState<TerminologyTag[]>([]);
-  const [intolerances, setIntolerances] = useState<TerminologyTag[]>([]);
-  const { selectedOrg } = useOrg();
-  const queryClient = useQueryClient();
-
-  const hasContent = allergies.length > 0 || intolerances.length > 0;
-
-  const resetForm = () => {
-    setAllergies([]);
-    setIntolerances([]);
-  };
-
-  const handleSubmit = async () => {
-    if (!hasContent || !patientId) {
-      if (!patientId) {
-        toast.error(m.onboarding_error());
-      }
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await createAllergiesAndIntolerances(
-        { allergies, intolerances },
-        patientId,
-        selectedOrg?.id ?? "",
-      );
-
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.allergyIntolerancesScope(personId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(personId),
-      });
-
-      toast.success(m.allergy_intolerance_add_success());
-      setOpen(false);
-      resetForm();
-    } catch {
-      toast.error(m.onboarding_error());
-    } finally {
-      setSaving(false);
-    }
-  };
-
+function AllergyColumn({ label, items, emptyText, className, onEdit }: AllergyColumnProps) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{m.allergy_intolerance_dialog_title()}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <TerminologyTagInput
-            label={m.allergy_intolerance_allergies_label()}
-            placeholder={m.field_allergies_placeholder()}
-            tags={allergies}
-            onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
-            onRemove={(i) => setAllergies((prev) => prev.filter((_, idx) => idx !== i))}
-            organizationId={selectedOrg?.id ?? ""}
-            conceptContext="ALLERGY_INTOLERANCE"
-            addLabel={m.common_add()}
-            disabled={saving}
-          />
-          <TerminologyTagInput
-            label={m.allergy_intolerance_intolerances_label()}
-            placeholder={m.field_intolerances_placeholder()}
-            tags={intolerances}
-            onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
-            onRemove={(i) => setIntolerances((prev) => prev.filter((_, idx) => idx !== i))}
-            organizationId={selectedOrg?.id ?? ""}
-            conceptContext="ALLERGY_INTOLERANCE"
-            addLabel={m.common_add()}
-            disabled={saving}
-          />
+    <div className={className}>
+      <p className="mb-2 font-semibold text-foreground/60 text-xs uppercase tracking-widest">
+        {label}
+      </p>
+      {items.length === 0 ? (
+        <p className="text-muted-foreground text-xs">{emptyText}</p>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {items.map((item) => (
+            <AllergyPill
+              key={item.id}
+              allergyType={item.type as "ALLERGY" | "INTOLERANCE"}
+              clinicalStatus={item.clinicalStatus ?? undefined}
+              onClick={onEdit ? () => onEdit(item) : undefined}
+            >
+              {nameOf(item)}
+            </AllergyPill>
+          ))}
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            {m.common_cancel()}
-          </Button>
-          <Button onClick={handleSubmit} disabled={saving || !hasContent}>
-            {saving ? m.common_saving() : m.allergy_intolerance_dialog_submit()}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      )}
+    </div>
   );
 }
 
-// ─── Main component ──────────────────────────────────────────────────
-
 export function AllergyIntoleranceCard({
-  personId,
-  patientId,
   items,
   isLoading,
-}: Readonly<AllergyIntoleranceCardProps>) {
-  if (isLoading) {
-    return <CustomerDetailTagsCardSkeleton columns={2} />;
-  }
+  compact,
+  personId,
+  patientId,
+  organizationId,
+}: AllergyIntoleranceCardProps) {
+  const [editingItem, setEditingItem] = useState<AllergyIntoleranceItem | null>(null);
+  const [removingItem, setRemovingItem] = useState<AllergyIntoleranceItem | null>(null);
 
-  const allergyTags = parseItemTags(items, "ALLERGY");
-  const intoleranceTags = parseItemTags(items, "INTOLERANCE");
-  const isEmpty = allergyTags.length === 0 && intoleranceTags.length === 0;
+  const canInteract = Boolean(personId && organizationId);
+  const safePersonId = personId ?? "";
+  const safeOrgId = organizationId ?? "";
 
-  if (isEmpty) {
-    return (
-      <CustomerDetailEmptyCard
-        header={
-          <CustomerDetailEmptyCardAddRow>
-            <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
-              <CardAddButton label={m.allergy_intolerance_add()} />
-            </AddAllergyIntoleranceDialog>
-          </CustomerDetailEmptyCardAddRow>
-        }
-        icon={AlertTriangle}
-        title={m.allergy_intolerance_empty()}
-        description={m.allergy_intolerance_empty_desc()}
-      />
-    );
-  }
+  const active = items.filter(isActive);
+  const allergies = active.filter((item) => item.type === "ALLERGY");
+  const intolerances = active.filter((item) => item.type === "INTOLERANCE");
 
   return (
-    <div className="relative flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-      <AddAllergyIntoleranceDialog personId={personId} patientId={patientId}>
-        <CardAddButton
-          label={m.allergy_intolerance_add()}
-          className="absolute top-4 right-4 lg:top-5 lg:right-5"
-        />
-      </AddAllergyIntoleranceDialog>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <TagColumn
+    <>
+      <TagsCardShell
+        isLoading={isLoading}
+        isEmpty={active.length === 0}
+        emptyIcon={AlertTriangle}
+        emptyTitle={m.allergy_intolerance_empty()}
+        emptyDescription={m.allergy_intolerance_empty_desc()}
+        compact={compact}
+        columns={2}
+      >
+        <AllergyColumn
           label={m.allergy_intolerance_allergies_label()}
-          tags={allergyTags}
-          tagClassName="border-red-200 bg-red-50 text-red-800"
+          items={allergies}
           emptyText={m.allergy_intolerance_none_allergies()}
+          className="pr-3"
+          onEdit={canInteract ? setEditingItem : undefined}
         />
-        <TagColumn
+        <AllergyColumn
           label={m.allergy_intolerance_intolerances_label()}
-          tags={intoleranceTags}
-          tagClassName="border-amber-200 bg-amber-50 text-amber-800"
+          items={intolerances}
           emptyText={m.allergy_intolerance_none_intolerances()}
-          className="sm:border-border sm:border-l sm:pl-4"
+          className="pl-3"
+          onEdit={canInteract ? setEditingItem : undefined}
         />
-      </div>
+      </TagsCardShell>
 
-      <CardHistoryLinkFooter
-        customerId={personId}
-        to="/customers/$customerId/allergies"
-        label={m.allergy_intolerance_view_history()}
-      />
-    </div>
+      {canInteract && (
+        <>
+          <AllergyDetailDialog
+            mode="edit"
+            item={editingItem ?? undefined}
+            personId={safePersonId}
+            patientId={patientId ?? null}
+            organizationId={safeOrgId}
+            open={editingItem !== null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setEditingItem(null);
+              }
+            }}
+            onRemoveClick={() => {
+              setRemovingItem(editingItem);
+              setEditingItem(null);
+            }}
+          />
+
+          {removingItem !== null && (
+            <AllergyRemoveDialog
+              id={removingItem.id}
+              name={nameOf(removingItem)}
+              personId={safePersonId}
+              organizationId={safeOrgId}
+              open={removingItem !== null}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setRemovingItem(null);
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+    </>
   );
 }
