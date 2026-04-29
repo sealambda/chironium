@@ -27,11 +27,38 @@ const GetPatientAllergyIntolerancesQuery = graphql(`
             display(locale: $locale)
           }
         }
+        onsetDateTime
+        onsetAge {
+          value
+          code
+        }
+        onsetPeriod {
+          start
+          end
+        }
+        recordedDate
+        lastOccurrence
         note {
           text
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -62,6 +89,26 @@ const UpdateAllergyIntoleranceMutation = graphql(`
     updateAllergyIntolerance(id: $id, input: $input) {
       result {
         id
+        type
+        clinicalStatus
+        verificationStatus
+        code {
+          text
+          coding {
+            system
+            code
+            version
+          }
+        }
+        onsetDateTime
+        onsetAge {
+          value
+          code
+        }
+        onsetPeriod {
+          start
+          end
+        }
         note {
           text
           time
@@ -241,4 +288,99 @@ export async function deleteAllergyIntolerance(id: string, organizationId: strin
     organizationId,
   });
   unwrapMutationResult(result.deleteAllergyIntolerance, "Failed to delete allergy/intolerance.");
+}
+
+// ─── Full-record create/update for the detail dialog ─────────────────
+
+export interface AllergyIntoleranceFormInput {
+  type: "ALLERGY" | "INTOLERANCE";
+  name: string;
+  clinicalStatus: "ACTIVE" | "INACTIVE" | "RESOLVED";
+  verificationStatus: "CONFIRMED" | "PRESUMED" | "UNCONFIRMED";
+  onsetMode: "none" | "date" | "age" | "period";
+  onsetDateTime?: string;
+  onsetAge?: { value: string; unit: "A" | "MO" | "WK" | "D" };
+  onsetPeriod?: { start?: string; end?: string };
+}
+
+function buildAllergyInput(data: AllergyIntoleranceFormInput) {
+  let onset: Record<string, unknown> = {};
+  if (data.onsetMode === "date") {
+    onset = { onsetDateTime: data.onsetDateTime || undefined };
+  } else if (data.onsetMode === "age" && data.onsetAge?.value) {
+    onset = {
+      onsetAge: {
+        value: data.onsetAge.value,
+        code: data.onsetAge.unit,
+        system: "http://unitsofmeasure.org",
+      },
+    };
+  } else if (data.onsetMode === "period") {
+    onset = {
+      onsetPeriod: {
+        start: data.onsetPeriod?.start || undefined,
+        end: data.onsetPeriod?.end || undefined,
+      },
+    };
+  }
+
+  return {
+    type: data.type,
+    clinicalStatus: data.clinicalStatus,
+    verificationStatus: data.verificationStatus,
+    code: { text: data.name },
+    ...onset,
+  };
+}
+
+/**
+ * Create a single allergy or intolerance record with full clinical metadata.
+ */
+export async function createAllergyIntolerance(
+  data: AllergyIntoleranceFormInput,
+  patientId: string,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: CreateAllergyIntoleranceMutation,
+    variables: { input: { ...buildAllergyInput(data), patientId } },
+    organizationId,
+  });
+  unwrapMutationResult(
+    result.createAllergyIntolerance,
+    "Failed to create allergy/intolerance record.",
+  );
+}
+
+/**
+ * Update all clinical fields on an existing allergy or intolerance record.
+ */
+export async function updateAllergyIntolerance(
+  id: string,
+  data: AllergyIntoleranceFormInput,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateAllergyIntoleranceMutation,
+    variables: { id, input: buildAllergyInput(data) },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateAllergyIntolerance, "Failed to update record.");
+}
+
+/**
+ * Soft-removes a record by changing its verification status to indicate the
+ * record was entered in error or has been clinically refuted.
+ */
+export async function removeAllergyIntolerance(
+  id: string,
+  reason: "ENTERED_IN_ERROR" | "REFUTED",
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateAllergyIntoleranceMutation,
+    variables: { id, input: { verificationStatus: reason } },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateAllergyIntolerance, "Failed to remove record.");
 }

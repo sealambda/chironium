@@ -1,6 +1,6 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { codeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
-import { graphql, type ResultOf } from "@/graphql";
+import { graphql, type ResultOf, type VariablesOf } from "@/graphql";
 import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -26,11 +26,42 @@ const GetPatientConditionsQuery = graphql(`
             display(locale: $locale)
           }
         }
+        onsetDateTime
+        onsetAge {
+          value
+          code
+        }
+        onsetPeriod {
+          start
+          end
+        }
+        abatementDateTime
+        abatementPeriod {
+          start
+          end
+        }
+        recordedDate
         note {
           text
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -91,6 +122,23 @@ export type ConditionItem = NonNullable<
   NonNullable<ResultOf<typeof GetPatientConditionsQuery>["getPatient"]>["conditions"]
 >[number];
 
+type CreateConditionInput = NonNullable<VariablesOf<typeof CreateConditionMutation>["input"]>;
+
+export type ConditionClinicalStatus = NonNullable<CreateConditionInput["clinicalStatus"]>;
+
+export type ConditionCreateOptions = Partial<
+  Pick<
+    CreateConditionInput,
+    | "clinicalStatus"
+    | "verificationStatus"
+    | "onsetDateTime"
+    | "onsetPeriod"
+    | "abatementDateTime"
+    | "abatementPeriod"
+    | "recordedDate"
+  >
+>;
+
 /** Form data for the pathologies (conditions) onboarding step. */
 export interface PathologiesFormData {
   pathologies: TerminologyTag[];
@@ -119,12 +167,13 @@ export async function fetchConditions(
 }
 
 /**
- * Create one Condition per tag (active, confirmed).
+ * Create one Condition per tag.
  */
 export async function createConditionsFromTags(
   tags: TerminologyTag[],
   patientId: string,
   organizationId: string,
+  options: ConditionCreateOptions = {},
 ): Promise<void> {
   const makeRecord = (tag: TerminologyTag) =>
     (async () => {
@@ -132,21 +181,15 @@ export async function createConditionsFromTags(
         document: CreateConditionMutation,
         variables: {
           input: {
-            clinicalStatus: "ACTIVE",
-            verificationStatus: "CONFIRMED",
+            clinicalStatus: options.clinicalStatus ?? "ACTIVE",
+            verificationStatus: options.verificationStatus ?? "CONFIRMED",
+            onsetDateTime: options.onsetDateTime,
+            onsetPeriod: options.onsetPeriod,
+            abatementDateTime: options.abatementDateTime,
+            abatementPeriod: options.abatementPeriod,
+            recordedDate: options.recordedDate,
             subjectId: patientId,
-            code: tag.coding
-              ? {
-                  text: tag.label,
-                  coding: [
-                    {
-                      system: tag.coding.system,
-                      code: tag.coding.code,
-                      version: tag.coding.version ?? undefined,
-                    },
-                  ],
-                }
-              : { text: tag.label },
+            code: codeInputFromTerminologyTag(tag),
           },
         },
         organizationId,
@@ -222,4 +265,70 @@ export async function deleteCondition(id: string, organizationId: string): Promi
     organizationId,
   });
   unwrapMutationResult(result.deleteCondition, "Failed to delete condition.");
+}
+
+// ─── Detail update / soft removal ─────────────────────────────────────
+
+type ConditionVerificationStatus = NonNullable<CreateConditionInput["verificationStatus"]>;
+
+/**
+ * Form values for the condition detail dialog. Date fields are ISO date
+ * strings (`YYYY-MM-DD`); empty strings indicate the field was cleared.
+ */
+export interface ConditionFormInput {
+  name: string;
+  clinicalStatus: ConditionClinicalStatus;
+  verificationStatus: ConditionVerificationStatus;
+  onsetDate: string;
+  abatementDate: string;
+  recordedDate: string;
+}
+
+const ABATED_STATUSES: readonly ConditionClinicalStatus[] = ["INACTIVE", "REMISSION", "RESOLVED"];
+
+function dateInputToUtc(value: string): string | undefined {
+  return value ? `${value}T09:00:00.000Z` : undefined;
+}
+
+function buildConditionInput(data: ConditionFormInput) {
+  const abated = ABATED_STATUSES.includes(data.clinicalStatus);
+  return {
+    clinicalStatus: data.clinicalStatus,
+    verificationStatus: data.verificationStatus,
+    code: { text: data.name },
+    onsetDateTime: dateInputToUtc(data.onsetDate),
+    abatementDateTime: abated ? dateInputToUtc(data.abatementDate) : undefined,
+    recordedDate: dateInputToUtc(data.recordedDate),
+  };
+}
+
+/** Update all clinical fields on an existing condition record. */
+export async function updateCondition(
+  id: string,
+  data: ConditionFormInput,
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateConditionMutation,
+    variables: { id, input: buildConditionInput(data) },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateCondition, "Failed to update condition.");
+}
+
+/**
+ * Soft-removes a condition by changing its verification status to indicate the
+ * record was entered in error or has been clinically refuted.
+ */
+export async function removeCondition(
+  id: string,
+  reason: "ENTERED_IN_ERROR" | "REFUTED",
+  organizationId: string,
+): Promise<void> {
+  const result = await requestGraphql({
+    document: UpdateConditionMutation,
+    variables: { id, input: { verificationStatus: reason } },
+    organizationId,
+  });
+  unwrapMutationResult(result.updateCondition, "Failed to remove condition.");
 }
