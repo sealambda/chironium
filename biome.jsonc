@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
@@ -7,9 +7,18 @@
       "**/src/**",
       "**/js/**",
       "**/config.*",
-      "**/jsonc",
+      "**/*.jsonc",
       "**/assets/e2e/**/*.ts",
-      "**/playwright.config.ts"
+      "**/playwright.config.ts",
+      // Prevent Biome from scanning vendored Hex deps and build artifacts when run from repo root.
+      "!deps",
+      "!_build",
+      "!priv",
+      "!node_modules",
+      "!**/node_modules",
+      "!**/paraglide",
+      "!**/routeTree.gen.ts",
+      "!**/graphql-env.d.ts"
     ]
   },
   "vcs": {
@@ -27,8 +36,8 @@
     // Better for TypeScript generics and JSX; modern TS standard.
     "lineWidth": 100,
 
-    // Sync with the project .editorconfig for cross-tool consistency. Disabled temporarily since our .editorconfig isn't validated.
-    "useEditorconfig": false
+    // Sync with the project .editorconfig for cross-tool consistency.
+    "useEditorconfig": true
   },
   "linter": {
     // ~230 recommended rules are enabled implicitly (recommended: true is the default).
