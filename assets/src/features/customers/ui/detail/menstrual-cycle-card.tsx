@@ -1,4 +1,4 @@
-import { format, formatDistanceStrict, isValid, parseISO } from "date-fns";
+import { addDays, format, formatDistanceStrict, isValid, parseISO } from "date-fns";
 import { MoveRight, RefreshCcwDot } from "lucide-react";
 
 import type { MenstrualCycleSummary } from "@/features/customers/api/observations-api";
@@ -6,10 +6,12 @@ import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer
 import * as m from "@/paraglide/messages";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { cn } from "@/shared/utils/utils";
 
 interface MenstrualCycleCardProps {
   cycle: MenstrualCycleSummary | null;
   isLoading?: boolean;
+  compact?: boolean;
 }
 
 function formatCycleDate(date: string | null): string {
@@ -25,7 +27,20 @@ function formatCycleDate(date: string | null): string {
   return format(parsed, "MMMM d", { locale: getDateLocale() });
 }
 
-function formatCycleDuration(startDate: string | null, endDate: string | null): string {
+function formatDurationDays(durationDays: number): string {
+  const start = new Date(2000, 0, 1);
+  return formatDistanceStrict(start, addDays(start, durationDays), {
+    locale: getDateLocale(),
+    unit: "day",
+  });
+}
+
+function formatCycleDuration(cycle: MenstrualCycleSummary): string {
+  if (cycle.durationDays != null) {
+    return formatDurationDays(cycle.durationDays);
+  }
+
+  const { startDate, endDate } = cycle;
   if (!startDate || !endDate) {
     return m.common_unknown();
   }
@@ -42,9 +57,14 @@ function formatCycleDuration(startDate: string | null, endDate: string | null): 
   });
 }
 
-function MenstrualCycleCardSkeleton() {
+function MenstrualCycleCardSkeleton({ compact }: Readonly<{ compact?: boolean }>) {
   return (
-    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
+    <div
+      className={cn(
+        "flex flex-col rounded-2xl border border-border/50 bg-card shadow-sm",
+        compact ? "p-3 lg:p-4" : "p-4 lg:p-5",
+      )}
+    >
       <div className="flex items-center justify-between gap-4">
         <Skeleton className="h-7 w-44" />
         <Skeleton className="h-7 w-16" />
@@ -62,19 +82,18 @@ function MenstrualCycleCardSkeleton() {
   );
 }
 
-export function MenstrualCycleCard({ cycle, isLoading }: Readonly<MenstrualCycleCardProps>) {
+export function MenstrualCycleCard({
+  cycle,
+  isLoading,
+  compact,
+}: Readonly<MenstrualCycleCardProps>) {
   if (isLoading) {
-    return <MenstrualCycleCardSkeleton />;
+    return <MenstrualCycleCardSkeleton compact={compact} />;
   }
 
   if (!cycle) {
     return (
       <CustomerDetailEmptyCard
-        header={
-          <h3 className="font-bold text-foreground text-xl uppercase tracking-wide">
-            {m.menstrual_cycle_title()}
-          </h3>
-        }
         icon={RefreshCcwDot}
         title={m.menstrual_cycle_empty()}
         description={m.menstrual_cycle_empty_desc()}
@@ -84,11 +103,16 @@ export function MenstrualCycleCard({ cycle, isLoading }: Readonly<MenstrualCycle
 
   const start = formatCycleDate(cycle?.startDate ?? null);
   const end = formatCycleDate(cycle?.endDate ?? null);
-  const duration = formatCycleDuration(cycle?.startDate ?? null, cycle?.endDate ?? null);
+  const duration = formatCycleDuration(cycle);
   const note = cycle?.notes?.trim() || m.menstrual_cycle_note_empty();
 
   return (
-    <div className="flex flex-col rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
+    <div
+      className={cn(
+        "flex flex-col rounded-2xl border border-border/50 bg-card shadow-sm",
+        compact ? "p-3 lg:p-4" : "p-4 lg:p-5",
+      )}
+    >
       <div className="flex items-end gap-2">
         <h3 className="font-bold text-foreground text-xl uppercase leading-none tracking-wide">
           {m.menstrual_cycle_last_cycle()}

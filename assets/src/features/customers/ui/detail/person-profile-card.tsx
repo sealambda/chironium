@@ -1,17 +1,18 @@
 import { differenceInYears, parseISO } from "date-fns";
 import { Pencil, Plus, Target } from "lucide-react";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 import type { Person } from "@/features/customers/api/persons-api";
-import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
+import { EditPersonDialog } from "@/features/customers/ui/detail/edit-person-dialog";
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
-import { ReviewTaskDialog } from "@/features/customers/ui/detail/review-task-dialog";
+import { AchievementBadge } from "@/features/customers/ui/shared/achievement-badge";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { CardAddButton } from "@/shared/ui/card-add-button";
+import { Card, CardContent } from "@/shared/ui/card";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
 import { Separator } from "@/shared/ui/separator";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -21,7 +22,6 @@ import { formatPersonName } from "@/shared/utils/person-utils";
 import { getSubscriptionBadgeMetadata } from "@/shared/utils/subscriptions-utils";
 import { cn } from "@/shared/utils/utils";
 
-import { CardHistoryLinkFooter } from "./card-footer";
 import { CustomerDetailEmptyCardContent } from "./customer-detail-empty-card";
 
 interface PersonProfileCardProps {
@@ -37,53 +37,6 @@ interface GoalItem {
   id: string;
   achievementStatus: string | null;
   description: { text: string | null } | null;
-}
-
-const goalStatus = {
-  improving: "IMPROVING",
-  achieved: "ACHIEVED",
-  sustaining: "SUSTAINING",
-  inProgress: "IN_PROGRESS",
-  noChange: "NO_CHANGE",
-  noProgress: "NO_PROGRESS",
-  worsening: "WORSENING",
-  notAchieved: "NOT_ACHIEVED",
-  notAttainable: "NOT_ATTAINABLE",
-} as const;
-
-type GoalAchievementStatus = (typeof goalStatus)[keyof typeof goalStatus];
-
-const achievementStyles: Record<GoalAchievementStatus, string> = {
-  [goalStatus.improving]: "border-emerald-200 bg-emerald-100 text-emerald-800",
-  [goalStatus.achieved]: "border-emerald-200 bg-emerald-100 text-emerald-800",
-  [goalStatus.sustaining]: "border-sky-200 bg-sky-100 text-sky-800",
-  [goalStatus.inProgress]: "border-blue-200 bg-blue-100 text-blue-800",
-  [goalStatus.noChange]: "border-neutral-200 bg-neutral-100 text-neutral-700",
-  [goalStatus.noProgress]: "border-neutral-200 bg-neutral-100 text-neutral-700",
-  [goalStatus.worsening]: "border-red-200 bg-red-100 text-red-800",
-  [goalStatus.notAchieved]: "border-red-200 bg-red-100 text-red-800",
-  [goalStatus.notAttainable]: "border-red-200 bg-red-100 text-red-800",
-};
-
-const achievementLabels: Record<GoalAchievementStatus, () => string> = {
-  [goalStatus.improving]: m.goals_status_improving,
-  [goalStatus.achieved]: m.goals_status_achieved,
-  [goalStatus.sustaining]: m.goals_status_sustaining,
-  [goalStatus.inProgress]: m.goals_status_in_progress,
-  [goalStatus.noChange]: m.goals_status_no_change,
-  [goalStatus.noProgress]: m.goals_status_no_progress,
-  [goalStatus.worsening]: m.goals_status_worsening,
-  [goalStatus.notAchieved]: m.goals_status_not_achieved,
-  [goalStatus.notAttainable]: m.goals_status_not_attainable,
-};
-
-const DEFAULT_ACHIEVEMENT_STYLE = achievementStyles[goalStatus.noChange];
-
-function AchievementBadge({ status }: Readonly<{ status: string }>) {
-  const style = achievementStyles[status as GoalAchievementStatus] ?? DEFAULT_ACHIEVEMENT_STYLE;
-  const label = achievementLabels[status as GoalAchievementStatus]?.() ?? status;
-
-  return <Badge className={cn("h-5 shrink-0 px-1.5 font-semibold text-xs", style)}>{label}</Badge>;
 }
 
 function getAgeLabel(birthDate?: string | null): string {
@@ -116,11 +69,11 @@ function PersonProfileCardGoalsSkeleton() {
 export function PersonProfileCard({
   person,
   personId,
-  patientId,
   goals,
   currentSubscription,
   isGoalsLoading = false,
 }: Readonly<PersonProfileCardProps>) {
+  const [editOpen, setEditOpen] = useState(false);
   const name = formatPersonName(person.name);
   const initials = getInitials(name);
   const contact = extractContactInfo(person.telecom);
@@ -128,7 +81,9 @@ export function PersonProfileCard({
   const badgeMetadata = getSubscriptionBadgeMetadata(currentSubscription);
   const shouldCreateSubscription = !badgeMetadata.shouldEdit;
   const subscriptionForDialog = shouldCreateSubscription ? undefined : currentSubscription;
-  const subscriptionActionLabel = shouldCreateSubscription ? m.common_add() : m.common_save();
+  const subscriptionActionLabel = shouldCreateSubscription
+    ? m.person_header_add_subscription()
+    : m.person_header_edit_subscription();
   const planBadgeLabel = badgeMetadata.statusLabel
     ? `${badgeMetadata.planLabel} - ${badgeMetadata.statusLabel}`
     : badgeMetadata.planLabel;
@@ -152,87 +107,90 @@ export function PersonProfileCard({
   }
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-4 shadow-sm lg:p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-        <div className="flex flex-1 items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-4">
-            <Avatar className="size-22 sm:size-24">
-              <AvatarFallback className="bg-primary font-semibold text-2xl text-primary-foreground">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+    <>
+      <EditPersonDialog person={person} open={editOpen} onOpenChange={setEditOpen} />
+      <Card>
+        <CardContent className="p-4 shadow-sm lg:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+            <div className="flex flex-1 items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-4">
+                <Avatar className="size-22 sm:size-24">
+                  <AvatarFallback className="bg-primary font-semibold text-2xl text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
 
-            <div className="flex min-w-0 flex-col items-start gap-2 space-y-2">
-              <h1 className="font-bold text-foreground text-xl tracking-wide">
-                {name}
-                {ageLabel}
-              </h1>
-              <div className="flex items-center">
-                <Badge className={badgeMetadata.badgeClassName}>
-                  <span
-                    className={cn(
-                      "hidden size-1.5 rounded-full sm:inline-block",
-                      badgeMetadata.dotClassName,
-                    )}
-                  />
-                  {planBadgeLabel}
-                  <EditSubscriptionDialog
-                    personId={personId}
-                    currentSubscription={subscriptionForDialog}
-                  >
+                <div className="flex min-w-0 flex-col items-start gap-2 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <h1 className="font-bold text-foreground text-xl tracking-wide">
+                      {name}
+                      {ageLabel}
+                    </h1>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="-mr-1.5 ml-0.5 size-5 rounded-full"
-                      aria-label={subscriptionActionLabel}
-                      data-testid="customer-subscription-edit-button"
+                      className="size-7 shrink-0"
+                      aria-label={m.person_header_edit_profile()}
+                      data-testid="customer-person-edit-button"
+                      onClick={() => setEditOpen(true)}
                     >
-                      {shouldCreateSubscription ? (
-                        <Plus className="size-3" />
-                      ) : (
-                        <Pencil className="size-3" />
-                      )}
+                      <Pencil className="size-3.5" />
                     </Button>
-                  </EditSubscriptionDialog>
-                </Badge>
+                  </div>
+                  <div className="flex items-center">
+                    <Badge className={badgeMetadata.badgeClassName}>
+                      <span
+                        className={cn(
+                          "hidden size-1.5 rounded-full sm:inline-block",
+                          badgeMetadata.dotClassName,
+                        )}
+                      />
+                      {planBadgeLabel}
+                      <EditSubscriptionDialog
+                        personId={personId}
+                        currentSubscription={subscriptionForDialog}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="-mr-1.5 ml-0.5 size-5 rounded-full"
+                          aria-label={subscriptionActionLabel}
+                          data-testid="customer-subscription-edit-button"
+                        >
+                          {shouldCreateSubscription ? (
+                            <Plus className="size-3" />
+                          ) : (
+                            <Pencil className="size-3" />
+                          )}
+                        </Button>
+                      </EditSubscriptionDialog>
+                    </Badge>
+                  </div>
+                  <ContactButtonGroup {...contact} personName={name} />
+                </div>
               </div>
-              <ContactButtonGroup {...contact} personName={name} />
+            </div>
+
+            <Separator orientation="horizontal" className="lg:hidden" />
+            <Separator orientation="vertical" className="hidden lg:block" />
+
+            <div className="flex flex-1 flex-col gap-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-foreground text-xl uppercase tracking-wide">
+                    {m.goals_title()}
+                  </p>
+                  {lastGoal?.achievementStatus ? (
+                    <AchievementBadge status={lastGoal.achievementStatus} />
+                  ) : null}
+                </div>
+              </div>
+
+              {goalContent}
             </div>
           </div>
-          {patientId ? <ReviewTaskDialog personId={personId} patientId={patientId} /> : null}
-        </div>
-
-        <Separator orientation="horizontal" className="lg:hidden" />
-        <Separator orientation="vertical" className="hidden lg:block" />
-
-        <div className="flex flex-1 flex-col gap-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <p className="font-bold text-foreground text-xl uppercase tracking-wide">
-                {m.goals_title()}
-              </p>
-              {lastGoal?.achievementStatus ? (
-                <AchievementBadge status={lastGoal.achievementStatus} />
-              ) : null}
-            </div>
-            {patientId ? (
-              <AddGoalDialog personId={personId} patientId={patientId}>
-                <CardAddButton label={m.goals_add()} data-testid="customer-goals-add-button" />
-              </AddGoalDialog>
-            ) : null}
-          </div>
-
-          {goalContent}
-
-          {patientId && lastGoal ? (
-            <CardHistoryLinkFooter
-              customerId={personId}
-              to="/customers/$customerId/goals"
-              label={m.goals_view_history()}
-            />
-          ) : null}
-        </div>
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }
