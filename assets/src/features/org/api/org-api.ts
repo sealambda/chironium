@@ -1,8 +1,11 @@
-import type { OrganizationUserRole, PrincipalType } from "@/gql/graphql";
 import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
-import type { DurationUnit } from "@/shared/types/schema-enums";
+import type {
+  DurationUnit,
+  OrganizationUserRole,
+  PrincipalType,
+} from "@/shared/types/schema-enums";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 

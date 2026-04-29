@@ -1,6 +1,6 @@
 import type { OrganizationSettingsData, PrincipalGrantRow } from "@/features/org/api/org-api";
-import type { OrganizationUserRole } from "@/gql/graphql";
 import * as m from "@/paraglide/messages";
+import type { OrganizationUserRole } from "@/shared/types/schema-enums";
 import { givenFamilyFromUserProfile } from "@/shared/utils/name-utils";
 
 export type MemberSource =
