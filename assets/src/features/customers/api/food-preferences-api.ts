@@ -27,6 +27,7 @@ const ListFoodPreferenceObservationsQuery = graphql(`
         effectiveDateTime
         valueString
         valueCodeableConcept {
+          text
           coding {
             system
             code
@@ -39,6 +40,22 @@ const ListFoodPreferenceObservationsQuery = graphql(`
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -58,6 +75,7 @@ const ListFoodAversionObservationsQuery = graphql(`
         effectiveDateTime
         valueString
         valueCodeableConcept {
+          text
           coding {
             system
             code
@@ -70,6 +88,22 @@ const ListFoodAversionObservationsQuery = graphql(`
           time
           authorReference
           authorString
+        }
+        paperTrailVersions(limit: 1) {
+          versionActionName
+          versionInsertedAt
+          changedBy {
+            id
+            name
+          }
+          changedByPractitioner {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
         }
       }
     }
@@ -232,6 +266,7 @@ export async function fetchFoodPreferencesHistory(
     effectiveDateTime?: string | null;
     valueString?: string | null;
     valueCodeableConcept?: {
+      text?: string | null;
       coding?:
         | { system: string; code: string; version?: string | null; display?: string | null }[]
         | null;
@@ -251,10 +286,19 @@ export async function fetchFoodPreferencesHistory(
     type: FoodPreferenceHistoryItem["type"],
   ): FoodPreferenceHistoryItem => {
     const rawCodings = obs.valueCodeableConcept?.coding ?? [];
-    const items =
+    const codedLabels =
       rawCodings.length > 0
-        ? rawCodings.flatMap((c) => (c.display ? [c.display] : [])).join(", ")
-        : (obs.valueString ?? "");
+        ? rawCodings.flatMap((c) => {
+            // Fall back to the coding's `code` so chips never render empty when
+            // a localized `display` is unavailable for the requested locale.
+            const label = c.display?.trim() || c.code?.trim();
+            return label ? [label] : [];
+          })
+        : [];
+    const items =
+      codedLabels.length > 0
+        ? codedLabels.join(", ")
+        : (obs.valueCodeableConcept?.text?.trim() ?? obs.valueString ?? "");
     const codings: ObservationCoding[] = rawCodings.map((c) => ({
       system: c.system,
       code: c.code,
@@ -286,59 +330,34 @@ export async function fetchFoodPreferencesHistory(
  * Fetch food preference and aversion observations for a person and return
  * aggregated tag labels from each observation's valueCodeableConcept coding.
  */
-export async function fetchFoodPreferences(
-  personId: string,
-  organizationId: string,
-): Promise<FoodPreferencesData> {
-  if (!personId || !organizationId) {
-    return { included: [], excluded: [] };
+export function selectFoodPreferenceLabels(
+  history: readonly FoodPreferenceHistoryItem[],
+): FoodPreferencesData {
+  const included: string[] = [];
+  const excluded: string[] = [];
+
+  for (const item of history) {
+    const labels = labelsForFoodPreferenceItem(item);
+    (item.type === "inclusion" ? included : excluded).push(...labels);
   }
 
-  const variables = {
-    filter: buildSubjectFilter(personId),
-    sort: SORT_NEWEST_FIRST,
-    first: 250,
-    locale: getLocale(),
-  };
+  return { included, excluded };
+}
 
-  const [preferenceResult, aversionResult] = await Promise.all([
-    requestGraphql({
-      document: ListFoodPreferenceObservationsQuery,
-      variables,
-      organizationId,
-    }),
-    requestGraphql({
-      document: ListFoodAversionObservationsQuery,
-      variables,
-      organizationId,
-    }),
-  ]);
-
-  const extractLabels = (
-    results: {
-      valueCodeableConcept?: { coding?: { display?: string | null }[] | null } | null;
-      valueString?: string | null;
-    }[],
-  ): string[] =>
-    results.flatMap((obs) => {
-      const coding = obs.valueCodeableConcept?.coding ?? [];
-      if (coding.length > 0) {
-        return coding.flatMap((c) => {
-          const label = c.display?.trim();
-          return label ? [label] : [];
-        });
-      }
-
-      return (obs.valueString ?? "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s): s is string => s.length > 0);
+function labelsForFoodPreferenceItem(item: FoodPreferenceHistoryItem): string[] {
+  if (item.codings.length > 0) {
+    // Coded rows: prefer the localized display, fall back to the raw code so chips never render empty.
+    return item.codings.flatMap((coding) => {
+      const label = coding.display?.trim() || coding.code?.trim();
+      return label ? [label] : [];
     });
+  }
 
-  return {
-    included: extractLabels(preferenceResult.listFoodPreferenceObservations?.results ?? []),
-    excluded: extractLabels(aversionResult.listFoodAversionObservations?.results ?? []),
-  };
+  // Free-text rows: `items` is a comma-separated list authored by `createFoodObservations`.
+  return item.items
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
 /**
