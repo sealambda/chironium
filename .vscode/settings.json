@@ -1,10 +1,10 @@
 {
-	"editor.codeActionsOnSave": {
-		"source.organizeImports.biome": "explicit",
-		"source.fixAll.biome": "explicit"
-	},
-	"editor.defaultFormatter": "biomejs.biome",
-	"[elixir]": {
-		"editor.defaultFormatter": "JakeBecker.elixir-ls"
-	}
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+    "source.fixAll.biome": "explicit"
+  },
+  "editor.defaultFormatter": "biomejs.biome",
+  "[elixir]": {
+    "editor.defaultFormatter": "JakeBecker.elixir-ls"
+  }
 }
