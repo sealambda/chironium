@@ -10,4 +10,4 @@ allowBuilds:
   unrs-resolver: false
 
 catalog:
-  '@biomejs/biome': 2.4.2
+  '@biomejs/biome': 2.4.13
