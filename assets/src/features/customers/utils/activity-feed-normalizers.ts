@@ -6,7 +6,10 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
-import type { ObservationsPage } from "@/features/customers/api/observations-api";
+import type {
+  MenstrualCycleEntry,
+  ObservationsPage,
+} from "@/features/customers/api/observations-api";
 import type {
   FeedActor,
   FeedDateGroup,
@@ -45,6 +48,7 @@ interface BuildActivityFeedEventsInput {
   allergyIntolerances: AllergyIntoleranceItem[];
   medications: MedicationItem[];
   foodPreferences: FoodPreferenceHistoryItem[] | undefined;
+  menstrualCycles: MenstrualCycleEntry[] | undefined;
   activeFilter: FeedEventKind | "all";
   personName?: string | null;
 }
@@ -70,6 +74,15 @@ function normalizeTasks(tasks: PatientTask[] | undefined): FeedEvent[] {
     date: task.requestedPeriod?.start ?? nowIso(),
     actor: actorFromNotes(task.note),
     payload: task,
+  }));
+}
+
+function normalizeMenstrualCycles(entries: MenstrualCycleEntry[] | undefined): FeedEvent[] {
+  return (entries ?? []).map((entry) => ({
+    kind: "menstrual",
+    id: entry.id,
+    date: entry.effectiveDateTime,
+    payload: entry,
   }));
 }
 
@@ -405,6 +418,7 @@ export function buildActivityFeedEvents({
   allergyIntolerances,
   medications,
   foodPreferences,
+  menstrualCycles,
   activeFilter,
   personName,
 }: BuildActivityFeedEventsInput): FeedEvent[] {
@@ -418,6 +432,7 @@ export function buildActivityFeedEvents({
     ...normalizeAllergyIntolerances(allergyIntolerances),
     ...normalizeMedications(medications),
     ...normalizeFoodPreferences(foodPreferences),
+    ...normalizeMenstrualCycles(menstrualCycles),
   ];
   const filtered =
     activeFilter === "all" ? events : events.filter((event) => event.kind === activeFilter);
