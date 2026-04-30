@@ -835,7 +835,7 @@ defmodule Chironium.Health.Observation do
       authorize_if {Chironium.Health.Checks.PatientSubjectVisibleToActor, relationship: :subject}
     end
 
-    policy action([:create, :update, :destroy]) do
+    policy action_type([:create, :update, :destroy]) do
       authorize_if actor_present()
     end
   end
