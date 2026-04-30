@@ -896,6 +896,7 @@
   "activity_event_allergy": "Allergy",
   "activity_event_intolerance": "Intolerance",
   "activity_event_medication": "Medication",
+  "activity_event_menstrual": "Menstrual Cycle",
   "activity_event_food_inclusion": "Food Preference",
   "activity_event_food_exclusion": "Food Aversion",
   "activity_verb_note": "wrote a new",
@@ -911,6 +912,7 @@
   "activity_verb_condition": "registered a",
   "activity_verb_allergy": "registered an",
   "activity_verb_medication": "added a",
+  "activity_verb_menstrual": "logged a",
   "activity_verb_food_inclusion": "added a",
   "activity_verb_food_exclusion": "added a",
   "activity_verb_goal_created_plural": "set {count}",
@@ -931,5 +933,6 @@
   "activity_filter_conditions": "Conditions",
   "activity_filter_allergies": "Allergies",
   "activity_filter_medications": "Medications",
+  "activity_filter_menstrual": "Menstrual",
   "activity_filter_food": "Diet"
 }

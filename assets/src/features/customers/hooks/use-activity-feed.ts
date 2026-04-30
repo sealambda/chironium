@@ -7,7 +7,10 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
-import { fetchObservationsList } from "@/features/customers/api/observations-api";
+import {
+  fetchMenstrualCycleHistory,
+  fetchObservationsList,
+} from "@/features/customers/api/observations-api";
 import type { FeedDateGroup, FeedEventKind } from "@/features/customers/types/activity-feed";
 import {
   buildActivityFeedEvents,
@@ -75,6 +78,12 @@ export function useActivityFeed({
     enabled: fetchEnabled,
   });
 
+  const menstrualQuery = useQuery({
+    queryKey: personQueryKeys.menstrualCycleHistory(personId, organizationId),
+    queryFn: () => fetchMenstrualCycleHistory(personId, organizationId),
+    enabled: fetchEnabled,
+  });
+
   const allEvents = useMemo(
     () =>
       buildActivityFeedEvents({
@@ -87,6 +96,7 @@ export function useActivityFeed({
         allergyIntolerances,
         medications,
         foodPreferences,
+        menstrualCycles: menstrualQuery.data,
         activeFilter,
         personName,
       }),
@@ -100,6 +110,7 @@ export function useActivityFeed({
       allergyIntolerances,
       medications,
       foodPreferences,
+      menstrualQuery.data,
       activeFilter,
       personName,
     ],
@@ -128,8 +139,8 @@ export function useActivityFeed({
 
   return {
     groups: visibleGroups,
-    isLoading: observationsQuery.isLoading || tasksQuery.isLoading,
-    isError: observationsQuery.isError || tasksQuery.isError,
+    isLoading: observationsQuery.isLoading || tasksQuery.isLoading || menstrualQuery.isLoading,
+    isError: observationsQuery.isError || tasksQuery.isError || menstrualQuery.isError,
     hasMore: shownEvents < totalEvents,
     showMore,
   };

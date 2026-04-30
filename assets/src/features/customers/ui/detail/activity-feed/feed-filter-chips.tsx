@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   CalendarClock,
   ClipboardList,
+  Droplet,
   LayoutList,
   Pill,
   Scale,
@@ -104,6 +105,14 @@ const CHIPS: readonly ChipConfig[] = [
     activeClass:
       "border-violet-300 bg-violet-100 text-violet-700 dark:border-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
     activeIconClass: "text-violet-500",
+  },
+  {
+    value: "menstrual",
+    label: m.activity_filter_menstrual,
+    icon: Droplet,
+    activeClass:
+      "border-red-300 bg-red-100 text-red-700 dark:border-red-700 dark:bg-red-900/40 dark:text-red-300",
+    activeIconClass: "text-red-500",
   },
   {
     value: "food-preference",
