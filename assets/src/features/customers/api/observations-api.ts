@@ -519,9 +519,11 @@ function parseMenstrualCycleSummary(rawText: string): MenstrualCycleSummary {
 }
 
 type MenstrualCycleObservationsResult = ResultOf<typeof ListMenstrualCycleObservationsQuery>;
-type MenstrualCycleObservationPage = MenstrualCycleObservationsResult["starts"];
-type MenstrualCycleObservationRecord = NonNullable<
-  NonNullable<MenstrualCycleObservationPage>["results"]
+type MenstrualPeriodStartRecord = NonNullable<
+  NonNullable<MenstrualCycleObservationsResult["starts"]>["results"]
+>[number];
+type MenstrualPeriodDurationRecord = NonNullable<
+  NonNullable<MenstrualCycleObservationsResult["durations"]>["results"]
 >[number];
 
 function toDateOnly(value: string | null | undefined): string | null {
@@ -551,7 +553,7 @@ function addInclusiveDuration(startDate: string, durationDays: number): string |
 }
 
 function firstNoteText(
-  ...records: Array<Pick<MenstrualCycleObservationRecord, "note"> | null | undefined>
+  ...records: Array<{ note?: readonly { text?: string | null }[] | null } | null | undefined>
 ): string | null {
   for (const record of records) {
     const text = record?.note?.find((note) => note.text?.trim())?.text?.trim();
@@ -566,12 +568,22 @@ function summarizeFirstClassMenstrualCycle(
   data: MenstrualCycleObservationsResult,
 ): MenstrualCycleSummary | null {
   const startRecord = data.starts?.results?.[0];
-  const startDate = toDateOnly(startRecord?.valueDateTime ?? startRecord?.effectiveDateTime);
+  if (!startRecord) {
+    return null;
+  }
+  return summarizeMenstrualCycleStart(startRecord, data.durations?.results ?? []);
+}
+
+function summarizeMenstrualCycleStart(
+  startRecord: MenstrualPeriodStartRecord,
+  durations: MenstrualPeriodDurationRecord[],
+): MenstrualCycleSummary | null {
+  const startDate = toDateOnly(startRecord.valueDateTime ?? startRecord.effectiveDateTime);
   if (!startDate) {
     return null;
   }
 
-  const matchingDuration = data.durations?.results?.find(
+  const matchingDuration = durations.find(
     (record) => toDateOnly(record.effectiveDateTime) === startDate,
   );
   const durationDays = parseDurationDays(matchingDuration?.valueQuantity?.value);
