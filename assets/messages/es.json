@@ -896,6 +896,7 @@
   "activity_event_allergy": "Alergia",
   "activity_event_intolerance": "Intolerancia",
   "activity_event_medication": "Medicamento",
+  "activity_event_menstrual": "Ciclo menstrual",
   "activity_event_food_inclusion": "Preferencia alimentaria",
   "activity_event_food_exclusion": "Aversión alimentaria",
   "activity_verb_note": "escribió una nueva",
@@ -911,6 +912,7 @@
   "activity_verb_condition": "registró una",
   "activity_verb_allergy": "registró una",
   "activity_verb_medication": "agregó un",
+  "activity_verb_menstrual": "registró un",
   "activity_verb_food_inclusion": "agregó una",
   "activity_verb_food_exclusion": "agregó una",
   "activity_verb_goal_created_plural": "estableció {count}",
@@ -931,5 +933,6 @@
   "activity_filter_conditions": "Condiciones",
   "activity_filter_allergies": "Alergias",
   "activity_filter_medications": "Medicamentos",
+  "activity_filter_menstrual": "Menstrual",
   "activity_filter_food": "Dieta"
 }
