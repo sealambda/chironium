@@ -415,12 +415,30 @@ function isDisplayable(item: ObservationItem): boolean {
 }
 
 function isMenstrualCycleObservation(item: ObservationItem): boolean {
-  return item.code?.coding?.some((coding) => coding.code === CODES.menstrualCycle) ?? false;
+  // Match the legacy SNOMED code as well as the first-class LOINC codes used
+  // by the dedicated menstrual cycle observations (period start / duration).
+  return (
+    item.code?.coding?.some(
+      (coding) =>
+        coding.code === CODES.menstrualCycle ||
+        coding.code === "8665-2" ||
+        coding.code === "3144-3",
+    ) ?? false
+  );
 }
 
 function buildSubjectFilter(personId: string) {
   return {
     status: { eq: "FINAL" as const },
+    subject: { personId: { eq: personId } },
+  };
+}
+
+// Menstrual period observations default to `REGISTERED` status, so we cannot
+// constrain to `FINAL` here. The dedicated read actions already scope by LOINC
+// code, so subject filtering is sufficient.
+function buildMenstrualSubjectFilter(personId: string) {
+  return {
     subject: { personId: { eq: personId } },
   };
 }
@@ -607,7 +625,7 @@ export async function fetchLatestMenstrualCycle(
   const specializedResult = await requestGraphql({
     document: ListMenstrualCycleObservationsQuery,
     variables: {
-      filter: buildSubjectFilter(personId),
+      filter: buildMenstrualSubjectFilter(personId),
       sort: SORT_NEWEST_FIRST,
       first: 10,
     },
