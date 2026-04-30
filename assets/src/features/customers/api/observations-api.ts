@@ -256,6 +256,14 @@ export interface MenstrualCycleSummary {
   notes: string | null;
 }
 
+/** A single menstrual cycle event identified by the period-start observation. */
+export interface MenstrualCycleEntry extends MenstrualCycleSummary {
+  /** ID of the underlying period-start observation. */
+  id: string;
+  /** Period-start timestamp suitable for ordering feed events. */
+  effectiveDateTime: string;
+}
+
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
@@ -658,6 +666,48 @@ export async function fetchLatestMenstrualCycle(
 
   const rawText = latest.valueString ?? latest.note?.[0]?.text ?? "";
   return parseMenstrualCycleSummary(rawText);
+}
+
+/**
+ * Fetch every menstrual period start observation for the patient and pair each
+ * with its matching duration record (if logged on the same day).
+ *
+ * Used by the activity feed to render one event per cycle.
+ */
+export async function fetchMenstrualCycleHistory(
+  personId: string,
+  organizationId: string,
+): Promise<MenstrualCycleEntry[]> {
+  if (!personId || !organizationId) {
+    return [];
+  }
+
+  const result = await requestGraphql({
+    document: ListMenstrualCycleObservationsQuery,
+    variables: {
+      filter: buildMenstrualSubjectFilter(personId),
+      sort: SORT_NEWEST_FIRST,
+      first: 250,
+    },
+    organizationId,
+  });
+
+  const starts = result.starts?.results ?? [];
+  const durations = result.durations?.results ?? [];
+
+  const entries: MenstrualCycleEntry[] = [];
+  for (const start of starts) {
+    const summary = summarizeMenstrualCycleStart(start, durations);
+    if (!summary) {
+      continue;
+    }
+    const effectiveDateTime = start.valueDateTime ?? start.effectiveDateTime;
+    if (!effectiveDateTime) {
+      continue;
+    }
+    entries.push({ ...summary, id: start.id, effectiveDateTime });
+  }
+  return entries;
 }
 
 /** Parsed title + body from a clinical-note observation's valueString. */
