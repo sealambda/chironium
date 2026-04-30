@@ -75,6 +75,9 @@ export const personQueryKeys = {
   menstrualCycle(personId: string, organizationId: string) {
     return ["person", personId, "menstrualCycle", organizationId] as const;
   },
+  menstrualCycleHistory(personId: string, organizationId: string) {
+    return ["person", personId, "menstrualCycle", "history", organizationId] as const;
+  },
   menstrualCycleScope(personId: string) {
     return ["person", personId, "menstrualCycle"] as const;
   },
