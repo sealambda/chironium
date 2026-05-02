@@ -9,8 +9,8 @@ import { createMedicationsFromTags, type MedicationsFormData } from "./medicatio
 import {
   type ClinicalNoteFormData,
   createClinicalNoteObservations,
-  createMenstrualCycleObservation,
-  type MenstrualCycleFormData,
+  logMenstrualCycle,
+  type MenstrualCycleRecordFormData,
 } from "./observations-api";
 import { createPatientWithPerson, type PersonFormData } from "./patients-api";
 import { createSubscription } from "./subscriptions-api";
@@ -21,7 +21,7 @@ import { createSubscription } from "./subscriptions-api";
 export interface OnboardingDraft {
   person: PersonFormData | null;
   subscription: SubscriptionFormData | null;
-  menstrualCycle: MenstrualCycleFormData | null;
+  menstrualCycle: MenstrualCycleRecordFormData | null;
   anthropometry: AnthropometryFormData | null;
   pathologies: PathologiesFormData | null;
   allergies: AllergiesFormData | null;
@@ -34,8 +34,8 @@ export interface OnboardingDraft {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-function hasCycleData(d: MenstrualCycleFormData): boolean {
-  return Boolean(d.startDate || d.endDate || d.notes.trim());
+function hasCycleData(d: MenstrualCycleRecordFormData): boolean {
+  return Boolean(d.startDate || d.durationDays != null || d.notes.trim());
 }
 
 function hasAnthropometryData(d: AnthropometryFormData): boolean {
@@ -97,13 +97,7 @@ function postPatientOnboardingTasks(ctx: PostPatientOnboardingContext): Promise<
 
   if (draft.menstrualCycle && hasCycleData(draft.menstrualCycle)) {
     tasks.push(
-      createMenstrualCycleObservation(
-        draft.menstrualCycle,
-        patientId,
-        organizationId,
-        userId,
-        userName,
-      ),
+      logMenstrualCycle(draft.menstrualCycle, patientId, organizationId, userId, userName),
     );
   }
 
