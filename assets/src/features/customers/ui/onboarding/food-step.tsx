@@ -1,9 +1,10 @@
-import { useState } from "react";
-
 import type { FoodFormData } from "@/features/customers/api/food-preferences-api";
+import {
+  useTerminologyPendingFields,
+  useTerminologyTagList,
+} from "@/features/customers/hooks/use-terminology-tag-list";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import type { TerminologyTag } from "@/shared/types/terminology";
 import { FieldGroup } from "@/shared/ui/field";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 
@@ -22,23 +23,21 @@ interface FoodStepProps {
  */
 export function FoodStep({ initialData, onSubmit, onBack, onSaveDraft }: FoodStepProps) {
   const { selectedOrg } = useOrg();
-  const [included, setIncluded] = useState<TerminologyTag[]>(initialData?.included ?? []);
-  const [excluded, setExcluded] = useState<TerminologyTag[]>(initialData?.excluded ?? []);
-  const [includedPending, setIncludedPending] = useState(false);
-  const [excludedPending, setExcludedPending] = useState(false);
-  const [pendingError, setPendingError] = useState<string | null>(null);
+  const included = useTerminologyTagList(initialData?.included ?? []);
+  const excluded = useTerminologyTagList(initialData?.excluded ?? []);
+  const pendingFields = useTerminologyPendingFields<"included" | "excluded">();
 
   const handleSubmit = () => {
-    if (includedPending || excludedPending) {
-      setPendingError(m.validation_pending_input());
+    if (pendingFields.hasPendingInput) {
+      pendingFields.setPendingError(m.validation_pending_input());
       return;
     }
-    setPendingError(null);
-    onSubmit({ included, excluded });
+    pendingFields.clearPendingError();
+    onSubmit({ included: included.tags, excluded: excluded.tags });
   };
 
   const handleBack = () => {
-    onSaveDraft?.({ included, excluded });
+    onSaveDraft?.({ included: included.tags, excluded: excluded.tags });
     onBack();
   };
 
@@ -53,37 +52,27 @@ export function FoodStep({ initialData, onSubmit, onBack, onSaveDraft }: FoodSte
         <TerminologyTagInput
           label={m.field_food_included()}
           placeholder={m.field_food_included_placeholder()}
-          tags={included}
-          onAdd={(tag) => setIncluded((prev) => [...prev, tag])}
-          onRemove={(index) => setIncluded((prev) => prev.filter((_, i) => i !== index))}
+          tags={included.tags}
+          onAdd={included.addTag}
+          onRemove={included.removeTag}
           organizationId={selectedOrg?.id ?? ""}
           conceptContext="FOOD"
           addLabel={m.common_add()}
-          onPendingChange={(pending) => {
-            setIncludedPending(pending);
-            if (!pending) {
-              setPendingError(null);
-            }
-          }}
-          error={includedPending && pendingError ? pendingError : undefined}
+          onPendingChange={(pending) => pendingFields.setFieldPending("included", pending)}
+          error={pendingFields.getFieldError("included")}
         />
 
         <TerminologyTagInput
           label={m.field_food_excluded()}
           placeholder={m.field_food_excluded_placeholder()}
-          tags={excluded}
-          onAdd={(tag) => setExcluded((prev) => [...prev, tag])}
-          onRemove={(index) => setExcluded((prev) => prev.filter((_, i) => i !== index))}
+          tags={excluded.tags}
+          onAdd={excluded.addTag}
+          onRemove={excluded.removeTag}
           organizationId={selectedOrg?.id ?? ""}
           conceptContext="FOOD"
           addLabel={m.common_add()}
-          onPendingChange={(pending) => {
-            setExcludedPending(pending);
-            if (!pending) {
-              setPendingError(null);
-            }
-          }}
-          error={excludedPending && pendingError ? pendingError : undefined}
+          onPendingChange={(pending) => pendingFields.setFieldPending("excluded", pending)}
+          error={pendingFields.getFieldError("excluded")}
         />
       </FieldGroup>
     </StepLayout>
