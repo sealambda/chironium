@@ -255,7 +255,7 @@ export function ReassignCustomersDialog({
             onClick={() => handleOpenChange(false)}
             disabled={submitting}
           >
-            {m.customers_reassign_cancel()}
+            {m.common_cancel()}
           </Button>
           <Button
             type="button"

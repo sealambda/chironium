@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 
+import * as m from "@/paraglide/messages";
 import { cn } from "@/shared/utils/utils";
 
 interface Step {
@@ -42,7 +43,10 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
   const compact = steps.length > COMPACT_THRESHOLD;
 
   return (
-    <nav aria-label="Progress" className="flex items-center justify-center gap-1.5 sm:gap-2">
+    <nav
+      aria-label={m.common_progress()}
+      className="flex items-center justify-center gap-1.5 sm:gap-2"
+    >
       {steps.map((step, index) => {
         const isCompleted = index < currentStep;
         const isActive = index === currentStep;

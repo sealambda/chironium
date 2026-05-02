@@ -7,14 +7,18 @@ import {
   SelectPositioner,
   SelectTrigger,
 } from "@/shared/ui/select";
+import { cn } from "@/shared/utils/utils";
 
 /** Inline flag + localized language name, shared by every locale picker. */
-export function LocaleFlagLabel({ locale }: Readonly<{ locale: Locale }>) {
+export function LocaleFlagLabel({
+  locale,
+  labelClassName,
+}: Readonly<{ locale: Locale; labelClassName?: string }>) {
   const { flag: Flag, label } = LOCALE_OPTIONS[locale];
   return (
-    <span className="flex items-center gap-2">
+    <span className="flex min-w-0 items-center gap-2">
       <Flag className="h-4 w-6 shrink-0 overflow-hidden rounded-sm" aria-hidden="true" />
-      <span>{label()}</span>
+      <span className={cn("truncate", labelClassName)}>{label()}</span>
     </span>
   );
 }
@@ -24,6 +28,9 @@ interface LocaleSelectProps {
   onChange: (locale: Locale | null) => void;
   /** Applied to the `SelectTrigger` for custom sizing or styling. */
   triggerClassName?: string;
+  /** Applied to the selected locale label inside the trigger. */
+  triggerLabelClassName?: string;
+  ariaLabel?: string;
   "data-testid"?: string;
 }
 
@@ -32,12 +39,14 @@ export function LocaleSelect({
   value,
   onChange,
   triggerClassName,
+  triggerLabelClassName,
+  ariaLabel,
   "data-testid": dataTestId,
 }: Readonly<LocaleSelectProps>) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className={triggerClassName} data-testid={dataTestId}>
-        <LocaleFlagLabel locale={value} />
+      <SelectTrigger className={triggerClassName} data-testid={dataTestId} aria-label={ariaLabel}>
+        <LocaleFlagLabel locale={value} labelClassName={triggerLabelClassName} />
       </SelectTrigger>
       <SelectPositioner>
         <SelectContent>

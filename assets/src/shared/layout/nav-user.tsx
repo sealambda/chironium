@@ -2,17 +2,14 @@ import { ChevronsUpDown, LogOut } from "lucide-react";
 
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
-import { ThemeSwitcher } from "@/shared/layout/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { LanguageToggle } from "@/shared/ui/language-toggle";
 import { getUserInitials } from "@/shared/utils/name-utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { cn } from "@/shared/utils/utils";
@@ -26,7 +23,7 @@ interface NavUserProps {
 
 /**
  * User menu at the bottom of the sidebar.
- * Provides language switching, theme switching, and sign-out.
+ * Keeps account actions separate from visible sidebar preferences.
  */
 export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUserProps>) {
   const { user } = useCurrentUser();
@@ -49,7 +46,7 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
             className={cn(
               "group flex w-full items-center gap-2 rounded-lg px-2 py-2",
               !showLabelsOnMobile && "justify-center md:justify-start",
-              "text-left transition-colors focus-visible:outline-none",
+              "text-left transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               "cursor-pointer hover:bg-accent/50 focus-visible:bg-accent/50",
             )}
           />
@@ -102,20 +99,8 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuGroup>
-          <LanguageToggle variant="ghost" className="w-full" />
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuGroup>
-          <ThemeSwitcher />
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
         <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
-          <LogOut className="size-4" />
+          <LogOut aria-hidden />
           {m.nav_sign_out()}
         </DropdownMenuItem>
       </DropdownMenuContent>

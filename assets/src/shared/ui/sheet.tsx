@@ -2,6 +2,7 @@ import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 
+import * as m from "@/paraglide/messages";
 import { cn } from "@/shared/utils/utils";
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
@@ -63,7 +64,7 @@ function SheetContent({
         {children}
         <SheetPrimitive.Close className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[open]:bg-secondary">
           <XIcon className="size-4" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{m.common_close()}</span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Popup>
     </SheetPortal>
