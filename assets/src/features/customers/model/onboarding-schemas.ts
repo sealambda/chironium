@@ -69,7 +69,7 @@ export type ObjectiveSchemaData = z.infer<typeof objectiveSchema>;
 
 export const menstrualCycleSchema = z.object({
   startDate: z.string(),
-  endDate: z.string(),
+  durationDays: z.string(),
   notes: z.string(),
 });
 
