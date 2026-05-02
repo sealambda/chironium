@@ -1,6 +1,7 @@
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
+import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 
 export function BackButton() {
@@ -12,10 +13,10 @@ export function BackButton() {
       variant="ghost"
       size="icon"
       className="size-10 shrink-0"
-      aria-label="Go back"
+      aria-label={m.common_back()}
       onClick={() => (canGoBack ? router.history.back() : router.navigate({ to: ".." }))}
     >
-      <ArrowLeft className="size-5" />
+      <ArrowLeft aria-hidden />
     </Button>
   );
 }

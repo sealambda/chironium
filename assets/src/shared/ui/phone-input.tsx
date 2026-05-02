@@ -18,6 +18,7 @@ import {
   useState,
 } from "react";
 
+import * as m from "@/paraglide/messages";
 import { Input } from "@/shared/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import {
@@ -242,7 +243,7 @@ export function PhoneInput({
             <Input
               value={countrySearch}
               onChange={(e) => setCountrySearch(e.target.value)}
-              placeholder="Search..."
+              placeholder={m.common_search_placeholder()}
               className="h-8 text-sm"
               autoFocus
             />
