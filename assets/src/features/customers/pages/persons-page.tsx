@@ -37,6 +37,7 @@ import { FilterByPractitionerDialog } from "@/features/customers/ui/filter-by-pr
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
 import { ReassignCustomersDialog } from "@/features/customers/ui/reassign-customers-dialog";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -54,7 +55,7 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { ListSearchField } from "@/shared/ui/list-search-field";
 import { Loading } from "@/shared/ui/loading";
 import { formatPersonName } from "@/shared/utils/person-utils";
-import { customersQueryKeys, personQueryKeys } from "@/shared/utils/query-keys";
+import { customersQueryKeys } from "@/shared/utils/query-keys";
 
 interface PractitionerFilter {
   kind: "practitioner";
@@ -194,9 +195,7 @@ export function CustomersPage() {
       queryClient.invalidateQueries({
         queryKey: customersQueryKeys.practitionerPersonIdsPrefix(orgId),
       }),
-      ...selectedPersonIds.map((personId) =>
-        queryClient.invalidateQueries({ queryKey: personQueryKeys.patientDetailScope(personId) }),
-      ),
+      ...selectedPersonIds.map((personId) => invalidatePersonDetail(queryClient, personId)),
     ]);
   };
 
@@ -224,7 +223,7 @@ export function CustomersPage() {
           </div>
         ) : null}
         <Button onClick={() => setOnboardingOpen(true)} data-testid="customers-new-button-header">
-          <Plus className="size-4" data-icon="inline-start" />
+          <Plus data-icon="inline-start" aria-hidden />
           <span className="hidden md:inline">{m.customer_add()}</span>
         </Button>
       </div>,
@@ -256,7 +255,7 @@ export function CustomersPage() {
   }
 
   return (
-    <div className="space-y-4 pt-7">
+    <div className="flex flex-col gap-4 pt-7">
       <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-baseline gap-2">
           <h1
@@ -387,7 +386,7 @@ function PractitionerFilterButton({
       }
       data-testid="filter-practitioner-button"
     >
-      <ListFilterIcon className="size-4" />
+      <ListFilterIcon data-icon="inline-start" aria-hidden />
       {compact ? null : <span>{buttonLabel}</span>}
     </Button>
   );
@@ -428,9 +427,9 @@ function CustomerList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {/* Mobile: stacked cards with bulk selection */}
-      <div className="space-y-3 lg:hidden">
+      <div className="flex flex-col gap-3 lg:hidden">
         {items.map((item) => {
           const id = item.person.id;
           const name = formatPersonName(item.person.name);
@@ -495,7 +494,7 @@ function CustomerSortDropdown({
       <DropdownMenuTrigger
         render={<Button variant="outline" size={compact ? "icon-sm" : "sm"} type="button" />}
       >
-        <SortIcon className="size-4" />
+        <SortIcon data-icon="inline-start" aria-hidden />
         <span className={compact ? "sr-only" : undefined}>{selectedSortLabel}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -539,32 +538,32 @@ function getSortTriggerIcon(sortOption: PersonListSortOption): typeof ArrowUpDow
 
 function RecentSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
   if (sortOption === "moreRecent") {
-    return <ArrowDownIcon className="ml-auto size-4 opacity-60" />;
+    return <ArrowDownIcon className="ml-auto opacity-60" aria-hidden />;
   }
   if (sortOption === "lessRecent") {
-    return <ArrowUpIcon className="ml-auto size-4 opacity-60" />;
+    return <ArrowUpIcon className="ml-auto opacity-60" aria-hidden />;
   }
-  return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
+  return <ArrowUpDownIcon className="ml-auto opacity-60" aria-hidden />;
 }
 
 function GivenNameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
   if (sortOption === "givenNameDesc") {
-    return <ArrowDownIcon className="ml-auto size-4 opacity-60" />;
+    return <ArrowDownIcon className="ml-auto opacity-60" aria-hidden />;
   }
   if (sortOption === "givenNameAsc") {
-    return <ArrowUpIcon className="ml-auto size-4 opacity-60" />;
+    return <ArrowUpIcon className="ml-auto opacity-60" aria-hidden />;
   }
-  return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
+  return <ArrowUpDownIcon className="ml-auto opacity-60" aria-hidden />;
 }
 
 function FamilyNameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
   if (sortOption === "familyNameDesc") {
-    return <ArrowDownIcon className="ml-auto size-4 opacity-60" />;
+    return <ArrowDownIcon className="ml-auto opacity-60" aria-hidden />;
   }
   if (sortOption === "familyNameAsc") {
-    return <ArrowUpIcon className="ml-auto size-4 opacity-60" />;
+    return <ArrowUpIcon className="ml-auto opacity-60" aria-hidden />;
   }
-  return <ArrowUpDownIcon className="ml-auto size-4 opacity-60" />;
+  return <ArrowUpDownIcon className="ml-auto opacity-60" aria-hidden />;
 }
 
 function getSortOptionLabel(sortOption: PersonListSortOption): string {
