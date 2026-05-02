@@ -2,6 +2,7 @@ import { useCallback } from "react";
 
 import { updatePreferredLocale } from "@/features/user/api/user-api";
 import { useUserStore } from "@/features/user/store/user-store";
+import * as m from "@/paraglide/messages";
 import type { Locale } from "@/paraglide/runtime";
 import { useLocale } from "@/shared/i18n/locale-provider";
 import { LocaleSelect } from "@/shared/ui/locale-select";
@@ -11,13 +12,19 @@ interface LanguageToggleProps {
   className?: string;
   /** Renders without border/background to blend into dropdown menus. */
   variant?: "default" | "ghost";
+  /** Applied to the selected locale label inside the trigger. */
+  triggerLabelClassName?: string;
 }
 
 /**
  * Language selector dropdown with country flags and language names.
  * Persists the user's preference through `updatePreferredLocale`.
  */
-export function LanguageToggle({ className, variant = "default" }: Readonly<LanguageToggleProps>) {
+export function LanguageToggle({
+  className,
+  variant = "default",
+  triggerLabelClassName,
+}: Readonly<LanguageToggleProps>) {
   const { locale: currentLocale, setLocale } = useLocale();
   const user = useUserStore((s) => s.user);
 
@@ -43,10 +50,12 @@ export function LanguageToggle({ className, variant = "default" }: Readonly<Lang
     <LocaleSelect
       value={currentLocale}
       onChange={handleLocaleChange}
+      ariaLabel={m.settings_org_language_label()}
+      triggerLabelClassName={triggerLabelClassName}
       triggerClassName={cn(
         "w-full",
         variant === "ghost" &&
-          "h-auto border-none bg-transparent px-2 py-1.5 shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-0 dark:bg-transparent dark:hover:bg-accent",
+          "h-auto border-none bg-transparent px-2 py-1.5 shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-0",
         className,
       )}
     />

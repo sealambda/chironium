@@ -231,7 +231,7 @@ export function FilterByPractitionerDialog({
             </Button>
           ) : null}
           <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-            {m.customers_filter_by_practitioner_cancel()}
+            {m.common_cancel()}
           </Button>
           <Button
             type="button"

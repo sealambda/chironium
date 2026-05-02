@@ -1,3 +1,5 @@
+import * as m from "@/paraglide/messages";
+
 export interface HumanName {
   given?: string[] | null;
   family?: string | null;
@@ -11,7 +13,7 @@ export interface HumanName {
 export function formatPersonName(names: HumanName[] | null | undefined): string {
   const name = names?.[0];
   if (!name) {
-    return "Unknown";
+    return m.common_unknown();
   }
 
   if (name.text) {
@@ -21,5 +23,5 @@ export function formatPersonName(names: HumanName[] | null | undefined): string 
   const given = name.given?.join(" ") ?? "";
   const family = name.family ?? "";
   const full = [given, family].filter(Boolean).join(" ");
-  return full || "Unknown";
+  return full || m.common_unknown();
 }
