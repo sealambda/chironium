@@ -6,6 +6,10 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
+import type {
+  MenstrualCycleEntry,
+  ObservationsPage,
+} from "@/features/customers/api/observations-api";
 import { useActivityFeed } from "@/features/customers/hooks/use-activity-feed";
 import type { FeedEventKind } from "@/features/customers/types/activity-feed";
 import { CustomerDetailEmptyCardContent } from "@/features/customers/ui/detail/customer-detail-empty-card";
@@ -27,6 +31,8 @@ interface ActivityFeedCardProps {
   medications: MedicationItem[];
   anthropometry: AnthropometricSnapshot[];
   foodPreferences: FoodPreferenceHistoryItem[];
+  observations: ObservationsPage;
+  menstrualCycles: MenstrualCycleEntry[];
   activeFilter: FeedEventKind | "all";
   personName?: string | null;
 }
@@ -42,6 +48,8 @@ export function ActivityFeedCard({
   medications,
   anthropometry,
   foodPreferences,
+  observations,
+  menstrualCycles,
   activeFilter,
   personName,
 }: Readonly<ActivityFeedCardProps>) {
@@ -56,6 +64,8 @@ export function ActivityFeedCard({
     medications,
     anthropometry,
     foodPreferences,
+    observations,
+    menstrualCycles,
     activeFilter,
     personName,
   });
@@ -83,7 +93,7 @@ export function ActivityFeedCard({
   } else {
     feedBody = (
       <>
-        <ActivityFeedTimeline groups={groups} personId={personId} />
+        <ActivityFeedTimeline groups={groups} personId={personId} patientId={patientId} />
         <FeedShowMore hasMore={hasMore} onShowMore={showMore} />
       </>
     );

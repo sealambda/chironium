@@ -6,10 +6,11 @@ import {
   createMedicationsFromTags,
   type MedicationCreateOptions,
 } from "@/features/customers/api/medications-api";
+import { useTerminologyTagList } from "@/features/customers/hooks/use-terminology-tag-list";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import type { TerminologyTag } from "@/shared/types/terminology";
 import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {
@@ -30,8 +31,11 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { toDateInput } from "@/shared/utils/date-time-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import {
+  todayDateInput,
+  toUtcDateTimeEnd,
+  toUtcDateTimeStart,
+} from "@/shared/utils/date-time-input";
 
 type MedicationCourseState = "current" | "past";
 
@@ -42,18 +46,6 @@ const MEDICATION_COURSE_OPTIONS: readonly {
   { value: "current", label: m.medication_usage_current },
   { value: "past", label: m.medication_usage_past },
 ];
-
-function todayDateInput(): string {
-  return toDateInput(new Date());
-}
-
-function toUtcDateTimeStart(date: string): string | undefined {
-  return date ? `${date}T09:00:00.000Z` : undefined;
-}
-
-function toUtcDateTimeEnd(date: string): string | undefined {
-  return date ? `${date}T23:59:59.999Z` : undefined;
-}
 
 interface MedicationDateErrors {
   startDate?: string;
@@ -121,7 +113,7 @@ export function AddMedicationsDialog({
     onChange: controlledOnOpenChange,
   });
   const [saving, setSaving] = useState(false);
-  const [tags, setTags] = useState<TerminologyTag[]>([]);
+  const tags = useTerminologyTagList();
   const [courseState, setCourseState] = useState<MedicationCourseState>("current");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -136,10 +128,10 @@ export function AddMedicationsDialog({
     today,
   });
   const hasDateErrors = Object.values(dateErrors).some(Boolean);
-  const canSubmit = tags.length > 0 && !hasDateErrors;
+  const canSubmit = tags.tags.length > 0 && !hasDateErrors;
 
   const resetForm = () => {
-    setTags([]);
+    tags.resetTags();
     setCourseState("current");
     setStartDate("");
     setEndDate("");
@@ -155,17 +147,12 @@ export function AddMedicationsDialog({
 
     setSaving(true);
     try {
-      await createMedicationsFromTags(tags, patientId, selectedOrg?.id ?? "", {
+      await createMedicationsFromTags(tags.tags, patientId, selectedOrg?.id ?? "", {
         status: "RECORDED",
         effectivePeriod: buildEffectivePeriod(courseState, startDate, endDate),
       });
 
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.medicationsScope(personId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(personId),
-      });
+      await invalidatePersonDetail(queryClient, personId);
 
       toast.success(m.medication_add_success());
       setOpen(false);
@@ -189,9 +176,9 @@ export function AddMedicationsDialog({
           <TerminologyTagInput
             label={m.medication_list_label()}
             placeholder={m.medication_field_placeholder()}
-            tags={tags}
-            onAdd={(tag) => setTags((prev) => [...prev, tag])}
-            onRemove={(i) => setTags((prev) => prev.filter((_, idx) => idx !== i))}
+            tags={tags.tags}
+            onAdd={tags.addTag}
+            onRemove={tags.removeTag}
             organizationId={selectedOrg?.id ?? ""}
             conceptContext="MEDICATION"
             addLabel={m.common_add()}
@@ -260,7 +247,7 @@ export function AddMedicationsDialog({
             {m.common_cancel()}
           </Button>
           <Button onClick={() => void handleSubmit()} loading={saving} disabled={!canSubmit}>
-            {m.medication_dialog_submit()}
+            {m.common_save()}
           </Button>
         </DialogFooter>
       </DialogContent>

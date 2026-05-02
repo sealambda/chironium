@@ -1,16 +1,16 @@
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
+
+import { RecordDetailDialogFooter } from "./record-detail-dialog-footer";
 
 interface FoodPreferenceDetailDialogProps {
   readonly item: FoodPreferenceHistoryItem | null;
@@ -91,23 +91,12 @@ export function FoodPreferenceDetailDialog({
           ) : null}
         </FieldGroup>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          {onRemoveClick ? (
-            <Button
-              variant="ghost"
-              className="text-destructive hover:text-destructive sm:mr-auto"
-              onClick={onRemoveClick}
-              type="button"
-            >
-              {m.food_preferences_remove_btn()}
-            </Button>
-          ) : null}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)} type="button">
-              {m.common_close()}
-            </Button>
-          </div>
-        </DialogFooter>
+        <RecordDetailDialogFooter
+          cancelLabel={m.common_close()}
+          onCancel={() => setOpen(false)}
+          removeLabel={m.common_remove()}
+          onRemoveClick={onRemoveClick}
+        />
       </DialogContent>
     </Dialog>
   );
