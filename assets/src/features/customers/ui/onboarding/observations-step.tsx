@@ -22,7 +22,7 @@ interface ObservationEntry extends ClinicalNoteFormData {
 }
 
 /**
- * Final step: capture one or more clinical note observations with datetime and body.
+ * Final step: capture one or more free-text observations with datetime and body.
  * Uses the same add-to-list pattern as the org plans step: a single form
  * at the top, an "Add" button, and a compact summary list below.
  */
@@ -119,7 +119,7 @@ export function ObservationsStep({
           disabled={submitting || !hasInput}
         >
           <Plus className="size-4" data-icon="inline-start" />
-          {m.observation_add()}
+          {m.common_add()}
         </Button>
 
         <ObservationList notes={addedNotes} onRemove={handleRemove} />
@@ -131,6 +131,11 @@ export function ObservationsStep({
 interface ObservationListProps {
   readonly notes: ObservationEntry[];
   readonly onRemove: (id: string) => void;
+}
+
+function previewObservation(body: string): string {
+  const preview = body.replace(/\s+/g, " ").trim();
+  return preview.length > 64 ? `${preview.slice(0, 61)}...` : preview;
 }
 
 function ObservationList({ notes, onRemove }: ObservationListProps) {
@@ -157,7 +162,7 @@ function ObservationList({ notes, onRemove }: ObservationListProps) {
             variant="ghost"
             size="icon-xs"
             onClick={() => onRemove(note.id)}
-            aria-label={m.observation_remove()}
+            aria-label={`${m.common_remove()}: ${previewObservation(note.body)}`}
           >
             <Trash2 className="size-3.5 text-muted-foreground" />
           </Button>

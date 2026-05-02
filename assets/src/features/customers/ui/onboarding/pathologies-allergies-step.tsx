@@ -1,10 +1,11 @@
-import { useState } from "react";
-
 import type { AllergiesFormData } from "@/features/customers/api/allergy-intolerance-api";
 import type { PathologiesFormData } from "@/features/customers/api/condition-api";
+import {
+  useTerminologyPendingFields,
+  useTerminologyTagList,
+} from "@/features/customers/hooks/use-terminology-tag-list";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import type { TerminologyTag } from "@/shared/types/terminology";
 import { FieldGroup } from "@/shared/ui/field";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 
@@ -35,34 +36,27 @@ export function PathologiesAllergiesStep({
   onSaveDraft,
 }: PathologiesAllergiesStepProps) {
   const { selectedOrg } = useOrg();
-  const [pathologies, setPathologies] = useState<TerminologyTag[]>(
-    initialPathologies?.pathologies ?? [],
-  );
-  const [allergies, setAllergies] = useState<TerminologyTag[]>(initialAllergies?.allergies ?? []);
-  const [intolerances, setIntolerances] = useState<TerminologyTag[]>(
-    initialAllergies?.intolerances ?? [],
-  );
-  const [pathologiesPending, setPathologiesPending] = useState(false);
-  const [allergiesPending, setAllergiesPending] = useState(false);
-  const [intolerancesPending, setIntolerancesPending] = useState(false);
-  const [pendingError, setPendingError] = useState<string | null>(null);
+  const pathologies = useTerminologyTagList(initialPathologies?.pathologies ?? []);
+  const allergies = useTerminologyTagList(initialAllergies?.allergies ?? []);
+  const intolerances = useTerminologyTagList(initialAllergies?.intolerances ?? []);
+  const pendingFields = useTerminologyPendingFields<"pathologies" | "allergies" | "intolerances">();
 
   const handleSubmit = () => {
-    if (pathologiesPending || allergiesPending || intolerancesPending) {
-      setPendingError(m.validation_pending_input());
+    if (pendingFields.hasPendingInput) {
+      pendingFields.setPendingError(m.validation_pending_input());
       return;
     }
-    setPendingError(null);
+    pendingFields.clearPendingError();
     onSubmit({
-      pathologies: { pathologies },
-      allergies: { allergies, intolerances },
+      pathologies: { pathologies: pathologies.tags },
+      allergies: { allergies: allergies.tags, intolerances: intolerances.tags },
     });
   };
 
   const handleBack = () => {
     onSaveDraft?.({
-      pathologies: { pathologies },
-      allergies: { allergies, intolerances },
+      pathologies: { pathologies: pathologies.tags },
+      allergies: { allergies: allergies.tags, intolerances: intolerances.tags },
     });
     onBack();
   };
@@ -78,53 +72,38 @@ export function PathologiesAllergiesStep({
         <TerminologyTagInput
           label={m.condition_list_label()}
           placeholder={m.condition_field_placeholder()}
-          tags={pathologies}
-          onAdd={(tag) => setPathologies((prev) => [...prev, tag])}
-          onRemove={(index) => setPathologies((prev) => prev.filter((_, i) => i !== index))}
+          tags={pathologies.tags}
+          onAdd={pathologies.addTag}
+          onRemove={pathologies.removeTag}
           organizationId={selectedOrg?.id ?? ""}
           conceptContext="CONDITION"
           addLabel={m.common_add()}
-          onPendingChange={(pending) => {
-            setPathologiesPending(pending);
-            if (!pending) {
-              setPendingError(null);
-            }
-          }}
-          error={pathologiesPending && pendingError ? pendingError : undefined}
+          onPendingChange={(pending) => pendingFields.setFieldPending("pathologies", pending)}
+          error={pendingFields.getFieldError("pathologies")}
         />
         <TerminologyTagInput
           label={m.field_allergies()}
           placeholder={m.field_allergies_placeholder()}
-          tags={allergies}
-          onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
-          onRemove={(index) => setAllergies((prev) => prev.filter((_, i) => i !== index))}
+          tags={allergies.tags}
+          onAdd={allergies.addTag}
+          onRemove={allergies.removeTag}
           organizationId={selectedOrg?.id ?? ""}
           conceptContext="ALLERGY_INTOLERANCE"
           addLabel={m.common_add()}
-          onPendingChange={(pending) => {
-            setAllergiesPending(pending);
-            if (!pending) {
-              setPendingError(null);
-            }
-          }}
-          error={allergiesPending && pendingError ? pendingError : undefined}
+          onPendingChange={(pending) => pendingFields.setFieldPending("allergies", pending)}
+          error={pendingFields.getFieldError("allergies")}
         />
         <TerminologyTagInput
           label={m.field_intolerances()}
           placeholder={m.field_intolerances_placeholder()}
-          tags={intolerances}
-          onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
-          onRemove={(index) => setIntolerances((prev) => prev.filter((_, i) => i !== index))}
+          tags={intolerances.tags}
+          onAdd={intolerances.addTag}
+          onRemove={intolerances.removeTag}
           organizationId={selectedOrg?.id ?? ""}
           conceptContext="ALLERGY_INTOLERANCE"
           addLabel={m.common_add()}
-          onPendingChange={(pending) => {
-            setIntolerancesPending(pending);
-            if (!pending) {
-              setPendingError(null);
-            }
-          }}
-          error={intolerancesPending && pendingError ? pendingError : undefined}
+          onPendingChange={(pending) => pendingFields.setFieldPending("intolerances", pending)}
+          error={pendingFields.getFieldError("intolerances")}
         />
       </FieldGroup>
     </StepLayout>

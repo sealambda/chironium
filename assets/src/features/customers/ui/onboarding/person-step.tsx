@@ -296,7 +296,7 @@ export function PersonStep({
                     field.handleChange(sanitized);
                   }}
                   onBlur={field.handleBlur}
-                  placeholder="username"
+                  placeholder={m.field_instagram_placeholder()}
                 />
               </InputGroup>
             </Field>
