@@ -1,13 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { type ReactElement, type ReactNode, useState } from "react";
+import { type ReactElement, type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { createClinicalNoteObservations } from "@/features/customers/api/observations-api";
 import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { toDateTimeInputParts } from "@/shared/utils/date-time-input";
 
 interface AddObservationDialogProps {
   personId: string;
@@ -15,6 +16,16 @@ interface AddObservationDialogProps {
   children?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+}
+
+function defaultObservationValues() {
+  const current = toDateTimeInputParts();
+
+  return {
+    body: "",
+    effectiveDate: current.date,
+    effectiveTime: current.time,
+  };
 }
 
 export function AddObservationDialog({
@@ -33,8 +44,26 @@ export function AddObservationDialog({
   const [body, setBody] = useState("");
   const [effectiveDate, setEffectiveDate] = useState("");
   const [effectiveTime, setEffectiveTime] = useState("");
+  const didResetOnOpen = useRef(false);
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!open) {
+      didResetOnOpen.current = false;
+      return;
+    }
+
+    if (didResetOnOpen.current) {
+      return;
+    }
+
+    didResetOnOpen.current = true;
+    const defaults = defaultObservationValues();
+    setBody(defaults.body);
+    setEffectiveDate(defaults.effectiveDate);
+    setEffectiveTime(defaults.effectiveTime);
+  }, [open]);
 
   const handleSubmit = async () => {
     if (!body.trim() || !patientId) {
@@ -51,14 +80,13 @@ export function AddObservationDialog({
         patientId,
         selectedOrg?.id ?? "",
       );
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.observationsListScope(personId),
-      });
+      await invalidatePersonDetail(queryClient, personId);
       toast.success(m.observations_add_success());
       setOpen(false);
-      setBody("");
-      setEffectiveDate("");
-      setEffectiveTime("");
+      const defaults = defaultObservationValues();
+      setBody(defaults.body);
+      setEffectiveDate(defaults.effectiveDate);
+      setEffectiveTime(defaults.effectiveTime);
     } catch {
       toast.error(m.onboarding_error());
     } finally {
@@ -68,7 +96,7 @@ export function AddObservationDialog({
 
   return (
     <ObservationDialog
-      title={m.observations_add()}
+      title={m.common_add()}
       submitLabel={m.common_add()}
       open={open}
       onOpenChange={setOpen}

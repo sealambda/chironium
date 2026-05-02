@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { createGoal, type GoalRecord, updateGoal } from "@/features/customers/api/goals-api";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -28,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { personQueryKeys } from "@/shared/utils/query-keys";
 
 const PRIORITY_OPTIONS = [
   { value: "HIGH_PRIORITY", label: () => m.goals_priority_high() },
@@ -165,12 +165,7 @@ export function AddGoalDialog({
         await submitCreate();
       }
 
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.goalsScope(personId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(personId),
-      });
+      await invalidatePersonDetail(queryClient, personId);
 
       toast.success(isEditing ? m.goals_edit_success() : m.goals_add_success());
       setOpen(false);
@@ -187,7 +182,7 @@ export function AddGoalDialog({
       {children ? <DialogTrigger render={children as React.ReactElement} /> : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? m.goals_edit_title() : m.goals_add()}</DialogTitle>
+          <DialogTitle>{isEditing ? m.goals_edit_title() : m.common_add()}</DialogTitle>
         </DialogHeader>
 
         <FieldGroup>

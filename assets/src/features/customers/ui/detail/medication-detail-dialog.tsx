@@ -8,23 +8,24 @@ import {
   type MedicationItem,
   updateMedication,
 } from "@/features/customers/api/medications-api";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { isoToDateInput } from "@/shared/utils/date-time-input";
+
+import { RecordDetailDialogFooter } from "./record-detail-dialog-footer";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -48,10 +49,6 @@ interface MedicationFormValues {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
-
-function isoToDateInput(value: string | null | undefined): string {
-  return value ? String(value).slice(0, 10) : "";
-}
 
 function nameOf(item: MedicationItem): string {
   return item.medication?.text ?? item.medication?.coding?.[0]?.display ?? "";
@@ -118,9 +115,7 @@ export function MedicationDetailDialog({
       try {
         await updateMedication(item.id, toApiInput(value), orgId);
         toast.success(m.medication_edit_success());
-        await queryClient.invalidateQueries({
-          queryKey: personQueryKeys.medicationsScope(personId),
-        });
+        await invalidatePersonDetail(queryClient, personId);
         setOpen(false);
         form.reset();
       } catch {
@@ -132,7 +127,7 @@ export function MedicationDetailDialog({
   });
 
   const title = m.medication_edit_title({ name: item ? nameOf(item) : "" });
-  const submitLabel = saving ? m.common_saving() : m.medication_dialog_submit();
+  const submitLabel = saving ? m.common_saving() : m.common_save();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -168,7 +163,7 @@ export function MedicationDetailDialog({
               <Field>
                 <FieldLabel>{m.medication_field_course()}</FieldLabel>
                 <FieldDescription>{m.medication_field_course_subtitle()}</FieldDescription>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <ToggleGroup
                     value={field.state.value}
                     onValueChange={(v) => v && field.handleChange(v as Course)}
@@ -227,32 +222,15 @@ export function MedicationDetailDialog({
           </form.Subscribe>
         </FieldGroup>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          {onRemoveClick ? (
-            <Button
-              variant="ghost"
-              className="text-destructive hover:text-destructive sm:mr-auto"
-              onClick={onRemoveClick}
-              disabled={saving}
-              type="button"
-            >
-              {m.medication_remove_btn()}
-            </Button>
-          ) : null}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={saving}
-              type="button"
-            >
-              {m.common_cancel()}
-            </Button>
-            <Button onClick={() => form.handleSubmit()} loading={saving} type="button">
-              {submitLabel}
-            </Button>
-          </div>
-        </DialogFooter>
+        <RecordDetailDialogFooter
+          cancelLabel={m.common_cancel()}
+          onCancel={() => setOpen(false)}
+          removeLabel={m.common_remove()}
+          onRemoveClick={onRemoveClick}
+          submitLabel={submitLabel}
+          onSubmit={() => form.handleSubmit()}
+          saving={saving}
+        />
       </DialogContent>
     </Dialog>
   );
