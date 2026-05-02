@@ -1,299 +1,10 @@
+import type { PatientObservation } from "@/features/customers/api/patients-api";
 import type { VersionActorSource } from "@/features/customers/types/activity-feed";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
-import { graphql, type ResultOf } from "@/graphql";
+import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import { toDateTimeInput } from "@/shared/utils/date-time-input";
-
-// ─── Queries ─────────────────────────────────────────────────────────
-
-const ListAnthropometryObservationsQuery = graphql(`
-  query ListAnthropometryObservations(
-    $filter: ObservationFilterInput!
-    $sort: [ObservationSortInput]
-    $first: Int
-  ) {
-    weight: listBodyWeightObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    height: listBodyHeightObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    bmi: listBmiObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    chest: listChestCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    waist: listWaistCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    hip: listHipCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    arm: listArmCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    thigh: listThighCircumferenceObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-    whr: listWaistHipRatioObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-  }
-`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -501,9 +212,7 @@ export interface AnthropometryAnnotationInput {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-type AnthropometryResult = ResultOf<typeof ListAnthropometryObservationsQuery>;
-type ObservationPage = AnthropometryResult["weight"];
-type ObservationRecord = NonNullable<NonNullable<ObservationPage>["results"]>[number];
+type ObservationRecord = PatientObservation;
 
 /** Parse the numeric value from a FHIR valueQuantity string, returning undefined on NaN or missing data. */
 export function extractValue(obs: ObservationRecord | undefined): number | undefined {
@@ -512,6 +221,33 @@ export function extractValue(obs: ObservationRecord | undefined): number | undef
   }
   const n = Number.parseFloat(obs.valueQuantity.value);
   return Number.isNaN(n) ? undefined : n;
+}
+
+function anthropometryKeyForObservation(
+  obs: ObservationRecord,
+): AnthropometryObservationKey | null {
+  switch (obs.observationType) {
+    case "BODY_WEIGHT":
+      return "weight";
+    case "BODY_HEIGHT":
+      return "height";
+    case "BMI":
+      return "bmi";
+    case "WAIST_HIP_RATIO":
+      return "whr";
+    case "CHEST_CIRCUMFERENCE":
+      return "chest";
+    case "WAIST_CIRCUMFERENCE":
+      return "waist";
+    case "HIP_CIRCUMFERENCE":
+      return "hip";
+    case "ARM_CIRCUMFERENCE":
+      return "arm";
+    case "THIGH_CIRCUMFERENCE":
+      return "thigh";
+    default:
+      return null;
+  }
 }
 
 function extractNote(obs: ObservationRecord | undefined): AnthropometryAnnotation[] {
@@ -533,30 +269,15 @@ function getObservationRef(
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
- * Fetch the full anthropometric history for a person (up to 250 records per measurement type).
+ * Select the full anthropometric history from patient observations.
  *
  * Observations are grouped by calendar date so measurements recorded on different days are
  * never merged into the same snapshot. Returns snapshots sorted DESC by date — consumers that
  * only need the latest entries can read `result[0]` (most recent) and `result[1]` (previous).
  */
-export async function fetchAnthropometryHistory(
-  personId: string,
-  organizationId: string,
-): Promise<AnthropometricSnapshot[]> {
-  if (!personId || !organizationId) {
-    return [];
-  }
-
-  const data = await requestGraphql({
-    document: ListAnthropometryObservationsQuery,
-    variables: {
-      filter: { subject: { personId: { eq: personId } } },
-      sort: [{ field: "EFFECTIVE_DATE_TIME", order: "DESC" }],
-      first: 250,
-    },
-    organizationId,
-  });
-
+export function selectAnthropometryHistory(
+  observations: readonly ObservationRecord[] | null | undefined,
+): AnthropometricSnapshot[] {
   // Truncate an ISO datetime to a YYYY-MM-DD date key for grouping.
   const toDateKey = (dt: string): string => dt.slice(0, 10);
 
@@ -587,31 +308,20 @@ export async function fetchAnthropometryHistory(
     }
   };
 
-  const merge = (page: ObservationPage, field: AnthropometryObservationKey) => {
-    for (const obs of page?.results ?? []) {
-      const dt = obs?.effectiveDateTime;
-      if (!dt) {
-        continue;
-      }
-      const key = toDateKey(dt);
-      let snapshot = byDate.get(key);
-      if (!snapshot) {
-        snapshot = { date: dt };
-        byDate.set(key, snapshot);
-      }
-      mergeObservation(snapshot, field, obs, dt);
+  for (const obs of observations ?? []) {
+    const field = anthropometryKeyForObservation(obs);
+    const dt = obs.effectiveDateTime;
+    if (!field || !dt) {
+      continue;
     }
-  };
-
-  merge(data.weight, "weight");
-  merge(data.height, "height");
-  merge(data.bmi, "bmi");
-  merge(data.chest, "chest");
-  merge(data.waist, "waist");
-  merge(data.hip, "hip");
-  merge(data.arm, "arm");
-  merge(data.thigh, "thigh");
-  merge(data.whr, "whr");
+    const key = toDateKey(dt);
+    let snapshot = byDate.get(key);
+    if (!snapshot) {
+      snapshot = { date: dt };
+      byDate.set(key, snapshot);
+    }
+    mergeObservation(snapshot, field, obs, dt);
+  }
 
   return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
 }
