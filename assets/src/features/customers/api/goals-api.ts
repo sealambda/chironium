@@ -1,52 +1,7 @@
-import { graphql, type ResultOf } from "@/graphql";
+import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { GoalCategory, GoalPriority } from "@/shared/types/schema-enums";
-
-// ─── Queries ─────────────────────────────────────────────────────────
-
-const AllGoalsByPersonQuery = graphql(`
-  query AllGoalsByPerson($personId: ID!) {
-    listPatients(filter: { personId: { eq: $personId } }, first: 1) {
-      results {
-        goals(sort: [{ field: PRIORITY, order: ASC }]) {
-          id
-          lifecycleStatus
-          achievementStatus
-          priority
-          description {
-            text
-          }
-          startDate
-          dueDate
-          category
-          note {
-            text
-            time
-            authorString
-            authorReference
-          }
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -95,35 +50,10 @@ const DeleteGoalMutation = graphql(`
 
 // ─── Types ───────────────────────────────────────────────────────────
 
-/** A single goal record returned by the list query. */
-export type GoalRecord = NonNullable<
-  NonNullable<
-    NonNullable<ResultOf<typeof AllGoalsByPersonQuery>["listPatients"]>["results"]
-  >[number]["goals"]
->[number];
+/** A single goal record returned by the patient query. */
+export type { GoalRecord } from "./patients-api";
 
 // ─── Functions ───────────────────────────────────────────────────────
-
-/**
- * Fetch all goals for a person (all lifecycle statuses), for the list page.
- */
-export async function fetchAllGoals(
-  personId: string,
-  organizationId: string,
-): Promise<GoalRecord[]> {
-  if (!personId || !organizationId) {
-    return [];
-  }
-
-  const data = await requestGraphql({
-    document: AllGoalsByPersonQuery,
-    variables: { personId },
-    organizationId,
-  });
-
-  const patient = data.listPatients?.results?.[0];
-  return patient?.goals ?? [];
-}
 
 /**
  * Parameters for creating a new goal.
