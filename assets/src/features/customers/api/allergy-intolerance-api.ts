@@ -1,69 +1,11 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { codeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
-import { graphql, type ResultOf } from "@/graphql";
-import { getLocale } from "@/paraglide/runtime";
+import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
 
 import type { AnnotationInput } from "./observations-api";
-
-// ─── Queries ─────────────────────────────────────────────────────────
-
-const GetPatientAllergyIntolerancesQuery = graphql(`
-  query GetPatientAllergyIntolerances($patientId: ID!, $locale: String) {
-    getPatient(id: $patientId) {
-      allergyIntolerances {
-        id
-        type
-        clinicalStatus
-        verificationStatus
-        code {
-          text
-          coding {
-            system
-            code
-            version
-            display(locale: $locale)
-          }
-        }
-        onsetDateTime
-        onsetAge {
-          value
-          code
-        }
-        onsetPeriod {
-          start
-          end
-        }
-        recordedDate
-        lastOccurrence
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-  }
-`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -139,11 +81,7 @@ const DeleteAllergyIntoleranceMutation = graphql(`
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** A single allergy or intolerance record returned by the patient query. */
-export type AllergyIntoleranceItem = NonNullable<
-  NonNullable<
-    ResultOf<typeof GetPatientAllergyIntolerancesQuery>["getPatient"]
-  >["allergyIntolerances"]
->[number];
+export type { AllergyIntoleranceItem } from "./patients-api";
 
 /** Form data for the allergies and intolerances onboarding fields. */
 export interface AllergiesFormData {
@@ -152,26 +90,6 @@ export interface AllergiesFormData {
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
-
-/**
- * Fetch all allergy and intolerance records for a patient.
- */
-export async function fetchAllergyIntolerances(
-  patientId: string,
-  organizationId: string,
-): Promise<AllergyIntoleranceItem[]> {
-  if (!patientId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql({
-    document: GetPatientAllergyIntolerancesQuery,
-    variables: { patientId, locale: getLocale() },
-    organizationId,
-  });
-
-  return result.getPatient?.allergyIntolerances ?? [];
-}
 
 /**
  * Create one record per tag for allergies and intolerances.

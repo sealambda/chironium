@@ -1,72 +1,12 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { codeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
-import { graphql, type ResultOf, type VariablesOf } from "@/graphql";
-import { getLocale } from "@/paraglide/runtime";
+import { graphql, type VariablesOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
+import { toUtcDateTimeStart } from "@/shared/utils/date-time-input";
 
 import type { AnnotationInput } from "./observations-api";
-
-// ─── Queries ─────────────────────────────────────────────────────────
-
-const GetPatientConditionsQuery = graphql(`
-  query GetPatientConditions($patientId: ID!, $locale: String) {
-    getPatient(id: $patientId) {
-      conditions {
-        id
-        clinicalStatus
-        verificationStatus
-        code {
-          text
-          coding {
-            system
-            code
-            version
-            display(locale: $locale)
-          }
-        }
-        onsetDateTime
-        onsetAge {
-          value
-          code
-        }
-        onsetPeriod {
-          start
-          end
-        }
-        abatementDateTime
-        abatementPeriod {
-          start
-          end
-        }
-        recordedDate
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-  }
-`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -118,9 +58,7 @@ const DeleteConditionMutation = graphql(`
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** One condition row returned by the patient query. */
-export type ConditionItem = NonNullable<
-  NonNullable<ResultOf<typeof GetPatientConditionsQuery>["getPatient"]>["conditions"]
->[number];
+export type { ConditionItem } from "./patients-api";
 
 type CreateConditionInput = NonNullable<VariablesOf<typeof CreateConditionMutation>["input"]>;
 
@@ -135,7 +73,6 @@ export type ConditionCreateOptions = Partial<
     | "onsetPeriod"
     | "abatementDateTime"
     | "abatementPeriod"
-    | "recordedDate"
   >
 >;
 
@@ -145,26 +82,6 @@ export interface PathologiesFormData {
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
-
-/**
- * Fetch all condition records for a patient.
- */
-export async function fetchConditions(
-  patientId: string,
-  organizationId: string,
-): Promise<ConditionItem[]> {
-  if (!patientId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql({
-    document: GetPatientConditionsQuery,
-    variables: { patientId, locale: getLocale() },
-    organizationId,
-  });
-
-  return result.getPatient?.conditions ?? [];
-}
 
 /**
  * Create one Condition per tag.
@@ -187,7 +104,6 @@ export async function createConditionsFromTags(
             onsetPeriod: options.onsetPeriod,
             abatementDateTime: options.abatementDateTime,
             abatementPeriod: options.abatementPeriod,
-            recordedDate: options.recordedDate,
             subjectId: patientId,
             code: codeInputFromTerminologyTag(tag),
           },
@@ -281,14 +197,9 @@ export interface ConditionFormInput {
   verificationStatus: ConditionVerificationStatus;
   onsetDate: string;
   abatementDate: string;
-  recordedDate: string;
 }
 
 const ABATED_STATUSES: readonly ConditionClinicalStatus[] = ["INACTIVE", "REMISSION", "RESOLVED"];
-
-function dateInputToUtc(value: string): string | undefined {
-  return value ? `${value}T09:00:00.000Z` : undefined;
-}
 
 function buildConditionInput(data: ConditionFormInput) {
   const abated = ABATED_STATUSES.includes(data.clinicalStatus);
@@ -296,9 +207,8 @@ function buildConditionInput(data: ConditionFormInput) {
     clinicalStatus: data.clinicalStatus,
     verificationStatus: data.verificationStatus,
     code: { text: data.name },
-    onsetDateTime: dateInputToUtc(data.onsetDate),
-    abatementDateTime: abated ? dateInputToUtc(data.abatementDate) : undefined,
-    recordedDate: dateInputToUtc(data.recordedDate),
+    onsetDateTime: toUtcDateTimeStart(data.onsetDate),
+    abatementDateTime: abated ? toUtcDateTimeStart(data.abatementDate) : undefined,
   };
 }
 
