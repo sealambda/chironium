@@ -14,27 +14,18 @@ import {
   hasAnthropometryValues,
   toAnthropometryValuesInput,
 } from "@/features/customers/ui/detail/anthropometry-form-fields";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { isoToDateTimeInputParts } from "@/shared/utils/date-time-input";
 
 interface EditAnthropometryDialogProps {
   personId: string;
   snapshot: AnthropometricSnapshot;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-function toDateDefaults(snapshotDate: string) {
-  const value = snapshotDate || "";
-  if (!value) {
-    return { date: "", time: "" };
-  }
-  const date = value.slice(0, 10);
-  const time = value.slice(11, 16);
-  return { date, time };
 }
 
 export function EditAnthropometryDialog({
@@ -47,7 +38,7 @@ export function EditAnthropometryDialog({
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
 
-  const defaults = useMemo(() => toDateDefaults(snapshot.date), [snapshot.date]);
+  const defaults = useMemo(() => isoToDateTimeInputParts(snapshot.date), [snapshot.date]);
   const initialValues = useMemo<AnthropometryFormValues>(
     () => ({
       effectiveDateTime: defaults.date,
@@ -85,9 +76,7 @@ export function EditAnthropometryDialog({
       setSaving(true);
       try {
         await updateAnthropometryEntry(snapshot, updateInput, selectedOrg?.id ?? "");
-        await queryClient.invalidateQueries({
-          queryKey: personQueryKeys.anthropometryHistoryScope(personId),
-        });
+        await invalidatePersonDetail(queryClient, personId);
         toast.success(m.anthropometry_edit_success());
         onOpenChange(false);
       } catch {
