@@ -16,6 +16,7 @@ import {
 } from "@/features/customers/api/subscriptions-api";
 import { subscriptionSchema } from "@/features/customers/model/onboarding-schemas";
 import { SubscriptionFormFields } from "@/features/customers/ui/subscription/subscription-form-fields";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import type {
@@ -138,6 +139,7 @@ export function EditSubscriptionDialog({
 
   const invalidateSubscriptionQueries = async () => {
     await Promise.all([
+      invalidatePersonDetail(queryClient, personId),
       queryClient.invalidateQueries({
         queryKey: personQueryKeys.subscriptions(personId, organizationId),
       }),

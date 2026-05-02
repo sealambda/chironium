@@ -72,7 +72,7 @@ function normalizeTasks(tasks: PatientTask[] | undefined): FeedEvent[] {
     kind: "task",
     id: task.id,
     date: task.requestedPeriod?.start ?? nowIso(),
-    actor: actorFromNotes(task.note),
+    actor: mergeFeedActor(actorFromVersions(task.paperTrailVersions), actorFromNotes(task.note)),
     payload: task,
   }));
 }
@@ -82,6 +82,10 @@ function normalizeMenstrualCycles(entries: MenstrualCycleEntry[] | undefined): F
     kind: "menstrual",
     id: entry.id,
     date: entry.effectiveDateTime,
+    actor: mergeFeedActor(
+      actorFromVersions(entry.paperTrailVersions),
+      actorFromNotes(entry.sourceNotes),
+    ),
     payload: entry,
   }));
 }
