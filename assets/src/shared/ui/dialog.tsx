@@ -2,6 +2,7 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 
+import * as m from "@/paraglide/messages";
 import { cn } from "@/shared/utils/utils";
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
@@ -63,7 +64,7 @@ function DialogContent({
             }}
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{m.common_close()}</span>
           </DialogPrimitive.Close>
         ) : null}
       </DialogPrimitive.Popup>
