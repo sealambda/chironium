@@ -1,5 +1,5 @@
 import { addDays, format, formatDistanceStrict, isValid, parseISO } from "date-fns";
-import { MoveRight } from "lucide-react";
+import { CalendarDays, Clock3, NotebookText } from "lucide-react";
 
 import type { MenstrualCycleEntry } from "@/features/customers/api/observations-api";
 import * as m from "@/paraglide/messages";
@@ -46,18 +46,40 @@ export function MenstrualCycleEvent({ cycle }: Readonly<MenstrualCycleEventProps
   const note = cycle.notes?.trim() ?? null;
 
   return (
-    <div className="rounded-xl border bg-card p-4">
-      <div className="flex items-center gap-2 text-foreground">
-        <span className="font-medium tabular-nums">{start}</span>
-        {end ? (
-          <>
-            <MoveRight className="size-4 text-muted-foreground" aria-hidden />
-            <span className="font-medium tabular-nums">{end}</span>
-          </>
-        ) : null}
-        {duration ? <span className="text-muted-foreground text-sm">· {duration}</span> : null}
+    <div className="max-w-md rounded-lg border bg-card p-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div>
+          <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            <CalendarDays className="size-3.5" aria-hidden />
+            {m.field_cycle_start_date()}
+          </p>
+          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">{start}</p>
+        </div>
+        <div>
+          <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            <CalendarDays className="size-3.5" aria-hidden />
+            {m.field_cycle_end_date()}
+          </p>
+          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">
+            {end ?? m.common_unknown()}
+          </p>
+        </div>
+        <div>
+          <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            <Clock3 className="size-3.5" aria-hidden />
+            {m.field_cycle_duration_days()}
+          </p>
+          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">
+            {duration ?? m.common_unknown()}
+          </p>
+        </div>
       </div>
-      {note ? <p className="mt-2 text-foreground/80 text-sm">{note}</p> : null}
+      {note ? (
+        <p className="mt-3 flex gap-2 rounded-md bg-muted/30 p-2 text-foreground/75 text-sm">
+          <NotebookText className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          <span>{note}</span>
+        </p>
+      ) : null}
     </div>
   );
 }
