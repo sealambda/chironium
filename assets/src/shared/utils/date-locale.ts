@@ -1,8 +1,8 @@
-import type { Locale } from "date-fns";
+import type { Locale as DateFnsLocale } from "date-fns";
 import { enUS, es } from "date-fns/locale";
 
-import { getLocale } from "@/paraglide/runtime";
+import { getLocale, type Locale } from "@/paraglide/runtime";
 
-const locales: Record<string, Locale> = { en: enUS, es };
+const dateFnsLocales: Record<Locale, DateFnsLocale> = { en: enUS, es };
 
-export const getDateLocale = () => locales[getLocale()] ?? enUS;
+export const getDateLocale = () => dateFnsLocales[getLocale()];

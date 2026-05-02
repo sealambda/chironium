@@ -33,20 +33,19 @@ interface SubscriptionBadgeMetadata {
 
 const DEFAULT_MONTHS = 3;
 
-const BADGE_BASE =
-  "h-7 gap-0 sm:gap-2 rounded-full border px-3 font-semibold text-emerald-900 sm:text-sm text-xs";
+const BADGE_BASE = "h-7 gap-0 rounded-full border px-3 font-semibold text-xs sm:gap-2 sm:text-sm";
 
-const BADGE_ACTIVE = `${BADGE_BASE} border-emerald-200 bg-emerald-100 text-emerald-900`;
-const DOT_ACTIVE = "bg-emerald-500";
+const BADGE_ACTIVE = `${BADGE_BASE} border-success/20 bg-success-muted text-success-muted-foreground`;
+const DOT_ACTIVE = "bg-success";
 
-const BADGE_UPCOMING = `${BADGE_BASE} border-sky-200 bg-sky-100 text-sky-900`;
-const DOT_UPCOMING = "bg-sky-500";
+const BADGE_UPCOMING = `${BADGE_BASE} border-info/20 bg-info-muted text-info-muted-foreground`;
+const DOT_UPCOMING = "bg-info";
 
-const BADGE_EXPIRED = `${BADGE_BASE} border-red-200 bg-red-100 text-red-900`;
-const DOT_EXPIRED = "bg-red-500";
+const BADGE_EXPIRED = `${BADGE_BASE} border-destructive/20 bg-destructive-muted text-destructive-muted-foreground`;
+const DOT_EXPIRED = "bg-destructive";
 
-const BADGE_NEUTRAL = `${BADGE_BASE} border-neutral-200 bg-neutral-100 text-neutral-800`;
-const DOT_NEUTRAL = "bg-neutral-500";
+const BADGE_NEUTRAL = `${BADGE_BASE} border-border bg-muted text-muted-foreground`;
+const DOT_NEUTRAL = "bg-muted-foreground";
 
 function parseDate(date: Date | string): Date {
   if (typeof date === "string") {
