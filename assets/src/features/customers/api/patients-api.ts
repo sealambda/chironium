@@ -6,8 +6,8 @@ import type { AdministrativeGender } from "@/shared/types/schema-enums";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
-const PatientDetailByPersonQuery = graphql(`
-  query PatientDetailByPerson($personId: ID!, $locale: String) {
+const PatientWorkspaceByPersonQuery = graphql(`
+  query PatientWorkspaceByPerson($personId: ID!, $locale: String) {
     listPatients(filter: { personId: { eq: $personId } }, first: 1) {
       results {
         id
@@ -26,7 +26,7 @@ const PatientDetailByPersonQuery = graphql(`
           gender
           birthDate
         }
-        allergyIntolerances {
+        allergyIntolerances(limit: 250) {
           id
           type
           clinicalStatus
@@ -74,7 +74,7 @@ const PatientDetailByPersonQuery = graphql(`
             }
           }
         }
-        conditions {
+        conditions(limit: 250) {
           id
           clinicalStatus
           verificationStatus
@@ -125,7 +125,7 @@ const PatientDetailByPersonQuery = graphql(`
             }
           }
         }
-        medicationStatements {
+        medicationStatements(limit: 250) {
           id
           status
           medication {
@@ -167,8 +167,8 @@ const PatientDetailByPersonQuery = graphql(`
           }
         }
         goals(
-          filter: { lifecycleStatus: { eq: ACTIVE } }
           sort: [{ field: PRIORITY, order: ASC }]
+          limit: 250
         ) {
           id
           lifecycleStatus
@@ -203,12 +203,69 @@ const PatientDetailByPersonQuery = graphql(`
             }
           }
         }
-        nutritionPlans {
+        nutritionPlans(limit: 250) {
           id
           targetKcal
           proteinG
           carbsG
           fatG
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
+          }
+        }
+        observations(
+          sort: [{ field: EFFECTIVE_DATE_TIME, order: DESC }]
+          limit: 250
+        ) {
+          id
+          status
+          observationType
+          code {
+            text
+            coding {
+              system
+              code
+              version
+              display(locale: $locale)
+            }
+          }
+          effectiveDateTime
+          valueString
+          valueDateTime
+          valueQuantity {
+            value
+            unit
+            system
+            code
+          }
+          valueCodeableConcept {
+            text
+            coding {
+              system
+              code
+              version
+              display(locale: $locale)
+            }
+          }
+          note {
+            text
+            time
+            authorReference
+            authorString
+          }
           paperTrailVersions(limit: 1) {
             versionActionName
             versionInsertedAt
@@ -282,8 +339,15 @@ export interface CreatePatientResult {
 
 /** Full patient record returned by the detail query. */
 export type PatientDetail = NonNullable<
-  NonNullable<ResultOf<typeof PatientDetailByPersonQuery>["listPatients"]>["results"]
+  NonNullable<ResultOf<typeof PatientWorkspaceByPersonQuery>["listPatients"]>["results"]
 >[number];
+
+export type AllergyIntoleranceItem = NonNullable<PatientDetail["allergyIntolerances"]>[number];
+export type ConditionItem = NonNullable<PatientDetail["conditions"]>[number];
+export type GoalRecord = NonNullable<PatientDetail["goals"]>[number];
+export type MedicationItem = NonNullable<PatientDetail["medicationStatements"]>[number];
+export type NutritionPlanRecord = NonNullable<PatientDetail["nutritionPlans"]>[number];
+export type PatientObservation = NonNullable<PatientDetail["observations"]>[number];
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -340,7 +404,7 @@ export async function fetchPatientDetail(
   }
 
   const result = await requestGraphql({
-    document: PatientDetailByPersonQuery,
+    document: PatientWorkspaceByPersonQuery,
     variables: { personId, locale: getLocale() },
     organizationId,
   });

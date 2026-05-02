@@ -7,9 +7,9 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
-import {
-  fetchMenstrualCycleHistory,
-  fetchObservationsList,
+import type {
+  MenstrualCycleEntry,
+  ObservationsPage,
 } from "@/features/customers/api/observations-api";
 import type { FeedDateGroup, FeedEventKind } from "@/features/customers/types/activity-feed";
 import {
@@ -33,6 +33,8 @@ interface UseActivityFeedParams {
   medications: MedicationItem[];
   anthropometry: AnthropometricSnapshot[];
   foodPreferences: FoodPreferenceHistoryItem[];
+  observations: ObservationsPage;
+  menstrualCycles: MenstrualCycleEntry[];
   activeFilter: FeedEventKind | "all";
   personName?: string | null;
   enabled?: boolean;
@@ -57,6 +59,8 @@ export function useActivityFeed({
   medications,
   anthropometry,
   foodPreferences,
+  observations,
+  menstrualCycles,
   activeFilter,
   personName,
   enabled = true,
@@ -66,28 +70,16 @@ export function useActivityFeed({
 
   const fetchEnabled = enabled && Boolean(personId && organizationId && patientId);
 
-  const observationsQuery = useQuery({
-    queryKey: personQueryKeys.observationsList(personId, organizationId),
-    queryFn: () => fetchObservationsList(personId, organizationId),
-    enabled: fetchEnabled,
-  });
-
   const tasksQuery = useQuery({
     queryKey: personQueryKeys.patientTasks(personId, organizationId, patientId ?? ""),
     queryFn: () => fetchTasksForPatient(patientId ?? "", organizationId),
     enabled: fetchEnabled,
   });
 
-  const menstrualQuery = useQuery({
-    queryKey: personQueryKeys.menstrualCycleHistory(personId, organizationId),
-    queryFn: () => fetchMenstrualCycleHistory(personId, organizationId),
-    enabled: fetchEnabled,
-  });
-
   const allEvents = useMemo(
     () =>
       buildActivityFeedEvents({
-        observations: observationsQuery.data,
+        observations,
         tasks: tasksQuery.data,
         goals,
         subscriptions,
@@ -96,12 +88,12 @@ export function useActivityFeed({
         allergyIntolerances,
         medications,
         foodPreferences,
-        menstrualCycles: menstrualQuery.data,
+        menstrualCycles,
         activeFilter,
         personName,
       }),
     [
-      observationsQuery.data,
+      observations,
       tasksQuery.data,
       goals,
       subscriptions,
@@ -110,7 +102,7 @@ export function useActivityFeed({
       allergyIntolerances,
       medications,
       foodPreferences,
-      menstrualQuery.data,
+      menstrualCycles,
       activeFilter,
       personName,
     ],
@@ -139,8 +131,8 @@ export function useActivityFeed({
 
   return {
     groups: visibleGroups,
-    isLoading: observationsQuery.isLoading || tasksQuery.isLoading || menstrualQuery.isLoading,
-    isError: observationsQuery.isError || tasksQuery.isError || menstrualQuery.isError,
+    isLoading: tasksQuery.isLoading,
+    isError: tasksQuery.isError,
     hasMore: shownEvents < totalEvents,
     showMore,
   };
