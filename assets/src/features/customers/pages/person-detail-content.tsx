@@ -14,12 +14,12 @@ import { ConditionsCard } from "@/features/customers/ui/detail/conditions-card";
 import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-preferences-card";
 import { MedicationsCard } from "@/features/customers/ui/detail/medications-card";
 import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
 import { formatPersonName } from "@/shared/utils/person-utils";
-import { personQueryKeys } from "@/shared/utils/query-keys";
 
 // Stable empty-array references to avoid re-creating on every render.
 const EMPTY_GOALS: GoalRecord[] = [];
@@ -56,6 +56,8 @@ function PatientDetailCards({
     medications,
     foodPreferencesHistory,
     menstrualCycle,
+    menstrualCycleHistory,
+    observationsList,
   } = detail;
   const personGoals = goals.data ?? EMPTY_GOALS;
   const personSubscriptions = subscriptions.data ?? EMPTY_SUBSCRIPTIONS;
@@ -65,11 +67,13 @@ function PatientDetailCards({
   const anthropometryEntries = anthropometryHistory.data ?? [];
   const foodPreferenceEntries = foodPreferencesHistory.data ?? [];
   const menstrualCycleData = menstrualCycle.data ?? null;
+  const menstrualCycleEntries = menstrualCycleHistory.data ?? [];
+  const observationEntries = observationsList.data;
 
   const [activeFilter, setFilter] = useState<FeedEventKind | "all">("all");
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Mini-dashboard: clinical summary cards in a responsive grid */}
       <section aria-label={m.clinical_summary()}>
         <div className="mb-3 flex h-8 items-center px-1">
@@ -123,7 +127,7 @@ function PatientDetailCards({
       </section>
 
       {/* Activity feed — full width below the mini-dashboard */}
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         <div className="flex h-8 items-center justify-between px-1">
           <h2 className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">
             {m.activity_title()}
@@ -135,7 +139,7 @@ function PatientDetailCards({
               aria-label={m.add_record_title()}
               className="gap-1.5"
             >
-              <Plus className="size-4" aria-hidden />
+              <Plus data-icon="inline-start" aria-hidden />
               <span className="hidden lg:inline">{m.add_record_title()}</span>
             </Button>
           ) : null}
@@ -154,6 +158,8 @@ function PatientDetailCards({
           medications={personMedications}
           anthropometry={anthropometryEntries}
           foodPreferences={foodPreferenceEntries}
+          observations={observationEntries}
+          menstrualCycles={menstrualCycleEntries}
           activeFilter={activeFilter}
           personName={person?.name ? formatPersonName(person.name) : null}
         />
@@ -174,14 +180,11 @@ export function PersonDetailContent({
 
   const { mutate: createPatient, isPending } = useMutation({
     mutationFn: () => createPatientForPerson(personId, selectedOrg?.id ?? ""),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(personId),
-      }),
+    onSuccess: () => invalidatePersonDetail(queryClient, personId),
   });
 
   return (
-    <div className="space-y-4 lg:space-y-6">
+    <div className="flex flex-col gap-4 lg:gap-6">
       {hasPatient ? (
         <PatientDetailCards
           personId={personId}

@@ -3,10 +3,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { createAllergiesAndIntolerances } from "@/features/customers/api/allergy-intolerance-api";
+import { useTerminologyTagList } from "@/features/customers/hooks/use-terminology-tag-list";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import type { TerminologyTag } from "@/shared/types/terminology";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -17,7 +18,6 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface AddAllergyIntoleranceDialogProps {
   readonly personId: string;
@@ -40,16 +40,16 @@ export function AddAllergyIntoleranceDialog({
     onChange: controlledOnOpenChange,
   });
   const [saving, setSaving] = useState(false);
-  const [allergies, setAllergies] = useState<TerminologyTag[]>([]);
-  const [intolerances, setIntolerances] = useState<TerminologyTag[]>([]);
+  const allergies = useTerminologyTagList();
+  const intolerances = useTerminologyTagList();
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
-  const hasContent = allergies.length > 0 || intolerances.length > 0;
+  const hasContent = allergies.tags.length > 0 || intolerances.tags.length > 0;
 
   const resetForm = () => {
-    setAllergies([]);
-    setIntolerances([]);
+    allergies.resetTags();
+    intolerances.resetTags();
   };
 
   const handleSubmit = async () => {
@@ -63,17 +63,12 @@ export function AddAllergyIntoleranceDialog({
     setSaving(true);
     try {
       await createAllergiesAndIntolerances(
-        { allergies, intolerances },
+        { allergies: allergies.tags, intolerances: intolerances.tags },
         patientId,
         selectedOrg?.id ?? "",
       );
 
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.allergyIntolerancesScope(personId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(personId),
-      });
+      await invalidatePersonDetail(queryClient, personId);
 
       toast.success(m.allergy_intolerance_add_success());
       setOpen(false);
@@ -93,13 +88,13 @@ export function AddAllergyIntoleranceDialog({
           <DialogTitle>{m.allergy_intolerance_dialog_title()}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <TerminologyTagInput
             label={m.allergy_intolerance_allergies_label()}
             placeholder={m.field_allergies_placeholder()}
-            tags={allergies}
-            onAdd={(tag) => setAllergies((prev) => [...prev, tag])}
-            onRemove={(i) => setAllergies((prev) => prev.filter((_, idx) => idx !== i))}
+            tags={allergies.tags}
+            onAdd={allergies.addTag}
+            onRemove={allergies.removeTag}
             organizationId={selectedOrg?.id ?? ""}
             conceptContext="ALLERGY_INTOLERANCE"
             addLabel={m.common_add()}
@@ -108,9 +103,9 @@ export function AddAllergyIntoleranceDialog({
           <TerminologyTagInput
             label={m.allergy_intolerance_intolerances_label()}
             placeholder={m.field_intolerances_placeholder()}
-            tags={intolerances}
-            onAdd={(tag) => setIntolerances((prev) => [...prev, tag])}
-            onRemove={(i) => setIntolerances((prev) => prev.filter((_, idx) => idx !== i))}
+            tags={intolerances.tags}
+            onAdd={intolerances.addTag}
+            onRemove={intolerances.removeTag}
             organizationId={selectedOrg?.id ?? ""}
             conceptContext="ALLERGY_INTOLERANCE"
             addLabel={m.common_add()}
@@ -123,7 +118,7 @@ export function AddAllergyIntoleranceDialog({
             {m.common_cancel()}
           </Button>
           <Button onClick={() => void handleSubmit()} disabled={saving || !hasContent}>
-            {saving ? m.common_saving() : m.allergy_intolerance_dialog_submit()}
+            {saving ? m.common_saving() : m.common_save()}
           </Button>
         </DialogFooter>
       </DialogContent>

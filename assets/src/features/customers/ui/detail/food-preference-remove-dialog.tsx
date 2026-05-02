@@ -30,9 +30,9 @@ export function FoodPreferenceRemoveDialog({
       onOpenChange={onOpenChange}
       title={m.food_preferences_remove_title({ name })}
       description={m.food_preferences_remove_desc()}
-      confirmLabel={m.food_preferences_remove_confirm()}
+      confirmLabel={m.common_remove()}
       successMessage={m.food_preferences_remove_success()}
-      invalidateKeys={[personQueryKeys.foodPreferencesHistoryScope(personId)]}
+      invalidateKeys={[personQueryKeys.patientDetailScope(personId)]}
       onConfirm={() => deleteObservation(id, orgId)}
     />
   );

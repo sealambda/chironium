@@ -8,30 +8,51 @@ import {
   type ConditionItem,
   updateCondition,
 } from "@/features/customers/api/condition-api";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { isoToDateInput } from "@/shared/utils/date-time-input";
+
+import { RecordDetailDialogFooter } from "./record-detail-dialog-footer";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
 type ClinicalStatus = "ACTIVE" | "INACTIVE" | "REMISSION" | "RESOLVED";
-type VerificationStatus = "CONFIRMED" | "DIFFERENTIAL" | "PROVISIONAL" | "UNCONFIRMED";
+type VerificationStatus = ConditionFormInput["verificationStatus"];
 
 const ABATED_STATUSES: readonly ClinicalStatus[] = ["INACTIVE", "REMISSION", "RESOLVED"];
+const CLINICAL_STATUSES: readonly ClinicalStatus[] = [
+  "ACTIVE",
+  "INACTIVE",
+  "REMISSION",
+  "RESOLVED",
+];
+const VERIFICATION_STATUSES: readonly VerificationStatus[] = [
+  "CONFIRMED",
+  "DIFFERENTIAL",
+  "PROVISIONAL",
+  "UNCONFIRMED",
+  "ENTERED_IN_ERROR",
+  "REFUTED",
+];
+const EDITABLE_VERIFICATION_STATUSES: readonly VerificationStatus[] = [
+  "CONFIRMED",
+  "PROVISIONAL",
+  "DIFFERENTIAL",
+  "UNCONFIRMED",
+];
 
 interface ConditionDetailDialogProps {
   readonly mode: "edit";
@@ -51,31 +72,19 @@ interface ConditionFormValues {
   verificationStatus: VerificationStatus;
   onsetDate: string;
   abatementDate: string;
-  recordedDate: string;
-}
-
-function isoToDateInput(value: string | null | undefined): string {
-  return value ? String(value).slice(0, 10) : "";
 }
 
 function itemToFormValues(item: ConditionItem): ConditionFormValues {
   const clinical = (item.clinicalStatus ?? "ACTIVE") as ClinicalStatus;
-  // Map deprecated statuses we don't expose in the toggle to ACTIVE.
-  const safeClinical: ClinicalStatus = ["ACTIVE", "INACTIVE", "REMISSION", "RESOLVED"].includes(
-    clinical,
-  )
-    ? clinical
-    : "ACTIVE";
+  const safeClinical: ClinicalStatus = CLINICAL_STATUSES.includes(clinical) ? clinical : "ACTIVE";
 
-  const verification = (item.verificationStatus ?? "CONFIRMED") as VerificationStatus;
-  const safeVerification: VerificationStatus = [
-    "CONFIRMED",
-    "DIFFERENTIAL",
-    "PROVISIONAL",
-    "UNCONFIRMED",
-  ].includes(verification)
-    ? verification
-    : "CONFIRMED";
+  const verification = item.verificationStatus as VerificationStatus | null | undefined;
+  let safeVerification: VerificationStatus = "CONFIRMED";
+  if (verification && VERIFICATION_STATUSES.includes(verification)) {
+    safeVerification = verification;
+  } else if (verification) {
+    safeVerification = "UNCONFIRMED";
+  }
 
   return {
     name: item.code?.text ?? item.code?.coding?.[0]?.display ?? "",
@@ -83,8 +92,45 @@ function itemToFormValues(item: ConditionItem): ConditionFormValues {
     verificationStatus: safeVerification,
     onsetDate: isoToDateInput(item.onsetDateTime),
     abatementDate: isoToDateInput(item.abatementDateTime),
-    recordedDate: isoToDateInput(item.recordedDate),
   };
+}
+
+function isRemovedVerificationStatus(status: VerificationStatus): boolean {
+  return status === "ENTERED_IN_ERROR" || status === "REFUTED";
+}
+
+function verificationLabel(status: VerificationStatus): string {
+  switch (status) {
+    case "CONFIRMED":
+      return m.fhir_verification_confirmed();
+    case "PROVISIONAL":
+      return m.fhir_verification_provisional();
+    case "DIFFERENTIAL":
+      return m.fhir_verification_differential();
+    case "UNCONFIRMED":
+      return m.fhir_verification_unconfirmed();
+    case "ENTERED_IN_ERROR":
+      return m.fhir_verification_entered_in_error();
+    case "REFUTED":
+      return m.fhir_verification_refuted();
+  }
+}
+
+function verificationDescription(status: VerificationStatus): string {
+  switch (status) {
+    case "CONFIRMED":
+      return m.condition_verification_confirmed_desc();
+    case "PROVISIONAL":
+      return m.condition_verification_provisional_desc();
+    case "DIFFERENTIAL":
+      return m.condition_verification_differential_desc();
+    case "UNCONFIRMED":
+      return m.condition_verification_unconfirmed_desc();
+    case "ENTERED_IN_ERROR":
+      return m.condition_remove_reason_error_desc();
+    case "REFUTED":
+      return m.condition_remove_reason_refuted_desc();
+  }
 }
 
 const EMPTY_VALUES: ConditionFormValues = {
@@ -93,7 +139,6 @@ const EMPTY_VALUES: ConditionFormValues = {
   verificationStatus: "CONFIRMED",
   onsetDate: "",
   abatementDate: "",
-  recordedDate: "",
 };
 
 function toApiInput(values: ConditionFormValues): ConditionFormInput {
@@ -103,7 +148,6 @@ function toApiInput(values: ConditionFormValues): ConditionFormInput {
     verificationStatus: values.verificationStatus,
     onsetDate: values.onsetDate,
     abatementDate: values.abatementDate,
-    recordedDate: values.recordedDate,
   };
 }
 
@@ -126,6 +170,9 @@ export function ConditionDetailDialog({
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
   const orgId = organizationId || selectedOrg?.id || "";
+  const readOnly = item
+    ? isRemovedVerificationStatus(itemToFormValues(item).verificationStatus)
+    : false;
 
   const form = useForm({
     defaultValues: (item ? itemToFormValues(item) : EMPTY_VALUES) as ConditionFormValues,
@@ -138,9 +185,7 @@ export function ConditionDetailDialog({
       try {
         await updateCondition(item.id, toApiInput(value), orgId);
         toast.success(m.condition_edit_success());
-        await queryClient.invalidateQueries({
-          queryKey: personQueryKeys.conditionsScope(personId),
-        });
+        await invalidatePersonDetail(queryClient, personId);
         setOpen(false);
         form.reset();
       } catch {
@@ -152,7 +197,7 @@ export function ConditionDetailDialog({
   });
 
   const title = m.condition_edit_title({ name: item?.code?.text ?? "" });
-  const submitLabel = saving ? m.common_saving() : m.condition_dialog_submit();
+  const submitLabel = saving ? m.common_saving() : m.common_save();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -177,7 +222,7 @@ export function ConditionDetailDialog({
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder={m.condition_field_name_placeholder()}
-                  disabled={saving}
+                  disabled={saving || readOnly}
                   autoFocus
                 />
               </Field>
@@ -188,13 +233,13 @@ export function ConditionDetailDialog({
           <form.Field name="clinicalStatus">
             {(field) => (
               <Field>
-                <FieldLabel>{m.condition_field_clinical_status()}</FieldLabel>
+                <FieldLabel>{m.common_clinical_status()}</FieldLabel>
                 <FieldDescription>{m.condition_field_clinical_status_desc()}</FieldDescription>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <ToggleGroup
                     value={field.state.value}
                     onValueChange={(v) => v && field.handleChange(v as ClinicalStatus)}
-                    disabled={saving}
+                    disabled={saving || readOnly}
                   >
                     <ToggleGroupItem value="ACTIVE">{m.fhir_clinical_active()}</ToggleGroupItem>
                     <ToggleGroupItem value="REMISSION">
@@ -218,36 +263,26 @@ export function ConditionDetailDialog({
           <form.Field name="verificationStatus">
             {(field) => (
               <Field>
-                <FieldLabel>{m.condition_field_verification_status()}</FieldLabel>
+                <FieldLabel>{m.common_verification_status()}</FieldLabel>
                 <FieldDescription>{m.condition_field_verification_status_desc()}</FieldDescription>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <ToggleGroup
                     value={field.state.value}
                     onValueChange={(v) => v && field.handleChange(v as VerificationStatus)}
-                    disabled={saving}
+                    disabled={saving || readOnly}
                   >
-                    <ToggleGroupItem value="CONFIRMED">
-                      {m.fhir_verification_confirmed()}
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="PROVISIONAL">
-                      {m.fhir_verification_provisional()}
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="DIFFERENTIAL">
-                      {m.fhir_verification_differential()}
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="UNCONFIRMED">
-                      {m.fhir_verification_unconfirmed()}
-                    </ToggleGroupItem>
+                    {EDITABLE_VERIFICATION_STATUSES.map((status) => (
+                      <ToggleGroupItem key={status} value={status}>
+                        {verificationLabel(status)}
+                      </ToggleGroupItem>
+                    ))}
+                    {isRemovedVerificationStatus(field.state.value) ? (
+                      <ToggleGroupItem value={field.state.value} disabled>
+                        {verificationLabel(field.state.value)}
+                      </ToggleGroupItem>
+                    ) : null}
                   </ToggleGroup>
-                  <FieldDescription>
-                    {field.state.value === "CONFIRMED" && m.condition_verification_confirmed_desc()}
-                    {field.state.value === "PROVISIONAL" &&
-                      m.condition_verification_provisional_desc()}
-                    {field.state.value === "DIFFERENTIAL" &&
-                      m.condition_verification_differential_desc()}
-                    {field.state.value === "UNCONFIRMED" &&
-                      m.condition_verification_unconfirmed_desc()}
-                  </FieldDescription>
+                  <FieldDescription>{verificationDescription(field.state.value)}</FieldDescription>
                 </div>
               </Field>
             )}
@@ -262,7 +297,7 @@ export function ConditionDetailDialog({
                 <DatePickerString
                   value={field.state.value}
                   onChange={field.handleChange}
-                  disabled={saving}
+                  disabled={saving || readOnly}
                   endMonth={new Date()}
                 />
               </Field>
@@ -281,7 +316,7 @@ export function ConditionDetailDialog({
                       <DatePickerString
                         value={field.state.value}
                         onChange={field.handleChange}
-                        disabled={saving}
+                        disabled={saving || readOnly}
                         endMonth={new Date()}
                       />
                     </Field>
@@ -290,50 +325,17 @@ export function ConditionDetailDialog({
               ) : null
             }
           </form.Subscribe>
-
-          {/* Recorded date */}
-          <form.Field name="recordedDate">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.condition_field_recorded()}</FieldLabel>
-                <FieldDescription>{m.condition_field_recorded_subtitle()}</FieldDescription>
-                <DatePickerString
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={saving}
-                  endMonth={new Date()}
-                />
-              </Field>
-            )}
-          </form.Field>
         </FieldGroup>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          {onRemoveClick ? (
-            <Button
-              variant="ghost"
-              className="text-destructive hover:text-destructive sm:mr-auto"
-              onClick={onRemoveClick}
-              disabled={saving}
-              type="button"
-            >
-              {m.condition_remove_btn()}
-            </Button>
-          ) : null}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={saving}
-              type="button"
-            >
-              {m.common_cancel()}
-            </Button>
-            <Button onClick={() => form.handleSubmit()} loading={saving} type="button">
-              {submitLabel}
-            </Button>
-          </div>
-        </DialogFooter>
+        <RecordDetailDialogFooter
+          cancelLabel={m.common_cancel()}
+          onCancel={() => setOpen(false)}
+          removeLabel={m.common_remove()}
+          onRemoveClick={readOnly ? undefined : onRemoveClick}
+          submitLabel={readOnly ? undefined : submitLabel}
+          onSubmit={readOnly ? undefined : () => form.handleSubmit()}
+          saving={saving}
+        />
       </DialogContent>
     </Dialog>
   );
