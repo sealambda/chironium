@@ -6,11 +6,11 @@ import type { PersonFormData } from "@/features/customers/api/patients-api";
 import type { Person } from "@/features/customers/api/persons-api";
 import { updatePerson } from "@/features/customers/api/persons-api";
 import { PersonStep } from "@/features/customers/ui/onboarding/person-step";
+import { invalidatePersonAndOrg } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
-import { customersQueryKeys, personQueryKeys } from "@/shared/utils/query-keys";
 
 interface EditPersonDialogProps {
   readonly person: Person;
@@ -44,14 +44,7 @@ export function EditPersonDialog({ person, open, onOpenChange }: EditPersonDialo
     try {
       await updatePerson(person.id, data, selectedOrg?.id ?? "");
 
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(person.id),
-      });
-      if (selectedOrg?.id) {
-        await queryClient.invalidateQueries({
-          queryKey: customersQueryKeys.personsPrefix(selectedOrg.id),
-        });
-      }
+      await invalidatePersonAndOrg(queryClient, person.id, selectedOrg?.id ?? "");
 
       toast.success(m.edit_person_success());
       onOpenChange(false);

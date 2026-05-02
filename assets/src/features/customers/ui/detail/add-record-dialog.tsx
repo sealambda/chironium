@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useCallback } from "react";
 
+import type { AnthropometricSnapshot } from "@/features/customers/api/anthropometry-api";
 import { AddAnthropometryDialog } from "@/features/customers/ui/detail/add-anthropometry-dialog";
 import { AddConditionsDialog } from "@/features/customers/ui/detail/add-conditions-dialog";
 import { AddFoodPreferenceDialog } from "@/features/customers/ui/detail/add-food-preference-dialog";
@@ -56,6 +57,7 @@ interface RecordTypeConfig {
   readonly iconClassName: string;
   readonly label: Message;
   readonly desc: Message;
+  readonly priority?: "primary";
   readonly disabled?: boolean;
 }
 
@@ -71,40 +73,42 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
       {
         id: "note",
         icon: FileText,
-        bgClassName: "bg-slate-100 dark:bg-slate-800",
-        iconClassName: "text-slate-700",
+        bgClassName: "bg-muted",
+        iconClassName: "text-muted-foreground",
         label: m.add_record_tile_note,
         desc: m.add_record_note_desc,
-      },
-      {
-        id: "reminder",
-        icon: CalendarClock,
-        bgClassName: "bg-amber-100 dark:bg-amber-900",
-        iconClassName: "text-amber-700",
-        label: m.add_record_tile_reminder,
-        desc: m.add_record_reminder_desc,
+        priority: "primary",
       },
       {
         id: "measurement",
         icon: Scale,
-        bgClassName: "bg-slate-100 dark:bg-slate-800",
-        iconClassName: "text-slate-700",
+        bgClassName: "bg-muted",
+        iconClassName: "text-muted-foreground",
         label: m.add_record_tile_measurement,
         desc: m.add_record_measurement_desc,
+        priority: "primary",
+      },
+      {
+        id: "reminder",
+        icon: CalendarClock,
+        bgClassName: "bg-warning-muted",
+        iconClassName: "text-warning-muted-foreground",
+        label: m.add_record_tile_reminder,
+        desc: m.add_record_reminder_desc,
       },
       {
         id: "goal",
         icon: Target,
-        bgClassName: "bg-sky-100 dark:bg-sky-900",
-        iconClassName: "text-sky-700",
+        bgClassName: "bg-info-muted",
+        iconClassName: "text-info-muted-foreground",
         label: m.add_record_tile_goal,
         desc: m.add_record_goal_desc,
       },
       {
         id: "subscription",
         icon: CreditCard,
-        bgClassName: "bg-violet-100 dark:bg-violet-900",
-        iconClassName: "text-violet-700",
+        bgClassName: "bg-primary/10",
+        iconClassName: "text-primary",
         label: m.add_record_tile_subscription,
         desc: m.add_record_subscription_desc,
       },
@@ -116,32 +120,32 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
       {
         id: "condition",
         icon: Stethoscope,
-        bgClassName: "bg-red-100 dark:bg-red-900",
-        iconClassName: "text-red-700",
+        bgClassName: "bg-destructive-muted",
+        iconClassName: "text-destructive-muted-foreground",
         label: m.add_record_tile_condition,
         desc: m.add_record_condition_desc,
       },
       {
         id: "medication",
         icon: Pill,
-        bgClassName: "bg-blue-100 dark:bg-blue-900",
-        iconClassName: "text-blue-700",
+        bgClassName: "bg-info-muted",
+        iconClassName: "text-info-muted-foreground",
         label: m.add_record_tile_medication,
         desc: m.add_record_medication_desc,
       },
       {
         id: "allergy",
         icon: ShieldAlert,
-        bgClassName: "bg-orange-100 dark:bg-orange-900",
-        iconClassName: "text-orange-700",
+        bgClassName: "bg-warning-muted",
+        iconClassName: "text-warning-muted-foreground",
         label: m.add_record_tile_allergy,
         desc: m.add_record_allergy_desc,
       },
       {
         id: "menstrual_cycle",
         icon: RefreshCcwDot,
-        bgClassName: "bg-rose-100 dark:bg-rose-900",
-        iconClassName: "text-rose-700",
+        bgClassName: "bg-primary/10",
+        iconClassName: "text-primary",
         label: m.add_record_tile_menstrual_cycle,
         desc: m.add_record_menstrual_cycle_desc,
       },
@@ -153,8 +157,8 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
       {
         id: "food_preferences",
         icon: Utensils,
-        bgClassName: "bg-emerald-100 dark:bg-emerald-900",
-        iconClassName: "text-emerald-700",
+        bgClassName: "bg-success-muted",
+        iconClassName: "text-success-muted-foreground",
         label: m.add_record_tile_food_pref,
         desc: m.add_record_food_pref_desc,
       },
@@ -180,9 +184,9 @@ function tileGridClassName(count: number): string {
   return "grid grid-cols-2 gap-3";
 }
 
-function tileItemClassName(index: number, total: number): string {
+function tileItemClassName(type: RecordTypeConfig, total: number): string {
   if (total >= 5) {
-    return index < 3 ? "col-span-2" : "col-span-3";
+    return type.priority === "primary" ? "col-span-3" : "col-span-2";
   }
   if (total === 1) {
     return "w-full sm:w-1/2";
@@ -197,6 +201,7 @@ interface AddRecordDialogProps {
   readonly onOpenChange: (open: boolean) => void;
   readonly activeType: RecordType | null;
   readonly onActiveTypeChange: (type: RecordType | null) => void;
+  readonly latestAnthropometry?: AnthropometricSnapshot | null;
   readonly currentSubscription?: SubscriptionRecord;
 }
 
@@ -207,6 +212,7 @@ export function AddRecordDialog({
   onOpenChange,
   activeType,
   onActiveTypeChange,
+  latestAnthropometry,
   currentSubscription,
 }: AddRecordDialogProps) {
   const selectType = (type: RecordType) => {
@@ -229,6 +235,7 @@ export function AddRecordDialog({
       <AddAnthropometryDialog
         personId={personId}
         patientId={patientId}
+        latestAnthropometry={latestAnthropometry}
         open={activeType === "measurement"}
         onOpenChange={handleChildOpenChange}
       />
@@ -296,7 +303,7 @@ export function AddRecordDialog({
             <DialogDescription>{m.add_record_subtitle()}</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-5">
+          <div className="flex flex-col gap-5">
             {RECORD_TYPE_GROUPS.map(({ groupLabel, types }) => {
               const groupLabelText = groupLabel();
 
@@ -306,46 +313,50 @@ export function AddRecordDialog({
                     {groupLabelText}
                   </p>
                   <div className={tileGridClassName(types.length)}>
-                    {types.map(
-                      (
-                        { id, icon: Icon, bgClassName, iconClassName, label, desc, disabled },
-                        index,
-                      ) => {
-                        const labelText = label();
-                        const descText = desc();
+                    {types.map((type) => {
+                      const {
+                        id,
+                        icon: Icon,
+                        bgClassName,
+                        iconClassName,
+                        label,
+                        desc,
+                        disabled,
+                      } = type;
+                      const labelText = label();
+                      const descText = desc();
 
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            aria-label={labelText}
-                            aria-disabled={disabled}
-                            disabled={disabled}
-                            onClick={() => selectType(id)}
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          aria-label={labelText}
+                          aria-disabled={disabled}
+                          disabled={disabled}
+                          onClick={() => selectType(id)}
+                          className={cn(
+                            "flex h-full flex-col items-center rounded-xl border border-border/50 bg-card p-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                            disabled
+                              ? "cursor-not-allowed opacity-50"
+                              : "hover:border-primary/30 hover:bg-primary/5",
+                            tileItemClassName(type, types.length),
+                          )}
+                        >
+                          <div
                             className={cn(
-                              "flex h-full flex-col items-center rounded-xl border border-border/50 bg-card p-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-                              disabled
-                                ? "cursor-not-allowed opacity-50"
-                                : "hover:border-primary/30 hover:bg-primary/5",
-                              tileItemClassName(index, types.length),
+                              "mb-2 flex size-10 shrink-0 items-center justify-center rounded-full",
+                              bgClassName,
                             )}
                           >
-                            <div
-                              className={cn(
-                                "mb-2 flex size-10 shrink-0 items-center justify-center rounded-full",
-                                bgClassName,
-                              )}
-                            >
-                              <Icon className={cn("size-5", iconClassName)} aria-hidden />
-                            </div>
-                            <p className="font-semibold text-foreground text-xs uppercase tracking-wide">
-                              {labelText}
-                            </p>
-                            <p className="mt-0.5 text-muted-foreground text-xs">{descText}</p>
-                          </button>
-                        );
-                      },
-                    )}
+                            <Icon className={cn("size-5", iconClassName)} aria-hidden />
+                          </div>
+                          <p className="font-semibold text-foreground text-xs uppercase tracking-wide">
+                            {labelText}
+                          </p>
+                          <p className="mt-0.5 text-muted-foreground text-xs">{descText}</p>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );

@@ -26,6 +26,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { toUtcDateTimeEnd, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
 import { personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
 
 interface ReviewTaskDialogProps {
@@ -33,21 +34,6 @@ interface ReviewTaskDialogProps {
   readonly patientId: string | null;
   readonly open?: boolean;
   readonly onOpenChange?: (open: boolean) => void;
-}
-
-function toUtcIsoStart(dateStr: string | undefined): string | null {
-  if (!dateStr) {
-    return null;
-  }
-  // Build directly as UTC to avoid local-timezone shifting the date.
-  return `${dateStr}T09:00:00.000Z`;
-}
-
-function toUtcIsoEnd(dateStr: string | undefined): string | null {
-  if (!dateStr) {
-    return null;
-  }
-  return `${dateStr}T23:59:59.999Z`;
 }
 
 async function completeCurrentTaskIfAny(
@@ -112,8 +98,8 @@ export function ReviewTaskDialog({
     },
     onSubmit: async ({ value }) => {
       const description = value.description.trim();
-      const startIso = toUtcIsoStart(value.startDate);
-      const endIso = toUtcIsoEnd(value.startDate);
+      const startIso = toUtcDateTimeStart(value.startDate);
+      const endIso = toUtcDateTimeEnd(value.startDate);
 
       if (!selectedOrg?.id || !description || !startIso || !endIso || !patientId) {
         return;
@@ -171,7 +157,7 @@ export function ReviewTaskDialog({
               disabled={isTasksLoading}
               aria-label={buttonLabel}
             >
-              <Icon className="mr-1 size-4" aria-hidden="true" />
+              <Icon data-icon="inline-start" aria-hidden="true" />
               <span>{buttonLabel}</span>
             </Button>
           }
