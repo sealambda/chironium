@@ -7,7 +7,7 @@ import type { FoodFormData } from "@/features/customers/api/food-preferences-api
 import type { MedicationsFormData } from "@/features/customers/api/medications-api";
 import type {
   ClinicalNoteFormData,
-  MenstrualCycleFormData,
+  MenstrualCycleRecordFormData,
 } from "@/features/customers/api/observations-api";
 import { type OnboardingDraft, submitOnboarding } from "@/features/customers/api/onboarding-api";
 import type { PersonFormData } from "@/features/customers/api/patients-api";
@@ -319,7 +319,7 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
         <MenstrualCycleStep
           initialData={draft.menstrualCycle ?? undefined}
           gender={draft.person?.gender}
-          onSubmit={(data: MenstrualCycleFormData) => advance({ menstrualCycle: data }, 8)}
+          onSubmit={(data: MenstrualCycleRecordFormData) => advance({ menstrualCycle: data }, 8)}
           onBack={() => goBack(6)}
           onSaveDraft={(data) => saveDraft({ menstrualCycle: data })}
         />

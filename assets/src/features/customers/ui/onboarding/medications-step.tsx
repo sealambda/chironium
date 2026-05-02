@@ -1,9 +1,10 @@
-import { useState } from "react";
-
 import type { MedicationsFormData } from "@/features/customers/api/medications-api";
+import {
+  useTerminologyPendingFields,
+  useTerminologyTagList,
+} from "@/features/customers/hooks/use-terminology-tag-list";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import type { TerminologyTag } from "@/shared/types/terminology";
 import { FieldGroup } from "@/shared/ui/field";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 
@@ -26,21 +27,20 @@ export function MedicationsStep({
   onSaveDraft,
 }: MedicationsStepProps) {
   const { selectedOrg } = useOrg();
-  const [medications, setMedications] = useState<TerminologyTag[]>(initialData?.medications ?? []);
-  const [pending, setPending] = useState(false);
-  const [pendingError, setPendingError] = useState<string | null>(null);
+  const medications = useTerminologyTagList(initialData?.medications ?? []);
+  const pendingFields = useTerminologyPendingFields<"medications">();
 
   const handleSubmit = () => {
-    if (pending) {
-      setPendingError(m.validation_pending_input());
+    if (pendingFields.hasPendingInput) {
+      pendingFields.setPendingError(m.validation_pending_input());
       return;
     }
-    setPendingError(null);
-    onSubmit({ medications });
+    pendingFields.clearPendingError();
+    onSubmit({ medications: medications.tags });
   };
 
   const handleBack = () => {
-    onSaveDraft?.({ medications });
+    onSaveDraft?.({ medications: medications.tags });
     onBack();
   };
 
@@ -55,19 +55,14 @@ export function MedicationsStep({
         <TerminologyTagInput
           label={m.medication_list_label()}
           placeholder={m.medication_field_placeholder()}
-          tags={medications}
-          onAdd={(tag) => setMedications((prev) => [...prev, tag])}
-          onRemove={(index) => setMedications((prev) => prev.filter((_, i) => i !== index))}
+          tags={medications.tags}
+          onAdd={medications.addTag}
+          onRemove={medications.removeTag}
           organizationId={selectedOrg?.id ?? ""}
           conceptContext="MEDICATION"
           addLabel={m.common_add()}
-          onPendingChange={(isPending) => {
-            setPending(isPending);
-            if (!isPending) {
-              setPendingError(null);
-            }
-          }}
-          error={pending && pendingError ? pendingError : undefined}
+          onPendingChange={(pending) => pendingFields.setFieldPending("medications", pending)}
+          error={pendingFields.getFieldError("medications")}
         />
       </FieldGroup>
     </StepLayout>
