@@ -30,7 +30,7 @@ export function PersonDetailPage() {
   }
 
   return (
-    <div className="space-y-4 pt-4 lg:pt-6">
+    <div className="flex flex-col gap-4 pt-4 lg:pt-6">
       <PersonDetailContent personId={customerId} detail={detail} openAddRecord={openAddRecord} />
       {detail.hasPatient ? (
         <AddRecordDialog
@@ -40,6 +40,7 @@ export function PersonDetailPage() {
           onOpenChange={setAddRecordOpen}
           activeType={activeRecordType}
           onActiveTypeChange={setActiveRecordType}
+          latestAnthropometry={detail.anthropometryHistory.data?.[0] ?? null}
           currentSubscription={detail.currentSubscription}
         />
       ) : null}
