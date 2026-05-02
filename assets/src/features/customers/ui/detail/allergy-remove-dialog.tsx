@@ -49,7 +49,7 @@ export function AllergyRemoveDialog({
       confirmLabel={m.allergy_intolerance_remove_confirm()}
       successMessage={m.allergy_intolerance_remove_success()}
       reasonOptions={reasonOptions()}
-      invalidateKeys={[personQueryKeys.allergyIntolerancesScope(personId)]}
+      invalidateKeys={[personQueryKeys.patientDetailScope(personId)]}
       onConfirm={(reason) => removeAllergyIntolerance(id, reason ?? "ENTERED_IN_ERROR", orgId)}
     />
   );

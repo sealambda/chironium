@@ -9,23 +9,24 @@ import {
   createAllergyIntolerance,
   updateAllergyIntolerance,
 } from "@/features/customers/api/allergy-intolerance-api";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { isoToDateInput } from "@/shared/utils/date-time-input";
+
+import { RecordDetailDialogFooter } from "./record-detail-dialog-footer";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -72,11 +73,11 @@ function itemToFormValues(item: AllergyIntoleranceItem): AllergyFormValues {
     verificationStatus:
       (item.verificationStatus as AllergyFormValues["verificationStatus"]) ?? "CONFIRMED",
     onsetMode,
-    onsetDateTime: item.onsetDateTime ? String(item.onsetDateTime).slice(0, 10) : "",
+    onsetDateTime: isoToDateInput(item.onsetDateTime),
     onsetAgeValue: item.onsetAge?.value !== undefined ? String(item.onsetAge.value) : "",
     onsetAgeUnit: "A",
-    onsetPeriodStart: item.onsetPeriod?.start ? String(item.onsetPeriod.start).slice(0, 10) : "",
-    onsetPeriodEnd: item.onsetPeriod?.end ? String(item.onsetPeriod.end).slice(0, 10) : "",
+    onsetPeriodStart: isoToDateInput(item.onsetPeriod?.start),
+    onsetPeriodEnd: isoToDateInput(item.onsetPeriod?.end),
   };
 }
 
@@ -171,9 +172,7 @@ export function AllergyDetailDialog({
           await updateAllergyIntolerance(item.id, toApiInput(value), orgId);
           toast.success(m.allergy_intolerance_edit_success());
         }
-        await queryClient.invalidateQueries({
-          queryKey: personQueryKeys.allergyIntolerancesScope(personId),
-        });
+        await invalidatePersonDetail(queryClient, personId);
         setOpen(false);
         form.reset();
       } catch {
@@ -195,7 +194,7 @@ export function AllergyDetailDialog({
   } else if (mode === "create") {
     submitLabel = m.common_add();
   } else {
-    submitLabel = m.allergy_intolerance_dialog_submit();
+    submitLabel = m.common_save();
   }
 
   return (
@@ -234,9 +233,9 @@ export function AllergyDetailDialog({
           <form.Field name="type">
             {(field) => (
               <Field>
-                <FieldLabel>{m.allergy_intolerance_field_type()}</FieldLabel>
+                <FieldLabel>{m.common_type()}</FieldLabel>
                 <FieldDescription>{m.allergy_intolerance_field_type_desc()}</FieldDescription>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <ToggleGroup
                     value={field.state.value}
                     onValueChange={(v) => field.handleChange(v as AllergyFormValues["type"])}
@@ -263,11 +262,11 @@ export function AllergyDetailDialog({
           <form.Field name="clinicalStatus">
             {(field) => (
               <Field>
-                <FieldLabel>{m.allergy_intolerance_field_clinical_status()}</FieldLabel>
+                <FieldLabel>{m.common_clinical_status()}</FieldLabel>
                 <FieldDescription>
                   {m.allergy_intolerance_field_clinical_status_desc()}
                 </FieldDescription>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <ToggleGroup
                     value={field.state.value}
                     onValueChange={(v) =>
@@ -301,11 +300,11 @@ export function AllergyDetailDialog({
           <form.Field name="verificationStatus">
             {(field) => (
               <Field>
-                <FieldLabel>{m.allergy_intolerance_field_verification_status()}</FieldLabel>
+                <FieldLabel>{m.common_verification_status()}</FieldLabel>
                 <FieldDescription>
                   {m.allergy_intolerance_field_verification_status_desc()}
                 </FieldDescription>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <ToggleGroup
                     value={field.state.value}
                     onValueChange={(v) =>
@@ -347,7 +346,7 @@ export function AllergyDetailDialog({
                       <FieldDescription>
                         {m.allergy_intolerance_field_onset_subtitle()}
                       </FieldDescription>
-                      <div className="space-y-2">
+                      <div className="flex flex-col gap-2">
                         <ToggleGroup
                           value={field.state.value}
                           onValueChange={(v) =>
@@ -446,32 +445,15 @@ export function AllergyDetailDialog({
           </form.Subscribe>
         </FieldGroup>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          {mode === "edit" && onRemoveClick ? (
-            <Button
-              variant="ghost"
-              className="text-destructive hover:text-destructive sm:mr-auto"
-              onClick={onRemoveClick}
-              disabled={saving}
-              type="button"
-            >
-              {m.allergy_intolerance_remove_btn()}
-            </Button>
-          ) : null}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={saving}
-              type="button"
-            >
-              {m.common_cancel()}
-            </Button>
-            <Button onClick={() => form.handleSubmit()} loading={saving} type="button">
-              {submitLabel}
-            </Button>
-          </div>
-        </DialogFooter>
+        <RecordDetailDialogFooter
+          cancelLabel={m.common_cancel()}
+          onCancel={() => setOpen(false)}
+          removeLabel={m.common_remove()}
+          onRemoveClick={mode === "edit" ? onRemoveClick : undefined}
+          submitLabel={submitLabel}
+          onSubmit={() => form.handleSubmit()}
+          saving={saving}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -3,11 +3,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { createFoodObservations } from "@/features/customers/api/food-preferences-api";
+import { useTerminologyTagList } from "@/features/customers/hooks/use-terminology-tag-list";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import type { TerminologyTag } from "@/shared/types/terminology";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -18,7 +19,6 @@ import {
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface AddFoodPreferenceDialogProps {
   readonly personId: string;
@@ -41,17 +41,17 @@ export function AddFoodPreferenceDialog({
     onChange: controlledOnOpenChange,
   });
   const [saving, setSaving] = useState(false);
-  const [included, setIncluded] = useState<TerminologyTag[]>([]);
-  const [excluded, setExcluded] = useState<TerminologyTag[]>([]);
+  const included = useTerminologyTagList();
+  const excluded = useTerminologyTagList();
   const { selectedOrg } = useOrg();
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
 
-  const hasContent = included.length > 0 || excluded.length > 0;
+  const hasContent = included.tags.length > 0 || excluded.tags.length > 0;
 
   const resetForm = () => {
-    setIncluded([]);
-    setExcluded([]);
+    included.resetTags();
+    excluded.resetTags();
   };
 
   const handleSubmit = async () => {
@@ -65,16 +65,14 @@ export function AddFoodPreferenceDialog({
     setSaving(true);
     try {
       await createFoodObservations(
-        { included, excluded },
+        { included: included.tags, excluded: excluded.tags },
         patientId,
         selectedOrg?.id ?? "",
         user?.id ?? "",
         user?.name ?? "",
       );
 
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.foodPreferencesHistoryScope(personId),
-      });
+      await invalidatePersonDetail(queryClient, personId);
 
       toast.success(m.food_preferences_add_success());
       setOpen(false);
@@ -94,13 +92,13 @@ export function AddFoodPreferenceDialog({
           <DialogTitle>{m.food_preferences_dialog_title()}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <TerminologyTagInput
             label={m.food_preferences_includes_label()}
             placeholder={m.field_food_included_placeholder()}
-            tags={included}
-            onAdd={(tag) => setIncluded((prev) => [...prev, tag])}
-            onRemove={(i) => setIncluded((prev) => prev.filter((_, idx) => idx !== i))}
+            tags={included.tags}
+            onAdd={included.addTag}
+            onRemove={included.removeTag}
             organizationId={selectedOrg?.id ?? ""}
             conceptContext="FOOD"
             addLabel={m.common_add()}
@@ -109,9 +107,9 @@ export function AddFoodPreferenceDialog({
           <TerminologyTagInput
             label={m.food_preferences_avoids_label()}
             placeholder={m.field_food_excluded_placeholder()}
-            tags={excluded}
-            onAdd={(tag) => setExcluded((prev) => [...prev, tag])}
-            onRemove={(i) => setExcluded((prev) => prev.filter((_, idx) => idx !== i))}
+            tags={excluded.tags}
+            onAdd={excluded.addTag}
+            onRemove={excluded.removeTag}
             organizationId={selectedOrg?.id ?? ""}
             conceptContext="FOOD"
             addLabel={m.common_add()}
@@ -124,7 +122,7 @@ export function AddFoodPreferenceDialog({
             {m.common_cancel()}
           </Button>
           <Button onClick={() => void handleSubmit()} disabled={saving || !hasContent}>
-            {saving ? m.common_saving() : m.food_preferences_dialog_submit()}
+            {saving ? m.common_saving() : m.common_save()}
           </Button>
         </DialogFooter>
       </DialogContent>
