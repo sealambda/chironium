@@ -1,62 +1,12 @@
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { codeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
-import { graphql, type ResultOf, type VariablesOf } from "@/graphql";
-import { getLocale } from "@/paraglide/runtime";
+import { graphql, type VariablesOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
+import { toUtcDateTimeEnd, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
 
 import type { AnnotationInput } from "./observations-api";
-
-// ─── Queries ─────────────────────────────────────────────────────────
-
-const GetPatientMedicationsQuery = graphql(`
-  query GetPatientMedications($patientId: ID!, $locale: String) {
-    getPatient(id: $patientId) {
-      medicationStatements {
-        id
-        status
-        medication {
-          text
-          coding {
-            system
-            code
-            version
-            display(locale: $locale)
-          }
-        }
-        effectiveDateTime
-        effectivePeriod {
-          start
-          end
-        }
-        dateAsserted
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-  }
-`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -108,9 +58,7 @@ const DeleteMedicationStatementMutation = graphql(`
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** One row in the patient's medications list (FHIR MedicationStatement). */
-export type MedicationItem = NonNullable<
-  NonNullable<ResultOf<typeof GetPatientMedicationsQuery>["getPatient"]>["medicationStatements"]
->[number];
+export type { MedicationItem } from "./patients-api";
 
 type CreateMedicationStatementInput = NonNullable<
   VariablesOf<typeof CreateMedicationStatementMutation>["input"]
@@ -129,26 +77,6 @@ export interface MedicationsFormData {
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
-
-/**
- * Fetch all medications for a patient.
- */
-export async function fetchMedications(
-  patientId: string,
-  organizationId: string,
-): Promise<MedicationItem[]> {
-  if (!patientId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql({
-    document: GetPatientMedicationsQuery,
-    variables: { patientId, locale: getLocale() },
-    organizationId,
-  });
-
-  return result.getPatient?.medicationStatements ?? [];
-}
 
 /**
  * Create one MedicationStatement per tag.
@@ -260,23 +188,14 @@ export interface MedicationFormInput {
   endDate: string;
 }
 
-function dateInputToUtcStart(value: string): string | null {
-  return value ? `${value}T09:00:00.000Z` : null;
-}
-
-function dateInputToUtcEnd(value: string): string | null {
-  return value ? `${value}T23:59:59.999Z` : null;
-}
-
 /** Update name, course, effective period, and assertion date on a medication. */
 export async function updateMedication(
   id: string,
   data: MedicationFormInput,
   organizationId: string,
 ): Promise<void> {
-  const start = dateInputToUtcStart(data.startDate);
-  const end = data.course === "past" ? dateInputToUtcEnd(data.endDate) : null;
-  const hasPeriod = start !== null || end !== null;
+  const start = toUtcDateTimeStart(data.startDate);
+  const end = data.course === "past" ? toUtcDateTimeEnd(data.endDate) : undefined;
 
   const result = await requestGraphql({
     document: UpdateMedicationStatementMutation,
@@ -284,10 +203,8 @@ export async function updateMedication(
       id,
       input: {
         medication: { text: data.name },
-        // Send explicit nulls so cleared dates and switching effectiveDateTime <-> effectivePeriod
-        // overwrite previous values instead of leaving them in place.
-        effectivePeriod: hasPeriod ? { start, end } : null,
-        effectiveDateTime: null,
+        effectivePeriod: start || end ? { start, end } : undefined,
+        effectiveDateTime: undefined,
       },
     },
     organizationId,

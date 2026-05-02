@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import {
-  fetchNutritionPlans,
+  fetchPatientDetail,
   type NutritionPlanRecord,
-} from "@/features/customers/api/nutrition-plans-api";
+} from "@/features/customers/api/patients-api";
 import { HistoryDetailHeader } from "@/features/customers/ui/detail/history-detail-header";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -49,22 +49,24 @@ export function NutritionPlansPage() {
   useDetailModeEffect(<HistoryDetailHeader />, "nutrition-plans");
 
   const { data, isLoading } = useQuery({
-    queryKey: personQueryKeys.nutritionPlans(customerId, selectedOrg?.id ?? ""),
-    queryFn: () => fetchNutritionPlans(customerId, selectedOrg?.id ?? ""),
+    queryKey: personQueryKeys.patientDetail(customerId, selectedOrg?.id ?? ""),
+    queryFn: () => fetchPatientDetail(customerId, selectedOrg?.id ?? ""),
     enabled: Boolean(customerId && selectedOrg?.id),
   });
 
+  const plans = data?.nutritionPlans ?? [];
+
   return (
-    <div className="space-y-4 pt-4 lg:pt-6">
+    <div className="flex flex-col gap-4 pt-4 lg:pt-6">
       <h1 className="font-semibold text-lg">{m.nutrition_plans_title()}</h1>
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />
         </div>
       ) : (
-        <DataTable columns={columns} data={data ?? []} pinFirstColumn />
+        <DataTable columns={columns} data={plans} pinFirstColumn />
       )}
     </div>
   );
