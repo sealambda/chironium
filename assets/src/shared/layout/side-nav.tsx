@@ -6,11 +6,13 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import { OrgSelector } from "@/features/org/ui/org-selector";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
+import { LanguageToggle } from "@/shared/ui/language-toggle";
 import { Sheet, SheetContent } from "@/shared/ui/sheet";
 import { cn } from "@/shared/utils/utils";
 
 import { navItems } from "./nav-config";
 import { NavUser } from "./nav-user";
+import { ThemeSwitcher } from "./theme-switcher";
 
 type NavItem = (typeof navItems)[number];
 type NavVariant = "desktop" | "mobile";
@@ -41,7 +43,7 @@ export function SideNav({
         "fixed inset-y-0 left-0 z-40 hidden w-18 shrink-0 flex-col border-border/40 border-r bg-card sm:flex md:w-64",
         "pt-safe pb-safe pl-safe",
       )}
-      aria-label="Main navigation"
+      aria-label={m.nav_main_navigation()}
     >
       <div className="px-2 pt-3 pb-2 md:px-4">
         <div className="pb-2">
@@ -62,7 +64,10 @@ export function SideNav({
       </div>
 
       <div className="mt-auto border-border/40 border-t p-2 md:p-4">
-        <NavUser />
+        <SidebarPreferences variant="desktop" />
+        <div className="mt-3 border-border/40 border-t pt-2 md:pt-3">
+          <NavUser />
+        </div>
       </div>
     </nav>
   );
@@ -107,10 +112,10 @@ export function MobileSideNav({
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Open menu"
+        aria-label={m.nav_open_menu()}
         onClick={() => setIsOpen(true)}
       >
-        <Menu className="size-5" />
+        <Menu aria-hidden />
       </Button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -151,12 +156,50 @@ export function MobileSideNav({
             </div>
 
             <div className="mt-auto border-border/40 border-t p-3">
-              <NavUser showLabelsOnMobile onAction={closeMenu} />
+              <SidebarPreferences variant="mobile" />
+              <div className="mt-4 border-border/40 border-t pt-3">
+                <NavUser showLabelsOnMobile onAction={closeMenu} />
+              </div>
             </div>
           </div>
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+function SidebarPreferences({ variant }: Readonly<{ variant: NavVariant }>) {
+  const isDesktop = variant === "desktop";
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p
+        className={cn(
+          "px-1 font-semibold text-muted-foreground text-xs uppercase tracking-wide",
+          isDesktop && "hidden md:block",
+        )}
+      >
+        {m.nav_settings()}
+      </p>
+      <div className="flex flex-col gap-2">
+        <LanguageToggle
+          className={cn(
+            "h-9 min-w-0",
+            isDesktop && "justify-center gap-1 px-1 md:justify-between md:gap-2 md:px-3",
+          )}
+          triggerLabelClassName={isDesktop ? "hidden md:inline" : undefined}
+        />
+        <ThemeSwitcher
+          className={cn(
+            isDesktop &&
+              "h-auto flex-col gap-1 bg-transparent p-0 md:h-9 md:flex-row md:bg-muted md:p-1",
+          )}
+          itemClassName={cn(
+            isDesktop && "size-9 min-h-9 flex-none px-0 md:size-auto md:flex-1 md:px-3",
+          )}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -181,7 +224,7 @@ function NavItemLink({
       onClick={onClick}
       className={cn(
         "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         isDesktop && "justify-center md:justify-start",
         isActive
           ? "bg-primary/10 text-foreground"

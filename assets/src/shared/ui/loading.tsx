@@ -1,3 +1,4 @@
+import * as m from "@/paraglide/messages";
 import { cn } from "@/shared/utils/utils";
 
 interface LoadingProps {
@@ -12,7 +13,7 @@ interface LoadingProps {
 export function Loading({ className }: Readonly<LoadingProps>) {
   return (
     <div className={cn("flex min-h-96 w-full items-center justify-center", className)}>
-      <span className="sr-only">Loading</span>
+      <span className="sr-only">{m.common_loading()}</span>
       <div
         className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
         aria-hidden
