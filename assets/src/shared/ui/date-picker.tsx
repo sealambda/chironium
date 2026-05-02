@@ -4,6 +4,7 @@ import { format, isValid, parse, parseISO } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { Calendar } from "@/shared/ui/calendar";
 import { Input } from "@/shared/ui/input";
@@ -98,9 +99,17 @@ function DatePicker({
       />
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
-          render={<Button variant="outline" size="icon" disabled={disabled} className="shrink-0" />}
+          render={
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={disabled}
+              aria-label={m.common_date()}
+              className="shrink-0 border-primary/40 bg-primary/10 text-primary shadow-xs hover:bg-primary/15"
+            />
+          }
         >
-          <CalendarIcon className="size-4" />
+          <CalendarIcon aria-hidden />
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar

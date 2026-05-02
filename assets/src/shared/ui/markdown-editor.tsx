@@ -10,6 +10,7 @@ import { cn } from "@/shared/utils/utils";
 interface MarkdownEditorProps {
   readonly value: string;
   readonly onChange: (value: string) => void;
+  readonly ariaLabelledBy?: string;
   readonly placeholder?: string;
   readonly rows?: number;
   readonly disabled?: boolean;
@@ -33,6 +34,7 @@ function normalizeMarkdown(markdown: string): string {
 export function MarkdownEditor({
   value,
   onChange,
+  ariaLabelledBy,
   placeholder,
   rows = 3,
   disabled = false,
@@ -46,6 +48,9 @@ export function MarkdownEditor({
       editable: !disabled,
       content: valueRef.current,
       contentType: "markdown",
+      editorProps: {
+        attributes: ariaLabelledBy ? { "aria-labelledby": ariaLabelledBy } : {},
+      },
       extensions: [
         StarterKit.configure({
           blockquote: false,
@@ -67,7 +72,7 @@ export function MarkdownEditor({
         }
       },
     },
-    [disabled, onChange],
+    [ariaLabelledBy, disabled, onChange],
   );
 
   useEffect(() => {
