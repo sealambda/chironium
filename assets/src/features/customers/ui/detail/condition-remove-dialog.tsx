@@ -49,7 +49,7 @@ export function ConditionRemoveDialog({
       confirmLabel={m.condition_remove_confirm()}
       successMessage={m.condition_remove_success()}
       reasonOptions={reasonOptions()}
-      invalidateKeys={[personQueryKeys.conditionsScope(personId)]}
+      invalidateKeys={[personQueryKeys.patientDetailScope(personId)]}
       onConfirm={(reason) => removeCondition(id, reason ?? "ENTERED_IN_ERROR", orgId)}
     />
   );

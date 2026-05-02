@@ -1,3 +1,8 @@
+import { Pencil } from "lucide-react";
+import { useState } from "react";
+
+import type { AnthropometricSnapshot } from "@/features/customers/api/anthropometry-api";
+import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { FeedDateGroup, FeedEvent } from "@/features/customers/types/activity-feed";
 import {
   getEventAccent,
@@ -7,6 +12,10 @@ import {
   getEventSuffix,
   getEventVerb,
 } from "@/features/customers/types/activity-feed";
+import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
+import { EditAnthropometryDialog } from "@/features/customers/ui/detail/edit-anthropometry-dialog";
+import * as m from "@/paraglide/messages";
+import { Button } from "@/shared/ui/button";
 
 import { AllergyEvent } from "./allergy-event";
 import { AnthropometryEvent } from "./anthropometry-event";
@@ -19,6 +28,68 @@ import { MenstrualCycleEvent } from "./menstrual-cycle-event";
 import { ObservationEvent } from "./observation-event";
 import { SubscriptionEditAction, SubscriptionEvent } from "./subscription-event";
 import { TaskEvent } from "./task-event";
+
+function EditChevron({ onClick }: Readonly<{ onClick: () => void }>) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-xs"
+      className="rounded-full text-muted-foreground hover:text-foreground"
+      aria-label={m.history_edit_element_title()}
+      onClick={onClick}
+    >
+      <Pencil aria-hidden />
+    </Button>
+  );
+}
+
+function AnthropometryEditAction({
+  personId,
+  snapshot,
+}: Readonly<{ personId: string; snapshot: AnthropometricSnapshot }>) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <EditChevron onClick={() => setOpen(true)} />
+      <EditAnthropometryDialog
+        personId={personId}
+        snapshot={snapshot}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
+}
+
+function GoalEditAction({
+  personId,
+  patientId,
+  goal,
+}: Readonly<{ personId: string; patientId: string; goal: GoalRecord }>) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <EditChevron onClick={() => setOpen(true)} />
+      <AddGoalDialog
+        personId={personId}
+        patientId={patientId}
+        editGoal={goal}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
+}
+
+function singleEditableGoal(event: Extract<FeedEvent, { kind: "goal" }>): GoalRecord | null {
+  if (event.variant === "due") {
+    return event.payload;
+  }
+  return event.payload.length === 1 ? (event.payload[0] ?? null) : null;
+}
 
 function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
   switch (event.kind) {
@@ -53,10 +124,23 @@ function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
 function EventAction({
   event,
   personId,
+  patientId,
   isLatestSubscription,
-}: Readonly<{ event: FeedEvent; personId: string; isLatestSubscription: boolean }>) {
+}: Readonly<{
+  event: FeedEvent;
+  personId: string;
+  patientId: string | null;
+  isLatestSubscription: boolean;
+}>) {
   if (event.kind === "subscription" && isLatestSubscription) {
     return <SubscriptionEditAction subscription={event.payload} personId={personId} />;
+  }
+  if (event.kind === "anthropometry") {
+    return <AnthropometryEditAction personId={personId} snapshot={event.payload} />;
+  }
+  if (event.kind === "goal" && patientId) {
+    const goal = singleEditableGoal(event);
+    return goal ? <GoalEditAction personId={personId} patientId={patientId} goal={goal} /> : null;
   }
   return null;
 }
@@ -64,9 +148,14 @@ function EventAction({
 interface ActivityFeedTimelineProps {
   groups: FeedDateGroup[];
   personId: string;
+  patientId: string | null;
 }
 
-export function ActivityFeedTimeline({ groups, personId }: Readonly<ActivityFeedTimelineProps>) {
+export function ActivityFeedTimeline({
+  groups,
+  personId,
+  patientId,
+}: Readonly<ActivityFeedTimelineProps>) {
   if (groups.length === 0) {
     return null;
   }
@@ -115,6 +204,7 @@ export function ActivityFeedTimeline({ groups, personId }: Readonly<ActivityFeed
                 <EventAction
                   event={event}
                   personId={personId}
+                  patientId={patientId}
                   isLatestSubscription={event.id === latestSubscriptionId}
                 />
               }

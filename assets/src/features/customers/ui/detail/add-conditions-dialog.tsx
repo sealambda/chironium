@@ -6,10 +6,11 @@ import {
   type ConditionClinicalStatus,
   createConditionsFromTags,
 } from "@/features/customers/api/condition-api";
+import { useTerminologyTagList } from "@/features/customers/hooks/use-terminology-tag-list";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import type { TerminologyTag } from "@/shared/types/terminology";
 import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {
@@ -30,8 +31,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { toDateInput } from "@/shared/utils/date-time-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { todayDateInput, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
 
 const ABATED_CONDITION_STATUSES: readonly ConditionClinicalStatus[] = [
   "INACTIVE",
@@ -49,14 +49,6 @@ const CONDITION_STATUS_OPTIONS: readonly {
   { value: "INACTIVE", label: m.fhir_clinical_inactive },
 ];
 
-function todayDateInput(): string {
-  return toDateInput(new Date());
-}
-
-function toUtcDateTimeStart(date: string): string | undefined {
-  return date ? `${date}T09:00:00.000Z` : undefined;
-}
-
 function isAbatedStatus(status: ConditionClinicalStatus): boolean {
   return ABATED_CONDITION_STATUSES.includes(status);
 }
@@ -64,13 +56,11 @@ function isAbatedStatus(status: ConditionClinicalStatus): boolean {
 interface ConditionDateErrors {
   onsetDate?: string;
   abatementDate?: string;
-  recordedDate?: string;
 }
 
 function getConditionDateErrors(args: {
   onsetDate: string;
   abatementDate: string;
-  recordedDate: string;
   clinicalStatus: ConditionClinicalStatus;
   today: string;
 }): ConditionDateErrors {
@@ -78,10 +68,6 @@ function getConditionDateErrors(args: {
 
   if (args.onsetDate && args.onsetDate > args.today) {
     errors.onsetDate = m.condition_date_future_error();
-  }
-
-  if (args.recordedDate && args.recordedDate > args.today) {
-    errors.recordedDate = m.condition_date_future_error();
   }
 
   if (isAbatedStatus(args.clinicalStatus)) {
@@ -118,11 +104,10 @@ export function AddConditionsDialog({
     onChange: controlledOnOpenChange,
   });
   const [saving, setSaving] = useState(false);
-  const [tags, setTags] = useState<TerminologyTag[]>([]);
+  const tags = useTerminologyTagList();
   const [clinicalStatus, setClinicalStatus] = useState<ConditionClinicalStatus>("ACTIVE");
   const [onsetDate, setOnsetDate] = useState("");
   const [abatementDate, setAbatementDate] = useState("");
-  const [recordedDate, setRecordedDate] = useState(todayDateInput);
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
 
@@ -131,19 +116,17 @@ export function AddConditionsDialog({
   const dateErrors = getConditionDateErrors({
     onsetDate,
     abatementDate,
-    recordedDate,
     clinicalStatus,
     today,
   });
   const hasDateErrors = Object.values(dateErrors).some(Boolean);
-  const canSubmit = tags.length > 0 && !hasDateErrors;
+  const canSubmit = tags.tags.length > 0 && !hasDateErrors;
 
   const resetForm = () => {
-    setTags([]);
+    tags.resetTags();
     setClinicalStatus("ACTIVE");
     setOnsetDate("");
     setAbatementDate("");
-    setRecordedDate(todayDateInput());
   };
 
   const handleSubmit = async () => {
@@ -156,20 +139,14 @@ export function AddConditionsDialog({
 
     setSaving(true);
     try {
-      await createConditionsFromTags(tags, patientId, selectedOrg?.id ?? "", {
+      await createConditionsFromTags(tags.tags, patientId, selectedOrg?.id ?? "", {
         clinicalStatus,
         verificationStatus: "CONFIRMED",
         onsetDateTime: toUtcDateTimeStart(onsetDate),
         abatementDateTime: needsAbatementDate ? toUtcDateTimeStart(abatementDate) : undefined,
-        recordedDate: toUtcDateTimeStart(recordedDate),
       });
 
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.conditionsScope(personId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.patientDetailScope(personId),
-      });
+      await invalidatePersonDetail(queryClient, personId);
 
       toast.success(m.condition_add_success());
       setOpen(false);
@@ -193,9 +170,9 @@ export function AddConditionsDialog({
           <TerminologyTagInput
             label={m.condition_list_label()}
             placeholder={m.condition_field_placeholder()}
-            tags={tags}
-            onAdd={(tag) => setTags((prev) => [...prev, tag])}
-            onRemove={(i) => setTags((prev) => prev.filter((_, idx) => idx !== i))}
+            tags={tags.tags}
+            onAdd={tags.addTag}
+            onRemove={tags.removeTag}
             organizationId={selectedOrg?.id ?? ""}
             conceptContext="CONDITION"
             addLabel={m.common_add()}
@@ -234,7 +211,7 @@ export function AddConditionsDialog({
             </Select>
           </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={needsAbatementDate ? "grid gap-4 sm:grid-cols-2" : "grid gap-4"}>
             <Field data-invalid={Boolean(dateErrors.onsetDate)}>
               <FieldLabel>{m.condition_diagnosis_date()}</FieldLabel>
               <DatePickerString
@@ -246,32 +223,21 @@ export function AddConditionsDialog({
               {dateErrors.onsetDate ? <FieldError>{dateErrors.onsetDate}</FieldError> : null}
             </Field>
 
-            <Field data-invalid={Boolean(dateErrors.recordedDate)}>
-              <FieldLabel>{m.condition_recorded_date()}</FieldLabel>
-              <DatePickerString
-                value={recordedDate}
-                onChange={setRecordedDate}
-                disabled={saving}
-                endMonth={new Date()}
-              />
-              {dateErrors.recordedDate ? <FieldError>{dateErrors.recordedDate}</FieldError> : null}
-            </Field>
+            {needsAbatementDate ? (
+              <Field data-invalid={Boolean(dateErrors.abatementDate)}>
+                <FieldLabel>{m.condition_resolution_date()}</FieldLabel>
+                <DatePickerString
+                  value={abatementDate}
+                  onChange={setAbatementDate}
+                  disabled={saving}
+                  endMonth={new Date()}
+                />
+                {dateErrors.abatementDate ? (
+                  <FieldError>{dateErrors.abatementDate}</FieldError>
+                ) : null}
+              </Field>
+            ) : null}
           </div>
-
-          {needsAbatementDate ? (
-            <Field data-invalid={Boolean(dateErrors.abatementDate)}>
-              <FieldLabel>{m.condition_resolution_date()}</FieldLabel>
-              <DatePickerString
-                value={abatementDate}
-                onChange={setAbatementDate}
-                disabled={saving}
-                endMonth={new Date()}
-              />
-              {dateErrors.abatementDate ? (
-                <FieldError>{dateErrors.abatementDate}</FieldError>
-              ) : null}
-            </Field>
-          ) : null}
         </FieldGroup>
 
         <DialogFooter>
@@ -279,7 +245,7 @@ export function AddConditionsDialog({
             {m.common_cancel()}
           </Button>
           <Button onClick={() => void handleSubmit()} loading={saving} disabled={!canSubmit}>
-            {m.condition_dialog_submit()}
+            {m.common_save()}
           </Button>
         </DialogFooter>
       </DialogContent>
