@@ -1,5 +1,4 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { isValid, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -8,10 +7,10 @@ import {
   updateClinicalNoteObservation,
 } from "@/features/customers/api/observations-api";
 import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
-import { toDateInput, toTimeInput } from "@/shared/utils/date-time-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { isoToDateTimeInputParts } from "@/shared/utils/date-time-input";
 
 interface EditObservationDialogProps {
   observation: ObservationItem;
@@ -37,16 +36,9 @@ export function EditObservationDialog({
   useEffect(() => {
     if (open) {
       setBody(observation.valueString ?? "");
-      const parsedDateTime = observation.effectiveDateTime
-        ? parseISO(observation.effectiveDateTime)
-        : null;
-      if (parsedDateTime && isValid(parsedDateTime)) {
-        setEffectiveDate(toDateInput(parsedDateTime));
-        setEffectiveTime(toTimeInput(parsedDateTime));
-      } else {
-        setEffectiveDate("");
-        setEffectiveTime("");
-      }
+      const defaults = isoToDateTimeInputParts(observation.effectiveDateTime);
+      setEffectiveDate(defaults.date);
+      setEffectiveTime(defaults.time);
     }
   }, [open, observation]);
 
@@ -62,9 +54,7 @@ export function EditObservationDialog({
         { body: body.trim(), effectiveDate, effectiveTime },
         selectedOrg?.id ?? "",
       );
-      await queryClient.invalidateQueries({
-        queryKey: personQueryKeys.observationsListScope(personId),
-      });
+      await invalidatePersonDetail(queryClient, personId);
       toast.success(m.observations_edit_success());
       onOpenChange(false);
     } catch {

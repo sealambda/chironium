@@ -30,9 +30,9 @@ export function MedicationRemoveDialog({
       onOpenChange={onOpenChange}
       title={m.medication_remove_title({ name })}
       description={m.medication_remove_desc()}
-      confirmLabel={m.medication_remove_confirm()}
+      confirmLabel={m.common_remove()}
       successMessage={m.medication_remove_success()}
-      invalidateKeys={[personQueryKeys.medicationsScope(personId)]}
+      invalidateKeys={[personQueryKeys.patientDetailScope(personId)]}
       onConfirm={() => deleteMedicationStatement(id, orgId)}
     />
   );

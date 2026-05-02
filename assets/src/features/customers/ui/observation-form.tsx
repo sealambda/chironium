@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import * as m from "@/paraglide/messages";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldLabel } from "@/shared/ui/field";
@@ -25,6 +27,8 @@ function ObservationForm({
   disabled,
   rows = 4,
 }: Readonly<ObservationFormProps>) {
+  const bodyLabelId = useId();
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -46,13 +50,17 @@ function ObservationForm({
           />
         </Field>
       </div>
-      <MarkdownEditor
-        value={body}
-        onChange={onBodyChange}
-        placeholder={m.field_observation_body_placeholder()}
-        rows={rows}
-        disabled={disabled}
-      />
+      <Field>
+        <FieldLabel id={bodyLabelId}>{m.field_observation_body()}</FieldLabel>
+        <MarkdownEditor
+          value={body}
+          onChange={onBodyChange}
+          ariaLabelledBy={bodyLabelId}
+          placeholder={m.field_observation_body_placeholder()}
+          rows={rows}
+          disabled={disabled}
+        />
+      </Field>
     </div>
   );
 }
