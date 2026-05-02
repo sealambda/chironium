@@ -1,114 +1,12 @@
+import type { PatientObservation } from "@/features/customers/api/patients-api";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { observationValueCodeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
 import { graphql } from "@/graphql";
-import { getLocale } from "@/paraglide/runtime";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
 
 import type { AnnotationInput } from "./observations-api";
-
-// ─── Queries ─────────────────────────────────────────────────────────
-
-const ListFoodPreferenceObservationsQuery = graphql(`
-  query ListFoodPreferenceObservations(
-    $filter: ObservationFilterInput
-    $sort: [ObservationSortInput]
-    $first: Int
-    $locale: String
-  ) {
-    listFoodPreferenceObservations(
-      filter: $filter
-      sort: $sort
-      first: $first
-    ) {
-      results {
-        id
-        effectiveDateTime
-        valueString
-        valueCodeableConcept {
-          text
-          coding {
-            system
-            code
-            version
-            display(locale: $locale)
-          }
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-  }
-`);
-
-const ListFoodAversionObservationsQuery = graphql(`
-  query ListFoodAversionObservations(
-    $filter: ObservationFilterInput
-    $sort: [ObservationSortInput]
-    $first: Int
-    $locale: String
-  ) {
-    listFoodAversionObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueString
-        valueCodeableConcept {
-          text
-          coding {
-            system
-            code
-            version
-            display(locale: $locale)
-          }
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-    }
-  }
-`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -219,70 +117,29 @@ export function terminologyTagFromFoodHistoryItem(
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
-
-function buildSubjectFilter(personId: string) {
-  return {
-    subject: { personId: { eq: personId } },
-  };
+function foodHistoryTypeForObservation(
+  obs: PatientObservation,
+): FoodPreferenceHistoryItem["type"] | null {
+  if (obs.observationType === "FOOD_PREFERENCE") {
+    return "inclusion";
+  }
+  if (obs.observationType === "FOOD_AVERSION") {
+    return "exclusion";
+  }
+  return null;
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
- * Fetch food preference and aversion observations for the history table.
+ * Select food preference and aversion observations for the history table.
  * Returns one row per observation, sorted newest first.
  */
-export async function fetchFoodPreferencesHistory(
-  personId: string,
-  organizationId: string,
-): Promise<FoodPreferenceHistoryItem[]> {
-  if (!personId || !organizationId) {
-    return [];
-  }
-
-  const variables = {
-    filter: buildSubjectFilter(personId),
-    sort: SORT_NEWEST_FIRST,
-    first: 250,
-    locale: getLocale(),
-  };
-
-  const [preferenceResult, aversionResult] = await Promise.all([
-    requestGraphql({
-      document: ListFoodPreferenceObservationsQuery,
-      variables,
-      organizationId,
-    }),
-    requestGraphql({
-      document: ListFoodAversionObservationsQuery,
-      variables,
-      organizationId,
-    }),
-  ]);
-
-  type ObsNode = {
-    id: string;
-    effectiveDateTime?: string | null;
-    valueString?: string | null;
-    valueCodeableConcept?: {
-      text?: string | null;
-      coding?:
-        | { system: string; code: string; version?: string | null; display?: string | null }[]
-        | null;
-    } | null;
-    note?:
-      | {
-          text?: string | null;
-          authorReference?: string | null;
-          authorString?: string | null;
-          time?: string | null;
-        }[]
-      | null;
-  };
-
+export function selectFoodPreferencesHistory(
+  observations: readonly PatientObservation[] | null | undefined,
+): FoodPreferenceHistoryItem[] {
   const toHistoryItem = (
-    obs: ObsNode,
+    obs: PatientObservation,
     type: FoodPreferenceHistoryItem["type"],
   ): FoodPreferenceHistoryItem => {
     const rawCodings = obs.valueCodeableConcept?.coding ?? [];
@@ -315,15 +172,12 @@ export async function fetchFoodPreferencesHistory(
     };
   };
 
-  const preferences: FoodPreferenceHistoryItem[] = (
-    preferenceResult.listFoodPreferenceObservations?.results ?? []
-  ).map((obs) => toHistoryItem(obs, "inclusion"));
-
-  const aversions: FoodPreferenceHistoryItem[] = (
-    aversionResult.listFoodAversionObservations?.results ?? []
-  ).map((obs) => toHistoryItem(obs, "exclusion"));
-
-  return [...preferences, ...aversions].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  return (observations ?? [])
+    .flatMap((obs) => {
+      const type = foodHistoryTypeForObservation(obs);
+      return type ? [toHistoryItem(obs, type)] : [];
+    })
+    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 }
 
 /**
