@@ -1,12 +1,10 @@
+import type { PatientObservation } from "@/features/customers/api/patients-api";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
-import { graphql, type ResultOf } from "@/graphql";
-import { getLocale } from "@/paraglide/runtime";
+import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import { toDateTimeInput } from "@/shared/utils/date-time-input";
 import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
-
-const SNOMED_SYSTEM = "http://snomed.info/sct" as const;
 
 type CodeTypes =
   | "clinicalNote"
@@ -24,110 +22,6 @@ const CODES: Record<CodeTypes, string> = {
   bodyWeight: "29463-7",
   bodyHeight: "8302-2",
 };
-
-// ─── Queries ─────────────────────────────────────────────────────────
-
-const ListObservationsQuery = graphql(`
-  query ListObservations(
-    $filter: ObservationFilterInput!
-    $sort: [ObservationSortInput]
-    $first: Int
-    $after: String
-    $locale: String
-  ) {
-    listObservations(
-      filter: $filter
-      sort: $sort
-      first: $first
-      after: $after
-    ) {
-      count
-      results {
-        id
-        status
-        code {
-          coding {
-            system
-            code
-            display(locale: $locale)
-          }
-          text
-        }
-        effectiveDateTime
-        valueString
-        valueQuantity {
-          value
-          unit
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-        paperTrailVersions(limit: 1) {
-          versionActionName
-          versionInsertedAt
-          changedBy {
-            id
-            name
-          }
-          changedByPractitioner {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-        }
-      }
-      endKeyset
-    }
-  }
-`);
-
-const ListMenstrualCycleObservationsQuery = graphql(`
-  query ListMenstrualCycleObservations(
-    $filter: ObservationFilterInput!
-    $sort: [ObservationSortInput]
-    $first: Int
-  ) {
-    starts: listMenstrualPeriodStartObservations(filter: $filter, sort: $sort, first: $first) {
-      results {
-        id
-        effectiveDateTime
-        valueDateTime
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-      }
-    }
-    durations: listMenstrualPeriodDurationObservations(
-      filter: $filter
-      sort: $sort
-      first: $first
-    ) {
-      results {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-          unit
-        }
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-      }
-    }
-  }
-`);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -208,13 +102,6 @@ const DeleteObservationMutation = graphql(`
 
 // ─── Types ───────────────────────────────────────────────────────────
 
-/** Form data for the menstrual cycle onboarding step. */
-export interface MenstrualCycleFormData {
-  startDate: string;
-  endDate: string;
-  notes: string;
-}
-
 /** Form data for recording a menstrual period from the person detail page. */
 export interface MenstrualCycleRecordFormData {
   startDate: string;
@@ -222,7 +109,7 @@ export interface MenstrualCycleRecordFormData {
   notes: string;
 }
 
-/** Form data for creating or editing a clinical note observation. */
+/** Form data for creating or editing a free-text observation. */
 export interface ClinicalNoteFormData {
   body: string;
   effectiveDate?: string | null;
@@ -237,10 +124,8 @@ export interface AnnotationInput {
   time?: string | null;
 }
 
-/** A single observation item returned by the list query. */
-export type ObservationItem = NonNullable<
-  NonNullable<ResultOf<typeof ListObservationsQuery>["listObservations"]>["results"]
->[number];
+/** A single observation item returned by the centralized patient query. */
+export type ObservationItem = PatientObservation;
 
 /** Paginated observations result. */
 export interface ObservationsPage {
@@ -254,6 +139,8 @@ export interface MenstrualCycleSummary {
   endDate: string | null;
   durationDays: number | null;
   notes: string | null;
+  sourceNotes?: ObservationItem["note"] | null;
+  paperTrailVersions?: ObservationItem["paperTrailVersions"] | null;
 }
 
 /** A single menstrual cycle event identified by the period-start observation. */
@@ -265,53 +152,6 @@ export interface MenstrualCycleEntry extends MenstrualCycleSummary {
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
-
-/**
- * Create a menstrual-cycle observation (SNOMED 364307006) combining dates and notes.
- */
-export async function createMenstrualCycleObservation(
-  data: MenstrualCycleFormData,
-  subjectId: string,
-  organizationId: string,
-  userId: string,
-  userName: string,
-): Promise<void> {
-  const fields: string[] = [];
-  if (data.startDate) {
-    fields.push(`start:${data.startDate}`);
-  }
-  if (data.endDate) {
-    fields.push(`end:${data.endDate}`);
-  }
-  if (data.notes.trim()) {
-    fields.push(`notes:${data.notes.trim()}`);
-  }
-  const noteText = fields.join("|");
-
-  const result = await requestGraphql({
-    document: CreateObservationMutation,
-    variables: {
-      input: {
-        status: "FINAL",
-        code: {
-          coding: [{ system: SNOMED_SYSTEM, code: CODES.menstrualCycle }],
-        },
-        valueString: noteText,
-        note: [
-          {
-            text: noteText,
-            ...(userId ? { authorReference: userId } : { authorString: userName }),
-            time: new Date().toISOString(),
-          },
-        ],
-        subjectId,
-      },
-    },
-    organizationId,
-  });
-
-  unwrapMutationResult(result.createObservation, "Failed to create menstrual cycle observation.");
-}
 
 function buildObservationNoteInput(text: string, userId: string, userName: string) {
   const trimmed = text.trim();
@@ -385,7 +225,7 @@ export async function logMenstrualCycle(
 }
 
 /**
- * Create one observation per clinical note. Skips entries where the body is empty.
+ * Create one free-text observation per non-empty body.
  */
 export async function createClinicalNoteObservations(
   notes: ClinicalNoteFormData[],
@@ -409,107 +249,56 @@ export async function createClinicalNoteObservations(
         },
         organizationId,
       });
-      unwrapMutationResult(result.createObservation, "Failed to create clinical note observation.");
+      unwrapMutationResult(result.createObservation, "Failed to create free-text observation.");
     }),
   );
 }
 
-// ─── List queries ────────────────────────────────────────────────────
-
-const SORT_NEWEST_FIRST = [{ field: "EFFECTIVE_DATE_TIME" as const, order: "DESC" as const }];
+// ─── Patient observation selectors ───────────────────────────────────
 
 function isDisplayable(item: ObservationItem): boolean {
   return !item.code || item.code.text === CODES.clinicalNote;
 }
 
-function isMenstrualCycleObservation(item: ObservationItem): boolean {
-  // Match the legacy SNOMED code as well as the first-class LOINC codes used
-  // by the dedicated menstrual cycle observations (period start / duration).
-  return (
-    item.code?.coding?.some(
-      (coding) =>
-        coding.code === CODES.menstrualCycle ||
-        coding.code === "8665-2" ||
-        coding.code === "3144-3",
-    ) ?? false
+function isLegacyMenstrualCycleObservation(item: ObservationItem): boolean {
+  return item.code?.coding?.some((coding) => coding.code === CODES.menstrualCycle) ?? false;
+}
+
+function newestFirst<T extends { effectiveDateTime?: string | null }>(items: readonly T[]): T[] {
+  return [...items].sort((a, b) =>
+    (b.effectiveDateTime ?? "").localeCompare(a.effectiveDateTime ?? ""),
   );
 }
 
-function buildSubjectFilter(personId: string) {
+/**
+ * Select the latest observations for the summary card.
+ */
+export function selectObservationsSummary(
+  observations: readonly ObservationItem[] | null | undefined,
+): ObservationsPage {
+  const items = newestFirst(observations ?? [])
+    .filter((item) => item.status === "FINAL" && isDisplayable(item))
+    .slice(0, 3);
   return {
-    status: { eq: "FINAL" as const },
-    subject: { personId: { eq: personId } },
-  };
-}
-
-// Menstrual period observations default to `REGISTERED` status, so we cannot
-// constrain to `FINAL` here. The dedicated read actions already scope by LOINC
-// code, so subject filtering is sufficient.
-function buildMenstrualSubjectFilter(personId: string) {
-  return {
-    subject: { personId: { eq: personId } },
+    items,
+    count: items.length,
+    endKeyset: null,
   };
 }
 
 /**
- * Fetch the latest observations for the summary card.
+ * Select all observations for the list page.
  */
-export async function fetchObservationsSummary(
-  personId: string,
-  organizationId: string,
-): Promise<ObservationsPage> {
-  if (!personId || !organizationId) {
-    return { items: [], count: 0, endKeyset: null };
-  }
-
-  const result = await requestGraphql({
-    document: ListObservationsQuery,
-    variables: {
-      filter: buildSubjectFilter(personId),
-      sort: SORT_NEWEST_FIRST,
-      first: 3,
-      locale: getLocale(),
-    },
-    organizationId,
-  });
-
-  const page = result.listObservations;
-  const items = (page?.results ?? []).filter((item) => isDisplayable(item));
+export function selectObservationsList(
+  observations: readonly ObservationItem[] | null | undefined,
+): ObservationsPage {
+  const items = newestFirst(observations ?? []).filter(
+    (item) => item.status === "FINAL" && isDisplayable(item),
+  );
   return {
     items,
     count: items.length,
-    endKeyset: page?.endKeyset ?? null,
-  };
-}
-
-/**
- * Fetch all observations for the list page (up to 250).
- */
-export async function fetchObservationsList(
-  personId: string,
-  organizationId: string,
-): Promise<ObservationsPage> {
-  if (!personId || !organizationId) {
-    return { items: [], count: 0, endKeyset: null };
-  }
-
-  const result = await requestGraphql({
-    document: ListObservationsQuery,
-    variables: {
-      filter: buildSubjectFilter(personId),
-      sort: SORT_NEWEST_FIRST,
-      first: 250,
-      locale: getLocale(),
-    },
-    organizationId,
-  });
-
-  const page = result.listObservations;
-  const items = (page?.results ?? []).filter((item) => isDisplayable(item));
-  return {
-    items,
-    count: items.length,
-    endKeyset: page?.endKeyset ?? null,
+    endKeyset: null,
   };
 }
 
@@ -544,13 +333,8 @@ function parseMenstrualCycleSummary(rawText: string): MenstrualCycleSummary {
   return { startDate, endDate, durationDays: null, notes };
 }
 
-type MenstrualCycleObservationsResult = ResultOf<typeof ListMenstrualCycleObservationsQuery>;
-type MenstrualPeriodStartRecord = NonNullable<
-  NonNullable<MenstrualCycleObservationsResult["starts"]>["results"]
->[number];
-type MenstrualPeriodDurationRecord = NonNullable<
-  NonNullable<MenstrualCycleObservationsResult["durations"]>["results"]
->[number];
+type MenstrualPeriodStartRecord = ObservationItem;
+type MenstrualPeriodDurationRecord = ObservationItem;
 
 function toDateOnly(value: string | null | undefined): string | null {
   return value ? value.slice(0, 10) : null;
@@ -590,19 +374,31 @@ function firstNoteText(
   return null;
 }
 
+function firstNoteSource(
+  ...records: Array<{ note?: ObservationItem["note"] | null } | null | undefined>
+): ObservationItem["note"] | null {
+  for (const record of records) {
+    if (record?.note?.length) {
+      return record.note;
+    }
+  }
+  return null;
+}
+
 function summarizeFirstClassMenstrualCycle(
-  data: MenstrualCycleObservationsResult,
+  starts: readonly MenstrualPeriodStartRecord[],
+  durations: readonly MenstrualPeriodDurationRecord[],
 ): MenstrualCycleSummary | null {
-  const startRecord = data.starts?.results?.[0];
+  const startRecord = starts[0];
   if (!startRecord) {
     return null;
   }
-  return summarizeMenstrualCycleStart(startRecord, data.durations?.results ?? []);
+  return summarizeMenstrualCycleStart(startRecord, durations);
 }
 
 function summarizeMenstrualCycleStart(
   startRecord: MenstrualPeriodStartRecord,
-  durations: MenstrualPeriodDurationRecord[],
+  durations: readonly MenstrualPeriodDurationRecord[],
 ): MenstrualCycleSummary | null {
   const startDate = toDateOnly(startRecord.valueDateTime ?? startRecord.effectiveDateTime);
   if (!startDate) {
@@ -619,53 +415,34 @@ function summarizeMenstrualCycleStart(
     endDate: durationDays != null ? addInclusiveDuration(startDate, durationDays) : null,
     durationDays,
     notes: firstNoteText(startRecord, matchingDuration),
+    sourceNotes: firstNoteSource(startRecord, matchingDuration),
+    paperTrailVersions: startRecord.paperTrailVersions ?? matchingDuration?.paperTrailVersions,
   };
 }
 
-export async function fetchLatestMenstrualCycle(
-  personId: string,
-  organizationId: string,
-): Promise<MenstrualCycleSummary | null> {
-  if (!personId || !organizationId) {
-    return null;
-  }
-
-  const specializedResult = await requestGraphql({
-    document: ListMenstrualCycleObservationsQuery,
-    variables: {
-      filter: buildMenstrualSubjectFilter(personId),
-      sort: SORT_NEWEST_FIRST,
-      first: 10,
-    },
-    organizationId,
-  });
-
-  const specializedSummary = summarizeFirstClassMenstrualCycle(specializedResult);
+export function selectLatestMenstrualCycle(
+  observations: readonly ObservationItem[] | null | undefined,
+): MenstrualCycleSummary | null {
+  const records = newestFirst(observations ?? []);
+  const starts = records.filter((item) => item.observationType === "MENSTRUAL_PERIOD_START");
+  const durations = records.filter((item) => item.observationType === "MENSTRUAL_PERIOD_DURATION");
+  const specializedSummary = summarizeFirstClassMenstrualCycle(starts, durations);
   if (specializedSummary) {
     return specializedSummary;
   }
 
-  const result = await requestGraphql({
-    document: ListObservationsQuery,
-    variables: {
-      filter: buildSubjectFilter(personId),
-      sort: SORT_NEWEST_FIRST,
-      first: 250,
-      locale: getLocale(),
-    },
-    organizationId,
-  });
-
-  const latest = (result.listObservations?.results ?? []).find((item) =>
-    isMenstrualCycleObservation(item),
-  );
+  const latest = records.find((item) => isLegacyMenstrualCycleObservation(item));
 
   if (!latest) {
     return null;
   }
 
   const rawText = latest.valueString ?? latest.note?.[0]?.text ?? "";
-  return parseMenstrualCycleSummary(rawText);
+  return {
+    ...parseMenstrualCycleSummary(rawText),
+    sourceNotes: latest.note,
+    paperTrailVersions: latest.paperTrailVersions,
+  };
 }
 
 /**
@@ -674,26 +451,12 @@ export async function fetchLatestMenstrualCycle(
  *
  * Used by the activity feed to render one event per cycle.
  */
-export async function fetchMenstrualCycleHistory(
-  personId: string,
-  organizationId: string,
-): Promise<MenstrualCycleEntry[]> {
-  if (!personId || !organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql({
-    document: ListMenstrualCycleObservationsQuery,
-    variables: {
-      filter: buildMenstrualSubjectFilter(personId),
-      sort: SORT_NEWEST_FIRST,
-      first: 250,
-    },
-    organizationId,
-  });
-
-  const starts = result.starts?.results ?? [];
-  const durations = result.durations?.results ?? [];
+export function selectMenstrualCycleHistory(
+  observations: readonly ObservationItem[] | null | undefined,
+): MenstrualCycleEntry[] {
+  const records = newestFirst(observations ?? []);
+  const starts = records.filter((item) => item.observationType === "MENSTRUAL_PERIOD_START");
+  const durations = records.filter((item) => item.observationType === "MENSTRUAL_PERIOD_DURATION");
 
   const entries: MenstrualCycleEntry[] = [];
   for (const start of starts) {
@@ -710,14 +473,14 @@ export async function fetchMenstrualCycleHistory(
   return entries;
 }
 
-/** Parsed title + body from a clinical-note observation's valueString. */
+/** Parsed title and body from a free-text observation's valueString. */
 export interface ParsedClinicalNote {
   title: string;
   body: string;
 }
 
 /**
- * Split a clinical-note valueString into title and body.
+ * Split a free-text observation valueString into title and body.
  * Expected format: `# Title\n\nBody`.
  */
 export function parseClinicalNote(obs: ObservationItem): ParsedClinicalNote {
@@ -731,7 +494,7 @@ export function parseClinicalNote(obs: ObservationItem): ParsedClinicalNote {
   return { title: raw, body: "" };
 }
 
-/** Get a plain display value for non-clinical-note observations. */
+/** Get a plain display value for typed observations. */
 export function getObservationDisplayValue(obs: ObservationItem): string {
   if (obs.valueString) {
     return obs.valueString;
@@ -746,7 +509,7 @@ export function getObservationDisplayValue(obs: ObservationItem): string {
 // ─── Mutation functions ───────────────────────────────────────────────
 
 /**
- * Update the valueString of a clinical-note observation.
+ * Update the valueString of a free-text observation.
  * Only updates the observation value — does not modify the note annotation array.
  */
 export async function updateClinicalNoteObservation(
@@ -765,7 +528,7 @@ export async function updateClinicalNoteObservation(
     },
     organizationId,
   });
-  unwrapMutationResult(result.updateObservation, "Failed to update clinical note.");
+  unwrapMutationResult(result.updateObservation, "Failed to update free-text observation.");
 }
 
 /**
