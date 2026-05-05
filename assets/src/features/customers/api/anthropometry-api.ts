@@ -846,3 +846,14 @@ export async function deleteAnthropometryEntry(
     }),
   );
 }
+
+/**
+ * Bisect-safety alias: replaced by direct `fetchAnthropometryHistory` calls
+ * when the detail page is consolidated in the next PR.
+ */
+export async function fetchAnthropometry(
+  personId: string,
+  organizationId: string,
+): Promise<AnthropometricSnapshot[]> {
+  return fetchAnthropometryHistory(personId, organizationId);
+}
