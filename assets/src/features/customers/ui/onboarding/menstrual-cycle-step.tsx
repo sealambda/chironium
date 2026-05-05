@@ -48,25 +48,6 @@ function validateDurationDays(value: string): string | undefined {
     : m.validation_cycle_duration_range();
 }
 
-function validateEndBeforeStart(startDate: string, durationValue: string): string | undefined {
-  if (!startDate || !durationValue) {
-    return undefined;
-  }
-  const days = parseDurationInput(durationValue);
-  if (days == null || days < 1) {
-    return undefined;
-  }
-  const start = parseISO(startDate);
-  if (!isValid(start)) {
-    return undefined;
-  }
-  const end = addDays(start, days - 1);
-  if (end < start) {
-    return m.validation_cycle_end_before_start();
-  }
-  return undefined;
-}
-
 function computeEndDateFromDuration(startDate: string, durationValue: string): string | null {
   const days = parseDurationInput(durationValue);
   if (!startDate || days == null || days < 1) {
@@ -268,12 +249,7 @@ export function MenstrualCycleStep({
                     <form.Field
                       name="durationDays"
                       validators={{
-                        onSubmit: ({ value }) => {
-                          const start = form.getFieldValue("startDate");
-                          return (
-                            validateDurationDays(value) ?? validateEndBeforeStart(start, value)
-                          );
-                        },
+                        onSubmit: ({ value }) => validateDurationDays(value),
                       }}
                     >
                       {(field) => {
@@ -307,25 +283,6 @@ export function MenstrualCycleStep({
                         {m.menstrual_cycle_estimated_end({ date: formattedComputed })}
                       </p>
                     ) : null}
-
-                    {/* End-before-start warning */}
-                    {startDate && durationDays
-                      ? (() => {
-                          const endBeforeStartErr = validateEndBeforeStart(startDate, durationDays);
-                          if (!endBeforeStartErr) {
-                            return null;
-                          }
-                          return (
-                            <p
-                              role="alert"
-                              className="col-span-full -mt-2 flex items-center gap-1.5 text-destructive text-xs"
-                            >
-                              <span aria-hidden>&#9888;</span>
-                              {endBeforeStartErr}
-                            </p>
-                          );
-                        })()
-                      : null}
                   </>
                 );
               }}
