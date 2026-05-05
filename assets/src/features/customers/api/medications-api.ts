@@ -194,8 +194,9 @@ export async function updateMedication(
   data: MedicationFormInput,
   organizationId: string,
 ): Promise<void> {
-  const start = toUtcDateTimeStart(data.startDate);
-  const end = data.course === "past" ? toUtcDateTimeEnd(data.endDate) : undefined;
+  const start = toUtcDateTimeStart(data.startDate) ?? null;
+  const end = data.course === "past" ? (toUtcDateTimeEnd(data.endDate) ?? null) : null;
+  const hasPeriod = start !== null || end !== null;
 
   const result = await requestGraphql({
     document: UpdateMedicationStatementMutation,
@@ -203,8 +204,10 @@ export async function updateMedication(
       id,
       input: {
         medication: { text: data.name },
-        effectivePeriod: start || end ? { start, end } : undefined,
-        effectiveDateTime: undefined,
+        // Send explicit nulls so cleared dates and switching effectiveDateTime <-> effectivePeriod
+        // overwrite previous values instead of leaving them in place.
+        effectivePeriod: hasPeriod ? { start, end } : null,
+        effectiveDateTime: null,
       },
     },
     organizationId,
