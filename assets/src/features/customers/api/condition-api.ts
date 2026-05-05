@@ -207,8 +207,10 @@ function buildConditionInput(data: ConditionFormInput) {
     clinicalStatus: data.clinicalStatus,
     verificationStatus: data.verificationStatus,
     code: { text: data.name },
-    onsetDateTime: toUtcDateTimeStart(data.onsetDate),
-    abatementDateTime: abated ? toUtcDateTimeStart(data.abatementDate) : undefined,
+    // Send explicit null for cleared dates (and for abatement when status flips back to active),
+    // since graphql-request omits `undefined` and would otherwise leave previous values intact.
+    onsetDateTime: toUtcDateTimeStart(data.onsetDate) ?? null,
+    abatementDateTime: abated ? (toUtcDateTimeStart(data.abatementDate) ?? null) : null,
   };
 }
 
