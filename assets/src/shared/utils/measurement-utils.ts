@@ -45,6 +45,11 @@ export function classifyBmi(bmi: number): HealthClassification {
   return "danger";
 }
 
+/** Format any anthropometric measurement to one decimal place for consistent display. */
+export function formatAnthropometryValue(n: number): string {
+  return n.toFixed(1);
+}
+
 /**
  * Classify Waist-to-Hip Ratio (gender-neutral thresholds).
  * <0.80 low risk (healthy), 0.80–0.85 moderate (warning), >0.85 high (danger).

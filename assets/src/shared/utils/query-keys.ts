@@ -81,6 +81,9 @@ export const personQueryKeys = {
   menstrualCycle(personId: string, organizationId: string) {
     return ["person", personId, "menstrualCycle", organizationId] as const;
   },
+  menstrualCycleScope(personId: string) {
+    return ["person", personId, "menstrualCycle"] as const;
+  },
   foodPreferences(personId: string, organizationId: string) {
     return ["person", personId, "foodPreferences", organizationId] as const;
   },
@@ -143,5 +146,11 @@ export const personQueryKeys = {
   },
   reviewTasksScope(personId: string) {
     return ["person", personId, "review-tasks"] as const;
+  },
+  patientTasks(personId: string, organizationId: string, patientId: string) {
+    return ["person", personId, "patient-tasks", organizationId, patientId] as const;
+  },
+  patientTasksScope(personId: string) {
+    return ["person", personId, "patient-tasks"] as const;
   },
 };
