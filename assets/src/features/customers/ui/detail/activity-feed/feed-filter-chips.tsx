@@ -130,7 +130,7 @@ const INACTIVE_BUTTON_CLASS =
 export function FeedFilterChips({ active, onChange }: Readonly<FeedFilterChipsProps>) {
   return (
     <fieldset className="m-0 flex flex-wrap gap-1.5 border-0 p-0">
-      <legend className="sr-only">Filter activity</legend>
+      <legend className="sr-only">{m.activity_filter_legend()}</legend>
       {CHIPS.map(({ value, label, icon: Icon, activeClass, activeIconClass }) => {
         const isActive = active === value;
         return (

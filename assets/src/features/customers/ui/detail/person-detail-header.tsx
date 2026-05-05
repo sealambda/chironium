@@ -34,7 +34,8 @@ interface ContactDropdownProps {
 }
 
 function ContactDropdown({ email, phone, instagram }: ContactDropdownProps) {
-  const openUrl = (url: string) => () => window.open(url, "_blank");
+  // Use noopener,noreferrer to prevent tabnabbing on the opened external page.
+  const openUrl = (url: string) => () => window.open(url, "_blank", "noopener,noreferrer");
 
   return (
     <DropdownMenu>
