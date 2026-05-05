@@ -166,7 +166,9 @@ export function ConditionDetailDialog({
           {/* Name */}
           <form.Field
             name="name"
-            validators={{ onSubmit: ({ value }) => (!value.trim() ? "Required" : undefined) }}
+            validators={{
+              onSubmit: ({ value }) => (!value.trim() ? m.validation_required() : undefined),
+            }}
           >
             {(field) => (
               <Field data-invalid={field.state.meta.errors.length > 0}>

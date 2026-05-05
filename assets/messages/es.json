@@ -924,6 +924,7 @@
   "activity_goal_column_description": "Objetivo",
   "activity_goal_column_category": "Categoría",
   "activity_goal_column_target": "Fecha objetivo",
+  "activity_filter_legend": "Filtrar actividad",
   "activity_filter_all": "Todo",
   "activity_filter_observations": "Notas",
   "activity_filter_tasks": "Tareas",
