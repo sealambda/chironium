@@ -397,15 +397,3 @@ export async function updateFoodObservationFromTag(
   });
   unwrapMutationResult(result.updateObservation, "Failed to update food preference.");
 }
-
-/**
- * Bisect-safety stub: returns an empty `FoodPreferencesData` shape. The
- * detail page consolidation in the next PR replaces consumers with calls
- * to `fetchFoodPreferencesHistory`.
- */
-export async function fetchFoodPreferences(
-  _personId: string,
-  _organizationId: string,
-): Promise<FoodPreferencesData> {
-  return { included: [], excluded: [] };
-}
