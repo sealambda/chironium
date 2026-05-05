@@ -37,8 +37,8 @@ export function getInitials(name: string): string {
   if (parts.length === 0) {
     return "?";
   }
-  const firstInitial = parts[0][0] || "";
-  const lastInitial = parts.length > 1 ? parts.at(-1)?.[0] || "" : "";
+  const firstInitial = parts[0]?.[0] ?? "";
+  const lastInitial = parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : "";
   return `${firstInitial}${lastInitial || firstInitial}`.toUpperCase();
 }
 
@@ -49,12 +49,16 @@ export function getInitials(name: string): string {
  */
 export function getInitialsFromEmail(email: string): string {
   const localPart = email.split("@")[0];
-  const parts = localPart.split(/[._-]/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  if (!localPart) {
+    return "?";
   }
-  if (parts.length === 1 && parts[0][0]) {
-    return parts[0][0].toUpperCase();
+  const parts = localPart.split(/[._-]/).filter(Boolean);
+  if (parts.length >= 2 && parts[0] && parts[1]) {
+    return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+  }
+  const first = parts[0];
+  if (first?.[0]) {
+    return first[0].toUpperCase();
   }
   return "?";
 }

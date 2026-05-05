@@ -76,7 +76,7 @@ function formatDateDuration({ years = 0, months = 0, days = 0 }: DateFnsDuration
   }
 
   return parts.length === 1
-    ? parts[0]
+    ? (parts[0] ?? "")
     : `${parts.slice(0, -1).join(", ")} ${m.common_and()} ${parts.at(-1) ?? ""}`;
 }
 
