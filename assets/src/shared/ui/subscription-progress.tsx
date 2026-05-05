@@ -90,7 +90,9 @@ export function SubscriptionProgress({
 
   const progress = getSubscriptionProgressRatio(startDate, endDate);
   const progressToneClass = PROGRESS_TONE_CLASS[getSubscriptionProgressTone(progress)];
-  const elapsedMonths = Math.min(planDurationMonths, Math.ceil(progress * planDurationMonths));
+  // Color one segment per *completed* month so the first segment only fills after
+  // a full month elapses, not the moment any time has passed.
+  const elapsedMonths = Math.min(planDurationMonths, Math.floor(progress * planDurationMonths));
 
   const locale = getDateLocale();
   const startFormatted = format(startDate, "MMM d, yy", { locale });
