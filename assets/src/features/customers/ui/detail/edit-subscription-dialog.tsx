@@ -14,6 +14,7 @@ import { SubscriptionFormFields } from "@/features/customers/ui/subscription/sub
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionPlan, SubscriptionRecord } from "@/shared/types/subscriptions";
+import { toDateInput } from "@/shared/utils/date-time-input";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -49,7 +50,7 @@ export function EditSubscriptionDialog({
   const initialValues = useMemo(
     () => ({
       planId: currentSubscription?.plan?.id ?? "",
-      startDate: currentSubscription?.startDate ?? new Date().toISOString().split("T")[0] ?? "",
+      startDate: currentSubscription?.startDate ?? toDateInput(new Date()),
     }),
     [currentSubscription],
   );
