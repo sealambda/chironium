@@ -286,8 +286,8 @@ export interface ConditionFormInput {
 
 const ABATED_STATUSES: readonly ConditionClinicalStatus[] = ["INACTIVE", "REMISSION", "RESOLVED"];
 
-function dateInputToUtc(value: string): string | undefined {
-  return value ? `${value}T09:00:00.000Z` : undefined;
+function dateInputToUtc(value: string): string | null {
+  return value ? `${value}T09:00:00.000Z` : null;
 }
 
 function buildConditionInput(data: ConditionFormInput) {
@@ -296,8 +296,10 @@ function buildConditionInput(data: ConditionFormInput) {
     clinicalStatus: data.clinicalStatus,
     verificationStatus: data.verificationStatus,
     code: { text: data.name },
+    // Send explicit nulls so cleared dates (and abatement when status flips back to active)
+    // actually overwrite previous server values instead of being omitted.
     onsetDateTime: dateInputToUtc(data.onsetDate),
-    abatementDateTime: abated ? dateInputToUtc(data.abatementDate) : undefined,
+    abatementDateTime: abated ? dateInputToUtc(data.abatementDate) : null,
     recordedDate: dateInputToUtc(data.recordedDate),
   };
 }
