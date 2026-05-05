@@ -240,14 +240,3 @@ export async function fetchTasksForPatient(
 
   return result.listTasks?.results ?? [];
 }
-
-/**
- * Bisect-safety stub: returns no pending review tasks. The detail page
- * consolidation in the next PR replaces this with the new task workflow.
- */
-export async function fetchPendingPlanReviewTasksForPatient(
-  _patientId: string,
-  _organizationId: string,
-): Promise<PatientTask[]> {
-  return [];
-}
