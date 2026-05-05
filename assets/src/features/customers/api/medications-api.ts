@@ -260,12 +260,12 @@ export interface MedicationFormInput {
   endDate: string;
 }
 
-function dateInputToUtcStart(value: string): string | undefined {
-  return value ? `${value}T09:00:00.000Z` : undefined;
+function dateInputToUtcStart(value: string): string | null {
+  return value ? `${value}T09:00:00.000Z` : null;
 }
 
-function dateInputToUtcEnd(value: string): string | undefined {
-  return value ? `${value}T23:59:59.999Z` : undefined;
+function dateInputToUtcEnd(value: string): string | null {
+  return value ? `${value}T23:59:59.999Z` : null;
 }
 
 /** Update name, course, effective period, and assertion date on a medication. */
@@ -275,7 +275,8 @@ export async function updateMedication(
   organizationId: string,
 ): Promise<void> {
   const start = dateInputToUtcStart(data.startDate);
-  const end = data.course === "past" ? dateInputToUtcEnd(data.endDate) : undefined;
+  const end = data.course === "past" ? dateInputToUtcEnd(data.endDate) : null;
+  const hasPeriod = start !== null || end !== null;
 
   const result = await requestGraphql({
     document: UpdateMedicationStatementMutation,
@@ -283,8 +284,10 @@ export async function updateMedication(
       id,
       input: {
         medication: { text: data.name },
-        effectivePeriod: start || end ? { start, end } : undefined,
-        effectiveDateTime: undefined,
+        // Send explicit nulls so cleared dates and switching effectiveDateTime <-> effectivePeriod
+        // overwrite previous values instead of leaving them in place.
+        effectivePeriod: hasPeriod ? { start, end } : null,
+        effectiveDateTime: null,
       },
     },
     organizationId,

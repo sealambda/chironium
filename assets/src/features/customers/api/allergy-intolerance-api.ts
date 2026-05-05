@@ -304,23 +304,24 @@ export interface AllergyIntoleranceFormInput {
 }
 
 function buildAllergyInput(data: AllergyIntoleranceFormInput) {
-  let onset: Record<string, unknown> = {};
+  // Always include all three onset fields so switching modes (especially to `none`)
+  // clears the previously-set onset values instead of silently keeping them.
+  let onsetDateTime: string | null = null;
+  let onsetAge: { value: string; code: string; system: string } | null = null;
+  let onsetPeriod: { start: string | null; end: string | null } | null = null;
+
   if (data.onsetMode === "date") {
-    onset = { onsetDateTime: data.onsetDateTime || undefined };
+    onsetDateTime = data.onsetDateTime || null;
   } else if (data.onsetMode === "age" && data.onsetAge?.value) {
-    onset = {
-      onsetAge: {
-        value: data.onsetAge.value,
-        code: data.onsetAge.unit,
-        system: "http://unitsofmeasure.org",
-      },
+    onsetAge = {
+      value: data.onsetAge.value,
+      code: data.onsetAge.unit,
+      system: "http://unitsofmeasure.org",
     };
   } else if (data.onsetMode === "period") {
-    onset = {
-      onsetPeriod: {
-        start: data.onsetPeriod?.start || undefined,
-        end: data.onsetPeriod?.end || undefined,
-      },
+    onsetPeriod = {
+      start: data.onsetPeriod?.start || null,
+      end: data.onsetPeriod?.end || null,
     };
   }
 
@@ -329,7 +330,9 @@ function buildAllergyInput(data: AllergyIntoleranceFormInput) {
     clinicalStatus: data.clinicalStatus,
     verificationStatus: data.verificationStatus,
     code: { text: data.name },
-    ...onset,
+    onsetDateTime,
+    onsetAge,
+    onsetPeriod,
   };
 }
 
