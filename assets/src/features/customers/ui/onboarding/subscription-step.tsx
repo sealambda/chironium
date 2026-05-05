@@ -8,6 +8,7 @@ import type { SubscriptionFormData } from "@/features/customers/model/subscripti
 import { SubscriptionFormFields } from "@/features/customers/ui/subscription/subscription-form-fields";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionPlan } from "@/shared/types/subscriptions";
+import { toDateInput } from "@/shared/utils/date-time-input";
 import { subscriptionPlansQueryKey } from "@/shared/utils/query-keys";
 
 import { StepLayout } from "./step-layout";
@@ -39,7 +40,7 @@ export function SubscriptionStep({
   const form = useForm({
     defaultValues: {
       planId: initialData?.planId ?? "",
-      startDate: initialData?.startDate ?? new Date().toISOString().split("T")[0],
+      startDate: initialData?.startDate ?? toDateInput(new Date()),
     },
     validators: { onSubmit: subscriptionSchema },
     onSubmit: ({ value }) => {
@@ -55,9 +56,7 @@ export function SubscriptionStep({
     },
   });
   const [planId, setPlanId] = useState(initialData?.planId ?? "");
-  const [startDate, setStartDate] = useState(
-    initialData?.startDate ?? new Date().toISOString().split("T")[0] ?? "",
-  );
+  const [startDate, setStartDate] = useState(initialData?.startDate ?? toDateInput(new Date()));
 
   const handleBack = () => {
     const v = form.state.values;
