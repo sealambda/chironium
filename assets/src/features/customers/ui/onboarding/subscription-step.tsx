@@ -56,7 +56,7 @@ export function SubscriptionStep({
   });
   const [planId, setPlanId] = useState(initialData?.planId ?? "");
   const [startDate, setStartDate] = useState(
-    initialData?.startDate ?? new Date().toISOString().split("T")[0],
+    initialData?.startDate ?? new Date().toISOString().split("T")[0] ?? "",
   );
 
   const handleBack = () => {

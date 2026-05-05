@@ -49,7 +49,7 @@ export function EditSubscriptionDialog({
   const initialValues = useMemo(
     () => ({
       planId: currentSubscription?.plan?.id ?? "",
-      startDate: currentSubscription?.startDate ?? new Date().toISOString().split("T")[0],
+      startDate: currentSubscription?.startDate ?? new Date().toISOString().split("T")[0] ?? "",
     }),
     [currentSubscription],
   );
@@ -130,8 +130,13 @@ export function EditSubscriptionDialog({
       return;
     }
 
-    setPlanId(plans[0].id);
-    form.setFieldValue("planId", plans[0].id);
+    const firstPlanId = plans[0]?.id;
+    if (!firstPlanId) {
+      return;
+    }
+
+    setPlanId(firstPlanId);
+    form.setFieldValue("planId", firstPlanId);
   }, [currentSubscription, form, open, planId, plans]);
 
   let submitLabel = currentSubscription ? m.common_save() : m.common_add();
