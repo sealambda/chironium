@@ -400,7 +400,7 @@ export function parseClinicalNote(obs: ObservationItem): ParsedClinicalNote {
 
   // Current format: "# Title\n\nBody"
   const mdMatch = /^#\s+(.+?)\n+([\s\S]*)$/.exec(raw);
-  if (mdMatch) {
+  if (mdMatch?.[1] !== undefined && mdMatch[2] !== undefined) {
     return { title: mdMatch[1].trim(), body: mdMatch[2].trim() };
   }
 
