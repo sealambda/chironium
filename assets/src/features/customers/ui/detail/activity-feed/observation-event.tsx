@@ -55,18 +55,18 @@ export function ObservationEvent({ observation }: Readonly<ObservationEventProps
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 rounded-sm text-muted-foreground text-xs transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex cursor-pointer items-center gap-1 rounded-sm text-muted-foreground text-xs transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-expanded={expanded}
         >
           {expanded ? (
             <>
               <ChevronUp className="size-3" aria-hidden />
-              {m.activity_show_less()}
+              {m.show_less()}
             </>
           ) : (
             <>
               <ChevronDown className="size-3" aria-hidden />
-              {m.activity_show_more()}
+              {m.show_more()}
             </>
           )}
         </button>

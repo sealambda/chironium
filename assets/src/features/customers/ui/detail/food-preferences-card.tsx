@@ -5,9 +5,9 @@ import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-pr
 import { FoodPreferenceDetailDialog } from "@/features/customers/ui/detail/food-preference-detail-dialog";
 import { FoodPreferencePill } from "@/features/customers/ui/detail/food-preference-pill";
 import { FoodPreferenceRemoveDialog } from "@/features/customers/ui/detail/food-preference-remove-dialog";
+import { TagsCardColumn, TagsCardPillList } from "@/features/customers/ui/detail/tags-card-content";
 import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import * as m from "@/paraglide/messages";
-import { cn } from "@/shared/utils/utils";
 
 interface FoodPreferencesCardProps {
   readonly history: FoodPreferenceHistoryItem[];
@@ -19,47 +19,6 @@ interface FoodPreferencesCardProps {
 
 function labelOf(item: FoodPreferenceHistoryItem): string {
   return item.items?.trim() || item.codings[0]?.display?.trim() || item.codings[0]?.code || "";
-}
-
-interface ColumnProps {
-  readonly label: string;
-  readonly variant: "inclusion" | "exclusion";
-  readonly entries: { item: FoodPreferenceHistoryItem; label: string }[];
-  readonly emptyText: string;
-  readonly canInteract: boolean;
-  readonly onPillClick: (item: FoodPreferenceHistoryItem) => void;
-  readonly className?: string;
-}
-
-function Column({
-  label,
-  variant,
-  entries,
-  emptyText,
-  canInteract,
-  onPillClick,
-  className,
-}: ColumnProps) {
-  return (
-    <div className={cn("space-y-3", className)}>
-      <p className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">{label}</p>
-      {entries.length === 0 ? (
-        <p className="text-muted-foreground text-sm italic">{emptyText}</p>
-      ) : (
-        <div className="flex flex-wrap gap-1.5">
-          {entries.map(({ item, label: text }) => (
-            <FoodPreferencePill
-              key={item.id}
-              variant={variant}
-              onClick={canInteract ? () => onPillClick(item) : undefined}
-            >
-              {text}
-            </FoodPreferencePill>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function FoodPreferencesCard({
@@ -96,24 +55,42 @@ export function FoodPreferencesCard({
         compact={compact}
         columns={2}
       >
-        <Column
-          label={m.food_preferences_includes_label()}
-          variant="inclusion"
-          entries={included}
+        <TagsCardColumn
+          title={m.food_preferences_includes_label()}
+          isEmpty={included.length === 0}
           emptyText={m.food_preferences_none_included()}
-          canInteract={canInteract}
-          onPillClick={setViewingItem}
           className="pr-3"
-        />
-        <Column
-          label={m.food_preferences_avoids_label()}
-          variant="exclusion"
-          entries={excluded}
+        >
+          <TagsCardPillList>
+            {included.map(({ item, label }) => (
+              <FoodPreferencePill
+                key={item.id}
+                variant="inclusion"
+                onClick={canInteract ? () => setViewingItem(item) : undefined}
+              >
+                {label}
+              </FoodPreferencePill>
+            ))}
+          </TagsCardPillList>
+        </TagsCardColumn>
+        <TagsCardColumn
+          title={m.food_preferences_avoids_label()}
+          isEmpty={excluded.length === 0}
           emptyText={m.food_preferences_none_avoided()}
-          canInteract={canInteract}
-          onPillClick={setViewingItem}
           className="pl-3"
-        />
+        >
+          <TagsCardPillList>
+            {excluded.map(({ item, label }) => (
+              <FoodPreferencePill
+                key={item.id}
+                variant="exclusion"
+                onClick={canInteract ? () => setViewingItem(item) : undefined}
+              >
+                {label}
+              </FoodPreferencePill>
+            ))}
+          </TagsCardPillList>
+        </TagsCardColumn>
       </TagsCardShell>
 
       {canInteract ? (

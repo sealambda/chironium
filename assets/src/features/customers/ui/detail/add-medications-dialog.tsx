@@ -11,17 +11,9 @@ import { invalidatePersonDetail } from "@/features/customers/utils/person-detail
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
+import { FormDialog } from "@/shared/ui/form-dialog";
 import {
   Select,
   SelectContent,
@@ -165,92 +157,84 @@ export function AddMedicationsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {children !== undefined && <DialogTrigger render={children as React.ReactElement} />}
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{m.medication_dialog_title()}</DialogTitle>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children === undefined ? undefined : (children as React.ReactElement)}
+      title={m.medication_dialog_title()}
+      onSubmit={handleSubmit}
+      submitDisabled={!canSubmit}
+      saving={saving}
+    >
+      <FieldGroup>
+        <TerminologyTagInput
+          label={m.medication_list_label()}
+          placeholder={m.medication_field_placeholder()}
+          tags={tags.tags}
+          onAdd={tags.addTag}
+          onRemove={tags.removeTag}
+          organizationId={selectedOrg?.id ?? ""}
+          conceptContext="MEDICATION"
+          addLabel={m.common_add()}
+          disabled={saving}
+        />
 
-        <FieldGroup>
-          <TerminologyTagInput
-            label={m.medication_list_label()}
-            placeholder={m.medication_field_placeholder()}
-            tags={tags.tags}
-            onAdd={tags.addTag}
-            onRemove={tags.removeTag}
-            organizationId={selectedOrg?.id ?? ""}
-            conceptContext="MEDICATION"
-            addLabel={m.common_add()}
+        <Field>
+          <FieldLabel>{m.medication_usage_label()}</FieldLabel>
+          <Select
+            value={courseState}
+            onValueChange={(value) => {
+              const nextState = (value ?? "current") as MedicationCourseState;
+              setCourseState(nextState);
+              if (nextState === "current") {
+                setEndDate("");
+              }
+            }}
             disabled={saving}
+            items={MEDICATION_COURSE_OPTIONS.map((option) => ({
+              value: option.value,
+              label: option.label(),
+            }))}
+          >
+            <SelectTrigger className="w-full" disabled={saving}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectPositioner>
+              <SelectContent>
+                {MEDICATION_COURSE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectPositioner>
+          </Select>
+        </Field>
+
+        <Field data-invalid={Boolean(dateErrors.startDate)}>
+          <FieldLabel>{m.medication_start_date()}</FieldLabel>
+          <DatePickerString
+            value={startDate}
+            onChange={setStartDate}
+            disabled={saving}
+            endMonth={new Date()}
           />
+          {dateErrors.startDate ? <FieldError>{dateErrors.startDate}</FieldError> : null}
+        </Field>
 
-          <Field>
-            <FieldLabel>{m.medication_usage_label()}</FieldLabel>
-            <Select
-              value={courseState}
-              onValueChange={(value) => {
-                const nextState = (value ?? "current") as MedicationCourseState;
-                setCourseState(nextState);
-                if (nextState === "current") {
-                  setEndDate("");
-                }
-              }}
-              disabled={saving}
-              items={MEDICATION_COURSE_OPTIONS.map((option) => ({
-                value: option.value,
-                label: option.label(),
-              }))}
-            >
-              <SelectTrigger className="w-full" disabled={saving}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectPositioner>
-                <SelectContent>
-                  {MEDICATION_COURSE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectPositioner>
-            </Select>
-          </Field>
-
-          <Field data-invalid={Boolean(dateErrors.startDate)}>
-            <FieldLabel>{m.medication_start_date()}</FieldLabel>
+        {courseState === "past" ? (
+          <Field data-invalid={Boolean(dateErrors.endDate)}>
+            <FieldLabel>{m.medication_end_date()}</FieldLabel>
             <DatePickerString
-              value={startDate}
-              onChange={setStartDate}
+              value={endDate}
+              onChange={setEndDate}
               disabled={saving}
               endMonth={new Date()}
             />
-            {dateErrors.startDate ? <FieldError>{dateErrors.startDate}</FieldError> : null}
+            {dateErrors.endDate ? <FieldError>{dateErrors.endDate}</FieldError> : null}
           </Field>
-
-          {courseState === "past" ? (
-            <Field data-invalid={Boolean(dateErrors.endDate)}>
-              <FieldLabel>{m.medication_end_date()}</FieldLabel>
-              <DatePickerString
-                value={endDate}
-                onChange={setEndDate}
-                disabled={saving}
-                endMonth={new Date()}
-              />
-              {dateErrors.endDate ? <FieldError>{dateErrors.endDate}</FieldError> : null}
-            </Field>
-          ) : null}
-        </FieldGroup>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            {m.common_cancel()}
-          </Button>
-          <Button onClick={() => void handleSubmit()} loading={saving} disabled={!canSubmit}>
-            {m.common_save()}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        ) : null}
+      </FieldGroup>
+    </FormDialog>
   );
 }

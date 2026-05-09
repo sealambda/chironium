@@ -3,11 +3,12 @@ import { type ReactElement, type ReactNode, useEffect, useRef, useState } from "
 import { toast } from "sonner";
 
 import { createClinicalNoteObservations } from "@/features/customers/api/observations-api";
-import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
+import { ObservationForm } from "@/features/customers/ui/observation-form";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { FormDialog } from "@/shared/ui/form-dialog";
 import { toDateTimeInputParts } from "@/shared/utils/date-time-input";
 
 interface AddObservationDialogProps {
@@ -95,20 +96,25 @@ export function AddObservationDialog({
   };
 
   return (
-    <ObservationDialog
+    <FormDialog
       title={m.common_add()}
-      submitLabel={m.common_add()}
       open={open}
       onOpenChange={setOpen}
-      body={body}
-      onBodyChange={setBody}
-      effectiveDate={effectiveDate}
-      onEffectiveDateChange={setEffectiveDate}
-      effectiveTime={effectiveTime}
-      onEffectiveTimeChange={setEffectiveTime}
       onSubmit={handleSubmit}
+      submitDisabled={!body.trim()}
       saving={saving}
-      trigger={children as ReactElement}
-    />
+      trigger={children === undefined ? undefined : (children as ReactElement)}
+    >
+      <ObservationForm
+        body={body}
+        onBodyChange={setBody}
+        effectiveDate={effectiveDate}
+        onEffectiveDateChange={setEffectiveDate}
+        effectiveTime={effectiveTime}
+        onEffectiveTimeChange={setEffectiveTime}
+        disabled={saving}
+        rows={4}
+      />
+    </FormDialog>
   );
 }

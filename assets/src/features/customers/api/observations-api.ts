@@ -4,7 +4,6 @@ import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import { toDateTimeInput } from "@/shared/utils/date-time-input";
-import { EMPTY_VALUE_PLACEHOLDER } from "@/shared/utils/display-value";
 
 type CodeTypes =
   | "clinicalNote"
@@ -59,6 +58,38 @@ const LogMenstrualPeriodDurationMutation = graphql(`
       result {
         id
         status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const UpdateMenstrualPeriodStartMutation = graphql(`
+  mutation UpdateMenstrualPeriodStart($id: ID!, $input: UpdateMenstrualPeriodStartInput) {
+    updateMenstrualPeriodStart(id: $id, input: $input) {
+      result {
+        id
+        effectiveDateTime
+        valueDateTime
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const UpdateMenstrualPeriodDurationMutation = graphql(`
+  mutation UpdateMenstrualPeriodDuration($id: ID!, $input: UpdateMenstrualPeriodDurationInput) {
+    updateMenstrualPeriodDuration(id: $id, input: $input) {
+      result {
+        id
+        effectiveDateTime
+        valueQuantity {
+          value
+        }
       }
       errors {
         message
@@ -139,6 +170,8 @@ export interface MenstrualCycleSummary {
   endDate: string | null;
   durationDays: number | null;
   notes: string | null;
+  startObservationId?: string | null;
+  durationObservationId?: string | null;
   sourceNotes?: ObservationItem["note"] | null;
   paperTrailVersions?: ObservationItem["paperTrailVersions"] | null;
 }
@@ -225,6 +258,90 @@ export async function logMenstrualCycle(
 }
 
 /**
+ * Update a previously logged menstrual cycle.
+ */
+export async function updateMenstrualCycle(
+  data: MenstrualCycleRecordFormData,
+  cycle: Pick<MenstrualCycleSummary, "startObservationId" | "durationObservationId">,
+  subjectId: string,
+  organizationId: string,
+  userId: string,
+  userName: string,
+): Promise<void> {
+  const startDate = data.startDate.trim();
+  if (!startDate) {
+    return;
+  }
+
+  const startObservationId = cycle.startObservationId;
+  if (!startObservationId) {
+    throw new Error("Menstrual cycle update failed: missing period-start observation id.");
+  }
+
+  const effectiveDateTime = toDateTimeInput(startDate, null);
+  if (!effectiveDateTime) {
+    throw new Error(`Menstrual period start date "${startDate}" is not a valid date.`);
+  }
+
+  const note = buildObservationNoteInput(data.notes, userId, userName);
+  const startResult = await requestGraphql({
+    document: UpdateMenstrualPeriodStartMutation,
+    variables: {
+      id: startObservationId,
+      input: {
+        effectiveDateTime,
+        note,
+      },
+    },
+    organizationId,
+  });
+  unwrapMutationResult(startResult.updateMenstrualPeriodStart, "Failed to update period start.");
+
+  const durationObservationId = cycle.durationObservationId;
+  if (data.durationDays != null && data.durationDays > 0) {
+    if (durationObservationId) {
+      const durationUpdateResult = await requestGraphql({
+        document: UpdateMenstrualPeriodDurationMutation,
+        variables: {
+          id: durationObservationId,
+          input: {
+            effectiveDateTime,
+            durationDays: data.durationDays,
+          },
+        },
+        organizationId,
+      });
+      unwrapMutationResult(
+        durationUpdateResult.updateMenstrualPeriodDuration,
+        "Failed to update period duration.",
+      );
+      return;
+    }
+
+    const durationCreateResult = await requestGraphql({
+      document: LogMenstrualPeriodDurationMutation,
+      variables: {
+        input: {
+          subjectId,
+          effectiveDateTime,
+          durationDays: data.durationDays,
+        },
+      },
+      organizationId,
+    });
+    unwrapMutationResult(
+      durationCreateResult.logMenstrualPeriodDuration,
+      "Failed to update period duration.",
+    );
+    return;
+  }
+
+  if (durationObservationId) {
+    await deleteObservation(durationObservationId, organizationId);
+  }
+}
+
+/**
  * Create one free-text observation per non-empty body.
  */
 export async function createClinicalNoteObservations(
@@ -268,22 +385,6 @@ function newestFirst<T extends { effectiveDateTime?: string | null }>(items: rea
   return [...items].sort((a, b) =>
     (b.effectiveDateTime ?? "").localeCompare(a.effectiveDateTime ?? ""),
   );
-}
-
-/**
- * Select the latest observations for the summary card.
- */
-export function selectObservationsSummary(
-  observations: readonly ObservationItem[] | null | undefined,
-): ObservationsPage {
-  const items = newestFirst(observations ?? [])
-    .filter((item) => item.status === "FINAL" && isDisplayable(item))
-    .slice(0, 3);
-  return {
-    items,
-    count: items.length,
-    endKeyset: null,
-  };
 }
 
 /**
@@ -332,9 +433,6 @@ function parseMenstrualCycleSummary(rawText: string): MenstrualCycleSummary {
 
   return { startDate, endDate, durationDays: null, notes };
 }
-
-type MenstrualPeriodStartRecord = ObservationItem;
-type MenstrualPeriodDurationRecord = ObservationItem;
 
 function toDateOnly(value: string | null | undefined): string | null {
   return value ? value.slice(0, 10) : null;
@@ -386,8 +484,8 @@ function firstNoteSource(
 }
 
 function summarizeFirstClassMenstrualCycle(
-  starts: readonly MenstrualPeriodStartRecord[],
-  durations: readonly MenstrualPeriodDurationRecord[],
+  starts: readonly ObservationItem[],
+  durations: readonly ObservationItem[],
 ): MenstrualCycleSummary | null {
   const startRecord = starts[0];
   if (!startRecord) {
@@ -397,8 +495,8 @@ function summarizeFirstClassMenstrualCycle(
 }
 
 function summarizeMenstrualCycleStart(
-  startRecord: MenstrualPeriodStartRecord,
-  durations: readonly MenstrualPeriodDurationRecord[],
+  startRecord: ObservationItem,
+  durations: readonly ObservationItem[],
 ): MenstrualCycleSummary | null {
   const startDate = toDateOnly(startRecord.valueDateTime ?? startRecord.effectiveDateTime);
   if (!startDate) {
@@ -412,9 +510,11 @@ function summarizeMenstrualCycleStart(
 
   return {
     startDate,
-    endDate: durationDays != null ? addInclusiveDuration(startDate, durationDays) : null,
+    endDate: durationDays == null ? null : addInclusiveDuration(startDate, durationDays),
     durationDays,
     notes: firstNoteText(startRecord, matchingDuration),
+    startObservationId: startRecord.id,
+    durationObservationId: matchingDuration?.id ?? null,
     sourceNotes: firstNoteSource(startRecord, matchingDuration),
     paperTrailVersions: startRecord.paperTrailVersions ?? matchingDuration?.paperTrailVersions,
   };
@@ -440,6 +540,8 @@ export function selectLatestMenstrualCycle(
   const rawText = latest.valueString ?? latest.note?.[0]?.text ?? "";
   return {
     ...parseMenstrualCycleSummary(rawText),
+    startObservationId: latest.id,
+    durationObservationId: null,
     sourceNotes: latest.note,
     paperTrailVersions: latest.paperTrailVersions,
   };
@@ -447,7 +549,8 @@ export function selectLatestMenstrualCycle(
 
 /**
  * Fetch every menstrual period start observation for the patient and pair each
- * with its matching duration record (if logged on the same day).
+ * with its matching duration record (if logged on the same day). Also includes
+ * legacy SNOMED observations stored as pipe-delimited valueStrings.
  *
  * Used by the activity feed to render one event per cycle.
  */
@@ -457,8 +560,10 @@ export function selectMenstrualCycleHistory(
   const records = newestFirst(observations ?? []);
   const starts = records.filter((item) => item.observationType === "MENSTRUAL_PERIOD_START");
   const durations = records.filter((item) => item.observationType === "MENSTRUAL_PERIOD_DURATION");
+  const legacyRecords = records.filter((item) => isLegacyMenstrualCycleObservation(item));
 
   const entries: MenstrualCycleEntry[] = [];
+
   for (const start of starts) {
     const summary = summarizeMenstrualCycleStart(start, durations);
     if (!summary) {
@@ -470,40 +575,31 @@ export function selectMenstrualCycleHistory(
     }
     entries.push({ ...summary, id: start.id, effectiveDateTime });
   }
-  return entries;
+
+  for (const legacy of legacyRecords) {
+    const effectiveDateTime = legacy.effectiveDateTime;
+    if (!effectiveDateTime) {
+      continue;
+    }
+    const rawText = legacy.valueString ?? legacy.note?.[0]?.text ?? "";
+    entries.push({
+      ...parseMenstrualCycleSummary(rawText),
+      startObservationId: legacy.id,
+      durationObservationId: null,
+      sourceNotes: legacy.note,
+      paperTrailVersions: legacy.paperTrailVersions,
+      id: legacy.id,
+      effectiveDateTime,
+    });
+  }
+
+  return newestFirst(entries);
 }
 
 /** Parsed title and body from a free-text observation's valueString. */
 export interface ParsedClinicalNote {
   title: string;
   body: string;
-}
-
-/**
- * Split a free-text observation valueString into title and body.
- * Expected format: `# Title\n\nBody`.
- */
-export function parseClinicalNote(obs: ObservationItem): ParsedClinicalNote {
-  const raw = obs.valueString ?? "";
-
-  const mdMatch = /^#\s+(.+?)\n+([\s\S]*)$/.exec(raw);
-  if (mdMatch?.[1] !== undefined && mdMatch[2] !== undefined) {
-    return { title: mdMatch[1].trim(), body: mdMatch[2].trim() };
-  }
-
-  return { title: raw, body: "" };
-}
-
-/** Get a plain display value for typed observations. */
-export function getObservationDisplayValue(obs: ObservationItem): string {
-  if (obs.valueString) {
-    return obs.valueString;
-  }
-  if (obs.valueQuantity?.value != null) {
-    const unit = obs.valueQuantity.unit ? ` ${obs.valueQuantity.unit}` : "";
-    return `${obs.valueQuantity.value}${unit}`;
-  }
-  return EMPTY_VALUE_PLACEHOLDER;
 }
 
 // ─── Mutation functions ───────────────────────────────────────────────
@@ -529,32 +625,6 @@ export async function updateClinicalNoteObservation(
     organizationId,
   });
   unwrapMutationResult(result.updateObservation, "Failed to update free-text observation.");
-}
-
-/**
- * Replace the annotation notes array on an observation.
- * Sends the full notes array — partial updates are not supported by the API.
- */
-export async function updateObservationNotes(
-  id: string,
-  notes: AnnotationInput[],
-  organizationId: string,
-): Promise<void> {
-  const result = await requestGraphql({
-    document: UpdateObservationMutation,
-    variables: {
-      id,
-      input: {
-        note: notes.map((n) => ({
-          text: n.text,
-          ...toAuthorInput(n),
-          time: n.time ?? undefined,
-        })),
-      },
-    },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateObservation, "Failed to update observation notes.");
 }
 
 /**

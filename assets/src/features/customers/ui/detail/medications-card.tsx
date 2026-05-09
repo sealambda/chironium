@@ -5,6 +5,7 @@ import type { MedicationItem } from "@/features/customers/api/medications-api";
 import { MedicationDetailDialog } from "@/features/customers/ui/detail/medication-detail-dialog";
 import { MedicationPill } from "@/features/customers/ui/detail/medication-pill";
 import { MedicationRemoveDialog } from "@/features/customers/ui/detail/medication-remove-dialog";
+import { TagsCardColumn, TagsCardPillList } from "@/features/customers/ui/detail/tags-card-content";
 import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
 import * as m from "@/paraglide/messages";
@@ -59,11 +60,8 @@ export function MedicationsCard({
         emptyDescription={m.medication_empty_desc()}
         compact={compact}
       >
-        <div className="space-y-3">
-          <p className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">
-            {m.medication_list_label()}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
+        <TagsCardColumn title={m.medication_list_label()} isEmpty={false} emptyText="">
+          <TagsCardPillList>
             {entries.map(({ item, label }) => (
               <MedicationPill
                 key={item.id}
@@ -73,8 +71,8 @@ export function MedicationsCard({
                 {label}
               </MedicationPill>
             ))}
-          </div>
-        </div>
+          </TagsCardPillList>
+        </TagsCardColumn>
       </TagsCardShell>
 
       {canInteract && (

@@ -1,21 +1,33 @@
-import { Pencil } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Check, Pencil } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import type { AnthropometricSnapshot } from "@/features/customers/api/anthropometry-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
+import type {
+  MenstrualCycleEntry,
+  ObservationItem,
+} from "@/features/customers/api/observations-api";
 import type { FeedDateGroup, FeedEvent } from "@/features/customers/types/activity-feed";
 import {
   getEventAccent,
   getEventCount,
   getEventIcon,
   getEventLabel,
-  getEventSuffix,
   getEventVerb,
 } from "@/features/customers/types/activity-feed";
 import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
+import { AddMenstrualCycleDialog } from "@/features/customers/ui/detail/add-menstrual-cycle-dialog";
 import { EditAnthropometryDialog } from "@/features/customers/ui/detail/edit-anthropometry-dialog";
+import { EditObservationDialog } from "@/features/customers/ui/detail/edit-observation-dialog";
+import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
+import { EditTaskReminderDialog } from "@/features/customers/ui/detail/edit-task-reminder-dialog";
+import { useOrg } from "@/features/org/hooks/use-org";
+import { completeTaskReminder } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
+import { personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
 
 import { AllergyEvent } from "./allergy-event";
 import { AnthropometryEvent } from "./anthropometry-event";
@@ -26,7 +38,7 @@ import { GoalEvent } from "./goal-event";
 import { MedicationEvent } from "./medication-event";
 import { MenstrualCycleEvent } from "./menstrual-cycle-event";
 import { ObservationEvent } from "./observation-event";
-import { SubscriptionEditAction, SubscriptionEvent } from "./subscription-event";
+import { SubscriptionEvent } from "./subscription-event";
 import { TaskEvent } from "./task-event";
 
 function EditChevron({ onClick }: Readonly<{ onClick: () => void }>) {
@@ -34,7 +46,7 @@ function EditChevron({ onClick }: Readonly<{ onClick: () => void }>) {
     <Button
       type="button"
       variant="ghost"
-      size="icon-xs"
+      size="icon-sm"
       className="rounded-full text-muted-foreground hover:text-foreground"
       aria-label={m.history_edit_element_title()}
       onClick={onClick}
@@ -44,10 +56,31 @@ function EditChevron({ onClick }: Readonly<{ onClick: () => void }>) {
   );
 }
 
+function CompleteChevron({
+  onClick,
+  loading,
+}: Readonly<{ onClick: () => void; loading: boolean }>) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      className="rounded-full text-muted-foreground hover:text-foreground"
+      aria-label={m.review_task_complete()}
+      onClick={onClick}
+      loading={loading}
+      disabled={loading}
+    >
+      <Check aria-hidden />
+    </Button>
+  );
+}
+
 function AnthropometryEditAction({
   personId,
+  patientId,
   snapshot,
-}: Readonly<{ personId: string; snapshot: AnthropometricSnapshot }>) {
+}: Readonly<{ personId: string; patientId: string | null; snapshot: AnthropometricSnapshot }>) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -55,6 +88,7 @@ function AnthropometryEditAction({
       <EditChevron onClick={() => setOpen(true)} />
       <EditAnthropometryDialog
         personId={personId}
+        patientId={patientId}
         snapshot={snapshot}
         open={open}
         onOpenChange={setOpen}
@@ -84,6 +118,118 @@ function GoalEditAction({
   );
 }
 
+function ObservationEditAction({
+  personId,
+  observation,
+}: Readonly<{ personId: string; observation: ObservationItem }>) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <EditChevron onClick={() => setOpen(true)} />
+      <EditObservationDialog
+        personId={personId}
+        observation={observation}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
+}
+
+function SubscriptionEditAction({
+  personId,
+  subscription,
+}: Readonly<{
+  personId: string;
+  subscription: Extract<FeedEvent, { kind: "subscription" }>["payload"];
+}>) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <EditChevron onClick={() => setOpen(true)} />
+      <EditSubscriptionDialog
+        personId={personId}
+        currentSubscription={subscription}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
+}
+
+function MenstrualCycleEditAction({
+  personId,
+  patientId,
+  cycle,
+}: Readonly<{ personId: string; patientId: string | null; cycle: MenstrualCycleEntry }>) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <EditChevron onClick={() => setOpen(true)} />
+      <AddMenstrualCycleDialog
+        personId={personId}
+        patientId={patientId}
+        mode="edit"
+        initialCycle={cycle}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
+}
+
+function TaskReminderEditAction({
+  personId,
+  task,
+}: Readonly<{
+  personId: string;
+  task: Extract<FeedEvent, { kind: "task" }>["payload"];
+}>) {
+  const { selectedOrg } = useOrg();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [completing, setCompleting] = useState(false);
+
+  return (
+    <div className="flex items-center gap-1">
+      <CompleteChevron
+        loading={completing}
+        onClick={() => {
+          if (!selectedOrg?.id || completing) {
+            return;
+          }
+
+          setCompleting(true);
+          void completeTaskReminder(task.id, selectedOrg.id)
+            .then(async () => {
+              await Promise.all([
+                queryClient.invalidateQueries({
+                  queryKey: personQueryKeys.reviewTasksScope(personId),
+                }),
+                queryClient.invalidateQueries({
+                  queryKey: personQueryKeys.patientTasksScope(personId),
+                }),
+                queryClient.invalidateQueries({ queryKey: tasksListQueryKey(selectedOrg.id) }),
+              ]);
+              toast.success(m.review_task_completed());
+            })
+            .catch(() => {
+              toast.error(m.onboarding_error());
+            })
+            .finally(() => {
+              setCompleting(false);
+            });
+        }}
+      />
+      <EditChevron onClick={() => setOpen(true)} />
+      <EditTaskReminderDialog personId={personId} task={task} open={open} onOpenChange={setOpen} />
+    </div>
+  );
+}
+
 function singleEditableGoal(event: Extract<FeedEvent, { kind: "goal" }>): GoalRecord | null {
   if (event.variant === "due") {
     return event.payload;
@@ -105,7 +251,13 @@ function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
         />
       );
     case "subscription":
-      return <SubscriptionEvent variant={event.variant} pause={event.pause} />;
+      return (
+        <SubscriptionEvent
+          variant={event.variant}
+          planName={event.payload.plan?.name}
+          pause={event.pause}
+        />
+      );
     case "anthropometry":
       return <AnthropometryEvent snapshot={event.payload} />;
     case "condition":
@@ -136,11 +288,24 @@ function EventAction({
     return <SubscriptionEditAction subscription={event.payload} personId={personId} />;
   }
   if (event.kind === "anthropometry") {
-    return <AnthropometryEditAction personId={personId} snapshot={event.payload} />;
+    return (
+      <AnthropometryEditAction personId={personId} patientId={patientId} snapshot={event.payload} />
+    );
   }
   if (event.kind === "goal" && patientId) {
     const goal = singleEditableGoal(event);
     return goal ? <GoalEditAction personId={personId} patientId={patientId} goal={goal} /> : null;
+  }
+  if (event.kind === "observation") {
+    return <ObservationEditAction personId={personId} observation={event.payload} />;
+  }
+  if (event.kind === "task") {
+    return <TaskReminderEditAction personId={personId} task={event.payload} />;
+  }
+  if (event.kind === "menstrual") {
+    return (
+      <MenstrualCycleEditAction personId={personId} patientId={patientId} cycle={event.payload} />
+    );
   }
   return null;
 }
@@ -199,7 +364,6 @@ export function ActivityFeedTimeline({
               icon={getEventIcon(event)}
               label={getEventLabel(event)}
               verb={getEventVerb(event, getEventCount(event))}
-              suffix={getEventSuffix(event)}
               action={
                 <EventAction
                   event={event}
@@ -208,7 +372,7 @@ export function ActivityFeedTimeline({
                   isLatestSubscription={event.id === latestSubscriptionId}
                 />
               }
-              actor={event.actor}
+              actors={event.actors}
               date={event.date}
               isFuture={group.isFuture}
             >

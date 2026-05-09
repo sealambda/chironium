@@ -1,11 +1,12 @@
-import { format, formatDistanceToNowStrict, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { FeedActor, FeedEventAccent } from "@/features/customers/types/activity-feed";
 import { accentDotBgClass, accentIconClass } from "@/features/customers/types/activity-feed";
+import { formatRelativeDayFromIso } from "@/features/customers/utils/activity-feed-dates";
 import * as m from "@/paraglide/messages";
-import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
+import { Avatar, AvatarFallback, AvatarGroup } from "@/shared/ui/avatar";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { getInitials } from "@/shared/utils/name-utils";
 import { cn } from "@/shared/utils/utils";
@@ -17,11 +18,10 @@ interface FeedEventCardProps {
   label: string;
   /** Verb phrase placed between the actor name and the type pill (e.g. "logged new"). */
   verb: string;
-  /** Optional inline content rendered after the type pill (e.g. a subscription plan name). */
-  suffix?: ReactNode;
   /** Optional trailing slot rendered at the end of the headline row (e.g. an edit button). */
   action?: ReactNode;
-  actor?: FeedActor;
+  /** Multiple actors (e.g., different people who logged measurements). */
+  actors?: FeedActor[];
   /** ISO date string used for relative and absolute display. */
   date: string;
   /** Reduces opacity for future/upcoming events. */
@@ -34,16 +34,47 @@ export function FeedEventCard({
   icon: Icon,
   label,
   verb,
-  suffix,
   action,
-  actor,
+  actors,
   date,
   isFuture = false,
   children,
 }: Readonly<FeedEventCardProps>) {
   const locale = getDateLocale();
-  const relative = formatDistanceToNowStrict(parseISO(date), { addSuffix: true, locale });
+  const relative = formatRelativeDayFromIso(date);
   const absolute = format(parseISO(date), "PP", { locale });
+
+  const primaryActor = actors?.[0];
+  const showAvatarGroup = (actors?.length ?? 0) > 1;
+  let actorVisual: ReactNode;
+  if (showAvatarGroup) {
+    actorVisual = (
+      <AvatarGroup className="shrink-0">
+        {(actors ?? []).map((a) => (
+          <Avatar key={a.id || a.name} size="sm" className="border-2 border-background">
+            <AvatarFallback>{getInitials(a.name)}</AvatarFallback>
+          </Avatar>
+        ))}
+      </AvatarGroup>
+    );
+  } else if (primaryActor) {
+    actorVisual = (
+      <Avatar size="sm" className="shrink-0">
+        <AvatarFallback>{getInitials(primaryActor.name)}</AvatarFallback>
+      </Avatar>
+    );
+  } else {
+    actorVisual = (
+      <div
+        className={cn(
+          "flex size-6 shrink-0 items-center justify-center rounded-full ring-1 ring-border",
+          accentDotBgClass[accent],
+        )}
+      >
+        <Icon className={cn("size-3 shrink-0", accentIconClass[accent])} aria-hidden />
+      </div>
+    );
+  }
 
   return (
     <article
@@ -51,32 +82,19 @@ export function FeedEventCard({
       aria-label={label}
     >
       <div className="flex flex-col items-center">
-        {actor != null ? (
-          <Avatar size="sm" className="shrink-0">
-            <AvatarFallback>{getInitials(actor.name)}</AvatarFallback>
-          </Avatar>
-        ) : (
-          <div
-            className={cn(
-              "flex size-6 shrink-0 items-center justify-center rounded-full",
-              accentDotBgClass[accent],
-            )}
-          >
-            <Icon className={cn("size-3 shrink-0", accentIconClass[accent])} aria-hidden />
-          </div>
-        )}
-        <div className="mt-2 w-px flex-1 bg-muted-foreground/80 group-last:hidden" />
+        <div className="flex min-h-8 items-center">{actorVisual}</div>
+        <div className="mt-1.5 w-px flex-1 bg-muted-foreground/80 group-last:hidden" />
       </div>
 
       <div className="min-w-0 flex-1 pb-1">
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-snug">
-          {actor != null && (
-            <span className="font-semibold text-foreground text-sm">{actor.name}</span>
+        <div className="flex min-h-8 flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-snug">
+          {primaryActor != null && (
+            <span className="font-semibold text-foreground text-sm">{primaryActor.name}</span>
           )}
-          {actor != null && <span className="text-muted-foreground text-sm">{verb}</span>}
+          <span className="text-muted-foreground text-sm">{verb}</span>
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-xs capitalize",
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-xs",
               accentDotBgClass[accent],
               accentIconClass[accent],
             )}
@@ -84,17 +102,14 @@ export function FeedEventCard({
             <Icon className="size-3 shrink-0" aria-hidden />
             {label}
           </span>
-          {suffix != null ? (
-            <span className="font-medium text-foreground text-sm">{suffix}</span>
-          ) : null}
-          {action != null ? <span className="shrink-0">{action}</span> : null}
+          {action ? <span className="shrink-0">{action}</span> : null}
         </div>
-        <time dateTime={date} className="mt-0.5 block text-muted-foreground text-xs">
+        <time dateTime={date} className="block text-muted-foreground text-xs">
           {relative} · {absolute}
-          {actor?.noteAuthorName ? (
+          {primaryActor?.noteAuthorName ? (
             <>
               {" · "}
-              {m.activity_noted_by({ name: actor.noteAuthorName })}
+              {m.activity_noted_by({ name: primaryActor.noteAuthorName })}
             </>
           ) : null}
         </time>

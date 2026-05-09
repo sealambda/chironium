@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, ChevronRight, UserPlus } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import { createPatientForPerson } from "@/features/customers/api/patients-api";
@@ -8,6 +8,7 @@ import type { usePersonDetail } from "@/features/customers/hooks/use-person-deta
 import type { FeedEventKind } from "@/features/customers/types/activity-feed";
 import { ActivityFeedCard } from "@/features/customers/ui/detail/activity-feed/activity-feed-card";
 import { FeedFilterChips } from "@/features/customers/ui/detail/activity-feed/feed-filter-chips";
+import { AddRecordButton } from "@/features/customers/ui/detail/add-record-button";
 import { AllergyIntoleranceCard } from "@/features/customers/ui/detail/allergy-intolerance-card";
 import { AnthropometryCard } from "@/features/customers/ui/detail/anthropometry-card";
 import { ConditionsCard } from "@/features/customers/ui/detail/conditions-card";
@@ -20,6 +21,54 @@ import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
 import { formatPersonName } from "@/shared/utils/person-utils";
+
+interface SectionProps {
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+  collapsible?: boolean;
+  defaultExpanded?: boolean;
+}
+
+function Section({
+  title,
+  action,
+  children,
+  collapsible = false,
+  defaultExpanded = true,
+}: Readonly<SectionProps>) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex h-8 items-center justify-between px-1">
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((current) => !current)}
+            className="flex cursor-pointer items-center gap-1.5"
+            aria-expanded={isExpanded}
+          >
+            <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wider">
+              {title}
+            </h2>
+            {isExpanded ? (
+              <ChevronDown className="size-4 text-muted-foreground" aria-hidden />
+            ) : (
+              <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+            )}
+          </button>
+        ) : (
+          <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wider">
+            {title}
+          </h2>
+        )}
+        {action}
+      </div>
+      {isExpanded ? children : null}
+    </section>
+  );
+}
 
 // Stable empty-array references to avoid re-creating on every render.
 const EMPTY_GOALS: GoalRecord[] = [];
@@ -70,82 +119,80 @@ function PatientDetailCards({
   const menstrualCycleEntries = menstrualCycleHistory.data ?? [];
   const observationEntries = observationsList.data;
 
-  const [activeFilter, setFilter] = useState<FeedEventKind | "all">("all");
+  const [activeFilter, setActiveFilter] = useState<FeedEventKind | "all">("all");
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10 pb-10">
       {/* Mini-dashboard: clinical summary cards in a responsive grid */}
-      <section aria-label={m.clinical_summary()}>
-        <div className="mb-3 flex h-8 items-center px-1">
-          <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-            {m.clinical_summary()}
-          </h2>
+      <Section title={m.clinical_summary()} collapsible>
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-10">
+          <div className="lg:order-1 lg:col-span-3">
+            <AnthropometryCard
+              personId={personId}
+              patientId={patientId}
+              history={anthropometryEntries}
+              isLoading={anthropometryHistory.isLoading}
+              compact
+            />
+          </div>
+          <div className="lg:order-4 lg:col-span-3">
+            <MenstrualCycleCard
+              personId={personId}
+              patientId={patientId}
+              cycle={menstrualCycleData}
+              isLoading={menstrualCycle.isLoading}
+              compact
+            />
+          </div>
+          <div className="lg:order-2 lg:col-span-3">
+            <ConditionsCard
+              items={personConditions}
+              isLoading={conditions.isLoading}
+              compact
+              personId={personId}
+              organizationId={organizationId}
+            />
+          </div>
+          <div className="lg:order-5 lg:col-span-3">
+            <MedicationsCard
+              items={personMedications}
+              isLoading={medications.isLoading}
+              compact
+              personId={personId}
+              organizationId={organizationId}
+            />
+          </div>
+          <div className="lg:order-3 lg:col-span-4">
+            <AllergyIntoleranceCard
+              items={personAllergyIntolerances}
+              isLoading={allergyIntolerances.isLoading}
+              compact
+              personId={personId}
+              patientId={patientId}
+              organizationId={organizationId}
+            />
+          </div>
+          <div className="lg:order-6 lg:col-span-4">
+            <FoodPreferencesCard
+              history={foodPreferencesHistory.data ?? []}
+              isLoading={foodPreferencesHistory.isLoading}
+              compact
+              personId={personId}
+              organizationId={organizationId}
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <AnthropometryCard
-            history={anthropometryEntries}
-            isLoading={anthropometryHistory.isLoading}
-            birthDate={person?.birthDate}
-            gender={person?.gender}
-            compact
-          />
-          <ConditionsCard
-            items={personConditions}
-            isLoading={conditions.isLoading}
-            compact
-            personId={personId}
-            organizationId={organizationId}
-          />
-          <MedicationsCard
-            items={personMedications}
-            isLoading={medications.isLoading}
-            compact
-            personId={personId}
-            organizationId={organizationId}
-          />
-          <MenstrualCycleCard
-            cycle={menstrualCycleData}
-            isLoading={menstrualCycle.isLoading}
-            compact
-          />
-          <AllergyIntoleranceCard
-            items={personAllergyIntolerances}
-            isLoading={allergyIntolerances.isLoading}
-            compact
-            personId={personId}
-            patientId={patientId}
-            organizationId={organizationId}
-          />
-          <FoodPreferencesCard
-            history={foodPreferencesHistory.data ?? []}
-            isLoading={foodPreferencesHistory.isLoading}
-            compact
-            personId={personId}
-            organizationId={organizationId}
-          />
-        </div>
-      </section>
+      </Section>
 
       {/* Activity feed — full width below the mini-dashboard */}
-      <div className="flex flex-col gap-3">
-        <div className="flex h-8 items-center justify-between px-1">
-          <h2 className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">
-            {m.activity_title()}
-          </h2>
-          {openAddRecord != null ? (
-            <Button
-              size="sm"
-              onClick={openAddRecord}
-              aria-label={m.add_record_title()}
-              className="gap-1.5"
-            >
-              <Plus data-icon="inline-start" aria-hidden />
-              <span className="hidden lg:inline">{m.add_record_title()}</span>
-            </Button>
-          ) : null}
-        </div>
+      <Section
+        title={m.activity_title()}
+        action={
+          openAddRecord == null ? null : <AddRecordButton onClick={openAddRecord} compactOnMobile />
+        }
+      >
         <div className="pb-0.5">
-          <FeedFilterChips active={activeFilter} onChange={setFilter} />
+          <FeedFilterChips active={activeFilter} onChange={setActiveFilter} />
         </div>
         <ActivityFeedCard
           personId={personId}
@@ -162,8 +209,9 @@ function PatientDetailCards({
           menstrualCycles={menstrualCycleEntries}
           activeFilter={activeFilter}
           personName={person?.name ? formatPersonName(person.name) : null}
+          openAddRecord={openAddRecord}
         />
-      </div>
+      </Section>
     </div>
   );
 }

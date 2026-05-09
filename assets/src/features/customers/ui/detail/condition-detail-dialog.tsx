@@ -13,19 +13,11 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import { DatePickerString } from "@/shared/ui/date-picker";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
+import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { isoToDateInput } from "@/shared/utils/date-time-input";
-
-import { RecordDetailDialogFooter } from "./record-detail-dialog-footer";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -197,146 +189,134 @@ export function ConditionDetailDialog({
   });
 
   const title = m.condition_edit_title({ name: item?.code?.text ?? "" });
-  const submitLabel = saving ? m.common_saving() : m.common_save();
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{m.condition_edit_desc()}</DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      title={title}
+      description={m.condition_edit_desc()}
+      contentClassName="sm:max-w-md"
+      onDelete={readOnly ? undefined : onRemoveClick}
+      onSubmit={readOnly ? undefined : () => form.handleSubmit()}
+      saving={saving}
+    >
+      <FieldGroup>
+        {/* Name */}
+        <form.Field
+          name="name"
+          validators={{
+            onSubmit: ({ value }) => (!value.trim() ? m.validation_required() : undefined),
+          }}
+        >
+          {(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
+              <FieldLabel required>{m.condition_field_name()}</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder={m.condition_field_name_placeholder()}
+                disabled={saving || readOnly}
+                autoFocus
+              />
+            </Field>
+          )}
+        </form.Field>
 
-        <FieldGroup>
-          {/* Name */}
-          <form.Field
-            name="name"
-            validators={{
-              onSubmit: ({ value }) => (!value.trim() ? m.validation_required() : undefined),
-            }}
-          >
-            {(field) => (
-              <Field data-invalid={field.state.meta.errors.length > 0}>
-                <FieldLabel required>{m.condition_field_name()}</FieldLabel>
-                <Input
+        {/* Clinical status */}
+        <form.Field name="clinicalStatus">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.common_clinical_status()}</FieldLabel>
+              <FieldDescription>{m.condition_field_clinical_status_desc()}</FieldDescription>
+              <div className="flex flex-col gap-2">
+                <ToggleGroup
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={m.condition_field_name_placeholder()}
+                  onValueChange={(v) => v && field.handleChange(v as ClinicalStatus)}
                   disabled={saving || readOnly}
-                  autoFocus
-                />
-              </Field>
-            )}
-          </form.Field>
+                >
+                  <ToggleGroupItem value="ACTIVE">{m.fhir_clinical_active()}</ToggleGroupItem>
+                  <ToggleGroupItem value="REMISSION">{m.fhir_clinical_remission()}</ToggleGroupItem>
+                  <ToggleGroupItem value="INACTIVE">{m.fhir_clinical_inactive()}</ToggleGroupItem>
+                  <ToggleGroupItem value="RESOLVED">{m.fhir_clinical_resolved()}</ToggleGroupItem>
+                </ToggleGroup>
+                <FieldDescription>
+                  {field.state.value === "ACTIVE" && m.condition_clinical_active_desc()}
+                  {field.state.value === "REMISSION" && m.condition_clinical_remission_desc()}
+                  {field.state.value === "INACTIVE" && m.condition_clinical_inactive_desc()}
+                  {field.state.value === "RESOLVED" && m.condition_clinical_resolved_desc()}
+                </FieldDescription>
+              </div>
+            </Field>
+          )}
+        </form.Field>
 
-          {/* Clinical status */}
-          <form.Field name="clinicalStatus">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.common_clinical_status()}</FieldLabel>
-                <FieldDescription>{m.condition_field_clinical_status_desc()}</FieldDescription>
-                <div className="flex flex-col gap-2">
-                  <ToggleGroup
-                    value={field.state.value}
-                    onValueChange={(v) => v && field.handleChange(v as ClinicalStatus)}
-                    disabled={saving || readOnly}
-                  >
-                    <ToggleGroupItem value="ACTIVE">{m.fhir_clinical_active()}</ToggleGroupItem>
-                    <ToggleGroupItem value="REMISSION">
-                      {m.fhir_clinical_remission()}
+        {/* Verification status */}
+        <form.Field name="verificationStatus">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.common_verification_status()}</FieldLabel>
+              <FieldDescription>{m.condition_field_verification_status_desc()}</FieldDescription>
+              <div className="flex flex-col gap-2">
+                <ToggleGroup
+                  value={field.state.value}
+                  onValueChange={(v) => v && field.handleChange(v as VerificationStatus)}
+                  disabled={saving || readOnly}
+                >
+                  {EDITABLE_VERIFICATION_STATUSES.map((status) => (
+                    <ToggleGroupItem key={status} value={status}>
+                      {verificationLabel(status)}
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="INACTIVE">{m.fhir_clinical_inactive()}</ToggleGroupItem>
-                    <ToggleGroupItem value="RESOLVED">{m.fhir_clinical_resolved()}</ToggleGroupItem>
-                  </ToggleGroup>
-                  <FieldDescription>
-                    {field.state.value === "ACTIVE" && m.condition_clinical_active_desc()}
-                    {field.state.value === "REMISSION" && m.condition_clinical_remission_desc()}
-                    {field.state.value === "INACTIVE" && m.condition_clinical_inactive_desc()}
-                    {field.state.value === "RESOLVED" && m.condition_clinical_resolved_desc()}
-                  </FieldDescription>
-                </div>
-              </Field>
-            )}
-          </form.Field>
+                  ))}
+                  {isRemovedVerificationStatus(field.state.value) ? (
+                    <ToggleGroupItem value={field.state.value} disabled>
+                      {verificationLabel(field.state.value)}
+                    </ToggleGroupItem>
+                  ) : null}
+                </ToggleGroup>
+                <FieldDescription>{verificationDescription(field.state.value)}</FieldDescription>
+              </div>
+            </Field>
+          )}
+        </form.Field>
 
-          {/* Verification status */}
-          <form.Field name="verificationStatus">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.common_verification_status()}</FieldLabel>
-                <FieldDescription>{m.condition_field_verification_status_desc()}</FieldDescription>
-                <div className="flex flex-col gap-2">
-                  <ToggleGroup
-                    value={field.state.value}
-                    onValueChange={(v) => v && field.handleChange(v as VerificationStatus)}
-                    disabled={saving || readOnly}
-                  >
-                    {EDITABLE_VERIFICATION_STATUSES.map((status) => (
-                      <ToggleGroupItem key={status} value={status}>
-                        {verificationLabel(status)}
-                      </ToggleGroupItem>
-                    ))}
-                    {isRemovedVerificationStatus(field.state.value) ? (
-                      <ToggleGroupItem value={field.state.value} disabled>
-                        {verificationLabel(field.state.value)}
-                      </ToggleGroupItem>
-                    ) : null}
-                  </ToggleGroup>
-                  <FieldDescription>{verificationDescription(field.state.value)}</FieldDescription>
-                </div>
-              </Field>
-            )}
-          </form.Field>
+        {/* Onset date */}
+        <form.Field name="onsetDate">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.condition_field_onset()}</FieldLabel>
+              <FieldDescription>{m.condition_field_onset_subtitle()}</FieldDescription>
+              <DatePickerString
+                value={field.state.value}
+                onChange={field.handleChange}
+                disabled={saving || readOnly}
+                endMonth={new Date()}
+              />
+            </Field>
+          )}
+        </form.Field>
 
-          {/* Onset date */}
-          <form.Field name="onsetDate">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.condition_field_onset()}</FieldLabel>
-                <FieldDescription>{m.condition_field_onset_subtitle()}</FieldDescription>
-                <DatePickerString
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={saving || readOnly}
-                  endMonth={new Date()}
-                />
-              </Field>
-            )}
-          </form.Field>
-
-          {/* Abatement date — shown only when status implies the condition has ended. */}
-          <form.Subscribe selector={(s) => s.values.clinicalStatus}>
-            {(clinicalStatus) =>
-              ABATED_STATUSES.includes(clinicalStatus) ? (
-                <form.Field name="abatementDate">
-                  {(field) => (
-                    <Field>
-                      <FieldLabel>{m.condition_field_abatement()}</FieldLabel>
-                      <FieldDescription>{m.condition_field_abatement_subtitle()}</FieldDescription>
-                      <DatePickerString
-                        value={field.state.value}
-                        onChange={field.handleChange}
-                        disabled={saving || readOnly}
-                        endMonth={new Date()}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-              ) : null
-            }
-          </form.Subscribe>
-        </FieldGroup>
-
-        <RecordDetailDialogFooter
-          cancelLabel={m.common_cancel()}
-          onCancel={() => setOpen(false)}
-          removeLabel={m.common_remove()}
-          onRemoveClick={readOnly ? undefined : onRemoveClick}
-          submitLabel={readOnly ? undefined : submitLabel}
-          onSubmit={readOnly ? undefined : () => form.handleSubmit()}
-          saving={saving}
-        />
-      </DialogContent>
-    </Dialog>
+        {/* Abatement date — shown only when status implies the condition has ended. */}
+        <form.Subscribe selector={(s) => s.values.clinicalStatus}>
+          {(clinicalStatus) =>
+            ABATED_STATUSES.includes(clinicalStatus) ? (
+              <form.Field name="abatementDate">
+                {(field) => (
+                  <Field>
+                    <FieldLabel>{m.condition_field_abatement()}</FieldLabel>
+                    <FieldDescription>{m.condition_field_abatement_subtitle()}</FieldDescription>
+                    <DatePickerString
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      disabled={saving || readOnly}
+                      endMonth={new Date()}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+            ) : null
+          }
+        </form.Subscribe>
+      </FieldGroup>
+    </FormDialog>
   );
 }

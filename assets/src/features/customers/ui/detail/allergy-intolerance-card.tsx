@@ -5,6 +5,7 @@ import type { AllergyIntoleranceItem } from "@/features/customers/api/allergy-in
 import { AllergyDetailDialog } from "@/features/customers/ui/detail/allergy-detail-dialog";
 import { AllergyPill } from "@/features/customers/ui/detail/allergy-pill";
 import { AllergyRemoveDialog } from "@/features/customers/ui/detail/allergy-remove-dialog";
+import { TagsCardColumn, TagsCardPillList } from "@/features/customers/ui/detail/tags-card-content";
 import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import * as m from "@/paraglide/messages";
 
@@ -22,40 +23,6 @@ const isActive = (item: AllergyIntoleranceItem) =>
 
 const nameOf = (item: AllergyIntoleranceItem): string =>
   item.code?.text ?? item.code?.coding?.[0]?.display ?? "";
-
-interface AllergyColumnProps {
-  readonly label: string;
-  readonly items: readonly AllergyIntoleranceItem[];
-  readonly emptyText: string;
-  readonly className?: string;
-  readonly onEdit?: (item: AllergyIntoleranceItem) => void;
-}
-
-function AllergyColumn({ label, items, emptyText, className, onEdit }: AllergyColumnProps) {
-  return (
-    <div className={className}>
-      <p className="mb-2 font-semibold text-foreground/60 text-xs uppercase tracking-widest">
-        {label}
-      </p>
-      {items.length === 0 ? (
-        <p className="text-muted-foreground text-xs">{emptyText}</p>
-      ) : (
-        <div className="flex flex-wrap gap-1.5">
-          {items.map((item) => (
-            <AllergyPill
-              key={item.id}
-              allergyType={item.type as "ALLERGY" | "INTOLERANCE"}
-              clinicalStatus={item.clinicalStatus ?? undefined}
-              onClick={onEdit ? () => onEdit(item) : undefined}
-            >
-              {nameOf(item)}
-            </AllergyPill>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function AllergyIntoleranceCard({
   items,
@@ -87,20 +54,44 @@ export function AllergyIntoleranceCard({
         compact={compact}
         columns={2}
       >
-        <AllergyColumn
-          label={m.allergy_intolerance_allergies_label()}
-          items={allergies}
+        <TagsCardColumn
+          title={m.allergy_intolerance_allergies_label()}
+          isEmpty={allergies.length === 0}
           emptyText={m.allergy_intolerance_none_allergies()}
           className="pr-3"
-          onEdit={canInteract ? setEditingItem : undefined}
-        />
-        <AllergyColumn
-          label={m.allergy_intolerance_intolerances_label()}
-          items={intolerances}
+        >
+          <TagsCardPillList>
+            {allergies.map((item) => (
+              <AllergyPill
+                key={item.id}
+                allergyType={item.type as "ALLERGY" | "INTOLERANCE"}
+                clinicalStatus={item.clinicalStatus ?? undefined}
+                onClick={canInteract ? () => setEditingItem(item) : undefined}
+              >
+                {nameOf(item)}
+              </AllergyPill>
+            ))}
+          </TagsCardPillList>
+        </TagsCardColumn>
+        <TagsCardColumn
+          title={m.allergy_intolerance_intolerances_label()}
+          isEmpty={intolerances.length === 0}
           emptyText={m.allergy_intolerance_none_intolerances()}
           className="pl-3"
-          onEdit={canInteract ? setEditingItem : undefined}
-        />
+        >
+          <TagsCardPillList>
+            {intolerances.map((item) => (
+              <AllergyPill
+                key={item.id}
+                allergyType={item.type as "ALLERGY" | "INTOLERANCE"}
+                clinicalStatus={item.clinicalStatus ?? undefined}
+                onClick={canInteract ? () => setEditingItem(item) : undefined}
+              >
+                {nameOf(item)}
+              </AllergyPill>
+            ))}
+          </TagsCardPillList>
+        </TagsCardColumn>
       </TagsCardShell>
 
       {canInteract && (

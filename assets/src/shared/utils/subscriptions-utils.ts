@@ -1,16 +1,5 @@
-import {
-  addMonths,
-  type Duration as DateFnsDuration,
-  intervalToDuration,
-  isFuture,
-  isPast,
-  isToday,
-  parseISO,
-} from "date-fns";
-
 import * as m from "@/paraglide/messages";
 import type { DurationUnit } from "@/shared/types/schema-enums";
-import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 
 interface PlanDuration {
   code?: DurationUnit | null;
@@ -23,97 +12,7 @@ interface PlanLike {
   duration?: PlanDuration | null;
 }
 
-interface SubscriptionBadgeMetadata {
-  planLabel: string;
-  statusLabel: string;
-  shouldEdit: boolean;
-  badgeClassName: string;
-  dotClassName: string;
-}
-
 const DEFAULT_MONTHS = 3;
-
-const BADGE_BASE = "h-7 gap-0 rounded-full border px-3 font-semibold text-xs sm:gap-2 sm:text-sm";
-
-const BADGE_ACTIVE = `${BADGE_BASE} border-success/20 bg-success-muted text-success-muted-foreground`;
-const DOT_ACTIVE = "bg-success";
-
-const BADGE_UPCOMING = `${BADGE_BASE} border-info/20 bg-info-muted text-info-muted-foreground`;
-const DOT_UPCOMING = "bg-info";
-
-const BADGE_EXPIRED = `${BADGE_BASE} border-destructive/20 bg-destructive-muted text-destructive-muted-foreground`;
-const DOT_EXPIRED = "bg-destructive";
-
-const BADGE_NEUTRAL = `${BADGE_BASE} border-border bg-muted text-muted-foreground`;
-const DOT_NEUTRAL = "bg-muted-foreground";
-
-function parseDate(date: Date | string): Date {
-  if (typeof date === "string") {
-    return parseISO(date);
-  }
-  return date;
-}
-
-function isValidDate(date: Date): boolean {
-  return !Number.isNaN(date.getTime());
-}
-
-function formatDateDuration({ years = 0, months = 0, days = 0 }: DateFnsDuration): string {
-  const parts: string[] = [];
-  if (years > 0) {
-    parts.push(years === 1 ? m.sub_year_singular() : m.sub_years_unit({ count: years }));
-  }
-  if (months > 0) {
-    parts.push(months === 1 ? m.sub_month_singular() : m.sub_months_unit({ count: months }));
-  }
-  if (days > 0) {
-    parts.push(days === 1 ? m.sub_day_singular() : m.sub_days_unit({ count: days }));
-  }
-
-  if (parts.length === 0) {
-    return m.sub_day_singular();
-  }
-
-  return parts.length === 1
-    ? (parts[0] ?? "")
-    : `${parts.slice(0, -1).join(", ")} ${m.common_and()} ${parts.at(-1) ?? ""}`;
-}
-
-function getBadgeStatus(start: Date, end: Date): Omit<SubscriptionBadgeMetadata, "planLabel"> {
-  if (isPast(end)) {
-    return {
-      statusLabel: m.sub_expired(),
-      shouldEdit: false,
-      badgeClassName: BADGE_EXPIRED,
-      dotClassName: DOT_EXPIRED,
-    };
-  }
-
-  if (isToday(end)) {
-    return {
-      statusLabel: m.sub_today(),
-      shouldEdit: true,
-      badgeClassName: BADGE_ACTIVE,
-      dotClassName: DOT_ACTIVE,
-    };
-  }
-
-  if (isFuture(start)) {
-    return {
-      statusLabel: m.sub_not_started(),
-      shouldEdit: true,
-      badgeClassName: BADGE_UPCOMING,
-      dotClassName: DOT_UPCOMING,
-    };
-  }
-
-  return {
-    statusLabel: m.nutrition_status_active(),
-    shouldEdit: true,
-    badgeClassName: BADGE_ACTIVE,
-    dotClassName: DOT_ACTIVE,
-  };
-}
 
 export function getDurationUnitLabel(code: DurationUnit): string {
   switch (code) {
@@ -174,46 +73,6 @@ export function getTranslatedPlanLabel(plan: PlanLike | null | undefined): strin
 }
 
 /**
- * Build translated subscription badge metadata for customer detail cards.
- * Returns a plan label, status label, and visual classes for badge and status dot.
- */
-export function getSubscriptionBadgeMetadata(
-  subscription: SubscriptionRecord | null | undefined,
-): SubscriptionBadgeMetadata {
-  if (!subscription) {
-    return {
-      planLabel: m.customer_no_subscription(),
-      statusLabel: "",
-      shouldEdit: false,
-      badgeClassName: BADGE_NEUTRAL,
-      dotClassName: DOT_NEUTRAL,
-    };
-  }
-
-  const planLabel = getTranslatedPlanLabel(subscription.plan);
-
-  const start = subscription.startDate ? parseDate(subscription.startDate) : null;
-  if (!start || !isValidDate(start)) {
-    return {
-      planLabel,
-      statusLabel: m.nutrition_status_inactive(),
-      shouldEdit: true,
-      badgeClassName: BADGE_NEUTRAL,
-      dotClassName: DOT_NEUTRAL,
-    };
-  }
-
-  const planMonths = durationToMonths(subscription.plan?.duration);
-  const end = addMonths(start, planMonths);
-  const status = getBadgeStatus(start, end);
-
-  return {
-    planLabel,
-    ...status,
-  };
-}
-
-/**
  * Normalize a duration to months as the canonical unit.
  * Used when storing subscription plan durations.
  */
@@ -260,58 +119,4 @@ export function durationToMonths(duration: PlanDuration | null | undefined): num
     default:
       return DEFAULT_MONTHS;
   }
-}
-
-/**
- * Parse plan duration string to months.
- * Supports ISO 8601 duration ("P3M", "P6M") and text ("3 months", "6mo").
- * @returns Number of months, defaults to 3 if unparseable.
- */
-export function parsePlanDurationMonths(periodDuration?: string | null): number {
-  if (!periodDuration) {
-    return DEFAULT_MONTHS;
-  }
-  const normalized = periodDuration.trim().toLowerCase();
-
-  // ISO 8601 format: P3M, P6M, etc.
-  const isoMatch = /^p(\d+)m$/.exec(normalized);
-  if (isoMatch) {
-    return Number.parseInt(isoMatch[1] ?? "3", 10);
-  }
-
-  // Text format: "3 months", "6mo"
-  const textMatch = /(\d+)\s*(mo|month)/.exec(normalized);
-  if (textMatch) {
-    return Number.parseInt(textMatch[1] ?? "3", 10);
-  }
-
-  return DEFAULT_MONTHS;
-}
-
-/**
- * Returns a localized label for subscription time remaining.
- * Shows multi-unit precision: "2 months and 28 days to go".
- * When the start date is in the future, shows "Starts in X days" instead.
- */
-export function getTimeRemainingLabel(startDate: Date | string, endDate: Date | string): string {
-  const start = parseDate(startDate);
-  const end = parseDate(endDate);
-
-  if (!isValidDate(start) || !isValidDate(end)) {
-    return m.nutrition_status_inactive();
-  }
-
-  if (isPast(end)) {
-    return m.sub_expired();
-  }
-  if (isToday(end)) {
-    return m.sub_today();
-  }
-
-  if (isFuture(start)) {
-    return m.sub_not_started();
-  }
-
-  const duration = formatDateDuration(intervalToDuration({ start: new Date(), end }));
-  return m.sub_remaining({ duration });
 }

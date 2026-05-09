@@ -29,34 +29,29 @@ const PROGRESS_TONE_CLASS: Record<SubscriptionProgressTone, string> = {
   destructive: "bg-destructive",
 };
 
-function clampProgress(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
-
-export function getSubscriptionProgressTone(progress: number): SubscriptionProgressTone {
-  const clamped = clampProgress(progress);
-  if (clamped < 0.5) {
-    return "success";
-  }
-  if (clamped < 0.75) {
-    return "warning";
-  }
-  return "destructive";
-}
-
 export function getSubscriptionProgressRatio(
   startDate: Date,
   endDate: Date,
-  currentDate: Date = new Date(),
+  now: Date = new Date(),
 ): number {
-  const durationMs = endDate.getTime() - startDate.getTime();
-  if (durationMs <= 0) {
-    return 0;
+  const totalMs = endDate.getTime() - startDate.getTime();
+  if (totalMs <= 0) {
+    return 1;
   }
-  return clampProgress((currentDate.getTime() - startDate.getTime()) / durationMs);
+
+  const elapsedMs = now.getTime() - startDate.getTime();
+  const ratio = elapsedMs / totalMs;
+  return Math.min(1, Math.max(0, ratio));
+}
+
+export function getSubscriptionProgressTone(progress: number): SubscriptionProgressTone {
+  if (progress >= 0.75) {
+    return "destructive";
+  }
+  if (progress >= 0.5) {
+    return "warning";
+  }
+  return "success";
 }
 
 /**

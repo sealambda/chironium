@@ -13,19 +13,11 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import { DatePickerString } from "@/shared/ui/date-picker";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
+import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { isoToDateInput } from "@/shared/utils/date-time-input";
-
-import { RecordDetailDialogFooter } from "./record-detail-dialog-footer";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -127,113 +119,101 @@ export function MedicationDetailDialog({
   });
 
   const title = m.medication_edit_title({ name: item ? nameOf(item) : "" });
-  const submitLabel = saving ? m.common_saving() : m.common_save();
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{m.medication_edit_desc()}</DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      title={title}
+      description={m.medication_edit_desc()}
+      contentClassName="sm:max-w-md"
+      onDelete={onRemoveClick}
+      onSubmit={() => form.handleSubmit()}
+      saving={saving}
+    >
+      <FieldGroup>
+        {/* Name */}
+        <form.Field
+          name="name"
+          validators={{
+            onSubmit: ({ value }) => (!value.trim() ? m.validation_required() : undefined),
+          }}
+        >
+          {(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
+              <FieldLabel required>{m.medication_field_name()}</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder={m.medication_field_name_placeholder()}
+                disabled={saving}
+                autoFocus
+              />
+            </Field>
+          )}
+        </form.Field>
 
-        <FieldGroup>
-          {/* Name */}
-          <form.Field
-            name="name"
-            validators={{
-              onSubmit: ({ value }) => (!value.trim() ? m.validation_required() : undefined),
-            }}
-          >
-            {(field) => (
-              <Field data-invalid={field.state.meta.errors.length > 0}>
-                <FieldLabel required>{m.medication_field_name()}</FieldLabel>
-                <Input
+        {/* Course */}
+        <form.Field name="course">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.medication_field_course()}</FieldLabel>
+              <FieldDescription>{m.medication_field_course_subtitle()}</FieldDescription>
+              <div className="flex flex-col gap-2">
+                <ToggleGroup
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={m.medication_field_name_placeholder()}
+                  onValueChange={(v) => v && field.handleChange(v as Course)}
                   disabled={saving}
-                  autoFocus
-                />
-              </Field>
-            )}
-          </form.Field>
+                >
+                  <ToggleGroupItem value="current">{m.medication_usage_current()}</ToggleGroupItem>
+                  <ToggleGroupItem value="past">{m.medication_usage_past()}</ToggleGroupItem>
+                </ToggleGroup>
+                <FieldDescription>
+                  {field.state.value === "current" && m.medication_usage_current_desc()}
+                  {field.state.value === "past" && m.medication_usage_past_desc()}
+                </FieldDescription>
+              </div>
+            </Field>
+          )}
+        </form.Field>
 
-          {/* Course */}
-          <form.Field name="course">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.medication_field_course()}</FieldLabel>
-                <FieldDescription>{m.medication_field_course_subtitle()}</FieldDescription>
-                <div className="flex flex-col gap-2">
-                  <ToggleGroup
-                    value={field.state.value}
-                    onValueChange={(v) => v && field.handleChange(v as Course)}
-                    disabled={saving}
-                  >
-                    <ToggleGroupItem value="current">
-                      {m.medication_usage_current()}
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="past">{m.medication_usage_past()}</ToggleGroupItem>
-                  </ToggleGroup>
-                  <FieldDescription>
-                    {field.state.value === "current" && m.medication_usage_current_desc()}
-                    {field.state.value === "past" && m.medication_usage_past_desc()}
-                  </FieldDescription>
-                </div>
-              </Field>
-            )}
-          </form.Field>
+        {/* Start date */}
+        <form.Field name="startDate">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.medication_field_start()}</FieldLabel>
+              <FieldDescription>{m.medication_field_start_subtitle()}</FieldDescription>
+              <DatePickerString
+                value={field.state.value}
+                onChange={field.handleChange}
+                disabled={saving}
+                endMonth={new Date()}
+              />
+            </Field>
+          )}
+        </form.Field>
 
-          {/* Start date */}
-          <form.Field name="startDate">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.medication_field_start()}</FieldLabel>
-                <FieldDescription>{m.medication_field_start_subtitle()}</FieldDescription>
-                <DatePickerString
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={saving}
-                  endMonth={new Date()}
-                />
-              </Field>
-            )}
-          </form.Field>
-
-          {/* End date — only for past use. */}
-          <form.Subscribe selector={(s) => s.values.course}>
-            {(course) =>
-              course === "past" ? (
-                <form.Field name="endDate">
-                  {(field) => (
-                    <Field>
-                      <FieldLabel>{m.medication_field_end()}</FieldLabel>
-                      <FieldDescription>{m.medication_field_end_subtitle()}</FieldDescription>
-                      <DatePickerString
-                        value={field.state.value}
-                        onChange={field.handleChange}
-                        disabled={saving}
-                        endMonth={new Date()}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-              ) : null
-            }
-          </form.Subscribe>
-        </FieldGroup>
-
-        <RecordDetailDialogFooter
-          cancelLabel={m.common_cancel()}
-          onCancel={() => setOpen(false)}
-          removeLabel={m.common_remove()}
-          onRemoveClick={onRemoveClick}
-          submitLabel={submitLabel}
-          onSubmit={() => form.handleSubmit()}
-          saving={saving}
-        />
-      </DialogContent>
-    </Dialog>
+        {/* End date — only for past use. */}
+        <form.Subscribe selector={(s) => s.values.course}>
+          {(course) =>
+            course === "past" ? (
+              <form.Field name="endDate">
+                {(field) => (
+                  <Field>
+                    <FieldLabel>{m.medication_field_end()}</FieldLabel>
+                    <FieldDescription>{m.medication_field_end_subtitle()}</FieldDescription>
+                    <DatePickerString
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      disabled={saving}
+                      endMonth={new Date()}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+            ) : null
+          }
+        </form.Subscribe>
+      </FieldGroup>
+    </FormDialog>
   );
 }

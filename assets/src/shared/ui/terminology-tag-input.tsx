@@ -36,7 +36,6 @@ interface TerminologyTagInputProps {
 
 /**
  * Add multiple terminology tags (comma-separated free text, suggestions, optional Add button).
- * For one replaceable tag, use `TerminologySingleTagInput` from `@/shared/ui/terminology-single-tag-input`.
  */
 export function TerminologyTagInput({
   label,

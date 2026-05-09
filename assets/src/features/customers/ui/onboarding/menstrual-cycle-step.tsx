@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { addDays, differenceInDays, format, isValid, parseISO } from "date-fns";
+import { addDays, differenceInDays, isValid, parseISO } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 
 import type { MenstrualCycleRecordFormData } from "@/features/customers/api/observations-api";
@@ -9,7 +9,6 @@ import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { getDateLocale } from "@/shared/utils/date-locale";
 import { toDateInput } from "@/shared/utils/date-time-input";
 
 import { StepLayout } from "./step-layout";
@@ -33,10 +32,6 @@ function parseDurationInput(value: string): number | null {
   return Number.isFinite(d) ? d : null;
 }
 
-function validateStartDate(value: string): string | undefined {
-  return value.trim() ? undefined : m.validation_cycle_start_required();
-}
-
 function validateDurationDays(value: string): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -58,18 +53,6 @@ function computeEndDateFromDuration(startDate: string, durationValue: string): s
     return null;
   }
   return toDateInput(addDays(parsed, days - 1));
-}
-
-function formatComputedEndDate(startDate: string, durationValue: string): string | null {
-  const computed = computeEndDateFromDuration(startDate, durationValue);
-  if (!computed) {
-    return null;
-  }
-  const parsed = parseISO(computed);
-  if (!isValid(parsed)) {
-    return null;
-  }
-  return format(parsed, "MMM d, yyyy", { locale: getDateLocale() });
 }
 
 function toFieldErrors(errors: readonly unknown[]): Array<{ message?: string }> {
@@ -176,18 +159,15 @@ export function MenstrualCycleStep({
       onBack={handleBack}
     >
       <FieldGroup>
-        {/* ── Start Date (required) ── */}
-        <form.Field
-          name="startDate"
-          validators={{ onSubmit: ({ value }) => validateStartDate(value) }}
-        >
+        {/* ── Start Date ── */}
+        <form.Field name="startDate">
           {(field) => {
             const errors = toFieldErrors(field.state.meta.errors);
             const isInvalid = errors.length > 0;
 
             return (
               <Field data-invalid={isInvalid}>
-                <FieldLabel required>{m.field_cycle_start_date()}</FieldLabel>
+                <FieldLabel>{m.field_cycle_start_date()}</FieldLabel>
                 <DatePickerString
                   value={field.state.value}
                   onChange={(dateStr) => {
@@ -230,7 +210,6 @@ export function MenstrualCycleStep({
                   isEditingEndDate.current && pickedEndDate
                     ? pickedEndDate
                     : (computedEndDate ?? pickedEndDate);
-                const formattedComputed = formatComputedEndDate(startDate, durationDays);
 
                 return (
                   <>
@@ -242,7 +221,6 @@ export function MenstrualCycleStep({
                         endMonth={new Date()}
                         startMonth={startDate ? parseISO(startDate) : undefined}
                       />
-                      <FieldDescription>{m.field_cycle_end_desc()}</FieldDescription>
                     </Field>
 
                     {/* Duration Input */}
@@ -270,19 +248,14 @@ export function MenstrualCycleStep({
                               placeholder={m.field_cycle_duration_placeholder()}
                             />
                             {isInvalid ? <FieldError errors={errors} /> : null}
-                            <FieldDescription>{m.field_cycle_duration_desc()}</FieldDescription>
                           </Field>
                         );
                       }}
                     </form.Field>
 
-                    {/* Computed end date display (from duration) */}
-                    {!isEditingEndDate.current && formattedComputed ? (
-                      <p className="col-span-full -mt-2 flex items-center gap-1.5 text-muted-foreground text-xs">
-                        <span aria-hidden>&#8594;</span>
-                        {m.menstrual_cycle_estimated_end({ date: formattedComputed })}
-                      </p>
-                    ) : null}
+                    <div className="col-span-full">
+                      <FieldDescription>{m.field_cycle_end_desc()}</FieldDescription>
+                    </div>
                   </>
                 );
               }}

@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppTasksRouteImport } from './routes/_app/tasks'
 import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
@@ -27,11 +26,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppTasksRoute = AppTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppSubscriptionsRoute = AppSubscriptionsRouteImport.update({
   id: '/subscriptions',
@@ -71,7 +65,6 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
-  '/tasks': typeof AppTasksRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
@@ -81,7 +74,6 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
-  '/tasks': typeof AppTasksRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
@@ -93,7 +85,6 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/subscriptions': typeof AppSubscriptionsRoute
-  '/_app/tasks': typeof AppTasksRoute
   '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
   '/_app/customers_/$customerId_/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
@@ -105,7 +96,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/subscriptions'
-    | '/tasks'
     | '/customers/$customerId'
     | '/customers/$customerId/nutrition'
   fileRoutesByTo: FileRoutesByTo
@@ -115,7 +105,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/subscriptions'
-    | '/tasks'
     | '/customers/$customerId'
     | '/customers/$customerId/nutrition'
   id:
@@ -126,7 +115,6 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/settings'
     | '/_app/subscriptions'
-    | '/_app/tasks'
     | '/_app/customers_/$customerId'
     | '/_app/customers_/$customerId_/nutrition'
   fileRoutesById: FileRoutesById
@@ -151,13 +139,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_app/tasks': {
-      id: '/_app/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AppTasksRouteImport
-      parentRoute: typeof AppRoute
     }
     '/_app/subscriptions': {
       id: '/_app/subscriptions'
@@ -209,7 +190,6 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSubscriptionsRoute: typeof AppSubscriptionsRoute
-  AppTasksRoute: typeof AppTasksRoute
   AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
   AppCustomersCustomerIdNutritionRoute: typeof AppCustomersCustomerIdNutritionRoute
 }
@@ -219,7 +199,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSubscriptionsRoute: AppSubscriptionsRoute,
-  AppTasksRoute: AppTasksRoute,
   AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
   AppCustomersCustomerIdNutritionRoute: AppCustomersCustomerIdNutritionRoute,
 }

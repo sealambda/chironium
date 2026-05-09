@@ -2,35 +2,6 @@ import { graphql, type ResultOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 
-const ListTasksQuery = graphql(`
-  query ListTasks($first: Int, $sort: [TaskSortInput]) {
-    listTasks(first: $first, sort: $sort) {
-      results {
-        id
-        intent
-        status
-        priority
-        description
-        requestedPeriod {
-          start
-          end
-        }
-        forPatient {
-          id
-          personId
-          person {
-            name {
-              given
-              family
-              text
-            }
-          }
-        }
-      }
-    }
-  }
-`);
-
 const ListTasksForPatientQuery = graphql(`
   query ListTasksForPatient($patientId: ID!) {
     listTasks(
@@ -127,39 +98,52 @@ const CompleteTaskMutation = graphql(`
   }
 `);
 
-export type Task = NonNullable<
-  NonNullable<ResultOf<typeof ListTasksQuery>["listTasks"]>["results"]
->[number];
+const DeleteTaskReminderMutation = graphql(`
+  mutation DeleteTaskReminder($id: ID!) {
+    deleteTaskReminder(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
+const UpdateTaskReminderMutation = graphql(`
+  mutation UpdateTaskReminder($id: ID!, $input: UpdateTaskReminderInput!) {
+    updateTaskReminder(id: $id, input: $input) {
+      result {
+        id
+        requestedPeriod {
+          start
+          end
+        }
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 export type PatientTask = NonNullable<
   NonNullable<ResultOf<typeof ListTasksForPatientQuery>["listTasks"]>["results"]
 >[number];
-
-const SORT_BY_REQUESTED_PERIOD_START = [
-  { field: "REQUESTED_PERIOD_START_SORT_KEY" as const, order: "ASC" as const },
-];
-
-export async function fetchTasks(organizationId: string): Promise<Task[]> {
-  if (!organizationId) {
-    return [];
-  }
-
-  const result = await requestGraphql({
-    document: ListTasksQuery,
-    variables: {
-      first: 250,
-      sort: SORT_BY_REQUESTED_PERIOD_START,
-    },
-    organizationId,
-  });
-
-  const tasks = result.listTasks?.results ?? [];
-  return tasks;
-}
 
 export interface CreateTaskParams {
   organizationId: string;
   patientId: string;
   description: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface UpdateTaskReminderParams {
+  organizationId: string;
+  taskId: string;
+  description?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -203,7 +187,7 @@ export async function createTask({
   }
 }
 
-export async function completeReviewTask(taskId: string, organizationId: string): Promise<void> {
+export async function completeTaskReminder(taskId: string, organizationId: string): Promise<void> {
   if (!taskId || !organizationId) {
     return;
   }
@@ -221,6 +205,47 @@ export async function completeReviewTask(taskId: string, organizationId: string)
     organizationId,
   });
   unwrapMutationResult(completed.completeTask, "Failed to complete task.");
+}
+
+export async function deleteTaskReminder(taskId: string, organizationId: string): Promise<void> {
+  if (!taskId || !organizationId) {
+    return;
+  }
+
+  const result = await requestGraphql({
+    document: DeleteTaskReminderMutation,
+    variables: { id: taskId },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.deleteTaskReminder, "Failed to delete reminder.");
+}
+
+export async function updateTaskReminder({
+  organizationId,
+  taskId,
+  description,
+  startDate,
+  endDate,
+}: UpdateTaskReminderParams): Promise<void> {
+  const descriptionInput = description === undefined ? {} : { description: description.trim() };
+
+  const result = await requestGraphql({
+    document: UpdateTaskReminderMutation,
+    variables: {
+      id: taskId,
+      input: {
+        ...descriptionInput,
+        requestedPeriod: {
+          ...(startDate ? { start: startDate } : { start: null }),
+          ...(endDate ? { end: endDate } : { end: null }),
+        },
+      },
+    },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.updateTaskReminder, "Failed to update reminder.");
 }
 
 /** Fetch all tasks for a specific patient (all intents, all statuses). Used by the activity feed. */

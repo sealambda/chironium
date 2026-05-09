@@ -246,7 +246,7 @@ function PlanList({ plans, onRemove }: PlanListProps) {
             variant="ghost"
             size="icon-xs"
             onClick={() => onRemove(plan.localId)}
-            aria-label={m.common_remove()}
+            aria-label={m.common_delete()}
           >
             <Trash2 className="size-3.5 text-muted-foreground" />
           </Button>

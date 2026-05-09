@@ -7,12 +7,6 @@ interface CustomerDetailEmptyCardProps {
   readonly description?: ReactNode;
 }
 
-interface CustomerDetailEmptyCardContentProps {
-  readonly icon: LucideIcon;
-  readonly title: ReactNode;
-  readonly description: ReactNode;
-}
-
 /** Centered empty state for a clinical summary card.
  *  Icon and title sit on the centerline; description is optional and muted. */
 export function CustomerDetailEmptyCard({
@@ -27,22 +21,6 @@ export function CustomerDetailEmptyCard({
       {description ? (
         <p className="line-clamp-2 max-w-xs text-muted-foreground text-xs">{description}</p>
       ) : null}
-    </div>
-  );
-}
-
-export function CustomerDetailEmptyCardContent({
-  icon: Icon,
-  title,
-  description,
-}: Readonly<CustomerDetailEmptyCardContentProps>) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 py-8">
-      <Icon className="size-10 shrink-0 text-muted-foreground/60" aria-hidden />
-      <div className="text-center">
-        <p className="font-medium text-foreground text-sm">{title}</p>
-        <p className="mt-0.5 text-foreground/65 text-xs">{description}</p>
-      </div>
     </div>
   );
 }

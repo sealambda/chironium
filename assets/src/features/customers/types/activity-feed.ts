@@ -153,14 +153,36 @@ export function mergeFeedActor(
   return undefined;
 }
 
+/**
+ * Collect all unique actors (by name) from a list, deduplicating based on name.
+ * Returns the first occurrence of each unique name.
+ */
+export function uniqueActors(actors: (FeedActor | undefined)[]): FeedActor[] {
+  const seen = new Set<string>();
+  const result: FeedActor[] = [];
+  for (const actor of actors) {
+    if (actor && !seen.has(actor.name)) {
+      seen.add(actor.name);
+      result.push(actor);
+    }
+  }
+  return result;
+}
+
 export type FeedEvent =
-  | { kind: "observation"; id: string; date: string; actor?: FeedActor; payload: ObservationItem }
-  | { kind: "task"; id: string; date: string; actor?: FeedActor; payload: PatientTask }
+  | {
+      kind: "observation";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      payload: ObservationItem;
+    }
+  | { kind: "task"; id: string; date: string; actors?: FeedActor[]; payload: PatientTask }
   | {
       kind: "goal";
       id: string;
       date: string;
-      actor?: FeedActor;
+      actors?: FeedActor[];
       variant: "created";
       payload: GoalRecord[];
     }
@@ -168,7 +190,7 @@ export type FeedEvent =
       kind: "goal";
       id: string;
       date: string;
-      actor?: FeedActor;
+      actors?: FeedActor[];
       variant: "due";
       payload: GoalRecord;
     }
@@ -176,8 +198,8 @@ export type FeedEvent =
       kind: "subscription";
       id: string;
       date: string;
-      actor?: FeedActor;
-      variant: "started" | "ending" | "paused" | "resumed" | "cancelled";
+      actors?: FeedActor[];
+      variant: "started" | "finished" | "paused" | "resumed" | "cancelled";
       payload: SubscriptionRecord;
       pause?: { id: string; startDate: string; endDate?: string | null; reason?: string | null };
     }
@@ -185,31 +207,37 @@ export type FeedEvent =
       kind: "anthropometry";
       id: string;
       date: string;
-      actor?: FeedActor;
+      actors?: FeedActor[];
       payload: AnthropometricSnapshot;
     }
-  | { kind: "condition"; id: string; date: string; actor?: FeedActor; payload: ConditionItem[] }
+  | { kind: "condition"; id: string; date: string; actors?: FeedActor[]; payload: ConditionItem[] }
   | {
       kind: "allergy";
       id: string;
       date: string;
-      actor?: FeedActor;
+      actors?: FeedActor[];
       aiType: "ALLERGY" | "INTOLERANCE";
       payload: AllergyIntoleranceItem[];
     }
-  | { kind: "medication"; id: string; date: string; actor?: FeedActor; payload: MedicationItem[] }
+  | {
+      kind: "medication";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      payload: MedicationItem[];
+    }
   | {
       kind: "menstrual";
       id: string;
       date: string;
-      actor?: FeedActor;
+      actors?: FeedActor[];
       payload: MenstrualCycleEntry;
     }
   | {
       kind: "food-preference";
       id: string;
       date: string;
-      actor?: FeedActor;
+      actors?: FeedActor[];
       variant: "inclusion" | "exclusion";
       payload: FoodPreferenceHistoryItem[];
     };
@@ -224,27 +252,19 @@ export interface FeedDateGroup {
   isFuture: boolean;
 }
 
-type SubscriptionVariant = Extract<FeedEvent, { kind: "subscription" }>["variant"];
+export type SubscriptionVariant = Extract<FeedEvent, { kind: "subscription" }>["variant"];
 
 const SUBSCRIPTION_ACCENT: Record<SubscriptionVariant, FeedEventAccent> = {
   started: "blue",
-  ending: "red",
+  finished: "red",
   cancelled: "red",
   paused: "amber",
   resumed: "emerald",
 };
 
-const SUBSCRIPTION_LABEL: Record<SubscriptionVariant, () => string> = {
-  started: m.activity_event_subscription_started,
-  ending: m.activity_event_subscription_ending,
-  paused: m.activity_event_subscription_paused,
-  resumed: m.activity_event_subscription_resumed,
-  cancelled: m.activity_event_subscription_cancelled,
-};
-
 const SUBSCRIPTION_VERB: Record<SubscriptionVariant, () => string> = {
   started: m.activity_verb_subscription_started,
-  ending: m.activity_verb_subscription_ending,
+  finished: m.activity_verb_subscription_finished,
   paused: m.activity_verb_subscription_paused,
   resumed: m.activity_verb_subscription_resumed,
   cancelled: m.activity_verb_subscription_cancelled,
@@ -311,7 +331,7 @@ export function getEventLabel(event: FeedEvent): string {
         ? m.activity_event_goal_due()
         : m.activity_event_goal_created();
     case "subscription":
-      return SUBSCRIPTION_LABEL[event.variant]();
+      return m.activity_event_subscription();
     case "anthropometry":
       return m.activity_event_anthropometry();
     case "condition":
@@ -329,17 +349,6 @@ export function getEventLabel(event: FeedEvent): string {
         ? m.activity_event_food_inclusion()
         : m.activity_event_food_exclusion();
   }
-}
-
-/**
- * Optional content rendered inline after the type pill on the event title line
- * (e.g. the subscription plan name in "Jane started a Subscription Plan A").
- */
-export function getEventSuffix(event: FeedEvent): string | null {
-  if (event.kind === "subscription") {
-    return event.payload.plan?.name ?? m.activity_subscription_plan_fallback();
-  }
-  return null;
 }
 
 export function getEventCount(event: FeedEvent): number {

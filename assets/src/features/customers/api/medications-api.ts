@@ -1,12 +1,9 @@
-import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { codeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
 import { graphql, type VariablesOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
 import { toUtcDateTimeEnd, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
-
-import type { AnnotationInput } from "./observations-api";
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -107,60 +104,6 @@ export async function createMedicationsFromTags(
     })();
 
   await Promise.all(tags.map((tag) => makeRecord(tag)));
-}
-
-/**
- * Replaces annotation notes on a medication (full array required by the API).
- */
-export async function updateMedicationNotes(
-  id: string,
-  notes: AnnotationInput[],
-  organizationId: string,
-): Promise<void> {
-  const result = await requestGraphql({
-    document: UpdateMedicationStatementMutation,
-    variables: {
-      id,
-      input: {
-        note: notes.map((n) => ({
-          text: n.text,
-          ...toAuthorInput(n),
-          time: n.time ?? undefined,
-        })),
-      },
-    },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateMedicationStatement, "Failed to update medication notes.");
-}
-
-/**
- * Updates display text for an uncoded medication (empty `code.coding`).
- */
-export async function updateMedicationCodeText(
-  id: string,
-  text: string,
-  organizationId: string,
-): Promise<void> {
-  const result = await requestGraphql({
-    document: UpdateMedicationStatementMutation,
-    variables: { id, input: { medication: { text } } },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateMedicationStatement, "Failed to update medication.");
-}
-
-export async function updateMedicationCodeFromTag(
-  id: string,
-  tag: TerminologyTag,
-  organizationId: string,
-): Promise<void> {
-  const result = await requestGraphql({
-    document: UpdateMedicationStatementMutation,
-    variables: { id, input: { medication: codeInputFromTerminologyTag(tag) } },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateMedicationStatement, "Failed to update medication.");
 }
 
 /**

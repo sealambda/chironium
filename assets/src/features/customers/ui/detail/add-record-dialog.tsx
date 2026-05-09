@@ -21,9 +21,9 @@ import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
 import { AddMedicationsDialog } from "@/features/customers/ui/detail/add-medications-dialog";
 import { AddMenstrualCycleDialog } from "@/features/customers/ui/detail/add-menstrual-cycle-dialog";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
+import { AddTaskReminderDialog } from "@/features/customers/ui/detail/add-task-reminder-dialog";
 import { AllergyDetailDialog } from "@/features/customers/ui/detail/allergy-detail-dialog";
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
-import { ReviewTaskDialog } from "@/features/customers/ui/detail/review-task-dialog";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import {
@@ -251,7 +251,7 @@ export function AddRecordDialog({
         open={activeType === "note"}
         onOpenChange={handleChildOpenChange}
       />
-      <ReviewTaskDialog
+      <AddTaskReminderDialog
         personId={personId}
         patientId={patientId}
         open={activeType === "reminder"}
@@ -335,7 +335,7 @@ export function AddRecordDialog({
                           disabled={disabled}
                           onClick={() => selectType(id)}
                           className={cn(
-                            "flex h-full flex-col items-center rounded-xl border border-border/50 bg-card p-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                            "flex h-full cursor-pointer flex-col items-center rounded-xl border border-border/50 bg-card p-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                             disabled
                               ? "cursor-not-allowed opacity-50"
                               : "hover:border-primary/30 hover:bg-primary/5",
