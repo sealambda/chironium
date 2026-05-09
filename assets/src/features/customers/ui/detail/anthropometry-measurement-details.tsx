@@ -23,7 +23,7 @@ const STATUS_DOT_COLOR: Record<HealthClassification, string> = {
   danger: "bg-red-500",
 };
 
-export function StatusDot({ classification }: Readonly<{ classification: HealthClassification }>) {
+function StatusDot({ classification }: Readonly<{ classification: HealthClassification }>) {
   return (
     <span
       className={cn("inline-block size-2 shrink-0 rounded-full", STATUS_DOT_COLOR[classification])}
@@ -33,11 +33,12 @@ export function StatusDot({ classification }: Readonly<{ classification: HealthC
 
 export function DeltaPill({ value, unit }: Readonly<{ value: number; unit: string }>) {
   const display = formatAnthropometryValue(Math.abs(value));
+  const unitLabel = unit === "kg" ? m.common_unit_kg() : m.common_unit_cm();
 
   if (value === 0) {
     return (
       <Badge className="h-5 border-border bg-muted/50 px-1.5 font-semibold text-foreground/65 text-xs">
-        &mdash; 0 {unit}
+        &mdash; {display} {unitLabel}
       </Badge>
     );
   }
@@ -48,7 +49,7 @@ export function DeltaPill({ value, unit }: Readonly<{ value: number; unit: strin
 
   return (
     <Badge variant={colorClass} className="h-5 px-1.5 font-semibold text-xs">
-      {arrow} {display} {unit}
+      {arrow} {display} {unitLabel}
     </Badge>
   );
 }
@@ -121,24 +122,21 @@ function buildCircumferenceCells(
   latest: AnthropometricSnapshot,
   previous: AnthropometricSnapshot | undefined,
 ): React.ReactNode[] {
-  const count = visibleKeys.length;
-
-  return visibleKeys.map((key, i) => {
+  return visibleKeys.map((key) => {
     const value = latest[key];
     if (value === undefined) {
       return null;
     }
     const delta = computeDelta(value, previous?.[key]);
-    const isFirstRow = count >= 3 && i === 0;
 
     return (
-      <div key={key} className={cn("py-2 text-center", isFirstRow && "col-span-2")}>
+      <div key={key} className="py-2 text-center">
         <p className="text-foreground/65 text-xs">{CIRCUMFERENCE_LABELS[key]()}</p>
         <div className="inline-flex flex-col items-center gap-1">
           <span className="font-medium text-foreground tabular-nums leading-none">
-            {formatAnthropometryValue(value)} cm
+            {formatAnthropometryValue(value)} {m.common_unit_cm()}
           </span>
-          {delta !== null ? <DeltaPill value={delta} unit="cm" /> : null}
+          {delta === null ? null : <DeltaPill value={delta} unit="cm" />}
         </div>
       </div>
     );
@@ -154,34 +152,36 @@ function GroupedCircumferences({
   previous: AnthropometricSnapshot | undefined;
   visibleGroups: CircumferenceGroupDef[];
 }>) {
+  const colsClass = (count: number) => {
+    if (count >= 3) {
+      return "grid-cols-3";
+    }
+    if (count === 2) {
+      return "grid-cols-2";
+    }
+    return "grid-cols-1";
+  };
+
   return (
-    <div className="rounded-xl bg-muted/30 p-3">
-      <div className="grid grid-cols-2 gap-x-4">
-        {visibleGroups.flatMap((group, groupIndex) => {
-          const groupId = group.keys[0];
-          const visibleKeys = group.keys.filter((key) => latest[key] !== undefined);
-          const Icon = group.icon;
-          const elements: React.ReactNode[] = [];
+    <div className="space-y-3 rounded-xl bg-muted/30 p-3">
+      {visibleGroups.map((group) => {
+        const groupId = group.keys[0];
+        const visibleKeys = group.keys.filter((key) => latest[key] !== undefined);
+        const Icon = group.icon;
 
-          if (groupIndex > 0) {
-            elements.push(<div key={`gspc-${groupId}`} className="col-span-2 h-3" />);
-          }
-
-          elements.push(
-            <div
-              key={`hdr-${groupId}`}
-              className="col-span-2 flex items-center justify-center gap-1.5 pb-1 text-foreground/65"
-            >
+        return (
+          <div key={groupId}>
+            <div className="flex items-center justify-center gap-1.5 pb-1 text-foreground/65">
               <Icon className="size-3.5" />
               <span className="font-medium text-xs">{group.labelKey()}</span>
-            </div>,
-            <div key={`hsep-${groupId}`} className="col-span-2 h-px bg-border/60" />,
-            ...buildCircumferenceCells(visibleKeys, latest, previous),
-          );
-
-          return elements;
-        })}
-      </div>
+            </div>
+            <div className="h-px bg-border/60" />
+            <div className={cn("grid gap-x-2", colsClass(visibleKeys.length))}>
+              {buildCircumferenceCells(visibleKeys, latest, previous)}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

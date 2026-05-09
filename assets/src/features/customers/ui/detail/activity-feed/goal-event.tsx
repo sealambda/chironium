@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import { AchievementBadge } from "@/features/customers/ui/shared/achievement-badge";
 import * as m from "@/paraglide/messages";
+import { Badge } from "@/shared/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { getDateLocale } from "@/shared/utils/date-locale";
 
@@ -27,18 +28,20 @@ function SingleGoal({ goal, variant }: Readonly<{ goal: GoalRecord; variant: "cr
   const description = goal.description?.text ?? "";
   const dateStr = variant === "due" ? goal.dueDate : goal.startDate;
   const formattedDate = formatGoalDate(dateStr);
+  const category = goal.category?.[0];
+  const categoryLabel = category ? CATEGORY_LABELS.get(category) : null;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
+      {categoryLabel ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline">{categoryLabel()}</Badge>
+        </div>
+      ) : null}
       {description ? <p className="text-foreground/80 text-sm">{description}</p> : null}
       <div className="flex flex-wrap items-center gap-1.5">
         {goal.achievementStatus && variant === "due" ? (
           <AchievementBadge status={goal.achievementStatus} />
-        ) : null}
-        {goal.category?.[0] && CATEGORY_LABELS.get(goal.category[0]) ? (
-          <span className="text-muted-foreground text-xs">
-            {CATEGORY_LABELS.get(goal.category[0])?.()}
-          </span>
         ) : null}
         {formattedDate ? (
           <time dateTime={dateStr ?? undefined} className="text-muted-foreground text-xs">

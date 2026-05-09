@@ -28,11 +28,11 @@ function formatDuration(cycle: MenstrualCycleEntry): string | null {
       unit: "day",
     });
   }
-  if (!cycle.startDate || !cycle.endDate) {
+  if (!cycle.startDate) {
     return null;
   }
   const start = parseISO(cycle.startDate);
-  const end = parseISO(cycle.endDate);
+  const end = cycle.endDate ? parseISO(cycle.endDate) : new Date();
   if (!isValid(start) || !isValid(end)) {
     return null;
   }
@@ -41,7 +41,7 @@ function formatDuration(cycle: MenstrualCycleEntry): string | null {
 
 export function MenstrualCycleEvent({ cycle }: Readonly<MenstrualCycleEventProps>) {
   const start = formatCycleDate(cycle.startDate);
-  const end = cycle.endDate ? formatCycleDate(cycle.endDate) : null;
+  const end = cycle.endDate ? formatCycleDate(cycle.endDate) : m.menstrual_cycle_ongoing();
   const duration = formatDuration(cycle);
   const note = cycle.notes?.trim() ?? null;
 
@@ -60,9 +60,7 @@ export function MenstrualCycleEvent({ cycle }: Readonly<MenstrualCycleEventProps
             <CalendarDays className="size-3.5" aria-hidden />
             {m.field_cycle_end_date()}
           </p>
-          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">
-            {end ?? m.common_unknown()}
-          </p>
+          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">{end}</p>
         </div>
         <div>
           <p className="flex items-center gap-1.5 text-muted-foreground text-xs">

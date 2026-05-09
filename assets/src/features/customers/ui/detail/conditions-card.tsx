@@ -5,6 +5,7 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import { ConditionDetailDialog } from "@/features/customers/ui/detail/condition-detail-dialog";
 import { ConditionPill } from "@/features/customers/ui/detail/condition-pill";
 import { ConditionRemoveDialog } from "@/features/customers/ui/detail/condition-remove-dialog";
+import { TagsCardColumn, TagsCardPillList } from "@/features/customers/ui/detail/tags-card-content";
 import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import { formatFhirClinicalStatusLabel } from "@/features/customers/utils/clinical-history-display";
 import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
@@ -59,11 +60,8 @@ export function ConditionsCard({
         emptyDescription={m.condition_empty_desc()}
         compact={compact}
       >
-        <div className="flex flex-col gap-3">
-          <p className="font-semibold text-foreground/70 text-sm uppercase tracking-widest">
-            {m.condition_list_label()}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
+        <TagsCardColumn title={m.condition_list_label()} isEmpty={false} emptyText="">
+          <TagsCardPillList>
             {conditions.map(({ item, label }) => {
               const statusLabel = item.clinicalStatus
                 ? formatFhirClinicalStatusLabel(item.clinicalStatus)
@@ -80,8 +78,8 @@ export function ConditionsCard({
                 </ConditionPill>
               );
             })}
-          </div>
-        </div>
+          </TagsCardPillList>
+        </TagsCardColumn>
       </TagsCardShell>
 
       {canInteract && (

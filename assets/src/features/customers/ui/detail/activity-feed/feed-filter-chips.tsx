@@ -15,6 +15,7 @@ import {
 
 import type { FeedEventKind } from "@/features/customers/types/activity-feed";
 import * as m from "@/paraglide/messages";
+import { getLocale } from "@/paraglide/runtime";
 import { cn } from "@/shared/utils/utils";
 
 type FilterValue = FeedEventKind | "all";
@@ -39,28 +40,10 @@ const CHIPS: readonly ChipConfig[] = [
     activeClass: "border-primary/30 bg-primary/10 text-primary",
   },
   {
-    value: "observation",
-    label: m.activity_filter_observations,
-    icon: ClipboardList,
-    activeClass: "border-muted-foreground/20 bg-muted text-muted-foreground",
-  },
-  {
-    value: "task",
-    label: m.activity_filter_tasks,
-    icon: CalendarClock,
-    activeClass: "border-warning/20 bg-warning-muted text-warning-muted-foreground",
-  },
-  {
-    value: "goal",
-    label: m.activity_filter_goals,
-    icon: Star,
-    activeClass: "border-success/20 bg-success-muted text-success-muted-foreground",
-  },
-  {
-    value: "subscription",
-    label: m.activity_filter_subscriptions,
-    icon: Activity,
-    activeClass: "border-info/20 bg-info-muted text-info-muted-foreground",
+    value: "allergy",
+    label: m.activity_filter_allergies,
+    icon: AlertTriangle,
+    activeClass: "border-destructive/20 bg-destructive-muted text-destructive-muted-foreground",
   },
   {
     value: "anthropometry",
@@ -75,10 +58,16 @@ const CHIPS: readonly ChipConfig[] = [
     activeClass: "border-warning/20 bg-warning-muted text-warning-muted-foreground",
   },
   {
-    value: "allergy",
-    label: m.activity_filter_allergies,
-    icon: AlertTriangle,
-    activeClass: "border-destructive/20 bg-destructive-muted text-destructive-muted-foreground",
+    value: "food-preference",
+    label: m.activity_filter_food,
+    icon: Utensils,
+    activeClass: "border-success/20 bg-success-muted text-success-muted-foreground",
+  },
+  {
+    value: "goal",
+    label: m.activity_filter_goals,
+    icon: Star,
+    activeClass: "border-success/20 bg-success-muted text-success-muted-foreground",
   },
   {
     value: "medication",
@@ -93,10 +82,22 @@ const CHIPS: readonly ChipConfig[] = [
     activeClass: "border-destructive/20 bg-destructive-muted text-destructive-muted-foreground",
   },
   {
-    value: "food-preference",
-    label: m.activity_filter_food,
-    icon: Utensils,
-    activeClass: "border-success/20 bg-success-muted text-success-muted-foreground",
+    value: "observation",
+    label: m.activity_filter_observations,
+    icon: ClipboardList,
+    activeClass: "border-muted-foreground/20 bg-muted text-muted-foreground",
+  },
+  {
+    value: "subscription",
+    label: m.activity_filter_subscriptions,
+    icon: Activity,
+    activeClass: "border-info/20 bg-info-muted text-info-muted-foreground",
+  },
+  {
+    value: "task",
+    label: m.activity_filter_tasks,
+    icon: CalendarClock,
+    activeClass: "border-warning/20 bg-warning-muted text-warning-muted-foreground",
   },
 ];
 
@@ -104,10 +105,22 @@ const INACTIVE_BUTTON_CLASS =
   "border-border bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 export function FeedFilterChips({ active, onChange }: Readonly<FeedFilterChipsProps>) {
+  const locale = getLocale();
+  const collator = new Intl.Collator(locale);
+  const chips = [...CHIPS].sort((left, right) => {
+    if (left.value === "all") {
+      return -1;
+    }
+    if (right.value === "all") {
+      return 1;
+    }
+    return collator.compare(left.label(), right.label());
+  });
+
   return (
     <fieldset className="m-0 flex flex-wrap gap-1.5 border-0 p-0">
       <legend className="sr-only">{m.activity_filter_legend()}</legend>
-      {CHIPS.map(({ value, label, icon: Icon, activeClass }) => {
+      {chips.map(({ value, label, icon: Icon, activeClass }) => {
         const isActive = active === value;
         return (
           <button
@@ -116,7 +129,7 @@ export function FeedFilterChips({ active, onChange }: Readonly<FeedFilterChipsPr
             onClick={() => onChange(value)}
             aria-pressed={isActive}
             className={cn(
-              "flex items-center justify-center gap-1 rounded-full border px-3 py-1 font-medium text-xs transition-colors",
+              "flex cursor-pointer items-center justify-center gap-1 rounded-full border px-3 py-1 font-medium text-xs transition-colors",
               isActive ? activeClass : INACTIVE_BUTTON_CLASS,
             )}
           >

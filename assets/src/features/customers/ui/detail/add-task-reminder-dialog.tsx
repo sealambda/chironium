@@ -1,16 +1,12 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { addYears, format, isBefore, isToday, parseISO, startOfDay } from "date-fns";
-import { ClipboardCheck, ClipboardClock } from "lucide-react";
+import { ClipboardClock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { useOrg } from "@/features/org/hooks/use-org";
-import {
-  completeReviewTask,
-  createTask,
-  fetchTasksForPatient,
-} from "@/features/tasks/api/tasks-api";
+import { createTask, fetchTasksForPatient } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import { Button } from "@/shared/ui/button";
@@ -29,21 +25,11 @@ import { getDateLocale } from "@/shared/utils/date-locale";
 import { toUtcDateTimeEnd, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
 import { personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
 
-interface ReviewTaskDialogProps {
+interface AddTaskReminderDialogProps {
   readonly personId: string;
   readonly patientId: string | null;
   readonly open?: boolean;
   readonly onOpenChange?: (open: boolean) => void;
-}
-
-async function completeCurrentTaskIfAny(
-  pendingReviewTaskId: string | undefined,
-  organizationId: string,
-) {
-  if (!pendingReviewTaskId) {
-    return;
-  }
-  await completeReviewTask(pendingReviewTaskId, organizationId);
 }
 
 type ButtonVariant = "default" | "destructive" | "outline" | "secondary";
@@ -67,12 +53,12 @@ function getButtonVariant(taskDate: string | null | undefined): ButtonVariant {
   return "outline";
 }
 
-export function ReviewTaskDialog({
+export function AddTaskReminderDialog({
   personId,
   patientId,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
-}: Readonly<ReviewTaskDialogProps>) {
+}: Readonly<AddTaskReminderDialogProps>) {
   const [open, setOpen, isControlledOpen] = useControllableState({
     value: controlledOpen,
     defaultValue: false,
@@ -107,7 +93,6 @@ export function ReviewTaskDialog({
 
       setSaving(true);
       try {
-        await completeCurrentTaskIfAny(pendingReviewTasks[0]?.id, selectedOrg.id);
         await createTask({
           organizationId: selectedOrg.id,
           patientId,
@@ -132,10 +117,9 @@ export function ReviewTaskDialog({
     },
   });
 
-  const hasPendingReviewTasks = pendingReviewTasks.length > 0;
   const currentReadyTask = pendingReviewTasks[0] ?? null;
-  const dialogTitle = hasPendingReviewTasks ? m.review_task_add_next() : m.review_task_add_new();
-  const Icon = hasPendingReviewTasks ? ClipboardCheck : ClipboardClock;
+  const dialogTitle = m.review_task_add_new();
+  const Icon = ClipboardClock;
 
   const pendingTaskDateFormatted = currentReadyTask?.requestedPeriod?.start
     ? format(startOfDay(parseISO(currentReadyTask.requestedPeriod.start)), "PP", {
@@ -168,17 +152,13 @@ export function ReviewTaskDialog({
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
 
-        <p className="text-muted-foreground text-sm">
-          {hasPendingReviewTasks && pendingTaskDateFormatted
-            ? m.review_task_hint_next({ date: pendingTaskDateFormatted })
-            : m.review_task_hint_new()}
-        </p>
+        <p className="text-muted-foreground text-sm">{m.review_task_hint_new()}</p>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            void form.handleSubmit();
+            form.handleSubmit();
           }}
         >
           <FieldGroup>
@@ -225,7 +205,7 @@ export function ReviewTaskDialog({
                 const isSubmitDisabled = !values.startDate || !values.description.trim();
                 return (
                   <Button type="submit" loading={saving} disabled={isSubmitDisabled}>
-                    {hasPendingReviewTasks ? m.review_task_complete() : m.review_task_add_new()}
+                    {m.review_task_add_new()}
                   </Button>
                 );
               }}

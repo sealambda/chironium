@@ -1,26 +1,31 @@
-import { differenceInDays, format, isValid, parseISO } from "date-fns";
-import { NotebookText, RefreshCcwDot, UserRound } from "lucide-react";
+import { differenceInCalendarDays, format, isValid, parseISO } from "date-fns";
+import { NotebookText, RefreshCcwDot } from "lucide-react";
+import { useState } from "react";
 
 import type { MenstrualCycleSummary } from "@/features/customers/api/observations-api";
-import {
-  actorFromNotes,
-  actorFromVersions,
-  mergeFeedActor,
-} from "@/features/customers/types/activity-feed";
+import { AddMenstrualCycleDialog } from "@/features/customers/ui/detail/add-menstrual-cycle-dialog";
 import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer-detail-empty-card";
+import { DetailEditButton } from "@/features/customers/ui/detail/detail-edit-button";
+import { TagsCardTitle } from "@/features/customers/ui/detail/tags-card-content";
 import * as m from "@/paraglide/messages";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { cn } from "@/shared/utils/utils";
 
 interface MenstrualCycleCardProps {
+  personId: string;
+  patientId: string | null;
   cycle: MenstrualCycleSummary | null;
   isLoading?: boolean;
   compact?: boolean;
 }
 
-function formatCycleDate(date: string | null): string {
+function formatCycleDate(date: string | null, fallback?: string): string {
   if (!date) {
+    if (fallback) {
+      return fallback;
+    }
+
     return m.common_unknown();
   }
 
@@ -38,17 +43,17 @@ function formatCycleDuration(cycle: MenstrualCycleSummary): string {
   }
 
   const { startDate, endDate } = cycle;
-  if (!startDate || !endDate) {
+  if (!startDate) {
     return m.common_unknown();
   }
 
   const start = parseISO(startDate);
-  const end = parseISO(endDate);
+  const end = endDate ? parseISO(endDate) : new Date();
   if (!isValid(start) || !isValid(end)) {
     return m.common_unknown();
   }
 
-  return String(differenceInDays(end, start) + 1);
+  return String(differenceInCalendarDays(end, start) + 1);
 }
 
 function CycleMetric({ label, value }: Readonly<{ label: string; value: string }>) {
@@ -89,10 +94,14 @@ function MenstrualCycleCardSkeleton({ compact }: Readonly<{ compact?: boolean }>
 }
 
 export function MenstrualCycleCard({
+  personId,
+  patientId,
   cycle,
   isLoading,
   compact,
 }: Readonly<MenstrualCycleCardProps>) {
+  const [editOpen, setEditOpen] = useState(false);
+
   if (isLoading) {
     return <MenstrualCycleCardSkeleton compact={compact} />;
   }
@@ -109,14 +118,10 @@ export function MenstrualCycleCard({
 
   const duration = formatCycleDuration(cycle);
   const start = formatCycleDate(cycle.startDate ?? null);
-  const end = formatCycleDate(cycle.endDate ?? null);
-  const hasDuration =
-    cycle.durationDays != null || (cycle.startDate != null && cycle.endDate != null);
+  const end = formatCycleDate(cycle.endDate ?? null, m.menstrual_cycle_ongoing());
+  const hasDuration = cycle.durationDays != null || cycle.startDate != null;
   const note = cycle.notes?.trim() || null;
-  const actor = mergeFeedActor(
-    actorFromVersions(cycle.paperTrailVersions),
-    actorFromNotes(cycle.sourceNotes),
-  );
+  const canEdit = Boolean(patientId && cycle.startObservationId);
 
   return (
     <div
@@ -126,24 +131,29 @@ export function MenstrualCycleCard({
       )}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="font-semibold text-foreground text-sm uppercase tracking-wide">
-          {m.menstrual_cycle_last_cycle()}
-        </h3>
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <RefreshCcwDot className="size-4" aria-hidden />
-        </div>
+      <div className="flex items-center gap-2">
+        <TagsCardTitle>{m.menstrual_cycle_last_cycle()}</TagsCardTitle>
+        {canEdit ? (
+          <AddMenstrualCycleDialog
+            personId={personId}
+            patientId={patientId}
+            mode="edit"
+            initialCycle={cycle}
+            open={editOpen}
+            onOpenChange={setEditOpen}
+          >
+            <DetailEditButton ariaLabel={m.history_edit_element_title()} />
+          </AddMenstrualCycleDialog>
+        ) : null}
       </div>
 
       {/* Hero: Duration */}
       <div className="mt-3 space-y-0.5">
         {hasDuration ? (
-          <>
-            <div className="flex items-baseline gap-2">
-              <span className="font-bold text-3xl text-foreground tabular-nums">{duration}</span>
-            </div>
-            <p className="text-muted-foreground text-xs">{m.field_cycle_duration_days()}</p>
-          </>
+          <div className="flex items-baseline gap-2">
+            <span className="font-bold text-3xl text-foreground tabular-nums">{duration}</span>
+            <span className="text-foreground/65 text-sm">days</span>
+          </div>
         ) : (
           <p className="font-medium text-muted-foreground text-sm">{m.common_unknown()}</p>
         )}
@@ -165,14 +175,6 @@ export function MenstrualCycleCard({
           {note ?? m.menstrual_cycle_note_empty()}
         </p>
       </div>
-
-      {/* Actor attribution */}
-      {actor ? (
-        <p className="mt-3 flex items-center gap-1.5 text-muted-foreground text-xs">
-          <UserRound className="size-3.5" aria-hidden />
-          {m.activity_noted_by({ name: actor.name })}
-        </p>
-      ) : null}
     </div>
   );
 }

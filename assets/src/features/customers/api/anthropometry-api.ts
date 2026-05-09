@@ -1,6 +1,5 @@
 import type { PatientObservation } from "@/features/customers/api/patients-api";
 import type { VersionActorSource } from "@/features/customers/types/activity-feed";
-import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -156,6 +155,7 @@ export type AnthropometryObservationKey =
 export interface AnthropometryObservationRef {
   id: string;
   note: AnthropometryAnnotation[];
+  paperTrailVersions?: VersionActorSource[];
 }
 
 export interface AnthropometricSnapshot {
@@ -263,6 +263,7 @@ function getObservationRef(
   return {
     id: obs.id,
     note: extractNote(obs),
+    paperTrailVersions: obs.paperTrailVersions ?? [],
   };
 }
 
@@ -300,6 +301,7 @@ export function selectAnthropometryHistory(
       if (!snapshot.primaryObservationId) {
         snapshot.primaryObservationId = observationRef.id;
         snapshot.notes = observationRef.note;
+        snapshot.paperTrailVersions = observationRef.paperTrailVersions;
       }
     }
     const value = extractValue(obs);
@@ -334,108 +336,27 @@ export async function logAnthropometry(
   subjectId: string,
   organizationId: string,
 ): Promise<void> {
-  const effectiveDateTime = toDateTimeInput(data.effectiveDate, data.effectiveTime);
-  const promises: Promise<void>[] = [];
+  const effectiveDateTime =
+    toDateTimeInput(data.effectiveDate, data.effectiveTime) ?? new Date().toISOString();
 
-  if (data.heightCm && data.heightCm > 0) {
-    const heightCm = data.heightCm;
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: LogBodyHeightMutation,
-          variables: { input: { subjectId, heightCm, effectiveDateTime } },
-          organizationId,
-        });
-        unwrapMutationResult(result.logBodyHeight, "Failed to log body height.");
-      })(),
-    );
-  }
+  const fields: {
+    key: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh";
+    value: number | null;
+  }[] = [
+    { key: "height", value: data.heightCm },
+    { key: "weight", value: data.weightKg },
+    { key: "chest", value: data.chestCm },
+    { key: "waist", value: data.waistCm },
+    { key: "hip", value: data.hipCm },
+    { key: "arm", value: data.armCm },
+    { key: "thigh", value: data.thighCm },
+  ];
 
-  if (data.weightKg && data.weightKg > 0) {
-    const weightKg = data.weightKg;
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: LogBodyWeightMutation,
-          variables: { input: { subjectId, weightKg, effectiveDateTime } },
-          organizationId,
-        });
-        unwrapMutationResult(result.logBodyWeight, "Failed to log body weight.");
-      })(),
-    );
-  }
-
-  if (data.chestCm && data.chestCm > 0) {
-    const chestCircumferenceCm = data.chestCm;
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: LogChestCircumferenceMutation,
-          variables: { input: { subjectId, chestCircumferenceCm, effectiveDateTime } },
-          organizationId,
-        });
-        unwrapMutationResult(result.logChestCircumference, "Failed to log chest circumference.");
-      })(),
-    );
-  }
-
-  if (data.waistCm && data.waistCm > 0) {
-    const waistCircumferenceCm = data.waistCm;
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: LogWaistCircumferenceMutation,
-          variables: { input: { subjectId, waistCircumferenceCm, effectiveDateTime } },
-          organizationId,
-        });
-        unwrapMutationResult(result.logWaistCircumference, "Failed to log waist circumference.");
-      })(),
-    );
-  }
-
-  if (data.hipCm && data.hipCm > 0) {
-    const hipCircumferenceCm = data.hipCm;
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: LogHipCircumferenceMutation,
-          variables: { input: { subjectId, hipCircumferenceCm, effectiveDateTime } },
-          organizationId,
-        });
-        unwrapMutationResult(result.logHipCircumference, "Failed to log hip circumference.");
-      })(),
-    );
-  }
-
-  if (data.armCm && data.armCm > 0) {
-    const armCircumferenceCm = data.armCm;
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: LogArmCircumferenceMutation,
-          variables: { input: { subjectId, armCircumferenceCm, effectiveDateTime } },
-          organizationId,
-        });
-        unwrapMutationResult(result.logArmCircumference, "Failed to log arm circumference.");
-      })(),
-    );
-  }
-
-  if (data.thighCm && data.thighCm > 0) {
-    const thighCircumferenceCm = data.thighCm;
-    promises.push(
-      (async () => {
-        const result = await requestGraphql({
-          document: LogThighCircumferenceMutation,
-          variables: { input: { subjectId, thighCircumferenceCm, effectiveDateTime } },
-          organizationId,
-        });
-        unwrapMutationResult(result.logThighCircumference, "Failed to log thigh circumference.");
-      })(),
-    );
-  }
-
-  await Promise.all(promises);
+  await Promise.all(
+    fields
+      .filter((f): f is typeof f & { value: number } => f.value != null && f.value > 0)
+      .map((f) => logNewObservation(f.key, f.value, subjectId, effectiveDateTime, organizationId)),
+  );
 }
 
 function normalizeQuantity(value: number) {
@@ -462,13 +383,88 @@ async function updateQuantityObservation(
   unwrapMutationResult(result.updateObservation, "Failed to update anthropometry value.");
 }
 
+async function logNewObservation(
+  observationKey: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh",
+  value: number,
+  subjectId: string,
+  effectiveDateTime: string,
+  organizationId: string,
+): Promise<void> {
+  switch (observationKey) {
+    case "weight": {
+      const result = await requestGraphql({
+        document: LogBodyWeightMutation,
+        variables: { input: { subjectId, weightKg: value, effectiveDateTime } },
+        organizationId,
+      });
+      unwrapMutationResult(result.logBodyWeight, "Failed to log body weight.");
+      break;
+    }
+    case "height": {
+      const result = await requestGraphql({
+        document: LogBodyHeightMutation,
+        variables: { input: { subjectId, heightCm: value, effectiveDateTime } },
+        organizationId,
+      });
+      unwrapMutationResult(result.logBodyHeight, "Failed to log body height.");
+      break;
+    }
+    case "chest": {
+      const result = await requestGraphql({
+        document: LogChestCircumferenceMutation,
+        variables: { input: { subjectId, chestCircumferenceCm: value, effectiveDateTime } },
+        organizationId,
+      });
+      unwrapMutationResult(result.logChestCircumference, "Failed to log chest circumference.");
+      break;
+    }
+    case "waist": {
+      const result = await requestGraphql({
+        document: LogWaistCircumferenceMutation,
+        variables: { input: { subjectId, waistCircumferenceCm: value, effectiveDateTime } },
+        organizationId,
+      });
+      unwrapMutationResult(result.logWaistCircumference, "Failed to log waist circumference.");
+      break;
+    }
+    case "hip": {
+      const result = await requestGraphql({
+        document: LogHipCircumferenceMutation,
+        variables: { input: { subjectId, hipCircumferenceCm: value, effectiveDateTime } },
+        organizationId,
+      });
+      unwrapMutationResult(result.logHipCircumference, "Failed to log hip circumference.");
+      break;
+    }
+    case "arm": {
+      const result = await requestGraphql({
+        document: LogArmCircumferenceMutation,
+        variables: { input: { subjectId, armCircumferenceCm: value, effectiveDateTime } },
+        organizationId,
+      });
+      unwrapMutationResult(result.logArmCircumference, "Failed to log arm circumference.");
+      break;
+    }
+    case "thigh": {
+      const result = await requestGraphql({
+        document: LogThighCircumferenceMutation,
+        variables: { input: { subjectId, thighCircumferenceCm: value, effectiveDateTime } },
+        organizationId,
+      });
+      unwrapMutationResult(result.logThighCircumference, "Failed to log thigh circumference.");
+      break;
+    }
+  }
+}
+
 /**
- * Update editable anthropometry observations linked to the history snapshot.
- * Only existing observations are updated; missing observations are ignored.
+ * Update editable anthropometry observations linked to the history snapshot. Existing observations
+ * are updated in place; fields with a new value but no existing observation are logged as new.
  */
 export async function updateAnthropometryEntry(
   snapshot: AnthropometricSnapshot,
   data: AnthropometryUpdateInput,
+  subjectId: string,
   organizationId: string,
 ): Promise<void> {
   const effectiveDateTime =
@@ -491,43 +487,26 @@ export async function updateAnthropometryEntry(
   for (const field of editableFields) {
     const id = observations[field.observationKey]?.id;
     const value = data[field.inputKey];
-    if (!id || value === null || value <= 0) {
+    if (value === null || value <= 0) {
       continue;
     }
-    updates.push(updateQuantityObservation(id, value, effectiveDateTime, organizationId));
+    if (id) {
+      updates.push(updateQuantityObservation(id, value, effectiveDateTime, organizationId));
+    } else {
+      // No existing observation for this field — log it as a new one.
+      updates.push(
+        logNewObservation(
+          field.observationKey,
+          value,
+          subjectId,
+          effectiveDateTime,
+          organizationId,
+        ),
+      );
+    }
   }
 
   await Promise.all(updates);
-}
-
-/**
- * Replace annotation notes for the snapshot primary observation.
- */
-export async function updateAnthropometryNotes(
-  snapshot: AnthropometricSnapshot,
-  notes: AnthropometryAnnotationInput[],
-  organizationId: string,
-): Promise<void> {
-  const observationId = snapshot.primaryObservationId;
-  if (!observationId) {
-    throw new Error("Anthropometry note update failed: missing observation id.");
-  }
-
-  const result = await requestGraphql({
-    document: UpdateAnthropometryObservationMutation,
-    variables: {
-      id: observationId,
-      input: {
-        note: notes.map((note) => ({
-          text: note.text,
-          ...toAuthorInput(note),
-          time: note.time ?? undefined,
-        })),
-      },
-    },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateObservation, "Failed to update anthropometry notes.");
 }
 
 /**

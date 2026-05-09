@@ -42,25 +42,28 @@ export function getInitials(name: string): string {
   return `${firstInitial}${lastInitial || firstInitial}`.toUpperCase();
 }
 
-/**
- * Generate initials from an email address.
- * Splits the local part (before @) by common separators (., _, -).
- * @example "john.smith@example.com" -> "JS", "johndoe@example.com" -> "J"
- */
-export function getInitialsFromEmail(email: string): string {
-  const localPart = email.split("@")[0];
+function getInitialsFromEmail(email: string): string {
+  const localPart = email.split("@")[0]?.trim() ?? "";
   if (!localPart) {
     return "?";
   }
-  const parts = localPart.split(/[._-]/).filter(Boolean);
-  if (parts.length >= 2 && parts[0] && parts[1]) {
-    return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+
+  const tokens = localPart
+    .replaceAll(/[._-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (tokens.length === 0) {
+    return "?";
   }
-  const first = parts[0];
-  if (first?.[0]) {
-    return first[0].toUpperCase();
+
+  if (tokens.length === 1) {
+    const first = tokens[0]?.[0] ?? "";
+    const second = tokens[0]?.[1] ?? first;
+    return `${first}${second}`.toUpperCase();
   }
-  return "?";
+
+  return `${tokens[0]?.[0] ?? ""}${tokens.at(-1)?.[0] ?? ""}`.toUpperCase();
 }
 
 /**

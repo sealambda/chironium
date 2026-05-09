@@ -1,12 +1,9 @@
 import type { PatientObservation } from "@/features/customers/api/patients-api";
-import { toAuthorInput } from "@/features/customers/utils/annotation-author";
-import { observationValueCodeInputFromTerminologyTag } from "@/features/customers/utils/terminology-code-mutation";
+import type { VersionActorSource } from "@/features/customers/types/activity-feed";
 import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
-
-import type { AnnotationInput } from "./observations-api";
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -28,20 +25,6 @@ const LogFoodAversionMutation = graphql(`
     logFoodAversion(input: $input) {
       result {
         id
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const UpdateFoodObservationMutation = graphql(`
-  mutation UpdateFoodObservation($id: ID!, $input: UpdateObservationInput) {
-    updateObservation(id: $id, input: $input) {
-      result {
-        id
-        valueString
       }
       errors {
         message
@@ -87,32 +70,7 @@ export interface FoodPreferenceHistoryItem {
     authorString?: string | null;
     time?: string | null;
   }[];
-}
-
-/** Builds a terminology tag for the history edit dialog (coded and free-text rows). */
-export function terminologyTagFromFoodHistoryItem(
-  row: FoodPreferenceHistoryItem,
-): TerminologyTag | null {
-  const c = row.codings[0];
-  if (c) {
-    const label = row.items?.trim() || c.display?.trim() || c.code;
-    if (!label) {
-      return null;
-    }
-    return {
-      label,
-      coding: {
-        system: c.system,
-        code: c.code,
-        version: c.version ?? null,
-        display: c.display ?? null,
-      },
-    };
-  }
-  if (row.items?.trim()) {
-    return { label: row.items.trim() };
-  }
-  return null;
+  paperTrailVersions?: VersionActorSource[] | null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -169,6 +127,7 @@ export function selectFoodPreferencesHistory(
       codings,
       items,
       notes: obs.note ?? [],
+      paperTrailVersions: obs.paperTrailVersions ?? null,
     };
   };
 
@@ -331,69 +290,4 @@ export async function createFoodObservations(
   );
 
   await Promise.all(promises);
-}
-
-/**
- * Replace the annotation notes array on a food preference or aversion observation.
- * Sends the full notes array — partial updates are not supported by the API.
- */
-export async function updateFoodObservationNotes(
-  id: string,
-  notes: AnnotationInput[],
-  organizationId: string,
-): Promise<void> {
-  const result = await requestGraphql({
-    document: UpdateFoodObservationMutation,
-    variables: {
-      id,
-      input: {
-        note: notes.map((n) => ({
-          text: n.text,
-          ...toAuthorInput(n),
-          time: n.time ?? undefined,
-        })),
-      },
-    },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateObservation, "Failed to update food observation notes.");
-}
-
-/**
- * Update the valueString of an uncoded food preference or aversion observation.
- * For multi-item observations (CSV), pass the full updated CSV as `newValueString`.
- */
-export async function updateFoodObservationText(
-  id: string,
-  newValueString: string,
-  organizationId: string,
-): Promise<void> {
-  const result = await requestGraphql({
-    document: UpdateFoodObservationMutation,
-    // Explicitly clear valueCodeableConcept so the backend's exactly-one-value
-    // constraint is satisfied when overwriting a previously coded observation.
-    variables: { id, input: { valueString: newValueString, valueCodeableConcept: null } },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateObservation, "Failed to update food preference.");
-}
-
-/** Updates food observation value from a terminology tag (coded or free text). */
-export async function updateFoodObservationFromTag(
-  id: string,
-  tag: TerminologyTag,
-  organizationId: string,
-): Promise<void> {
-  const coded = observationValueCodeInputFromTerminologyTag(tag);
-  const result = await requestGraphql({
-    document: UpdateFoodObservationMutation,
-    variables: {
-      id,
-      input: coded
-        ? { valueCodeableConcept: coded, valueString: null }
-        : { valueString: tag.label, valueCodeableConcept: null },
-    },
-    organizationId,
-  });
-  unwrapMutationResult(result.updateObservation, "Failed to update food preference.");
 }

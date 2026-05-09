@@ -35,19 +35,6 @@ const UpdateGoalMutation = graphql(`
   }
 `);
 
-const DeleteGoalMutation = graphql(`
-  mutation DeleteGoal($id: ID!) {
-    deleteGoal(id: $id) {
-      result {
-        id
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** A single goal record returned by the patient query. */
@@ -148,17 +135,4 @@ export async function updateGoal({
   });
 
   unwrapMutationResult(result.updateGoal, "Failed to update goal.");
-}
-
-/**
- * Delete a goal.
- */
-export async function deleteGoal(goalId: string, organizationId: string): Promise<void> {
-  const result = await requestGraphql({
-    document: DeleteGoalMutation,
-    variables: { id: goalId },
-    organizationId,
-  });
-
-  unwrapMutationResult(result.deleteGoal, "Failed to delete goal.");
 }

@@ -162,7 +162,7 @@ function ObservationList({ notes, onRemove }: ObservationListProps) {
             variant="ghost"
             size="icon-xs"
             onClick={() => onRemove(note.id)}
-            aria-label={`${m.common_remove()}: ${previewObservation(note.body)}`}
+            aria-label={`${m.common_delete()}: ${previewObservation(note.body)}`}
           >
             <Trash2 className="size-3.5 text-muted-foreground" />
           </Button>

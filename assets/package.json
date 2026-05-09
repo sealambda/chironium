@@ -24,8 +24,7 @@
     "gql:check": "gql.tada check --tsconfig tsconfig.app.json",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "e2e:install": "playwright install chromium",
-    "audit:auth:bot": "node audit-bot-auth.mjs"
+    "e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@base-ui/react": "~1.4.1",
@@ -91,6 +90,6 @@
   },
   "engines": {
     "node": "~>24.13",
-    "pnpm": "~>10.33"
+    "pnpm": "~>11.0"
   }
 }

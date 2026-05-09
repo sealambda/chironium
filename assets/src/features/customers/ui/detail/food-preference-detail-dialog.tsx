@@ -1,30 +1,14 @@
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
-
-import { RecordDetailDialogFooter } from "./record-detail-dialog-footer";
+import { FormDialog } from "@/shared/ui/form-dialog";
 
 interface FoodPreferenceDetailDialogProps {
   readonly item: FoodPreferenceHistoryItem | null;
   readonly open?: boolean;
   readonly onOpenChange?: (open: boolean) => void;
   readonly onRemoveClick?: () => void;
-}
-
-function authorLabel(item: FoodPreferenceHistoryItem): string | null {
-  const note = item.notes[0];
-  if (!note) {
-    return null;
-  }
-  return note.authorString?.trim() || note.authorReference?.trim() || null;
 }
 
 export function FoodPreferenceDetailDialog({
@@ -45,59 +29,44 @@ export function FoodPreferenceDetailDialog({
 
   const coding = item.codings[0] ?? null;
   const name = item.items?.trim() || coding?.display?.trim() || coding?.code || "";
-  const userPicked = authorLabel(item);
   const kindLabel =
     item.type === "inclusion"
       ? m.food_preferences_kind_inclusion()
       : m.food_preferences_kind_exclusion();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{m.food_preferences_detail_title()}</DialogTitle>
-          <DialogDescription>{m.food_preferences_detail_desc()}</DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      title={m.food_preferences_detail_title()}
+      description={m.food_preferences_detail_desc()}
+      contentClassName="sm:max-w-md"
+      onDelete={onRemoveClick}
+    >
+      <FieldGroup>
+        <Field>
+          <FieldLabel>{m.food_preferences_field_name()}</FieldLabel>
+          <FieldDescription>{name}</FieldDescription>
+        </Field>
 
-        <FieldGroup>
-          <Field>
-            <FieldLabel>{m.food_preferences_field_name()}</FieldLabel>
-            <FieldDescription>{name}</FieldDescription>
-          </Field>
+        <Field>
+          <FieldLabel>{m.food_preferences_field_kind()}</FieldLabel>
+          <FieldDescription>{kindLabel}</FieldDescription>
+        </Field>
 
-          <Field>
-            <FieldLabel>{m.food_preferences_field_kind()}</FieldLabel>
-            <FieldDescription>{kindLabel}</FieldDescription>
-          </Field>
-
-          {coding ? (
-            <>
-              <Field>
-                <FieldLabel>{m.food_preferences_field_code()}</FieldLabel>
-                <FieldDescription>{coding.code}</FieldDescription>
-              </Field>
-              <Field>
-                <FieldLabel>{m.food_preferences_field_coding_system()}</FieldLabel>
-                <FieldDescription className="break-all">{coding.system}</FieldDescription>
-              </Field>
-            </>
-          ) : null}
-
-          {userPicked ? (
+        {coding ? (
+          <>
             <Field>
-              <FieldLabel>{m.food_preferences_field_user_picked()}</FieldLabel>
-              <FieldDescription>{userPicked}</FieldDescription>
+              <FieldLabel>{m.food_preferences_field_code()}</FieldLabel>
+              <FieldDescription>{coding.code}</FieldDescription>
             </Field>
-          ) : null}
-        </FieldGroup>
-
-        <RecordDetailDialogFooter
-          cancelLabel={m.common_close()}
-          onCancel={() => setOpen(false)}
-          removeLabel={m.common_remove()}
-          onRemoveClick={onRemoveClick}
-        />
-      </DialogContent>
-    </Dialog>
+            <Field>
+              <FieldLabel>{m.food_preferences_field_coding_system()}</FieldLabel>
+              <FieldDescription className="break-all">{coding.system}</FieldDescription>
+            </Field>
+          </>
+        ) : null}
+      </FieldGroup>
+    </FormDialog>
   );
 }

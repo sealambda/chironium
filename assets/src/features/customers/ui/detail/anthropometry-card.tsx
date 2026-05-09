@@ -1,5 +1,6 @@
-import { differenceInDays, differenceInYears, parseISO } from "date-fns";
-import { Mars, ScaleIcon, User, Venus } from "lucide-react";
+import { differenceInDays } from "date-fns";
+import { ScaleIcon } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import type { AnthropometricSnapshot } from "@/features/customers/api/anthropometry-api";
 import {
@@ -7,6 +8,8 @@ import {
   DeltaPill,
 } from "@/features/customers/ui/detail/anthropometry-measurement-details";
 import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer-detail-empty-card";
+import { DetailEditButton } from "@/features/customers/ui/detail/detail-edit-button";
+import { EditAnthropometryDialog } from "@/features/customers/ui/detail/edit-anthropometry-dialog";
 import * as m from "@/paraglide/messages";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { computeDelta, formatAnthropometryValue } from "@/shared/utils/measurement-utils";
@@ -15,47 +18,11 @@ import { cn } from "@/shared/utils/utils";
 // ─── Props ───────────────────────────────────────────────────────────
 
 interface AnthropometryCardProps {
+  personId: string;
+  patientId: string | null;
   history: AnthropometricSnapshot[];
   isLoading?: boolean;
   compact?: boolean;
-  birthDate?: string | null;
-  gender?: string | null;
-}
-
-// ─── Layer 0: Demographics chip ──────────────────────────────────────
-
-function DemographicsChip({
-  birthDate,
-  gender,
-}: Readonly<{ birthDate?: string | null; gender?: string | null }>) {
-  const age = birthDate ? differenceInYears(new Date(), parseISO(birthDate)) : null;
-  if (age === null && !gender) {
-    return null;
-  }
-  const g = gender?.toUpperCase();
-  const isMale = g === "MALE" || g === "M";
-  const isFemale = g === "FEMALE" || g === "F";
-
-  let Icon = User;
-  let iconClass = "text-muted-foreground";
-  if (isMale) {
-    Icon = Mars;
-    iconClass = "text-sky-600 dark:text-sky-400";
-  } else if (isFemale) {
-    Icon = Venus;
-    iconClass = "text-pink-600 dark:text-pink-400";
-  }
-
-  return (
-    <div className="flex shrink-0 items-center gap-1.5">
-      {gender ? <Icon className={cn("size-4 shrink-0", iconClass)} aria-hidden /> : null}
-      {age !== null ? (
-        <span className="font-medium text-foreground/65 text-xs">
-          {m.anthropometry_age_years({ count: age })}
-        </span>
-      ) : null}
-    </div>
-  );
 }
 
 // ─── Layer 1: Hero ───────────────────────────────────────────────────
@@ -63,31 +30,41 @@ function DemographicsChip({
 function HeroSection({
   latest,
   weightDelta,
+  editButton,
 }: Readonly<{
   latest: AnthropometricSnapshot;
   weightDelta: number | null;
+  editButton?: ReactNode;
 }>) {
   const daysAgo = differenceInDays(new Date(), new Date(latest.date));
+  const weight = latest.weight;
+  const height = latest.height;
+  const isWeightMissing = weight == null;
 
   return (
     <div className="space-y-0.5">
-      {latest.weight !== undefined ? (
-        <div className="flex items-baseline gap-2">
-          <span className="font-bold text-3xl text-foreground tabular-nums">
-            {formatAnthropometryValue(latest.weight)}
-          </span>
-          <span className="text-foreground/65 text-sm">kg</span>
-          {weightDelta !== null ? <DeltaPill value={weightDelta} unit="kg" /> : null}
-        </div>
-      ) : null}
-      {latest.height !== undefined ? (
+      <div className="flex items-baseline gap-2">
+        {isWeightMissing ? (
+          <span className="font-medium text-muted-foreground text-sm">{m.common_unknown()}</span>
+        ) : (
+          <>
+            <span className="font-bold text-3xl text-foreground tabular-nums">
+              {formatAnthropometryValue(weight)}
+            </span>
+            <span className="text-foreground/65 text-sm">{m.common_unit_kg()}</span>
+          </>
+        )}
+        {weight == null || weightDelta == null ? null : <DeltaPill value={weightDelta} unit="kg" />}
+        {editButton}
+      </div>
+      {height == null ? null : (
         <div className="flex items-baseline gap-1.5">
           <span className="font-medium text-foreground text-sm tabular-nums">
-            {formatAnthropometryValue(latest.height)}
+            {formatAnthropometryValue(height)}
           </span>
-          <span className="text-foreground/65 text-xs">cm</span>
+          <span className="text-foreground/65 text-xs">{m.common_unit_cm()}</span>
         </div>
-      ) : null}
+      )}
       <div className="text-foreground/65 text-xs">
         {daysAgo === 0
           ? m.anthropometry_recorded_today()
@@ -99,7 +76,7 @@ function HeroSection({
 
 // ─── Loading skeleton ────────────────────────────────────────────────
 
-export function AnthropometryCardSkeleton({ compact }: Readonly<{ compact?: boolean }>) {
+function AnthropometryCardSkeleton({ compact }: Readonly<{ compact?: boolean }>) {
   return (
     <div
       className={cn(
@@ -164,12 +141,14 @@ export function AnthropometryCardSkeleton({ compact }: Readonly<{ compact?: bool
 // ─── Main component ──────────────────────────────────────────────────
 
 export function AnthropometryCard({
+  personId,
+  patientId,
   history,
   isLoading,
   compact,
-  birthDate,
-  gender,
 }: Readonly<AnthropometryCardProps>) {
+  const [editOpen, setEditOpen] = useState(false);
+
   if (isLoading) {
     return <AnthropometryCardSkeleton compact={compact} />;
   }
@@ -197,13 +176,29 @@ export function AnthropometryCard({
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <HeroSection latest={latest} weightDelta={weightDelta} />
-        <DemographicsChip birthDate={birthDate} gender={gender} />
+        <HeroSection
+          latest={latest}
+          weightDelta={weightDelta}
+          editButton={
+            <DetailEditButton
+              ariaLabel={m.anthropometry_edit_title()}
+              onClick={() => setEditOpen(true)}
+            />
+          }
+        />
       </div>
 
       <div className="my-4 h-px bg-border" />
 
       <AnthropometryMeasurementDetails latest={latest} previous={previous} />
+
+      <EditAnthropometryDialog
+        personId={personId}
+        patientId={patientId}
+        snapshot={latest}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
     </div>
   );
 }

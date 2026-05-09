@@ -36,7 +36,7 @@ export interface PhoneAnalysis {
 
 /** Progressive analysis via AsYouType — used during real-time input. */
 export function analyzePhoneNumber(input: string): PhoneAnalysis {
-  const digits = input.replace(/\D/g, "");
+  const digits = input.replaceAll(/\D/g, "");
 
   if (!digits) {
     return {
@@ -81,7 +81,7 @@ export function formatPhoneDisplay(phone: string): string {
   }
 
   const hasPlus = phone.startsWith("+");
-  const digits = phone.replace(/\D/g, "");
+  const digits = phone.replaceAll(/\D/g, "");
 
   if (!digits) {
     return hasPlus ? "+" : "";
@@ -101,21 +101,8 @@ export function toE164(phone: string): string {
     return parsed.format("E.164");
   }
   // Fallback: return with + if has digits (for partial numbers while typing).
-  const digits = phone.replace(/\D/g, "");
+  const digits = phone.replaceAll(/\D/g, "");
   return digits ? `+${digits}` : "";
-}
-
-// ── Validation ─────────────────────────────────────────────────────────────────
-
-/** Strict validation — only true for fully parseable numbers. */
-export function isValidE164(phone: string): boolean {
-  const parsed = parsePhoneNumberFromString(phone);
-  return parsed?.isValid() ?? false;
-}
-
-/** True if empty or only formatting characters (e.g., "+"). */
-export function isPhoneEmpty(phone: string): boolean {
-  return !phone.replace(/\D/g, "");
 }
 
 // ── Input handling ─────────────────────────────────────────────────────────────
@@ -126,8 +113,8 @@ export function sanitizePhoneInput(
   previousValue: string,
 ): { value: string; truncated: boolean } {
   // Remove all non-digit characters except leading +.
-  let sanitized = rawInput.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "");
-  const digits = sanitized.replace(/\D/g, "");
+  let sanitized = rawInput.replaceAll(/[^\d+]/g, "").replaceAll(/(?!^)\+/g, "");
+  const digits = sanitized.replaceAll(/\D/g, "");
 
   if (digits.length > 0 && !sanitized.startsWith("+")) {
     sanitized = `+${digits}`;
@@ -138,7 +125,7 @@ export function sanitizePhoneInput(
   }
 
   const analysis = analyzePhoneNumber(sanitized);
-  const prevDigits = previousValue.replace(/\D/g, "");
+  const prevDigits = previousValue.replaceAll(/\D/g, "");
 
   if (!analysis.canAddMoreDigits && analysis.status === "invalid") {
     // If we're adding digits (not deleting), truncate to valid length.
@@ -152,8 +139,8 @@ export function sanitizePhoneInput(
 }
 
 /** Trim pasted numbers that exceed the detected country's max length. */
-export function truncateToValidLength(input: string): string {
-  const digits = input.replace(/\D/g, "");
+function truncateToValidLength(input: string): string {
+  const digits = input.replaceAll(/\D/g, "");
   if (!digits) {
     return input.startsWith("+") ? "+" : "";
   }

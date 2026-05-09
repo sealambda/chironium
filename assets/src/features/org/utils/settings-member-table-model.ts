@@ -1,7 +1,15 @@
-import type { OrganizationSettingsData, PrincipalGrantRow } from "@/features/org/api/org-api";
+import type { OrganizationSettingsData } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
 import type { OrganizationUserRole } from "@/shared/types/schema-enums";
 import { givenFamilyFromUserProfile } from "@/shared/utils/name-utils";
+
+function hasActivePractitionerGrant(
+  grants: readonly { principalType: string; active: boolean }[] | null | undefined,
+): boolean {
+  return (grants ?? []).some(
+    (grant) => grant.active && grant.principalType.toUpperCase() === "PRACTITIONER",
+  );
+}
 
 export type MemberSource =
   | { kind: "owner"; userId: string }
@@ -26,10 +34,6 @@ export type SettingsMemberTableRow = MemberRowDisplay & {
 
 function isPendingInvitationState(state: string): boolean {
   return state.toLowerCase() === "pending";
-}
-
-export function hasActivePractitionerGrant(grants: PrincipalGrantRow[]): boolean {
-  return grants.some((grant) => grant.principalType === "PRACTITIONER" && grant.active);
 }
 
 function formatMemberRoleCell(params: {

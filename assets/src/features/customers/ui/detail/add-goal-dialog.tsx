@@ -9,17 +9,9 @@ import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import type { GoalCategory, GoalPriority } from "@/shared/types/schema-enums";
-import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
+import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";
 import {
   Select,
@@ -76,13 +68,6 @@ export function AddGoalDialog({
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
   const isEditing = Boolean(editGoal);
-  let submitLabel = m.common_add();
-  if (isEditing) {
-    submitLabel = m.common_save();
-  }
-  if (saving) {
-    submitLabel = m.common_saving();
-  }
 
   const hasContent = description.trim().length > 0;
 
@@ -178,96 +163,88 @@ export function AddGoalDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {children ? <DialogTrigger render={children as React.ReactElement} /> : null}
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isEditing ? m.goals_edit_title() : m.common_add()}</DialogTitle>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children ? (children as React.ReactElement) : undefined}
+      title={isEditing ? m.goals_edit_title() : m.common_add()}
+      onSubmit={handleSubmit}
+      submitDisabled={!hasContent}
+      saving={saving}
+    >
+      <FieldGroup>
+        <Field>
+          <FieldLabel>{m.goals_description()}</FieldLabel>
+          <Input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={m.goals_description_placeholder()}
+            disabled={saving}
+          />
+        </Field>
 
-        <FieldGroup>
+        <div className="grid grid-cols-2 gap-4">
           <Field>
-            <FieldLabel>{m.goals_description()}</FieldLabel>
-            <Input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={m.goals_description_placeholder()}
+            <FieldLabel>{m.goals_priority()}</FieldLabel>
+            <Select
+              value={priority}
+              onValueChange={(v) => setPriority(v ?? "")}
+              items={PRIORITY_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
+            >
+              <SelectTrigger className="w-full" disabled={saving}>
+                <SelectValue placeholder={m.goals_priority_placeholder()} />
+              </SelectTrigger>
+              <SelectPositioner>
+                <SelectContent>
+                  {PRIORITY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectPositioner>
+            </Select>
+          </Field>
+
+          <Field>
+            <FieldLabel>{m.goals_category()}</FieldLabel>
+            <Select
+              value={category}
+              onValueChange={(v) => setCategory(v ?? "")}
+              items={CATEGORY_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
+            >
+              <SelectTrigger className="w-full" disabled={saving}>
+                <SelectValue placeholder={m.goals_category_placeholder()} />
+              </SelectTrigger>
+              <SelectPositioner>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectPositioner>
+            </Select>
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field>
+            <FieldLabel>{m.goals_start_date()}</FieldLabel>
+            <DatePickerString
+              value={startDate}
+              onChange={(v) => setStartDate(v)}
               disabled={saving}
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Field>
-              <FieldLabel>{m.goals_priority()}</FieldLabel>
-              <Select
-                value={priority}
-                onValueChange={(v) => setPriority(v ?? "")}
-                items={PRIORITY_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
-              >
-                <SelectTrigger className="w-full" disabled={saving}>
-                  <SelectValue placeholder={m.goals_priority_placeholder()} />
-                </SelectTrigger>
-                <SelectPositioner>
-                  <SelectContent>
-                    {PRIORITY_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectPositioner>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel>{m.goals_category()}</FieldLabel>
-              <Select
-                value={category}
-                onValueChange={(v) => setCategory(v ?? "")}
-                items={CATEGORY_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
-              >
-                <SelectTrigger className="w-full" disabled={saving}>
-                  <SelectValue placeholder={m.goals_category_placeholder()} />
-                </SelectTrigger>
-                <SelectPositioner>
-                  <SelectContent>
-                    {CATEGORY_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectPositioner>
-              </Select>
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field>
-              <FieldLabel>{m.goals_start_date()}</FieldLabel>
-              <DatePickerString
-                value={startDate}
-                onChange={(v) => setStartDate(v)}
-                disabled={saving}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel>{m.goals_due_date()}</FieldLabel>
-              <DatePickerString value={dueDate} onChange={(v) => setDueDate(v)} disabled={saving} />
-            </Field>
-          </div>
-        </FieldGroup>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            {m.common_cancel()}
-          </Button>
-          <Button onClick={handleSubmit} loading={saving} disabled={!hasContent}>
-            {submitLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <Field>
+            <FieldLabel>{m.goals_due_date()}</FieldLabel>
+            <DatePickerString value={dueDate} onChange={(v) => setDueDate(v)} disabled={saving} />
+          </Field>
+        </div>
+      </FieldGroup>
+    </FormDialog>
   );
 }

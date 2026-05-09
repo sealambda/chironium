@@ -5,8 +5,11 @@ packages:
   - deps/phoenix_html
   - deps/phoenix_live_view
 allowBuilds:
+  '@parcel/watcher': false
+  core-js: false
   esbuild: false
   msw: false
+  protobufjs: false
   unrs-resolver: false
 
 catalog:

@@ -6,10 +6,11 @@ import {
   type ObservationItem,
   updateClinicalNoteObservation,
 } from "@/features/customers/api/observations-api";
-import { ObservationDialog } from "@/features/customers/ui/detail/observation-dialog";
+import { ObservationForm } from "@/features/customers/ui/observation-form";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { FormDialog } from "@/shared/ui/form-dialog";
 import { isoToDateTimeInputParts } from "@/shared/utils/date-time-input";
 
 interface EditObservationDialogProps {
@@ -65,19 +66,24 @@ export function EditObservationDialog({
   };
 
   return (
-    <ObservationDialog
+    <FormDialog
       title={m.observations_edit_title()}
-      submitLabel={m.common_save()}
       open={open}
       onOpenChange={onOpenChange}
-      body={body}
-      onBodyChange={setBody}
-      effectiveDate={effectiveDate}
-      onEffectiveDateChange={setEffectiveDate}
-      effectiveTime={effectiveTime}
-      onEffectiveTimeChange={setEffectiveTime}
       onSubmit={handleSubmit}
+      submitDisabled={!body.trim()}
       saving={saving}
-    />
+    >
+      <ObservationForm
+        body={body}
+        onBodyChange={setBody}
+        effectiveDate={effectiveDate}
+        onEffectiveDateChange={setEffectiveDate}
+        effectiveTime={effectiveTime}
+        onEffectiveTimeChange={setEffectiveTime}
+        disabled={saving}
+        rows={4}
+      />
+    </FormDialog>
   );
 }

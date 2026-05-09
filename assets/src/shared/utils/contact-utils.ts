@@ -8,13 +8,6 @@ interface ContactPoint {
 }
 
 /**
- * Sanitize phone number to digits only for URL building.
- */
-export function sanitizePhoneDigits(phone: string): string {
-  return phone.replaceAll(/\D/g, "");
-}
-
-/**
  * Check whether the value is already a full Instagram URL.
  */
 function isInstagramUrl(value: string): boolean {
@@ -25,11 +18,15 @@ function isInstagramUrl(value: string): boolean {
   }
 }
 
-/**
- * Normalize Instagram handle by removing leading @ symbol.
- */
-export function normalizeInstagramHandle(handle: string): string {
-  return handle.startsWith("@") ? handle.slice(1) : handle;
+function sanitizePhoneDigits(value: string): string {
+  return value.replaceAll(/\D/g, "");
+}
+
+function normalizeInstagramHandle(value: string): string {
+  return value
+    .trim()
+    .replace(/^@/, "")
+    .replaceAll(/^\/+|\/+$/g, "");
 }
 
 /**

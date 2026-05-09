@@ -1,4 +1,6 @@
+import type { LucideIcon } from "lucide-react";
 import { Activity, AlertCircle } from "lucide-react";
+import type { ReactNode } from "react";
 
 import type { AllergyIntoleranceItem } from "@/features/customers/api/allergy-intolerance-api";
 import type { AnthropometricSnapshot } from "@/features/customers/api/anthropometry-api";
@@ -12,13 +14,38 @@ import type {
 } from "@/features/customers/api/observations-api";
 import { useActivityFeed } from "@/features/customers/hooks/use-activity-feed";
 import type { FeedEventKind } from "@/features/customers/types/activity-feed";
-import { CustomerDetailEmptyCardContent } from "@/features/customers/ui/detail/customer-detail-empty-card";
+import { AddRecordButton } from "@/features/customers/ui/detail/add-record-button";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 
 import { ActivityFeedSkeleton } from "./activity-feed-skeleton";
 import { ActivityFeedTimeline } from "./activity-feed-timeline";
 import { FeedShowMore } from "./feed-show-more";
+
+interface ActivityFeedEmptyCardContentProps {
+  readonly icon: LucideIcon;
+  readonly title: ReactNode;
+  readonly description: ReactNode;
+  readonly onAdd?: () => void;
+}
+
+function ActivityFeedEmptyCardContent({
+  icon: Icon,
+  title,
+  description,
+  onAdd,
+}: Readonly<ActivityFeedEmptyCardContentProps>) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-8">
+      <Icon className="size-10 shrink-0 text-muted-foreground/60" aria-hidden />
+      <div className="text-center">
+        <p className="font-medium text-foreground text-sm">{title}</p>
+        <p className="mt-0.5 text-foreground/65 text-xs">{description}</p>
+      </div>
+      {onAdd == null ? null : <AddRecordButton onClick={onAdd} />}
+    </div>
+  );
+}
 
 interface ActivityFeedCardProps {
   personId: string;
@@ -35,6 +62,7 @@ interface ActivityFeedCardProps {
   menstrualCycles: MenstrualCycleEntry[];
   activeFilter: FeedEventKind | "all";
   personName?: string | null;
+  openAddRecord?: () => void;
 }
 
 export function ActivityFeedCard({
@@ -52,6 +80,7 @@ export function ActivityFeedCard({
   menstrualCycles,
   activeFilter,
   personName,
+  openAddRecord,
 }: Readonly<ActivityFeedCardProps>) {
   const { groups, isLoading, isError, hasMore, showMore } = useActivityFeed({
     personId,
@@ -84,10 +113,11 @@ export function ActivityFeedCard({
     );
   } else if (isEmpty) {
     feedBody = (
-      <CustomerDetailEmptyCardContent
+      <ActivityFeedEmptyCardContent
         icon={Activity}
         title={m.activity_empty()}
         description={m.activity_empty_desc()}
+        onAdd={openAddRecord}
       />
     );
   } else {

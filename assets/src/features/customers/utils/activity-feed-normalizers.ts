@@ -1,4 +1,4 @@
-import { addDays, formatDistanceToNowStrict, isFuture, isToday, parseISO } from "date-fns";
+import { addDays, isFuture, isToday, parseISO } from "date-fns";
 
 import type { AllergyIntoleranceItem } from "@/features/customers/api/allergy-intolerance-api";
 import type { AnthropometricSnapshot } from "@/features/customers/api/anthropometry-api";
@@ -21,11 +21,15 @@ import {
   actorFromNotes,
   actorFromVersions,
   mergeFeedActor,
+  uniqueActors,
 } from "@/features/customers/types/activity-feed";
+import {
+  formatRelativeDayFromIso,
+  toIsoDateString,
+} from "@/features/customers/utils/activity-feed-dates";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
-import { getDateLocale } from "@/shared/utils/date-locale";
 
 const SUBSCRIPTION_ENDING_HORIZON_DAYS = 90;
 
@@ -62,7 +66,12 @@ function normalizeObservations(page: ObservationsPage | undefined): FeedEvent[] 
     kind: "observation",
     id: observation.id,
     date: observation.effectiveDateTime ?? nowIso(),
-    actor: actorFromNotes(observation.note),
+    actors: uniqueActors([
+      mergeFeedActor(
+        actorFromVersions(observation.paperTrailVersions),
+        actorFromNotes(observation.note),
+      ),
+    ]),
     payload: observation,
   }));
 }
@@ -72,7 +81,9 @@ function normalizeTasks(tasks: PatientTask[] | undefined): FeedEvent[] {
     kind: "task",
     id: task.id,
     date: task.requestedPeriod?.start ?? nowIso(),
-    actor: mergeFeedActor(actorFromVersions(task.paperTrailVersions), actorFromNotes(task.note)),
+    actors: uniqueActors([
+      mergeFeedActor(actorFromVersions(task.paperTrailVersions), actorFromNotes(task.note)),
+    ]),
     payload: task,
   }));
 }
@@ -82,24 +93,26 @@ function normalizeMenstrualCycles(entries: MenstrualCycleEntry[] | undefined): F
     kind: "menstrual",
     id: entry.id,
     date: entry.effectiveDateTime,
-    actor: mergeFeedActor(
-      actorFromVersions(entry.paperTrailVersions),
-      actorFromNotes(entry.sourceNotes),
-    ),
+    actors: uniqueActors([
+      mergeFeedActor(
+        actorFromVersions(entry.paperTrailVersions),
+        actorFromNotes(entry.sourceNotes),
+      ),
+    ]),
     payload: entry,
   }));
 }
 
 function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
   // Bucket "created" events by minute-precision timestamp so goals set simultaneously appear as one feed event.
-  const createdBuckets = new Map<
-    string,
-    { goals: GoalRecord[]; actor: ReturnType<typeof actorFromNotes> }
-  >();
+  const createdBuckets = new Map<string, { goals: GoalRecord[]; actors: FeedActor[] }>();
   const dueEvents: FeedEvent[] = [];
 
   for (const goal of goals) {
-    const actor = actorFromNotes(goal.note);
+    const actor = mergeFeedActor(
+      actorFromVersions(goal.paperTrailVersions),
+      actorFromNotes(goal.note),
+    );
     const rawDate =
       goal.note?.[0]?.time ??
       (goal.startDate ? `${goal.startDate}T00:00:00.000Z` : null) ??
@@ -110,8 +123,14 @@ function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
     const bucket = createdBuckets.get(bucketKey);
     if (bucket) {
       bucket.goals.push(goal);
+      if (actor) {
+        bucket.actors.push(actor);
+      }
     } else {
-      createdBuckets.set(bucketKey, { goals: [goal], actor });
+      createdBuckets.set(bucketKey, {
+        goals: [goal],
+        actors: actor ? [actor] : [],
+      });
     }
 
     if (goal.dueDate) {
@@ -119,7 +138,7 @@ function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
         kind: "goal",
         id: `${goal.id}-due`,
         date: `${goal.dueDate}T00:00:00.000Z`,
-        actor,
+        actors: uniqueActors([actor]),
         variant: "due",
         payload: goal,
       });
@@ -127,11 +146,11 @@ function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
   }
 
   const createdEvents: FeedEvent[] = Array.from(createdBuckets.entries()).map(
-    ([bucketKey, { goals: bucketGoals, actor }]) => ({
+    ([bucketKey, { goals: bucketGoals, actors: bucketActors }]) => ({
       kind: "goal",
       id: `goal-created-${bucketKey}`,
       date: `${bucketKey}:00.000Z`,
-      actor,
+      actors: uniqueActors(bucketActors).length > 0 ? uniqueActors(bucketActors) : undefined,
       variant: "created",
       payload: bucketGoals,
     }),
@@ -140,46 +159,80 @@ function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
   return [...createdEvents, ...dueEvents];
 }
 
+function anthropometryObservationActors(snapshot: AnthropometricSnapshot): FeedActor[] {
+  if (!snapshot.observations) {
+    return [];
+  }
+
+  const actors: FeedActor[] = [];
+  for (const observation of Object.values(snapshot.observations)) {
+    const fromVersions = actorFromVersions(observation?.paperTrailVersions);
+    if (fromVersions) {
+      actors.push(fromVersions);
+    }
+
+    for (const note of observation?.note ?? []) {
+      const actor = actorFromNotes([note]);
+      if (actor) {
+        actors.push(actor);
+      }
+    }
+  }
+
+  return actors;
+}
+
 function normalizeAnthropometry(snapshots: AnthropometricSnapshot[] | undefined): FeedEvent[] {
-  return (snapshots ?? []).map((snapshot) => ({
-    kind: "anthropometry",
-    id: snapshot.primaryObservationId ?? snapshot.date,
-    date: snapshot.date,
-    actor: mergeFeedActor(
+  return (snapshots ?? []).map((snapshot) => {
+    const primaryActor = mergeFeedActor(
       actorFromVersions(snapshot.paperTrailVersions),
       actorFromNotes(snapshot.notes),
-    ),
-    payload: snapshot,
-  }));
+    );
+    const allActors = uniqueActors([primaryActor, ...anthropometryObservationActors(snapshot)]);
+
+    return {
+      kind: "anthropometry",
+      id: snapshot.primaryObservationId ?? snapshot.date,
+      date: snapshot.date,
+      actors: allActors.length > 0 ? allActors : undefined,
+      payload: snapshot,
+    };
+  });
 }
 
 function bucketByMinute<RecordItem extends Trackable>(
   records: readonly RecordItem[],
   getDate: (record: RecordItem) => string,
-): { date: string; actor: FeedActor | undefined; items: RecordItem[] }[] {
-  const buckets = new Map<
-    string,
-    { date: string; actor: FeedActor | undefined; items: RecordItem[] }
-  >();
+): { date: string; actors: FeedActor[]; items: RecordItem[] }[] {
+  const buckets = new Map<string, { date: string; actors: FeedActor[]; items: RecordItem[] }>();
 
   for (const record of records) {
     const date = getDate(record);
     const key = date.slice(0, 16);
+    const recordActor = mergeFeedActor(
+      actorFromVersions(record.paperTrailVersions),
+      actorFromNotes(record.note),
+    );
     const existingBucket = buckets.get(key);
 
     if (existingBucket) {
       existingBucket.items.push(record);
+      if (recordActor) {
+        existingBucket.actors.push(recordActor);
+      }
       continue;
     }
 
     buckets.set(key, {
       date,
-      actor: mergeFeedActor(
-        actorFromVersions(record.paperTrailVersions),
-        actorFromNotes(record.note),
-      ),
+      actors: recordActor ? [recordActor] : [],
       items: [record],
     });
+  }
+
+  // Deduplicate actors in each bucket.
+  for (const bucket of buckets.values()) {
+    bucket.actors = uniqueActors(bucket.actors);
   }
 
   return Array.from(buckets.values());
@@ -200,7 +253,7 @@ function normalizeConditions(conditions: ConditionItem[]): FeedEvent[] {
     kind: "condition",
     id: group.items.map((item) => item.id).join("-"),
     date: group.date,
-    actor: group.actor,
+    actors: group.actors.length > 0 ? group.actors : undefined,
     payload: group.items,
   }));
 }
@@ -233,7 +286,7 @@ function normalizeAllergyIntolerances(items: AllergyIntoleranceItem[]): FeedEven
       kind: "allergy",
       id: group.items.map((item) => item.id).join("-"),
       date: group.date,
-      actor: group.actor,
+      actors: group.actors.length > 0 ? group.actors : undefined,
       aiType,
       payload: group.items,
     }));
@@ -253,7 +306,7 @@ function normalizeMedications(items: MedicationItem[]): FeedEvent[] {
     kind: "medication",
     id: group.items.map((item) => item.id).join("-"),
     date: group.date,
-    actor: group.actor,
+    actors: group.actors.length > 0 ? group.actors : undefined,
     payload: group.items,
   }));
 }
@@ -263,7 +316,7 @@ function normalizeFoodPreferences(items: FoodPreferenceHistoryItem[] | undefined
     string,
     {
       date: string;
-      actor: FeedActor | undefined;
+      actors: FeedActor[];
       variant: "inclusion" | "exclusion";
       items: FoodPreferenceHistoryItem[];
     }
@@ -272,16 +325,23 @@ function normalizeFoodPreferences(items: FoodPreferenceHistoryItem[] | undefined
   for (const item of items ?? []) {
     const date = item.date ?? nowIso();
     const key = `${date.slice(0, 16)}-${item.type}`;
+    const itemActor = mergeFeedActor(
+      actorFromVersions(item.paperTrailVersions),
+      actorFromNotes(item.notes),
+    );
     const existingBucket = buckets.get(key);
 
     if (existingBucket) {
       existingBucket.items.push(item);
+      if (itemActor) {
+        existingBucket.actors.push(itemActor);
+      }
       continue;
     }
 
     buckets.set(key, {
       date,
-      actor: actorFromNotes(item.notes),
+      actors: itemActor ? [itemActor] : [],
       variant: item.type,
       items: [item],
     });
@@ -291,7 +351,7 @@ function normalizeFoodPreferences(items: FoodPreferenceHistoryItem[] | undefined
     kind: "food-preference",
     id: group.items.map((item) => item.id).join("-"),
     date: group.date,
-    actor: group.actor,
+    actors: uniqueActors(group.actors).length > 0 ? uniqueActors(group.actors) : undefined,
     variant: group.variant,
     payload: group.items,
   }));
@@ -319,7 +379,7 @@ function pauseEvents(subscription: SubscriptionRecord, actor: SubscriptionActor)
       kind: "subscription",
       id: `${pause.id}-paused`,
       date: `${pause.startDate}T00:00:00.000Z`,
-      actor,
+      actors: uniqueActors([actor]),
       variant: "paused",
       payload: subscription,
       pause,
@@ -334,7 +394,7 @@ function pauseEvents(subscription: SubscriptionRecord, actor: SubscriptionActor)
       kind: "subscription",
       id: `${pause.id}-${isCancellation ? "cancelled" : "resumed"}`,
       date: `${pause.endDate}T00:00:00.000Z`,
-      actor,
+      actors: uniqueActors([actor]),
       variant: isCancellation ? "cancelled" : "resumed",
       payload: subscription,
       pause,
@@ -344,7 +404,7 @@ function pauseEvents(subscription: SubscriptionRecord, actor: SubscriptionActor)
   return events;
 }
 
-function endingEvent(
+function finishEvent(
   subscription: SubscriptionRecord,
   actor: SubscriptionActor,
   horizon: Date,
@@ -360,10 +420,10 @@ function endingEvent(
 
   return {
     kind: "subscription",
-    id: `${subscription.id}-ending`,
+    id: `${subscription.id}-finished`,
     date: endIso,
-    actor,
-    variant: "ending",
+    actors: uniqueActors([actor]),
+    variant: "finished",
     payload: subscription,
   };
 }
@@ -395,7 +455,7 @@ function normalizeSubscriptions(
         kind: "subscription",
         id: `${subscription.id}-started`,
         date: `${subscription.startDate}T00:00:00.000Z`,
-        actor,
+        actors: uniqueActors([actor]),
         variant: "started",
         payload: subscription,
       });
@@ -403,9 +463,9 @@ function normalizeSubscriptions(
 
     events.push(...pauseEvents(subscription, actor));
 
-    const ending = endingEvent(subscription, actor, horizon);
-    if (ending) {
-      events.push(ending);
+    const finished = finishEvent(subscription, actor, horizon);
+    if (finished) {
+      events.push(finished);
     }
   }
 
@@ -444,25 +504,18 @@ export function buildActivityFeedEvents({
   return filtered.sort((left, right) => right.date.localeCompare(left.date));
 }
 
-function isoDateString(isoTimestamp: string) {
-  return isoTimestamp.slice(0, 10);
-}
-
 function dateGroupLabel(isoDate: string, today: boolean) {
   if (today) {
     return m.activity_today();
   }
-  return formatDistanceToNowStrict(parseISO(isoDate), {
-    addSuffix: true,
-    locale: getDateLocale(),
-  });
+  return formatRelativeDayFromIso(isoDate);
 }
 
 export function groupFeedEventsByDate(events: FeedEvent[]): FeedDateGroup[] {
   const map = new Map<string, FeedDateGroup>();
 
   for (const event of events) {
-    const isoDate = isoDateString(event.date);
+    const isoDate = toIsoDateString(event.date);
     const today = isToday(parseISO(isoDate));
     const group = map.get(isoDate);
 

@@ -21,15 +21,7 @@ import { invalidatePersonDetail } from "@/features/customers/utils/person-detail
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
-import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
+import { FormDialog } from "@/shared/ui/form-dialog";
 
 interface AddAnthropometryDialogProps {
   readonly personId: string;
@@ -104,31 +96,22 @@ export function AddAnthropometryDialog({
   const initialShowMore = hasAdvancedAnthropometryValues(latestAnthropometry);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {children !== undefined && <DialogTrigger render={children as React.ReactElement} />}
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{m.anthropometry_add()}</DialogTitle>
-        </DialogHeader>
-
-        <AnthropometryFormFields
-          key={`${open ? "open" : "closed"}-${initialShowMore ? "advanced" : "basic"}`}
-          form={form}
-          saving={saving}
-          withSteppers
-          withValidation
-          initialShowMore={initialShowMore}
-        />
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            {m.common_cancel()}
-          </Button>
-          <Button onClick={() => form.handleSubmit()} loading={saving}>
-            {saving ? m.common_saving() : m.common_add()}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children === undefined ? undefined : (children as React.ReactElement)}
+      title={m.anthropometry_add()}
+      onSubmit={() => form.handleSubmit()}
+      saving={saving}
+    >
+      <AnthropometryFormFields
+        key={`${open ? "open" : "closed"}-${initialShowMore ? "advanced" : "basic"}`}
+        form={form}
+        saving={saving}
+        withSteppers
+        withValidation
+        initialShowMore={initialShowMore}
+      />
+    </FormDialog>
   );
 }
