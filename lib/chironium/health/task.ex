@@ -96,8 +96,6 @@ defmodule Chironium.Health.Task do
     end
   end
 
-  @pending_statuses [:draft, :ready, :requested, :received, :accepted, :rejected]
-
   actions do
     defaults [:read, :destroy, update: :*, create: :*]
 

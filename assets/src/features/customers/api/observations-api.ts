@@ -66,38 +66,6 @@ const LogMenstrualPeriodDurationMutation = graphql(`
   }
 `);
 
-const UpdateMenstrualPeriodStartMutation = graphql(`
-  mutation UpdateMenstrualPeriodStart($id: ID!, $input: UpdateMenstrualPeriodStartInput) {
-    updateMenstrualPeriodStart(id: $id, input: $input) {
-      result {
-        id
-        effectiveDateTime
-        valueDateTime
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const UpdateMenstrualPeriodDurationMutation = graphql(`
-  mutation UpdateMenstrualPeriodDuration($id: ID!, $input: UpdateMenstrualPeriodDurationInput) {
-    updateMenstrualPeriodDuration(id: $id, input: $input) {
-      result {
-        id
-        effectiveDateTime
-        valueQuantity {
-          value
-        }
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
 const UpdateObservationMutation = graphql(`
   mutation UpdateObservation($id: ID!, $input: UpdateObservationInput) {
     updateObservation(id: $id, input: $input) {
@@ -285,34 +253,39 @@ export async function updateMenstrualCycle(
 
   const note = buildObservationNoteInput(data.notes, userId, userName);
   const startResult = await requestGraphql({
-    document: UpdateMenstrualPeriodStartMutation,
+    document: UpdateObservationMutation,
     variables: {
       id: startObservationId,
       input: {
         effectiveDateTime,
+        valueDateTime: effectiveDateTime,
         note,
       },
     },
     organizationId,
   });
-  unwrapMutationResult(startResult.updateMenstrualPeriodStart, "Failed to update period start.");
+  unwrapMutationResult(startResult.updateObservation, "Failed to update period start.");
 
   const durationObservationId = cycle.durationObservationId;
   if (data.durationDays != null && data.durationDays > 0) {
     if (durationObservationId) {
       const durationUpdateResult = await requestGraphql({
-        document: UpdateMenstrualPeriodDurationMutation,
+        document: UpdateObservationMutation,
         variables: {
           id: durationObservationId,
           input: {
             effectiveDateTime,
-            durationDays: data.durationDays,
+            valueQuantity: {
+              system: "http://unitsofmeasure.org",
+              code: "d",
+              value: data.durationDays,
+            },
           },
         },
         organizationId,
       });
       unwrapMutationResult(
-        durationUpdateResult.updateMenstrualPeriodDuration,
+        durationUpdateResult.updateObservation,
         "Failed to update period duration.",
       );
       return;
