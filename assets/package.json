@@ -4,9 +4,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "build": "paraglide-js compile --emit-ts-declarations --strategy cookie preferredLanguage baseLocale && tsc -b && vite build && pnpm phoenix-css:build",
-    "phoenix-css:build": "tailwindcss --input css/app.css --output ../priv/static/assets/app.css --minify",
-    "phoenix-css:dev": "tailwindcss --input css/app.css --output ../priv/static/assets/app.css --watch",
+    "build": "paraglide-js compile --emit-ts-declarations --strategy cookie preferredLanguage baseLocale && tsc -b && vite build && pnpm phoenix:css-build",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "biome check .",
@@ -16,15 +14,16 @@
     "format:fix": "biome format --write .",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
-    "precommit": "pnpm quality",
+    "precommit": "biome check . && tsc --noEmit",
     "preview": "vite preview",
     "quality": "biome check . && tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "gql:generate": "gql.tada generate output --tsconfig tsconfig.app.json",
     "gql:check": "gql.tada check --tsconfig tsconfig.app.json",
-    "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui",
-    "e2e:install": "playwright install chromium"
+    "e2e": "pnpm e2e:install && PLAYWRIGHT_BROWSERS_PATH=0 playwright test",
+    "e2e:ui": "pnpm e2e:install && PLAYWRIGHT_BROWSERS_PATH=0 playwright test --ui",
+    "e2e:install": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
+    "phoenix:css-build": "tailwindcss --input css/app.css --output ../priv/static/assets/app.css --minify"
   },
   "dependencies": {
     "@base-ui/react": "~1.4.1",

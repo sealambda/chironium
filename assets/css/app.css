@@ -11,9 +11,7 @@
  * what made `@tailwindcss/vite` + daisyUI fail in the current Vite 8 RC line.
  *
  * Entry points:
- *   - `pnpm phoenix-css:build` (one-shot, minified, prod).
- *   - `pnpm phoenix-css:dev`   (watch mode, dev). Wired as a Phoenix watcher
- *     in `config/dev.exs` so it starts alongside the Vite dev server.
+ *   - `pnpm phoenix:css-build` (one-shot, minified, prod).
  *
  * References:
  *   - Tailwind CLI:        https://tailwindcss.com/docs/installation/tailwind-cli
