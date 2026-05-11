@@ -74,7 +74,7 @@ export default defineConfig({
       // compiled by the standalone `@tailwindcss/cli` to
       // `priv/static/assets/app.css` and served by Phoenix's `Plug.Static`.
       // This isolates rolldown/Vite from daisyUI's plugin CSS resolution and
-      // keeps the SPA bundle smaller. See `pnpm phoenix-css:build`.
+      // keeps the SPA bundle smaller. See `pnpm phoenix:css-build`.
       input: ["js/app.js", "src/main.tsx"],
       output: {
         // Vendor chunk for better caching.
