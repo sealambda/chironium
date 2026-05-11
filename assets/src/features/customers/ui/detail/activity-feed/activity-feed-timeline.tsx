@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil } from "lucide-react";
+import { Ban, Check, Pause, Pencil, RotateCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,11 +23,21 @@ import { EditAnthropometryDialog } from "@/features/customers/ui/detail/edit-ant
 import { EditObservationDialog } from "@/features/customers/ui/detail/edit-observation-dialog";
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
 import { EditTaskReminderDialog } from "@/features/customers/ui/detail/edit-task-reminder-dialog";
+import {
+  CancelActionDialog,
+  ResumeActionDialog,
+  SuspendActionDialog,
+} from "@/features/customers/ui/detail/subscription-management-dialogs";
+import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { completeTaskReminder } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-import { personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
+import {
+  customersQueryKeys,
+  personQueryKeys,
+  tasksListQueryKey,
+} from "@/shared/utils/query-keys";
 
 import { AllergyEvent } from "./allergy-event";
 import { AnthropometryEvent } from "./anthropometry-event";
@@ -159,6 +169,92 @@ function SubscriptionEditAction({
   );
 }
 
+function SubscriptionHeaderActions({
+  personId,
+  organizationId,
+  subscription,
+}: Readonly<{
+  personId: string;
+  organizationId: string;
+  subscription: Extract<FeedEvent, { kind: "subscription" }>['payload'];
+}>) {
+  const queryClient = useQueryClient();
+
+  const invalidateSubscriptionQueries = async () => {
+    await Promise.all([
+      invalidatePersonDetail(queryClient, personId),
+      queryClient.invalidateQueries({
+        queryKey: personQueryKeys.subscriptions(personId, organizationId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: customersQueryKeys.personsPrefix(organizationId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: customersQueryKeys.subscriptions(organizationId),
+      }),
+    ]);
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      {subscription.state === "active" ? (
+        <>
+          <SuspendActionDialog
+            subscriptionId={subscription.id}
+            organizationId={organizationId}
+            onMutated={invalidateSubscriptionQueries}
+            trigger={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-full text-muted-foreground hover:text-foreground"
+                aria-label={m.subscription_action_suspend()}
+              >
+                <Pause aria-hidden />
+              </Button>
+            }
+          />
+          <CancelActionDialog
+            subscriptionId={subscription.id}
+            organizationId={organizationId}
+            onMutated={invalidateSubscriptionQueries}
+            trigger={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-full text-muted-foreground hover:text-destructive"
+                aria-label={m.subscription_action_cancel()}
+              >
+                <Ban aria-hidden />
+              </Button>
+            }
+          />
+        </>
+      ) : (
+        <ResumeActionDialog
+          subscriptionId={subscription.id}
+          organizationId={organizationId}
+          onMutated={invalidateSubscriptionQueries}
+          trigger={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="rounded-full text-muted-foreground hover:text-foreground"
+              aria-label={m.subscription_action_resume()}
+            >
+              <RotateCw aria-hidden />
+            </Button>
+          }
+        />
+      )}
+      <SubscriptionEditAction subscription={subscription} personId={personId} />
+    </div>
+  );
+}
+
 function MenstrualCycleEditAction({
   personId,
   patientId,
@@ -203,7 +299,7 @@ function TaskReminderEditAction({
           }
 
           setCompleting(true);
-          void completeTaskReminder(task.id, selectedOrg.id)
+          completeTaskReminder(task.id, selectedOrg.id)
             .then(async () => {
               await Promise.all([
                 queryClient.invalidateQueries({
@@ -276,16 +372,24 @@ function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
 function EventAction({
   event,
   personId,
+  organizationId,
   patientId,
   isLatestSubscription,
 }: Readonly<{
   event: FeedEvent;
   personId: string;
+  organizationId: string;
   patientId: string | null;
   isLatestSubscription: boolean;
 }>) {
   if (event.kind === "subscription" && isLatestSubscription) {
-    return <SubscriptionEditAction subscription={event.payload} personId={personId} />;
+    return (
+      <SubscriptionHeaderActions
+        personId={personId}
+        organizationId={organizationId}
+        subscription={event.payload}
+      />
+    );
   }
   if (event.kind === "anthropometry") {
     return (
@@ -314,12 +418,14 @@ interface ActivityFeedTimelineProps {
   groups: FeedDateGroup[];
   personId: string;
   patientId: string | null;
+  organizationId: string;
 }
 
 export function ActivityFeedTimeline({
   groups,
   personId,
   patientId,
+  organizationId,
 }: Readonly<ActivityFeedTimelineProps>) {
   if (groups.length === 0) {
     return null;
@@ -368,6 +474,7 @@ export function ActivityFeedTimeline({
                 <EventAction
                   event={event}
                   personId={personId}
+                  organizationId={organizationId}
                   patientId={patientId}
                   isLatestSubscription={event.id === latestSubscriptionId}
                 />

@@ -24,11 +24,10 @@ import {
   uniqueActors,
 } from "@/features/customers/types/activity-feed";
 import {
-  formatRelativeDayFromIso,
+  formatDayLabelFromIso,
   toIsoDateString,
 } from "@/features/customers/utils/activity-feed-dates";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
-import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 
 const SUBSCRIPTION_ENDING_HORIZON_DAYS = 90;
@@ -504,13 +503,6 @@ export function buildActivityFeedEvents({
   return filtered.sort((left, right) => right.date.localeCompare(left.date));
 }
 
-function dateGroupLabel(isoDate: string, today: boolean) {
-  if (today) {
-    return m.activity_today();
-  }
-  return formatRelativeDayFromIso(isoDate);
-}
-
 export function groupFeedEventsByDate(events: FeedEvent[]): FeedDateGroup[] {
   const map = new Map<string, FeedDateGroup>();
 
@@ -526,7 +518,7 @@ export function groupFeedEventsByDate(events: FeedEvent[]): FeedDateGroup[] {
 
     map.set(isoDate, {
       isoDate,
-      label: dateGroupLabel(isoDate, today),
+      label: formatDayLabelFromIso(isoDate),
       events: [event],
       isToday: today,
       isFuture: !today && isFuture(parseISO(isoDate)),
