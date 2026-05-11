@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import type { FeedActor, FeedEventAccent } from "@/features/customers/types/activity-feed";
 import { accentDotBgClass, accentIconClass } from "@/features/customers/types/activity-feed";
-import { formatRelativeDayFromIso } from "@/features/customers/utils/activity-feed-dates";
+import { formatDayLabelFromIso } from "@/features/customers/utils/activity-feed-dates";
 import * as m from "@/paraglide/messages";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/shared/ui/avatar";
 import { getDateLocale } from "@/shared/utils/date-locale";
@@ -41,7 +41,7 @@ export function FeedEventCard({
   children,
 }: Readonly<FeedEventCardProps>) {
   const locale = getDateLocale();
-  const relative = formatRelativeDayFromIso(date);
+  const relative = formatDayLabelFromIso(date);
   const absolute = format(parseISO(date), "PP", { locale });
 
   const primaryActor = actors?.[0];

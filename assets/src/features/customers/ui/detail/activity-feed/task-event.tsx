@@ -1,6 +1,6 @@
 import { isBefore, isToday, parseISO, startOfDay } from "date-fns";
 
-import { formatRelativeDayFromIso } from "@/features/customers/utils/activity-feed-dates";
+import { formatDayLabelFromIso } from "@/features/customers/utils/activity-feed-dates";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
@@ -27,7 +27,7 @@ export function TaskEvent({ task }: Readonly<TaskEventProps>) {
   }
 
   const dueCopy = task.requestedPeriod?.start
-    ? formatRelativeDayFromIso(task.requestedPeriod.start)
+    ? formatDayLabelFromIso(task.requestedPeriod.start)
     : null;
 
   if (!task.description && !dueCopy) {

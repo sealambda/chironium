@@ -123,7 +123,12 @@ export function ActivityFeedCard({
   } else {
     feedBody = (
       <>
-        <ActivityFeedTimeline groups={groups} personId={personId} patientId={patientId} />
+        <ActivityFeedTimeline
+          groups={groups}
+          personId={personId}
+          patientId={patientId}
+          organizationId={organizationId}
+        />
         <FeedShowMore hasMore={hasMore} onShowMore={showMore} />
       </>
     );
