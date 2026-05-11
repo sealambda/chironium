@@ -98,9 +98,9 @@ const CompleteTaskMutation = graphql(`
   }
 `);
 
-const DeleteTaskReminderMutation = graphql(`
-  mutation DeleteTaskReminder($id: ID!) {
-    deleteTaskReminder(id: $id) {
+const DeleteTaskMutation = graphql(`
+  mutation DeleteTask($id: ID!) {
+    deleteTask(id: $id) {
       result {
         id
       }
@@ -111,9 +111,9 @@ const DeleteTaskReminderMutation = graphql(`
   }
 `);
 
-const UpdateTaskReminderMutation = graphql(`
-  mutation UpdateTaskReminder($id: ID!, $input: UpdateTaskReminderInput!) {
-    updateTaskReminder(id: $id, input: $input) {
+const UpdateTaskMutation = graphql(`
+  mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
+    updateTask(id: $id, input: $input) {
       result {
         id
         requestedPeriod {
@@ -213,12 +213,12 @@ export async function deleteTaskReminder(taskId: string, organizationId: string)
   }
 
   const result = await requestGraphql({
-    document: DeleteTaskReminderMutation,
+    document: DeleteTaskMutation,
     variables: { id: taskId },
     organizationId,
   });
 
-  unwrapMutationResult(result.deleteTaskReminder, "Failed to delete reminder.");
+  unwrapMutationResult(result.deleteTask, "Failed to delete reminder.");
 }
 
 export async function updateTaskReminder({
@@ -231,7 +231,7 @@ export async function updateTaskReminder({
   const descriptionInput = description === undefined ? {} : { description: description.trim() };
 
   const result = await requestGraphql({
-    document: UpdateTaskReminderMutation,
+    document: UpdateTaskMutation,
     variables: {
       id: taskId,
       input: {
@@ -245,7 +245,7 @@ export async function updateTaskReminder({
     organizationId,
   });
 
-  unwrapMutationResult(result.updateTaskReminder, "Failed to update reminder.");
+  unwrapMutationResult(result.updateTask, "Failed to update reminder.");
 }
 
 /** Fetch all tasks for a specific patient (all intents, all statuses). Used by the activity feed. */

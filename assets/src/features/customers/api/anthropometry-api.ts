@@ -363,19 +363,34 @@ function normalizeQuantity(value: number) {
   return Number.isInteger(value) ? value : Number(value.toFixed(2));
 }
 
+const UNIT_OF_MEASURE_SYSTEM = "http://unitsofmeasure.org";
+
+function quantityCodeForObservation(
+  observationKey: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh",
+): "kg" | "cm" {
+  return observationKey === "weight" ? "kg" : "cm";
+}
+
 async function updateQuantityObservation(
   id: string,
+  observationKey: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh",
   value: number,
   effectiveDateTime: string,
   organizationId: string,
 ): Promise<void> {
+  const quantityCode = quantityCodeForObservation(observationKey);
+
   const result = await requestGraphql({
     document: UpdateAnthropometryObservationMutation,
     variables: {
       id,
       input: {
         effectiveDateTime,
-        valueQuantity: { value: normalizeQuantity(value) },
+        valueQuantity: {
+          system: UNIT_OF_MEASURE_SYSTEM,
+          code: quantityCode,
+          value: normalizeQuantity(value),
+        },
       },
     },
     organizationId,
@@ -491,7 +506,15 @@ export async function updateAnthropometryEntry(
       continue;
     }
     if (id) {
-      updates.push(updateQuantityObservation(id, value, effectiveDateTime, organizationId));
+      updates.push(
+        updateQuantityObservation(
+          id,
+          field.observationKey,
+          value,
+          effectiveDateTime,
+          organizationId,
+        ),
+      );
     } else {
       // No existing observation for this field — log it as a new one.
       updates.push(

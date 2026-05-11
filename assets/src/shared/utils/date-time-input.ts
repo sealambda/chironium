@@ -68,7 +68,7 @@ export function toDateTimeInput(
 
   if (date) {
     const parsed = parse(date, DATE_INPUT_FORMAT, new Date());
-    return isValid(parsed) ? formatISO(parsed) : undefined;
+    return isValid(parsed) ? toUtcDateTimeStart(date) : undefined;
   }
 
   return undefined;
