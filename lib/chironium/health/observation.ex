@@ -87,8 +87,6 @@ defmodule Chironium.Health.Observation do
       create :log_menarche_age, :log_menarche_age
 
       update :update_observation, :update
-      update :update_menstrual_period_start, :update_menstrual_period_start
-      update :update_menstrual_period_duration, :update_menstrual_period_duration
 
       destroy :delete_observation, :destroy
     end
@@ -745,47 +743,6 @@ defmodule Chironium.Health.Observation do
              )
     end
 
-    update :update_menstrual_period_start do
-      description """
-      Update the start date and notes of a menstrual period.
-
-      Mirrors the updated `effective_date_time` to `value_date_time` to keep
-      both slots in sync, matching the invariant established by the create action.
-      """
-
-      require_atomic? false
-
-      accept [:effective_date_time, :note]
-
-      # Ensure the LOINC code is set so that legacy observations without a code
-      # (or with a different code) are migrated to the first-class type.
-      change set_attribute(:code, %{
-               coding: [
-                 %{
-                   system: @loinc_system,
-                   code: @loinc_code_menstrual_period_start
-                 }
-               ]
-             })
-
-      change fn changeset, _context ->
-        # Always clear the other value fields so that legacy observations stored in
-        # value_string (or any other slot) are migrated to the value_date_time format
-        # expected by this action.
-        started_at =
-          case Ash.Changeset.fetch_change(changeset, :effective_date_time) do
-            {:ok, dt} -> dt
-            :error -> Ash.Changeset.get_attribute(changeset, :effective_date_time)
-          end
-
-        changeset
-        |> Ash.Changeset.change_attribute(:value_date_time, started_at)
-        |> Ash.Changeset.change_attribute(:value_string, nil)
-        |> Ash.Changeset.change_attribute(:value_quantity, nil)
-        |> Ash.Changeset.change_attribute(:value_codeable_concept, nil)
-      end
-    end
-
     ### Menstrual Period Duration
     create :log_menstrual_period_duration do
       description "Log the duration of the last menstrual period in days."
@@ -826,48 +783,6 @@ defmodule Chironium.Health.Observation do
                  }
                )
              )
-    end
-
-    update :update_menstrual_period_duration do
-      description "Update the duration of a menstrual period in days."
-
-      require_atomic? false
-
-      accept [:effective_date_time]
-
-      argument :duration_days, :integer do
-        description "The menstrual period duration in days"
-        constraints min: 0
-        allow_nil? false
-      end
-
-      # Ensure the LOINC code is set so that legacy observations without a code
-      # (or with a different code) are migrated to the first-class type and become
-      # discoverable via the MENSTRUAL_PERIOD_DURATION observation type filter.
-      change set_attribute(:code, %{
-               coding: [
-                 %{
-                   system: @loinc_system,
-                   code: @loinc_code_menstrual_period_duration
-                 }
-               ]
-             })
-
-      change set_attribute(:value_quantity, %{
-               system: @unit_of_measure_system,
-               code: @unit_of_measure_code_day,
-               value: arg(:duration_days)
-             })
-
-      # Clear the other value slots so legacy observations (e.g. value_string) are
-      # migrated to the value_quantity format and the attributes_present validation
-      # (exactly 1) keeps passing.
-      change fn changeset, _context ->
-        changeset
-        |> Ash.Changeset.change_attribute(:value_string, nil)
-        |> Ash.Changeset.change_attribute(:value_date_time, nil)
-        |> Ash.Changeset.change_attribute(:value_codeable_concept, nil)
-      end
     end
 
     ### Age at First Menstrual Period (Menarche)

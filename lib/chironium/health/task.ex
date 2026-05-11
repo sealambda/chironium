@@ -40,12 +40,12 @@ defmodule Chironium.Health.Task do
 
     mutations do
       create :create_task, :create
-      destroy :delete_task_reminder, :delete_reminder
-      update :update_task_reminder, :update_reminder
+      update :update_task, :update
       update :set_ready_task, :ready
       update :start_task, :start
       update :complete_task, :complete
       update :fail_task, :fail
+      destroy :delete_task, :destroy
     end
   end
 
@@ -96,8 +96,10 @@ defmodule Chironium.Health.Task do
     end
   end
 
+  @pending_statuses [:draft, :ready, :requested, :received, :accepted, :rejected]
+
   actions do
-    defaults [:read, :destroy, create: :*]
+    defaults [:read, :destroy, update: :*, create: :*]
 
     read :tasks_needing_reminder do
       description "Tasks in actionable states whose reminder is due."
@@ -114,42 +116,6 @@ defmodule Chironium.Health.Task do
 
     update :ready do
       change transition_state(:ready)
-    end
-
-    update :update_reminder do
-      description "Update the requested reminder period for a pending task."
-      require_atomic? false
-
-      accept [:requested_period, :description]
-
-      change fn changeset, _context ->
-        if changeset.data.status in [:ready, :accepted] do
-          changeset
-        else
-          Ash.Changeset.add_error(
-            changeset,
-            field: :status,
-            message: "Only pending reminders can be edited."
-          )
-        end
-      end
-    end
-
-    destroy :delete_reminder do
-      description "Delete a pending reminder task."
-      require_atomic? false
-
-      change fn changeset, _context ->
-        if changeset.data.status in [:ready, :accepted] do
-          changeset
-        else
-          Ash.Changeset.add_error(
-            changeset,
-            field: :status,
-            message: "Only pending reminders can be deleted."
-          )
-        end
-      end
     end
 
     update :request do
@@ -251,14 +217,6 @@ defmodule Chironium.Health.Task do
     policy action_type(:read) do
       authorize_if {Chironium.Health.Checks.PatientSubjectVisibleToActor,
                     relationship: :for_patient}
-    end
-
-    policy action(:update_reminder) do
-      authorize_if Chironium.Health.Checks.TaskReminderEditableByActor
-    end
-
-    policy action(:delete_reminder) do
-      authorize_if Chironium.Health.Checks.TaskReminderEditableByActor
     end
 
     policy action([:create, :update, :destroy]) do
