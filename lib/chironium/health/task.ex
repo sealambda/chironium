@@ -279,7 +279,7 @@ defmodule Chironium.Health.Task do
   calculations do
     calculate :requested_period_start_sort_key,
               :datetime,
-              expr(fragment("(?->>'start')::timestamp", requested_period)) do
+              expr(fragment("(?->>'start')::timestamptz", requested_period)) do
       description "Helper calculation to sort by requested_period.start"
       public? true
     end

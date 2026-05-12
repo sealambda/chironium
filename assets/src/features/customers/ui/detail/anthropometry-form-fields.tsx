@@ -43,6 +43,7 @@ interface AnthropometryFormFieldsProps {
   withSteppers: boolean;
   withValidation: boolean;
   initialShowMore?: boolean;
+  disableEffectiveDateTime?: boolean;
 }
 
 export function AnthropometryFormFields({
@@ -51,6 +52,7 @@ export function AnthropometryFormFields({
   withSteppers,
   withValidation,
   initialShowMore = false,
+  disableEffectiveDateTime = false,
 }: Readonly<AnthropometryFormFieldsProps>) {
   return (
     <FieldGroup>
@@ -62,7 +64,7 @@ export function AnthropometryFormFields({
               <DatePickerString
                 value={field.state.value}
                 onChange={(value) => field.handleChange(value)}
-                disabled={saving}
+                disabled={saving || disableEffectiveDateTime}
               />
             </Field>
           )}
@@ -75,7 +77,7 @@ export function AnthropometryFormFields({
                 type="time"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
-                disabled={saving}
+                disabled={saving || disableEffectiveDateTime}
               />
             </Field>
           )}

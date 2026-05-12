@@ -2,6 +2,7 @@ import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
+import { toDateTimeEnd, toDateTimeStart } from "@/shared/utils/date-time-input";
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ function buildAllergyInput(data: AllergyIntoleranceFormInput) {
   let onsetPeriod: { start: string | null; end: string | null } | null = null;
 
   if (data.onsetMode === "date") {
-    onsetDateTime = data.onsetDateTime || null;
+    onsetDateTime = toDateTimeStart(data.onsetDateTime ?? "") ?? null;
   } else if (data.onsetMode === "age" && data.onsetAge?.value) {
     onsetAge = {
       value: data.onsetAge.value,
@@ -150,8 +151,8 @@ function buildAllergyInput(data: AllergyIntoleranceFormInput) {
     };
   } else if (data.onsetMode === "period") {
     onsetPeriod = {
-      start: data.onsetPeriod?.start || null,
-      end: data.onsetPeriod?.end || null,
+      start: toDateTimeStart(data.onsetPeriod?.start ?? "") ?? null,
+      end: toDateTimeEnd(data.onsetPeriod?.end ?? "") ?? null,
     };
   }
 

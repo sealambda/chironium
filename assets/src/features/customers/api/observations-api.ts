@@ -3,7 +3,7 @@ import { toAuthorInput } from "@/features/customers/utils/annotation-author";
 import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
-import { toDateTimeInput } from "@/shared/utils/date-time-input";
+import { isoToDateInput, toDateTimeInput } from "@/shared/utils/date-time-input";
 
 type CodeTypes =
   | "clinicalNote"
@@ -408,7 +408,8 @@ function parseMenstrualCycleSummary(rawText: string): MenstrualCycleSummary {
 }
 
 function toDateOnly(value: string | null | undefined): string | null {
-  return value ? value.slice(0, 10) : null;
+  const date = isoToDateInput(value);
+  return date || null;
 }
 
 function parseDurationDays(value: string | number | null | undefined): number | null {

@@ -141,16 +141,13 @@ export interface AnthropometryAnnotation {
   time?: string | null;
 }
 
-export type AnthropometryObservationKey =
-  | "weight"
-  | "height"
-  | "bmi"
-  | "whr"
-  | "chest"
-  | "waist"
-  | "hip"
-  | "arm"
-  | "thigh";
+export const CIRCUMFERENCE_KEYS = ["chest", "waist", "hip", "arm", "thigh"] as const;
+export type CircumferenceKey = (typeof CIRCUMFERENCE_KEYS)[number];
+
+type WeightKey = "weight";
+type HeightKey = "height";
+type AnthropometryMeasureKey = WeightKey | HeightKey | CircumferenceKey;
+type AnthropometryObservationKey = AnthropometryMeasureKey | "bmi" | "whr";
 
 export interface AnthropometryObservationRef {
   id: string;
@@ -174,9 +171,6 @@ export interface AnthropometricSnapshot {
   notes?: AnthropometryAnnotation[];
   paperTrailVersions?: VersionActorSource[];
 }
-
-/** Keys for circumference measurement fields on an anthropometric snapshot. */
-export type CircumferenceKey = "chest" | "waist" | "hip" | "arm" | "thigh";
 
 /** Form data for logging body measurements during onboarding. */
 export interface AnthropometryFormData {
@@ -340,7 +334,7 @@ export async function logAnthropometry(
     toDateTimeInput(data.effectiveDate, data.effectiveTime) ?? new Date().toISOString();
 
   const fields: {
-    key: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh";
+    key: AnthropometryMeasureKey;
     value: number | null;
   }[] = [
     { key: "height", value: data.heightCm },
@@ -365,15 +359,13 @@ function normalizeQuantity(value: number) {
 
 const UNIT_OF_MEASURE_SYSTEM = "http://unitsofmeasure.org";
 
-function quantityCodeForObservation(
-  observationKey: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh",
-): "kg" | "cm" {
+function quantityCodeForObservation(observationKey: AnthropometryMeasureKey): "kg" | "cm" {
   return observationKey === "weight" ? "kg" : "cm";
 }
 
 async function updateQuantityObservation(
   id: string,
-  observationKey: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh",
+  observationKey: AnthropometryMeasureKey,
   value: number,
   effectiveDateTime: string,
   organizationId: string,
@@ -399,7 +391,7 @@ async function updateQuantityObservation(
 }
 
 async function logNewObservation(
-  observationKey: "weight" | "height" | "chest" | "waist" | "hip" | "arm" | "thigh",
+  observationKey: AnthropometryMeasureKey,
   value: number,
   subjectId: string,
   effectiveDateTime: string,

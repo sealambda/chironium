@@ -23,11 +23,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import {
-  todayDateInput,
-  toUtcDateTimeEnd,
-  toUtcDateTimeStart,
-} from "@/shared/utils/date-time-input";
+import { toDateTimeEnd, toDateTimeStart, todayDateInput } from "@/shared/utils/date-time-input";
 
 type MedicationCourseState = "current" | "past";
 
@@ -74,8 +70,8 @@ function buildEffectivePeriod(
   startDate: string,
   endDate: string,
 ): MedicationCreateOptions["effectivePeriod"] {
-  const start = toUtcDateTimeStart(startDate);
-  const end = courseState === "past" ? toUtcDateTimeEnd(endDate) : undefined;
+  const start = toDateTimeStart(startDate);
+  const end = courseState === "past" ? toDateTimeEnd(endDate) : undefined;
 
   if (!start && !end) {
     return undefined;

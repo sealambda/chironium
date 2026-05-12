@@ -1,12 +1,10 @@
-import type {
-  AnthropometricSnapshot,
-  CircumferenceKey,
+import {
+  type AnthropometricSnapshot,
+  CIRCUMFERENCE_KEYS,
 } from "@/features/customers/api/anthropometry-api";
 import { AnthropometryMeasurementDetails } from "@/features/customers/ui/detail/anthropometry-measurement-details";
 import * as m from "@/paraglide/messages";
 import { formatAnthropometryValue } from "@/shared/utils/measurement-utils";
-
-const CIRCUMFERENCE_KEYS: CircumferenceKey[] = ["chest", "waist", "hip", "arm", "thigh"];
 
 interface AnthropometryEventProps {
   snapshot: AnthropometricSnapshot;

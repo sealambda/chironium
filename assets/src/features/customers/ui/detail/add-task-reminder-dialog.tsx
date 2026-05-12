@@ -22,7 +22,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { getDateLocale } from "@/shared/utils/date-locale";
-import { toUtcDateTimeEnd, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
+import { toDateTimeEnd, toDateTimeStart } from "@/shared/utils/date-time-input";
 import { personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
 
 interface AddTaskReminderDialogProps {
@@ -84,8 +84,8 @@ export function AddTaskReminderDialog({
     },
     onSubmit: async ({ value }) => {
       const description = value.description.trim();
-      const startIso = toUtcDateTimeStart(value.startDate);
-      const endIso = toUtcDateTimeEnd(value.startDate);
+      const startIso = toDateTimeStart(value.startDate);
+      const endIso = toDateTimeEnd(value.startDate);
 
       if (!selectedOrg?.id || !description || !startIso || !endIso || !patientId) {
         return;
@@ -103,6 +103,7 @@ export function AddTaskReminderDialog({
 
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: personQueryKeys.reviewTasksScope(personId) }),
+          queryClient.invalidateQueries({ queryKey: personQueryKeys.patientTasksScope(personId) }),
           queryClient.invalidateQueries({ queryKey: tasksListQueryKey(selectedOrg.id) }),
         ]);
 
