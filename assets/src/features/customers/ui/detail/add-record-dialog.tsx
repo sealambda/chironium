@@ -330,6 +330,7 @@ export function AddRecordDialog({
                         <button
                           key={id}
                           type="button"
+                          data-testid={`add-record-tile-${id}`}
                           aria-label={labelText}
                           aria-disabled={disabled}
                           disabled={disabled}

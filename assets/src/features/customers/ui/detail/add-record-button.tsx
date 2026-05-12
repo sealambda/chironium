@@ -20,6 +20,7 @@ export function AddRecordButton({
       size="sm"
       onClick={onClick}
       aria-label={m.add_record_title()}
+      data-testid="add-record-button"
       className={cn(
         "gap-1.5",
         compactOnMobile && "w-8 justify-center px-0 lg:w-auto lg:px-2.5",

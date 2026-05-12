@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { PatientObservation } from "./patients-api";
 import { selectLatestMenstrualCycle } from "./observations-api";
+import type { PatientObservation } from "./patients-api";
 
-function buildObservation(
-  overrides: Partial<PatientObservation>,
-): PatientObservation {
+function buildObservation(overrides: Partial<PatientObservation>): PatientObservation {
   return {
     id: "observation-1",
     status: "FINAL",

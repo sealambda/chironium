@@ -84,6 +84,7 @@ export function PersonDetailHeader({ person, personId }: PersonDetailHeaderProps
             <span className="truncate font-semibold text-foreground">{name}</span>
             {person && personId ? (
               <DetailEditButton
+                data-testid="customer-person-edit-button"
                 ariaLabel={m.person_header_edit_profile()}
                 onClick={() => setEditPersonOpen(true)}
               />
