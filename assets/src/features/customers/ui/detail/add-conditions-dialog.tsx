@@ -31,13 +31,13 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
-import { todayDateInput, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
+import { toDateTimeStart, todayDateInput } from "@/shared/utils/date-time-input";
 
-const ABATED_CONDITION_STATUSES: readonly ConditionClinicalStatus[] = [
+const ABATED_CONDITION_STATUSES: Set<ConditionClinicalStatus> = new Set([
   "INACTIVE",
   "REMISSION",
   "RESOLVED",
-];
+]);
 
 const CONDITION_STATUS_OPTIONS: readonly {
   value: ConditionClinicalStatus;
@@ -50,7 +50,7 @@ const CONDITION_STATUS_OPTIONS: readonly {
 ];
 
 function isAbatedStatus(status: ConditionClinicalStatus): boolean {
-  return ABATED_CONDITION_STATUSES.includes(status);
+  return ABATED_CONDITION_STATUSES.has(status);
 }
 
 interface ConditionDateErrors {
@@ -142,8 +142,8 @@ export function AddConditionsDialog({
       await createConditionsFromTags(tags.tags, patientId, selectedOrg?.id ?? "", {
         clinicalStatus,
         verificationStatus: "CONFIRMED",
-        onsetDateTime: toUtcDateTimeStart(onsetDate),
-        abatementDateTime: needsAbatementDate ? toUtcDateTimeStart(abatementDate) : undefined,
+        onsetDateTime: toDateTimeStart(onsetDate),
+        abatementDateTime: needsAbatementDate ? toDateTimeStart(abatementDate) : undefined,
       });
 
       await invalidatePersonDetail(queryClient, personId);
@@ -183,10 +183,13 @@ export function AddConditionsDialog({
             <FieldLabel>{m.common_clinical_status()}</FieldLabel>
             <Select
               value={clinicalStatus}
-              onValueChange={(value) => {
-                const nextStatus = (value ?? "ACTIVE") as ConditionClinicalStatus;
-                setClinicalStatus(nextStatus);
-                if (!isAbatedStatus(nextStatus)) {
+              onValueChange={(status: ConditionClinicalStatus | null = "ACTIVE") => {
+                if (!status) {
+                  return;
+                }
+
+                setClinicalStatus(status);
+                if (!isAbatedStatus(status)) {
                   setAbatementDate("");
                 }
               }}

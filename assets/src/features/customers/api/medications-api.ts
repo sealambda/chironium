@@ -3,7 +3,7 @@ import { graphql, type VariablesOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
-import { toUtcDateTimeEnd, toUtcDateTimeStart } from "@/shared/utils/date-time-input";
+import { toDateTimeEnd, toDateTimeStart } from "@/shared/utils/date-time-input";
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -137,8 +137,8 @@ export async function updateMedication(
   data: MedicationFormInput,
   organizationId: string,
 ): Promise<void> {
-  const start = toUtcDateTimeStart(data.startDate) ?? null;
-  const end = data.course === "past" ? (toUtcDateTimeEnd(data.endDate) ?? null) : null;
+  const start = toDateTimeStart(data.startDate) ?? null;
+  const end = data.course === "past" ? (toDateTimeEnd(data.endDate) ?? null) : null;
   const hasPeriod = start !== null || end !== null;
 
   const result = await requestGraphql({

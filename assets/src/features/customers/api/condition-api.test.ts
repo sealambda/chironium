@@ -1,3 +1,4 @@
+import { formatISO, parse, startOfDay } from "date-fns";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { TerminologyTag } from "@/shared/types/terminology";
@@ -25,6 +26,9 @@ vi.mock("@/shared/api/graphql", () => ({
 }));
 
 describe("condition mutations", () => {
+  const toLocalStartIso = (date: string) =>
+    formatISO(startOfDay(parse(date, "yyyy-MM-dd", new Date())));
+
   afterEach(() => {
     requestGraphqlMock.mockReset();
   });
@@ -45,14 +49,14 @@ describe("condition mutations", () => {
     await createConditionsFromTags([tag], "patient-1", "org-1", {
       clinicalStatus: "ACTIVE",
       verificationStatus: "CONFIRMED",
-      onsetDateTime: "2026-04-01T09:00:00.000Z",
+      onsetDateTime: toLocalStartIso("2026-04-01"),
     });
 
     const input = getMutationInput();
     expect(input).toMatchObject({
       clinicalStatus: "ACTIVE",
       verificationStatus: "CONFIRMED",
-      onsetDateTime: "2026-04-01T09:00:00.000Z",
+      onsetDateTime: toLocalStartIso("2026-04-01"),
       subjectId: "patient-1",
       code: {
         text: "Asthma",
@@ -90,8 +94,8 @@ describe("condition mutations", () => {
       clinicalStatus: "RESOLVED",
       verificationStatus: "CONFIRMED",
       code: { text: "Asthma" },
-      onsetDateTime: "2026-04-01T09:00:00.000Z",
-      abatementDateTime: "2026-04-15T09:00:00.000Z",
+      onsetDateTime: toLocalStartIso("2026-04-01"),
+      abatementDateTime: toLocalStartIso("2026-04-15"),
     });
     expect(input).not.toHaveProperty("recordedDate");
   });

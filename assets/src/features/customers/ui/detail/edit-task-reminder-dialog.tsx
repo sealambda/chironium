@@ -15,11 +15,7 @@ import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";
-import {
-  isoToDateInput,
-  toUtcDateTimeEnd,
-  toUtcDateTimeStart,
-} from "@/shared/utils/date-time-input";
+import { isoToDateInput, toDateTimeEnd, toDateTimeStart } from "@/shared/utils/date-time-input";
 import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface EditTaskReminderDialogProps {
@@ -50,8 +46,8 @@ export function EditTaskReminderDialog({
     },
     onSubmit: async ({ value }) => {
       const description = value.description.trim();
-      const startDate = toUtcDateTimeStart(value.startDate);
-      const endDate = toUtcDateTimeEnd(value.startDate);
+      const startDate = toDateTimeStart(value.startDate);
+      const endDate = toDateTimeEnd(value.startDate);
 
       if (!selectedOrg?.id || !description || !startDate || !endDate) {
         return;

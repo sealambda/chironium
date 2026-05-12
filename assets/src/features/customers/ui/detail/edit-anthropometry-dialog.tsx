@@ -112,6 +112,7 @@ export function EditAnthropometryDialog({
           saving={saving}
           withSteppers={false}
           withValidation={false}
+          disableEffectiveDateTime
           initialShowMore={Boolean(
             snapshot.chest || snapshot.waist || snapshot.hip || snapshot.arm || snapshot.thigh,
           )}

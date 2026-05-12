@@ -1,4 +1,4 @@
-import { format, formatISO, isValid, parse } from "date-fns";
+import { endOfDay, format, formatISO, isValid, parse, startOfDay } from "date-fns";
 
 import { getLocale } from "@/paraglide/runtime";
 
@@ -27,7 +27,16 @@ export function toDateTimeInputParts(value: Date = new Date()): DateTimeInputPar
 }
 
 export function isoToDateInput(value: string | null | undefined): string {
-  return value ? String(value).slice(0, 10) : "";
+  if (!value) {
+    return "";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const date = new Date(value);
+  return isValid(date) ? toDateInput(date) : "";
 }
 
 export function isoToDateTimeInputParts(value: string | null | undefined): DateTimeInputParts {
@@ -35,23 +44,35 @@ export function isoToDateTimeInputParts(value: string | null | undefined): DateT
     return { date: "", time: "" };
   }
 
-  const normalized = String(value);
-  return {
-    date: normalized.slice(0, 10),
-    time: normalized.length >= 16 ? normalized.slice(11, 16) : "",
-  };
+  // Parse ISO string into Date and format using local timezone.
+  const date = new Date(value);
+  if (!isValid(date)) {
+    return { date: "", time: "" };
+  }
+
+  return toDateTimeInputParts(date);
 }
 
 export function todayDateInput(value: Date = new Date()): string {
   return toDateInput(value);
 }
 
-export function toUtcDateTimeStart(date: string): string | undefined {
-  return date ? `${date}T09:00:00.000Z` : undefined;
+export function toDateTimeStart(date: string): string | undefined {
+  if (!date) {
+    return undefined;
+  }
+
+  const parsed = parse(date, DATE_INPUT_FORMAT, new Date());
+  return isValid(parsed) ? formatISO(startOfDay(parsed)) : undefined;
 }
 
-export function toUtcDateTimeEnd(date: string): string | undefined {
-  return date ? `${date}T23:59:59.999Z` : undefined;
+export function toDateTimeEnd(date: string): string | undefined {
+  if (!date) {
+    return undefined;
+  }
+
+  const parsed = parse(date, DATE_INPUT_FORMAT, new Date());
+  return isValid(parsed) ? formatISO(endOfDay(parsed)) : undefined;
 }
 
 export function toDateTimeInput(
@@ -68,7 +89,7 @@ export function toDateTimeInput(
 
   if (date) {
     const parsed = parse(date, DATE_INPUT_FORMAT, new Date());
-    return isValid(parsed) ? toUtcDateTimeStart(date) : undefined;
+    return isValid(parsed) ? toDateTimeStart(date) : undefined;
   }
 
   return undefined;

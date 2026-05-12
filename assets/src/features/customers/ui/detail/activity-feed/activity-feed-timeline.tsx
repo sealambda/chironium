@@ -33,11 +33,7 @@ import { useOrg } from "@/features/org/hooks/use-org";
 import { completeTaskReminder } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
-import {
-  customersQueryKeys,
-  personQueryKeys,
-  tasksListQueryKey,
-} from "@/shared/utils/query-keys";
+import { customersQueryKeys, personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
 
 import { AllergyEvent } from "./allergy-event";
 import { AnthropometryEvent } from "./anthropometry-event";
@@ -176,7 +172,7 @@ function SubscriptionHeaderActions({
 }: Readonly<{
   personId: string;
   organizationId: string;
-  subscription: Extract<FeedEvent, { kind: "subscription" }>['payload'];
+  subscription: Extract<FeedEvent, { kind: "subscription" }>["payload"];
 }>) {
   const queryClient = useQueryClient();
 

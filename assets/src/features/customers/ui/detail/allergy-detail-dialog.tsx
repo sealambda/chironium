@@ -3,9 +3,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import type { AllergyIntoleranceItem } from "@/features/customers/api/allergy-intolerance-api";
 import {
   type AllergyIntoleranceFormInput,
+  type AllergyIntoleranceItem,
   createAllergyIntolerance,
   updateAllergyIntolerance,
 } from "@/features/customers/api/allergy-intolerance-api";
@@ -66,7 +66,7 @@ function itemToFormValues(item: AllergyIntoleranceItem): AllergyFormValues {
       (item.verificationStatus as AllergyFormValues["verificationStatus"]) ?? "CONFIRMED",
     onsetMode,
     onsetDateTime: isoToDateInput(item.onsetDateTime),
-    onsetAgeValue: item.onsetAge?.value !== undefined ? String(item.onsetAge.value) : "",
+    onsetAgeValue: item.onsetAge?.value === undefined ? "" : String(item.onsetAge.value),
     onsetAgeUnit: "A",
     onsetPeriodStart: isoToDateInput(item.onsetPeriod?.start),
     onsetPeriodEnd: isoToDateInput(item.onsetPeriod?.end),
@@ -143,9 +143,7 @@ export function AllergyDetailDialog({
   const orgId = organizationId || selectedOrg?.id || "";
 
   const form = useForm({
-    defaultValues: (mode === "edit" && item
-      ? itemToFormValues(item)
-      : EMPTY_VALUES) as AllergyFormValues,
+    defaultValues: mode === "edit" && item ? itemToFormValues(item) : EMPTY_VALUES,
     onSubmit: async ({ value }) => {
       if (!value.name.trim()) {
         return;
@@ -197,7 +195,7 @@ export function AllergyDetailDialog({
         {/* Name */}
         <form.Field
           name="name"
-          validators={{ onSubmit: ({ value }) => (!value.trim() ? "Required" : undefined) }}
+          validators={{ onSubmit: ({ value }) => (value.trim() ? undefined : "Required") }}
         >
           {(field) => (
             <Field data-invalid={field.state.meta.errors.length > 0}>

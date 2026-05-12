@@ -3,7 +3,7 @@ import { graphql, type VariablesOf } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import type { TerminologyTag } from "@/shared/types/terminology";
-import { toUtcDateTimeStart } from "@/shared/utils/date-time-input";
+import { toDateTimeStart } from "@/shared/utils/date-time-input";
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -130,8 +130,8 @@ function buildConditionInput(data: ConditionFormInput) {
     code: { text: data.name },
     // Send explicit null for cleared dates (and for abatement when status flips back to active),
     // since graphql-request omits `undefined` and would otherwise leave previous values intact.
-    onsetDateTime: toUtcDateTimeStart(data.onsetDate) ?? null,
-    abatementDateTime: abated ? (toUtcDateTimeStart(data.abatementDate) ?? null) : null,
+    onsetDateTime: toDateTimeStart(data.onsetDate) ?? null,
+    abatementDateTime: abated ? (toDateTimeStart(data.abatementDate) ?? null) : null,
   };
 }
 
