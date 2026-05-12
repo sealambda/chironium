@@ -212,7 +212,6 @@ export function EditSubscriptionDialog({
                 size="icon"
                 className="size-7 shrink-0"
                 aria-label={m.subscription_manage_action()}
-                data-testid="customer-subscription-edit-button"
               >
                 <Pencil className="size-3.5" />
               </Button>

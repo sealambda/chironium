@@ -173,6 +173,18 @@ function buildFutureDateInputValue(currentInputValue: string): string {
   return "11/28/2030";
 }
 
+type AddRecordTileName = "goal" | "subscription";
+
+async function openAddRecordTile(page: Page, tileName: AddRecordTileName) {
+  const addRecordButton = page.getByTestId("add-record-button").first();
+  await expect(addRecordButton).toBeVisible({ timeout: TIMEOUT_MS });
+  await addRecordButton.click();
+
+  const tile = page.getByTestId(`add-record-tile-${tileName}`);
+  await expect(tile).toBeVisible({ timeout: TIMEOUT_MS });
+  await tile.click();
+}
+
 async function editCustomerFromDetail(page: Page, updatedGivenName: string) {
   await expect(page.getByTestId("customer-person-edit-button")).toBeVisible({
     timeout: TIMEOUT_MS,
@@ -183,10 +195,7 @@ async function editCustomerFromDetail(page: Page, updatedGivenName: string) {
   await personDialog.getByTestId("onboarding-given-name-input").fill(updatedGivenName);
   await personDialog.getByTestId("onboarding-next-button").click();
 
-  await expect(page.getByTestId("customer-subscription-edit-button")).toBeVisible({
-    timeout: TIMEOUT_MS,
-  });
-  await page.getByTestId("customer-subscription-edit-button").click();
+  await openAddRecordTile(page, "subscription");
 
   const subscriptionDialog = page.getByTestId("customer-subscription-dialog");
   await expect(subscriptionDialog).toBeVisible({ timeout: TIMEOUT_MS });
@@ -199,8 +208,8 @@ async function editCustomerFromDetail(page: Page, updatedGivenName: string) {
   await saveButton.click();
   await expect(subscriptionDialog).toBeHidden({ timeout: TIMEOUT_MS });
 
-  // Reopen and edit only the start date to verify edit-after-add works.
-  await page.getByTestId("customer-subscription-edit-button").click();
+  // Reopen subscription dialog to edit start date.
+  await openAddRecordTile(page, "subscription");
   await expect(subscriptionDialog).toBeVisible({ timeout: TIMEOUT_MS });
 
   const startDateInput = subscriptionDialog.getByTestId("customer-subscription-start-date-input");
@@ -215,14 +224,14 @@ async function editCustomerFromDetail(page: Page, updatedGivenName: string) {
   await expect(subscriptionDialog).toBeHidden({ timeout: TIMEOUT_MS });
 
   // Reopen and verify the edited start date is now the current subscription date.
-  await page.getByTestId("customer-subscription-edit-button").click();
+  await openAddRecordTile(page, "subscription");
   await expect(subscriptionDialog).toBeVisible({ timeout: TIMEOUT_MS });
   await expect(startDateInput).toHaveValue(updatedDateValue, { timeout: TIMEOUT_MS });
   await page.keyboard.press("Escape");
   await expect(subscriptionDialog).toBeHidden({ timeout: TIMEOUT_MS });
 
-  await expect(page.getByTestId("customer-goals-add-button")).toBeVisible({ timeout: TIMEOUT_MS });
-  await page.getByTestId("customer-goals-add-button").click();
+  // Add a goal to verify the full workflow.
+  await openAddRecordTile(page, "goal");
 
   const goalDialog = page.getByRole("dialog").last();
   await expect(goalDialog).toBeVisible({ timeout: TIMEOUT_MS });
