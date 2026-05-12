@@ -29,11 +29,7 @@
     "husky": "~9.1.7"
   },
   "pnpm": {
-    "overrides": {
-      "picomatch": "~4.0.4"
-    },
     "peerDependencyRules": {
-      "//": "Suppress peer warnings from deps/phoenix's internal dev toolchain (eslint, jest, @typescript-eslint). Those tools are pinned by Phoenix and not consumed by our build; the mismatches don't affect us. allowedVersions acknowledges the installed version scoped to each violating pair rather than overriding what's installed. Docs: https://pnpm.io/package_json#pnpmpeerdependencyrulesallowedversions",
       "allowedVersions": {
         "@typescript-eslint/eslint-plugin>typescript": "6",
         "@typescript-eslint/parser>typescript": "6",
