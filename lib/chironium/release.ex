@@ -65,6 +65,65 @@ defmodule Chironium.Release do
     end
   end
 
+  # -- Seed --
+  # Run in production via:
+  #   ./chironium eval 'Chironium.Release.seed()'
+  #   ./chironium eval 'Chironium.Release.seed(patients: 100, invite: "admin@example.com", role: :power_user)'
+
+  def seed(opts \\ []) do
+    start_app()
+
+    alias Mix.Tasks.Chironium.Seed.{
+      Allergies,
+      CareTeams,
+      Conditions,
+      Goals,
+      Medications,
+      NutritionPlans,
+      Observations,
+      Organization,
+      Patients,
+      Practitioners,
+      Tasks
+    }
+
+    patient_count = Keyword.get(opts, :patients, 50)
+    practitioner_count = Keyword.get(opts, :practitioners, 10)
+    invite_email = Keyword.get(opts, :invite)
+    role = Keyword.get(opts, :role, :member)
+
+    {user, org, tenant} = Organization.seed()
+    IO.puts("[Seed] Organization '#{org.name}' created (tenant: #{tenant}).")
+
+    practitioners = Practitioners.seed(tenant, practitioner_count)
+    IO.puts("[Seed] #{length(practitioners)} practitioners created.")
+
+    patients = Patients.seed(tenant, patient_count)
+    IO.puts("[Seed] #{length(patients)} patients created.")
+
+    CareTeams.seed(tenant, patients, practitioners)
+    IO.puts("[Seed] Care teams created.")
+
+    Observations.seed(tenant, patients)
+    Conditions.seed(tenant, patients)
+    Goals.seed(tenant, patients)
+    Medications.seed(tenant, patients)
+    Allergies.seed(tenant, patients)
+    NutritionPlans.seed(tenant, patients)
+    Tasks.seed(tenant, patients)
+    IO.puts("[Seed] Clinical data created.")
+
+    invite = Organization.seed_invitation(org, user, invite_email, role)
+
+    if invite_email do
+      IO.puts("[Seed] Invitation sent to #{invite.email} with role '#{invite.role}'.")
+    else
+      IO.puts("[Seed] Invite code: #{invite.invite_code} (role: #{invite.role})")
+    end
+
+    IO.puts("[Seed] Done. User email: #{user.email}")
+  end
+
   # -- Terminology imports --
   # Run as one-off commands in production via:
   #   ./chironium eval 'Chironium.Release.import_loinc("/data/loinc")'
