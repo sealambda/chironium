@@ -28,16 +28,16 @@ defmodule Chironium.Generator do
 
   # SNOMED-coded allergens.
   @snomed_allergens [
-    {"91935009", "Allergy to peanut"},
-    {"91936005", "Allergy to penicillin"},
-    {"91934008", "Allergy to shellfish"},
+    {"91935009", "Peanut"},
+    {"91936005", "Penicillin"},
+    {"91934008", "Shellfish"},
     {"300916003", "Latex allergy"},
-    {"420174000", "Allergy to wheat"},
-    {"782555009", "Allergy to cow's milk protein"},
-    {"294505008", "Allergy to sulfonamide"},
-    {"232350006", "Allergy to house dust mite"},
-    {"418689008", "Allergy to grass pollen"},
-    {"232346004", "Allergy to cat dander"}
+    {"420174000", "Wheat"},
+    {"782555009", "Cow's milk protein"},
+    {"294505008", "Sulfonamide"},
+    {"232350006", "House dust mite"},
+    {"418689008", "Grass pollen"},
+    {"232346004", "Cat dander"}
   ]
 
   # RxNorm-coded medications.
@@ -53,6 +53,44 @@ defmodule Chironium.Generator do
     {"197806", "Ibuprofen 400mg"},
     {"861007", "Metformin 1000mg"},
     {"310798", "Losartan 50mg"}
+  ]
+
+  # Seed catalogs used by mix seed tasks.
+  @seed_supplements [
+    "Vitamin D3",
+    "Omega-3 fish oil",
+    "Magnesium glycinate",
+    "Creatine monohydrate"
+  ]
+
+  @seed_food_preferences [
+    "Legumes",
+    "Whole grains",
+    "Greek yogurt",
+    "Seasonal fruit",
+    "Leafy greens"
+  ]
+
+  @seed_food_aversions [
+    "Deep-fried foods",
+    "Sugary drinks",
+    "Ultra-processed snacks",
+    "Energy drinks",
+    "Excess sodium"
+  ]
+
+  @seed_clinical_note_templates [
+    "Sleep quality has improved over the last two weeks.",
+    "Patient reports better meal regularity and hydration.",
+    "Exercise adherence is consistent and tolerated well.",
+    "Energy levels are stable with fewer afternoon crashes."
+  ]
+
+  @seed_goal_descriptions [
+    "Increase weekly strength training consistency",
+    "Improve meal quality with more whole foods",
+    "Reach and maintain a stable healthy weight",
+    "Improve sleep quality and sleep duration"
   ]
 
   # -- Accounts --
@@ -92,6 +130,44 @@ defmodule Chironium.Generator do
       },
       overrides: opts
     )
+  end
+
+  def seed_medication_labels do
+    Enum.map(@rxnorm_medications, fn {_code, label} -> label end)
+  end
+
+  def seed_supplement_labels do
+    @seed_supplements
+  end
+
+  def seed_allergy_labels do
+    Enum.map(@snomed_allergens, fn {_code, label} -> label end)
+  end
+
+  def seed_intolerance_labels do
+    ["Lactose", "Gluten", "Fructose", "Histamine"]
+  end
+
+  def seed_condition_codes do
+    Enum.map(@snomed_conditions, fn {code, display} ->
+      %{coding: [%{system: @snomed_system, code: code}], text: display}
+    end)
+  end
+
+  def seed_food_preferences do
+    @seed_food_preferences
+  end
+
+  def seed_food_aversions do
+    @seed_food_aversions
+  end
+
+  def seed_clinical_note_templates do
+    @seed_clinical_note_templates
+  end
+
+  def seed_goal_descriptions do
+    @seed_goal_descriptions
   end
 
   # -- Health --
@@ -145,7 +221,7 @@ defmodule Chironium.Generator do
                 }
               ],
               gender: Enum.random([:male, :female, :other]),
-              birth_date: random_past_date(1..90),
+              birth_date: random_past_date(18..60),
               telecom: [
                 %{system: :email, value: Faker.Internet.email(), use: :home}
               ]
@@ -178,7 +254,10 @@ defmodule Chironium.Generator do
     [
       defaults: [
         active: true,
-        role: StreamData.repeatedly(fn -> Enum.random(["Lead", "Support", "Consultant", "Primary"]) end)
+        role:
+          StreamData.repeatedly(fn ->
+            Enum.random(["Lead", "Support", "Consultant", "Primary"])
+          end)
       ],
       overrides: data_opts
     ]
@@ -190,11 +269,13 @@ defmodule Chironium.Generator do
 
   def observation_body_weight(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        weight_kg: StreamData.repeatedly(fn -> random_float(40.0, 150.0) end),
-        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end)
+        weight_kg: StreamData.repeatedly(fn -> random_float(60.0, 90.0) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
       ],
       overrides: data_opts
     ]
@@ -204,11 +285,13 @@ defmodule Chironium.Generator do
 
   def observation_body_height(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        height_cm: StreamData.repeatedly(fn -> random_float(140.0, 210.0) end),
-        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end)
+        height_cm: StreamData.repeatedly(fn -> random_float(155.0, 190.0) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
       ],
       overrides: data_opts
     ]
@@ -218,11 +301,13 @@ defmodule Chironium.Generator do
 
   def observation_chest_circumference(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        chest_circumference_cm: StreamData.repeatedly(fn -> random_float(70.0, 130.0) end),
-        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end)
+        chest_circumference_cm: StreamData.repeatedly(fn -> random_float(82.0, 110.0) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
       ],
       overrides: data_opts
     ]
@@ -232,11 +317,13 @@ defmodule Chironium.Generator do
 
   def observation_waist_circumference(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        waist_circumference_cm: StreamData.repeatedly(fn -> random_float(55.0, 130.0) end),
-        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end)
+        waist_circumference_cm: StreamData.repeatedly(fn -> random_float(65.0, 100.0) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
       ],
       overrides: data_opts
     ]
@@ -246,16 +333,50 @@ defmodule Chironium.Generator do
 
   def observation_hip_circumference(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        hip_circumference_cm: StreamData.repeatedly(fn -> random_float(70.0, 140.0) end),
-        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end)
+        hip_circumference_cm: StreamData.repeatedly(fn -> random_float(85.0, 115.0) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
       ],
       overrides: data_opts
     ]
     |> Keyword.merge(ash_opts)
     |> then(&changeset_generator(Chironium.Health.Observation, :log_hip_circumference, &1))
+  end
+
+  def observation_arm_circumference(opts \\ []) do
+    {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
+
+    [
+      defaults: [
+        arm_circumference_cm: StreamData.repeatedly(fn -> random_float(25.0, 38.0) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+      ],
+      overrides: data_opts
+    ]
+    |> Keyword.merge(ash_opts)
+    |> then(&changeset_generator(Chironium.Health.Observation, :log_arm_circumference, &1))
+  end
+
+  def observation_thigh_circumference(opts \\ []) do
+    {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
+
+    [
+      defaults: [
+        thigh_circumference_cm: StreamData.repeatedly(fn -> random_float(45.0, 68.0) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+      ],
+      overrides: data_opts
+    ]
+    |> Keyword.merge(ash_opts)
+    |> then(&changeset_generator(Chironium.Health.Observation, :log_thigh_circumference, &1))
   end
 
   # Generic observation for cases not covered by specialized actions.
@@ -277,6 +398,7 @@ defmodule Chironium.Generator do
 
   def condition(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     StreamData.repeatedly(fn ->
       temporal = random_condition_temporal()
@@ -285,7 +407,9 @@ defmodule Chironium.Generator do
         [
           verification_status: :confirmed,
           code: random_condition_code(),
-          note: [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+          note: [
+            Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)
+          ]
         ]
         |> Keyword.merge(temporal)
         |> Keyword.merge(data_opts)
@@ -297,19 +421,27 @@ defmodule Chironium.Generator do
 
   def goal(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        lifecycle_status: StreamData.repeatedly(fn -> Enum.random([:proposed, :active, :accepted]) end),
-        achievement_status: StreamData.repeatedly(fn -> Enum.random([:in_progress, :improving, :no_change]) end),
-        category: StreamData.repeatedly(fn -> [Enum.random([:dietary, :behavioral, :physiotherapy])] end),
-        priority: StreamData.repeatedly(fn -> Enum.random([:high_priority, :medium_priority, :low_priority]) end),
-        description: StreamData.repeatedly(fn -> %{text: Faker.Lorem.sentence()} end),
+        lifecycle_status:
+          StreamData.repeatedly(fn -> Enum.random([:proposed, :active, :accepted]) end),
+        achievement_status:
+          StreamData.repeatedly(fn -> Enum.random([:in_progress, :improving, :no_change]) end),
+        category:
+          StreamData.repeatedly(fn -> [Enum.random([:dietary, :behavioral, :physiotherapy])] end),
+        priority:
+          StreamData.repeatedly(fn ->
+            Enum.random([:high_priority, :medium_priority, :low_priority])
+          end),
+        description: StreamData.repeatedly(fn -> %{text: Enum.random(@seed_goal_descriptions)} end),
         start_date: Date.utc_today(),
-        due_date: StreamData.repeatedly(fn -> Date.add(Date.utc_today(), Enum.random(30..180)) end),
+        due_date:
+          StreamData.repeatedly(fn -> Date.add(Date.utc_today(), Enum.random(30..180)) end),
         note:
           StreamData.repeatedly(fn ->
-            [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
           end)
       ],
       overrides: data_opts
@@ -320,15 +452,21 @@ defmodule Chironium.Generator do
 
   def medication_statement(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     StreamData.repeatedly(fn ->
       temporal = random_medication_temporal()
+      medications = seed_medication_labels()
+      supplements = seed_supplement_labels()
+      all_labels = medications ++ supplements
 
       params =
         [
           status: :recorded,
-          medication: random_medication_code(),
-          note: [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+          medication: %{text: Enum.random(all_labels)},
+          note: [
+            Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)
+          ]
         ]
         |> Keyword.merge(temporal)
         |> Keyword.merge(data_opts)
@@ -340,17 +478,25 @@ defmodule Chironium.Generator do
 
   def allergy_intolerance(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     StreamData.repeatedly(fn ->
       temporal = random_allergy_intolerance_temporal()
+      allergy_labels = seed_allergy_labels()
+      intolerance_labels = seed_intolerance_labels()
+
+      type = Enum.random([:allergy, :intolerance])
+      label = if type == :allergy, do: Enum.random(allergy_labels), else: Enum.random(intolerance_labels)
 
       params =
         [
           clinical_status: Enum.random([:active, :inactive]),
           verification_status: Enum.random([:confirmed, :presumed]),
-          type: Enum.random([:allergy, :intolerance]),
-          code: random_allergen_code(),
-          note: [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+          type: type,
+          code: %{text: label},
+          note: [
+            Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)
+          ]
         ]
         |> Keyword.merge(temporal)
         |> Keyword.merge(data_opts)
@@ -378,6 +524,7 @@ defmodule Chironium.Generator do
 
   def task(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
@@ -387,7 +534,7 @@ defmodule Chironium.Generator do
         requested_period: StreamData.repeatedly(fn -> %{start: random_past_datetime(1..30)} end),
         note:
           StreamData.repeatedly(fn ->
-            [%{text: Faker.Lorem.sentence(), author_string: "System", time: DateTime.utc_now()}]
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
           end)
       ],
       overrides: data_opts
@@ -398,11 +545,14 @@ defmodule Chironium.Generator do
 
   def observation_food_preference(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        value_string: StreamData.repeatedly(fn -> Faker.Food.dish() end),
-        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end)
+        value_string: StreamData.repeatedly(fn -> Enum.random(@seed_food_preferences) end),
+        value_codeable_concept: nil,
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
       ],
       overrides: data_opts
     ]
@@ -412,16 +562,50 @@ defmodule Chironium.Generator do
 
   def observation_food_aversion(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
 
     [
       defaults: [
-        value_string: StreamData.repeatedly(fn -> Faker.Food.ingredient() end),
-        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end)
+        value_string: StreamData.repeatedly(fn -> Enum.random(@seed_food_aversions) end),
+        value_codeable_concept: nil,
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
       ],
       overrides: data_opts
     ]
     |> Keyword.merge(ash_opts)
     |> then(&changeset_generator(Chironium.Health.Observation, :log_food_aversion, &1))
+  end
+
+  def observation_menstrual_period_start(opts \\ []) do
+    {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
+
+    [
+      defaults: [
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(7..120) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+      ],
+      overrides: data_opts
+    ]
+    |> Keyword.merge(ash_opts)
+    |> then(&changeset_generator(Chironium.Health.Observation, :log_menstrual_period_start, &1))
+  end
+
+  def observation_menstrual_period_duration(opts \\ []) do
+    {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
+
+    [
+      defaults: [
+        duration_days: StreamData.repeatedly(fn -> Enum.random(3..8) end),
+        effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(7..120) end),
+        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+      ],
+      overrides: data_opts
+    ]
+    |> Keyword.merge(ash_opts)
+    |> then(&changeset_generator(Chironium.Health.Observation, :log_menstrual_period_duration, &1))
   end
 
   # -- Helpers --
@@ -430,9 +614,12 @@ defmodule Chironium.Generator do
     Keyword.split(opts, @ash_keys)
   end
 
+  defp note_author(nil), do: %{author_string: "System"}
+  defp note_author(%{id: id}), do: %{author_reference: to_string(id)}
+
   defp random_past_date(range) do
-    days_ago = Enum.random(range) * 365
-    Date.add(Date.utc_today(), -Enum.random(1..days_ago))
+    days_ago = Enum.random(range) * 365 + Enum.random(0..364)
+    Date.add(Date.utc_today(), -days_ago)
   end
 
   defp random_past_datetime(days_range) do

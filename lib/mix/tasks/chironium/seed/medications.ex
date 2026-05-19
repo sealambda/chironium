@@ -14,20 +14,23 @@ defmodule Mix.Tasks.Chironium.Seed.Medications do
 
     Helpers.ensure_started!()
     patients = Helpers.fetch_patients!(tenant)
+    practitioners = Helpers.fetch_practitioners!(tenant)
 
-    seed(tenant, patients)
+    seed(tenant, patients, practitioners)
 
     Helpers.info("[Seed] Medications created for #{length(patients)} patients.")
   end
 
   @doc "Seed 0–3 medication statements per patient."
-  def seed(tenant, patients) do
+  def seed(tenant, patients, practitioners) do
     opts = Helpers.ash_opts(tenant)
 
     Enum.each(patients, fn patient ->
-      for _ <- 1..Enum.random(0..3)//1 do
-        generate(medication_statement(Keyword.merge(opts, subject_id: patient.id)))
-      end
+      (seed_medication_labels() ++ seed_supplement_labels())
+      |> Enum.take_random(Enum.random(0..3))
+      |> Enum.each(fn label ->
+        generate(medication_statement(Keyword.merge(opts, subject_id: patient.id, medication: %{text: label}, actor: Enum.random(practitioners))))
+      end)
     end)
   end
 end

@@ -7,15 +7,18 @@ defmodule Mix.Tasks.Chironium.Seed do
   alias Mix.Tasks.Chironium.Seed.{
     Allergies,
     CareTeams,
+    ClinicalNotes,
     Conditions,
     Goals,
     Helpers,
     Medications,
+    MenstrualCycles,
     NutritionPlans,
     Observations,
     Organization,
     Patients,
     Practitioners,
+    Subscriptions,
     Tasks
   }
 
@@ -46,16 +49,25 @@ defmodule Mix.Tasks.Chironium.Seed do
     patients = Patients.seed(tenant, patient_count)
     Helpers.info("[Seed] #{length(patients)} patients created.")
 
+    subscription_result = Subscriptions.seed(tenant, patients)
+
+    Helpers.info(
+      "[Seed] Subscriptions created: #{subscription_result.created} " <>
+        "(expired: #{subscription_result.expired}, active: #{subscription_result.active})."
+    )
+
     CareTeams.seed(tenant, patients, practitioners)
     Helpers.info("[Seed] Care teams created.")
 
-    Observations.seed(tenant, patients)
-    Conditions.seed(tenant, patients)
-    Goals.seed(tenant, patients)
-    Medications.seed(tenant, patients)
-    Allergies.seed(tenant, patients)
+    Observations.seed(tenant, patients, practitioners)
+    Conditions.seed(tenant, patients, practitioners)
+    Goals.seed(tenant, patients, practitioners)
+    Medications.seed(tenant, patients, practitioners)
+    Allergies.seed(tenant, patients, practitioners)
     NutritionPlans.seed(tenant, patients)
-    Tasks.seed(tenant, patients)
+    Tasks.seed(tenant, patients, practitioners)
+    MenstrualCycles.seed(tenant, patients, practitioners)
+    ClinicalNotes.seed(tenant, patients, practitioners)
     Helpers.info("[Seed] Clinical data created.")
 
     invite = Organization.seed_invitation(org, user, invite_email, role)

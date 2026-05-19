@@ -23,20 +23,24 @@ defmodule Mix.Tasks.Chironium.Seed.Helpers do
   end
 
   def fetch_patients!(tenant) do
-    Ash.read!(Chironium.Health.Patient, ash_opts(tenant))
+    Chironium.Health.Patient
+    |> Ash.stream!(ash_opts(tenant))
+    |> Enum.to_list()
   end
 
   def fetch_practitioners!(tenant) do
-    Ash.read!(Chironium.Health.Practitioner, ash_opts(tenant))
+    Chironium.Health.Practitioner
+    |> Ash.stream!(ash_opts(tenant))
+    |> Enum.to_list()
   end
 
   @valid_roles ~w(member power_user)
 
-  @doc "Parse --role from CLI opts, defaulting to :member. Raises on invalid values."
+  @doc "Parse --role from CLI opts, defaulting to :power_user. Raises on invalid values."
   def parse_role(opts) do
     case Keyword.get(opts, :role) do
       nil ->
-        :member
+        :power_user
 
       role when role in @valid_roles ->
         String.to_atom(role)

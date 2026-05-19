@@ -76,9 +76,11 @@ defmodule Chironium.Release do
     alias Mix.Tasks.Chironium.Seed.{
       Allergies,
       CareTeams,
+      ClinicalNotes,
       Conditions,
       Goals,
       Medications,
+      MenstrualCycles,
       NutritionPlans,
       Observations,
       Organization,
@@ -119,6 +121,8 @@ defmodule Chironium.Release do
     Allergies.seed(tenant, patients)
     NutritionPlans.seed(tenant, patients)
     Tasks.seed(tenant, patients)
+    MenstrualCycles.seed(tenant, patients)
+    ClinicalNotes.seed(tenant, patients)
     IO.puts("[Seed] Clinical data created.")
 
     invite = Organization.seed_invitation(org, user, invite_email, role)

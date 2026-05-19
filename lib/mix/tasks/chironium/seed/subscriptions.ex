@@ -33,43 +33,43 @@ defmodule Mix.Tasks.Chironium.Seed.Subscriptions do
     )
   end
 
-  @doc "Create monthly/yearly plans and assign one random subscription to each seeded patient."
+  @doc """
+  Create monthly/yearly plans and assign one active subscription per patient.
+
+  Every subscription starts 1–18 months in the past and remains active.
+  """
   def seed(tenant, patients) do
     ash_opts = Helpers.ash_opts(tenant)
     plans = create_plans!(ash_opts)
+    today = Date.utc_today()
 
-    subscriptions =
+    created =
       patients
       |> Enum.map(& &1.person_id)
       |> Enum.reject(&is_nil/1)
       |> Enum.map(fn person_id ->
         plan = Enum.random(plans)
+        days = plan_duration_days(plan.duration)
+        start_date = Date.add(today, -Enum.random(trunc(days * 0.20)..trunc(days * 0.80)))
 
         Subscription
         |> Ash.Changeset.for_create(
           :create,
-          %{subscriber_id: person_id, plan_id: plan.id, start_date: Date.utc_today()},
+          %{subscriber_id: person_id, plan_id: plan.id, start_date: start_date},
           ash_opts
         )
         |> Ash.create!()
       end)
 
-    expired_count = min(2, length(subscriptions))
-
-    subscriptions
-    |> Enum.take_random(expired_count)
-    |> Enum.each(fn subscription ->
-      subscription
-      |> Ash.Changeset.for_update(:expire, %{}, ash_opts)
-      |> Ash.update!()
-    end)
-
-    %{
-      created: length(subscriptions),
-      expired: expired_count,
-      active: length(subscriptions) - expired_count
-    }
+    %{created: length(created), expired: 0, active: length(created)}
   end
+
+  defp plan_duration_days(%{code: :mo, value: v}), do: trunc(to_float(v) * 30)
+  defp plan_duration_days(%{code: :a, value: v}), do: trunc(to_float(v) * 365)
+  defp plan_duration_days(_), do: 28
+
+  defp to_float(%Decimal{} = d), do: Decimal.to_float(d)
+  defp to_float(n) when is_number(n), do: n * 1.0
 
   defp create_plans!(ash_opts) do
     [@monthly_plan, @yearly_plan]
