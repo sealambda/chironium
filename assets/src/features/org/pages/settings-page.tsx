@@ -227,7 +227,7 @@ export function SettingsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle>{m.settings_members_section_title()}</CardTitle>
-          {hasVisibleMembers ? (
+          {hasVisibleMembers && canManageMembers ? (
             <Button
               type="button"
               onClick={() => setIsInviteOpen(true)}
