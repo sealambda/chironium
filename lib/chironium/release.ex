@@ -84,6 +84,7 @@ defmodule Chironium.Release do
       Organization,
       Patients,
       Practitioners,
+      Subscriptions,
       Tasks
     }
 
@@ -100,6 +101,13 @@ defmodule Chironium.Release do
 
     patients = Patients.seed(tenant, patient_count)
     IO.puts("[Seed] #{length(patients)} patients created.")
+
+    subscription_result = Subscriptions.seed(tenant, patients)
+
+    IO.puts(
+      "[Seed] Subscriptions created: #{subscription_result.created} " <>
+        "(expired: #{subscription_result.expired}, active: #{subscription_result.active})."
+    )
 
     CareTeams.seed(tenant, patients, practitioners)
     IO.puts("[Seed] Care teams created.")
