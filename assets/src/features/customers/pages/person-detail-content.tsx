@@ -128,8 +128,6 @@ function PatientDetailCards({
         <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-10">
           <div className="lg:order-1 lg:col-span-3">
             <AnthropometryCard
-              personId={personId}
-              patientId={patientId}
               history={anthropometryEntries}
               isLoading={anthropometryHistory.isLoading}
               compact

@@ -323,6 +323,37 @@ export function selectAnthropometryHistory(
 }
 
 /**
+ * Build a combined "current state" snapshot by picking the most recent value for each
+ * measurement field across the full history. The date reflects the most recent weight
+ * observation so the hero section shows accurate recency.
+ */
+export function selectCurrentStateSnapshot(
+  history: AnthropometricSnapshot[],
+): AnthropometricSnapshot | null {
+  if (history.length === 0) return null;
+
+  const initial: AnthropometricSnapshot = {
+    date: (history.find((s) => s.weight != null) ?? history[0]!).date,
+  };
+
+  return history.reduce(
+    (merged, snapshot) => ({
+      date: merged.date,
+      weight: merged.weight ?? snapshot.weight,
+      height: merged.height ?? snapshot.height,
+      bmi: merged.bmi ?? snapshot.bmi,
+      whr: merged.whr ?? snapshot.whr,
+      chest: merged.chest ?? snapshot.chest,
+      waist: merged.waist ?? snapshot.waist,
+      hip: merged.hip ?? snapshot.hip,
+      arm: merged.arm ?? snapshot.arm,
+      thigh: merged.thigh ?? snapshot.thigh,
+    }),
+    initial,
+  );
+}
+
+/**
  * Log all provided anthropometric measurements. Skips absent values.
  */
 export async function logAnthropometry(
