@@ -1,5 +1,6 @@
 import { differenceInDays } from "date-fns";
 import { ScaleIcon } from "lucide-react";
+
 import {
   type AnthropometricSnapshot,
   selectCurrentStateSnapshot,
@@ -171,7 +172,6 @@ export function AnthropometryCard({
       <div className="my-4 h-px bg-border" />
 
       <AnthropometryMeasurementDetails latest={currentState} />
-
     </div>
   );
 }

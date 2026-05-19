@@ -22,6 +22,16 @@ function formatGoalDate(dateStr: string | null | undefined): string | null {
   return dateStr ? format(parseISO(dateStr), "MMM d, yyyy", { locale: getDateLocale() }) : null;
 }
 
+function formatGoalDateRange(startDate: string | null, endDate: string | null): string | null {
+  if (startDate && endDate) {
+    return `${startDate} – ${endDate}`;
+  }
+  if (endDate) {
+    return `– ${endDate}`;
+  }
+  return startDate;
+}
+
 function SingleGoal({ goal }: Readonly<{ goal: GoalRecord }>) {
   const description = goal.description?.text ?? "";
   const formattedStartDate = formatGoalDate(goal.startDate);
@@ -29,12 +39,7 @@ function SingleGoal({ goal }: Readonly<{ goal: GoalRecord }>) {
   const category = goal.category?.[0];
   const categoryLabel = category ? CATEGORY_LABELS.get(category) : null;
 
-  const dateRange =
-    formattedStartDate && formattedDueDate
-      ? `${formattedStartDate} – ${formattedDueDate}`
-      : formattedDueDate
-        ? `– ${formattedDueDate}`
-        : formattedStartDate ?? null;
+  const dateRange = formatGoalDateRange(formattedStartDate, formattedDueDate);
 
   return (
     <div className="space-y-2">
@@ -43,9 +48,7 @@ function SingleGoal({ goal }: Readonly<{ goal: GoalRecord }>) {
           <Badge variant="outline">{categoryLabel()}</Badge>
         </div>
       ) : null}
-      {dateRange ? (
-        <p className="text-muted-foreground text-xs">{dateRange}</p>
-      ) : null}
+      {dateRange ? <p className="text-muted-foreground text-xs">{dateRange}</p> : null}
       {description ? <p className="text-foreground/80 text-sm">{description}</p> : null}
     </div>
   );

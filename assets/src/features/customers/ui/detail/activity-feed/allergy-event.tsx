@@ -11,7 +11,9 @@ export function AllergyEvent({ allergies }: AllergyEventProps) {
     <div className="flex flex-wrap gap-1.5">
       {allergies.map((allergy) => {
         const name = displayTextFromCodeableConcept(allergy.code) ?? "";
-        if (!name) return null;
+        if (!name) {
+          return null;
+        }
         return (
           <AllergyPill
             key={allergy.id}
