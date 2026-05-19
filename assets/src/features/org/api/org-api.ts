@@ -175,6 +175,7 @@ const AcceptInvitationMutation = graphql(`
     acceptInvitation(inviteCode: $inviteCode) {
       result {
         id
+        organizationId
       }
       errors {
         message
@@ -504,14 +505,15 @@ export async function updateOrganizationUserRole(params: {
   unwrapMutationResult(result.updateOrganizationUser, "Failed to update member role.");
 }
 
-/** Accept a pending invitation using its invite code. */
-export async function acceptInvitation(inviteCode: string): Promise<void> {
+/** Accept a pending invitation using its invite code. Returns the joined organization's ID. */
+export async function acceptInvitation(inviteCode: string): Promise<string> {
   const result = await requestGraphql({
     document: AcceptInvitationMutation,
     variables: { inviteCode },
   });
 
-  unwrapMutationResult(result.acceptInvitation, "Failed to accept invitation.");
+  const invitation = unwrapMutationResult(result.acceptInvitation, "Failed to accept invitation.");
+  return invitation.organizationId;
 }
 
 /** Reject a pending invitation using its invite code. */
