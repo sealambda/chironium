@@ -8,8 +8,8 @@ import {
   LayoutList,
   Pill,
   Scale,
-  Star,
   Stethoscope,
+  Target,
   Utensils,
 } from "lucide-react";
 
@@ -66,7 +66,7 @@ const CHIPS: readonly ChipConfig[] = [
   {
     value: "goal",
     label: m.activity_filter_goals,
-    icon: Star,
+    icon: Target,
     activeClass: "border-success/20 bg-success-muted text-success-muted-foreground",
   },
   {

@@ -1,7 +1,6 @@
 import { format, parseISO } from "date-fns";
 
 import type { GoalRecord } from "@/features/customers/api/goals-api";
-import { AchievementBadge } from "@/features/customers/ui/shared/achievement-badge";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
@@ -9,7 +8,6 @@ import { getDateLocale } from "@/shared/utils/date-locale";
 
 interface GoalEventProps {
   goals: GoalRecord[];
-  variant: "created" | "due";
 }
 
 const CATEGORY_LABELS = new Map<string, () => string>([
@@ -24,12 +22,19 @@ function formatGoalDate(dateStr: string | null | undefined): string | null {
   return dateStr ? format(parseISO(dateStr), "MMM d, yyyy", { locale: getDateLocale() }) : null;
 }
 
-function SingleGoal({ goal, variant }: Readonly<{ goal: GoalRecord; variant: "created" | "due" }>) {
+function SingleGoal({ goal }: Readonly<{ goal: GoalRecord }>) {
   const description = goal.description?.text ?? "";
-  const dateStr = variant === "due" ? goal.dueDate : goal.startDate;
-  const formattedDate = formatGoalDate(dateStr);
+  const formattedStartDate = formatGoalDate(goal.startDate);
+  const formattedDueDate = formatGoalDate(goal.dueDate);
   const category = goal.category?.[0];
   const categoryLabel = category ? CATEGORY_LABELS.get(category) : null;
+
+  const dateRange =
+    formattedStartDate && formattedDueDate
+      ? `${formattedStartDate} – ${formattedDueDate}`
+      : formattedDueDate
+        ? `– ${formattedDueDate}`
+        : formattedStartDate ?? null;
 
   return (
     <div className="space-y-2">
@@ -38,17 +43,10 @@ function SingleGoal({ goal, variant }: Readonly<{ goal: GoalRecord; variant: "cr
           <Badge variant="outline">{categoryLabel()}</Badge>
         </div>
       ) : null}
+      {dateRange ? (
+        <p className="text-muted-foreground text-xs">{dateRange}</p>
+      ) : null}
       {description ? <p className="text-foreground/80 text-sm">{description}</p> : null}
-      <div className="flex flex-wrap items-center gap-1.5">
-        {goal.achievementStatus && variant === "due" ? (
-          <AchievementBadge status={goal.achievementStatus} />
-        ) : null}
-        {formattedDate ? (
-          <time dateTime={dateStr ?? undefined} className="text-muted-foreground text-xs">
-            {formattedDate}
-          </time>
-        ) : null}
-      </div>
     </div>
   );
 }
@@ -82,13 +80,10 @@ function GoalTable({ goals }: Readonly<{ goals: GoalRecord[] }>) {
   );
 }
 
-export function GoalEvent({ goals, variant }: Readonly<GoalEventProps>) {
+export function GoalEvent({ goals }: Readonly<GoalEventProps>) {
   const first = goals[0];
-  if (variant === "due") {
-    return first ? <SingleGoal goal={first} variant="due" /> : null;
-  }
   if (goals.length === 1 && first) {
-    return <SingleGoal goal={first} variant="created" />;
+    return <SingleGoal goal={first} />;
   }
   return <GoalTable goals={goals} />;
 }
