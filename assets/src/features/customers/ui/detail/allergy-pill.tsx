@@ -14,14 +14,18 @@ interface AllergyPillProps extends Omit<ComponentPropsWithoutRef<"button">, "typ
   readonly onClick?: () => void;
 }
 
-const isResolved = (status: string | null | undefined) => status?.toUpperCase() === "RESOLVED";
+const INACTIVE_STATUSES = new Set(["RESOLVED", "INACTIVE"]);
+
+const isInactive = (status: string | null | undefined) =>
+  status != null && INACTIVE_STATUSES.has(status.toUpperCase());
 
 /**
- * Pill representing a single allergy or intolerance record. Resolved entries
- * use the muted tone to de-emphasise them; otherwise allergies are red and
- * intolerances are orange. Renders as a button when `onClick` is provided.
+ * Pill representing a single allergy or intolerance record. Inactive or
+ * resolved entries use the muted tone to de-emphasise them; otherwise
+ * allergies are red and intolerances are orange. Renders as a button when
+ * `onClick` is provided.
  */
 export function AllergyPill({ allergyType, clinicalStatus, ...props }: Readonly<AllergyPillProps>) {
-  const tone: TagPillTone = isResolved(clinicalStatus) ? "muted" : toneFor(allergyType);
+  const tone: TagPillTone = isInactive(clinicalStatus) ? "muted" : toneFor(allergyType);
   return <TagPill tone={tone} {...props} />;
 }
