@@ -12,9 +12,14 @@ interface StoredUnassignedFilter {
 
 export type StoredPersonFilter = StoredPractitionerFilter | StoredUnassignedFilter | null;
 
-export function getStoredPersonFilterPreference(): StoredPersonFilter {
+function getPersonFilterPreferenceKey(orgId: string): string {
+  return `${PERSON_FILTER_PREFERENCE_KEY}_${orgId}`;
+}
+
+export function getStoredPersonFilterPreference(orgId: string): StoredPersonFilter {
   try {
-    const stored = localStorage.getItem(PERSON_FILTER_PREFERENCE_KEY);
+    const key = getPersonFilterPreferenceKey(orgId);
+    const stored = localStorage.getItem(key);
     if (!stored) {
       return null;
     }
@@ -46,14 +51,15 @@ export function getStoredPersonFilterPreference(): StoredPersonFilter {
   }
 }
 
-export function storePersonFilterPreference(filter: StoredPersonFilter): void {
+export function storePersonFilterPreference(orgId: string, filter: StoredPersonFilter): void {
   try {
+    const key = getPersonFilterPreferenceKey(orgId);
     if (!filter) {
-      localStorage.removeItem(PERSON_FILTER_PREFERENCE_KEY);
+      localStorage.removeItem(key);
       return;
     }
 
-    localStorage.setItem(PERSON_FILTER_PREFERENCE_KEY, JSON.stringify(filter));
+    localStorage.setItem(key, JSON.stringify(filter));
   } catch {
     // localStorage not available.
   }
