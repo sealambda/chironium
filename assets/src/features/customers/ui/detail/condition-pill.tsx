@@ -9,7 +9,10 @@ interface ConditionPillProps extends Omit<ComponentPropsWithoutRef<"button">, "t
   readonly onClick?: () => void;
 }
 
-const RESOLVED_STATUSES = new Set(["RESOLVED", "INACTIVE", "REMISSION"]);
+const INACTIVE_STATUSES = new Set(["RESOLVED", "INACTIVE", "REMISSION"]);
+
+const isInactive = (status: string | null | undefined) =>
+  status != null && INACTIVE_STATUSES.has(status.toUpperCase());
 
 /**
  * Pill representing a single condition. Resolved/inactive/remission states use
@@ -21,7 +24,7 @@ export function ConditionPill({
   statusLabel,
   ...props
 }: Readonly<ConditionPillProps>) {
-  const isResolved = clinicalStatus ? RESOLVED_STATUSES.has(clinicalStatus.toUpperCase()) : false;
+  const isResolved = isInactive(clinicalStatus);
   return (
     <TagPill
       tone={isResolved ? "muted" : "blue"}
