@@ -31,7 +31,7 @@ export function PendingInvitationsDialog({
   onOpenChange,
 }: Readonly<PendingInvitationsDialogProps>) {
   const queryClient = useQueryClient();
-  const { refreshOrgs } = useOrg();
+  const { refreshOrgs, selectOrg } = useOrg();
   const [submittingAction, setSubmittingAction] = useState<InvitationSubmitAction | null>(null);
   const [inviteCodeInput, setInviteCodeInput] = useState(initialInviteCode);
 
@@ -86,13 +86,22 @@ export function PendingInvitationsDialog({
       return;
     }
 
-    await submitInvitationAction({
-      action: "accept",
-      inviteCode,
-      mutate: acceptInvitation,
-      successMessage: m.org_invitation_accept_success(),
-      errorFallbackMessage: m.org_invitation_accept_error(),
-    });
+    setSubmittingAction("accept");
+    try {
+      const organizationId = await acceptInvitation(inviteCode);
+      toast.success(m.org_invitation_accept_success());
+
+      await queryClient.invalidateQueries({ queryKey: ORG_QUERY_KEY });
+      await refreshOrgs();
+      await selectOrg(organizationId);
+      onOpenChange?.(false);
+      setInviteCodeInput("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : m.org_invitation_accept_error();
+      toast.error(message);
+    } finally {
+      setSubmittingAction(null);
+    }
   };
 
   return (
