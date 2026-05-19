@@ -2,7 +2,7 @@ import {
   type AnthropometricSnapshot,
   CIRCUMFERENCE_KEYS,
 } from "@/features/customers/api/anthropometry-api";
-import { AnthropometryMeasurementDetails } from "@/features/customers/ui/detail/anthropometry-measurement-details";
+import { CIRCUMFERENCE_LABELS } from "@/features/customers/ui/detail/anthropometry-measurement-details";
 import * as m from "@/paraglide/messages";
 import { formatAnthropometryValue } from "@/shared/utils/measurement-utils";
 
@@ -10,52 +10,74 @@ interface AnthropometryEventProps {
   snapshot: AnthropometricSnapshot;
 }
 
-// Simplified hero — no delta or date line (those live in the clinical summary card).
-function HeroRow({ snapshot }: Readonly<{ snapshot: AnthropometricSnapshot }>) {
-  if (snapshot.weight == null && snapshot.height == null) {
-    return null;
+interface MeasurementBox {
+  key: string;
+  label: string;
+  value: string;
+}
+
+function buildBoxes(snapshot: AnthropometricSnapshot): MeasurementBox[] {
+  const boxes: MeasurementBox[] = [];
+
+  if (snapshot.weight != null) {
+    boxes.push({
+      key: "weight",
+      label: m.anthropometry_weight(),
+      value: `${formatAnthropometryValue(snapshot.weight)} ${m.common_unit_kg()}`,
+    });
+  }
+  if (snapshot.height != null) {
+    boxes.push({
+      key: "height",
+      label: m.anthropometry_height(),
+      value: `${formatAnthropometryValue(snapshot.height)} ${m.common_unit_cm()}`,
+    });
+  }
+  if (snapshot.bmi != null) {
+    boxes.push({
+      key: "bmi",
+      label: m.anthropometry_bmi(),
+      value: formatAnthropometryValue(snapshot.bmi),
+    });
+  }
+  for (const k of CIRCUMFERENCE_KEYS) {
+    const val = snapshot[k];
+    if (val != null) {
+      boxes.push({
+        key: k,
+        label: CIRCUMFERENCE_LABELS[k](),
+        value: `${formatAnthropometryValue(val)} ${m.common_unit_cm()}`,
+      });
+    }
+  }
+  if (snapshot.whr != null) {
+    boxes.push({
+      key: "whr",
+      label: m.anthropometry_whr(),
+      value: snapshot.whr.toFixed(2),
+    });
   }
 
-  return (
-    <div className="space-y-0.5">
-      {snapshot.weight == null ? null : (
-        <div className="flex items-baseline gap-1.5">
-          <span className="font-bold text-2xl text-foreground tabular-nums">
-            {formatAnthropometryValue(snapshot.weight)}
-          </span>
-          <span className="text-foreground/65 text-sm">{m.common_unit_kg()}</span>
-        </div>
-      )}
-      {snapshot.height == null ? null : (
-        <div className="text-foreground/65 text-sm">
-          <span className="font-medium text-foreground tabular-nums">
-            {formatAnthropometryValue(snapshot.height)}
-          </span>{" "}
-          {m.common_unit_cm()}
-        </div>
-      )}
-    </div>
-  );
+  return boxes;
 }
 
 export function AnthropometryEvent({ snapshot }: Readonly<AnthropometryEventProps>) {
-  const hasAny =
-    snapshot.weight != null ||
-    snapshot.height != null ||
-    snapshot.bmi != null ||
-    CIRCUMFERENCE_KEYS.some((k) => snapshot[k] != null);
+  const boxes = buildBoxes(snapshot);
 
-  if (!hasAny) {
+  if (boxes.length === 0) {
     return null;
   }
 
-  const hasHero = snapshot.weight != null || snapshot.height != null;
-
   return (
-    <div className="w-full max-w-md rounded-xl border bg-card p-4 lg:max-w-lg">
-      <HeroRow snapshot={snapshot} />
-      {hasHero ? <div className="my-4 h-px bg-border" /> : null}
-      <AnthropometryMeasurementDetails latest={snapshot} />
+    <div className="flex flex-wrap gap-2">
+      {boxes.map((box) => (
+        <div key={box.key} className="rounded-xl border bg-card px-4 py-3 text-center">
+          <p className="text-foreground/65 text-xs">{box.label}</p>
+          <p className="mt-0.5 font-semibold text-foreground tabular-nums">
+            {box.value}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

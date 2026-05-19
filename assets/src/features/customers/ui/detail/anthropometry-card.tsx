@@ -1,15 +1,14 @@
 import { differenceInDays } from "date-fns";
 import { ScaleIcon } from "lucide-react";
-import { type ReactNode, useState } from "react";
-
-import type { AnthropometricSnapshot } from "@/features/customers/api/anthropometry-api";
+import {
+  type AnthropometricSnapshot,
+  selectCurrentStateSnapshot,
+} from "@/features/customers/api/anthropometry-api";
 import {
   AnthropometryMeasurementDetails,
   DeltaPill,
 } from "@/features/customers/ui/detail/anthropometry-measurement-details";
 import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer-detail-empty-card";
-import { DetailEditButton } from "@/features/customers/ui/detail/detail-edit-button";
-import { EditAnthropometryDialog } from "@/features/customers/ui/detail/edit-anthropometry-dialog";
 import * as m from "@/paraglide/messages";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { computeDelta, formatAnthropometryValue } from "@/shared/utils/measurement-utils";
@@ -18,8 +17,6 @@ import { cn } from "@/shared/utils/utils";
 // ─── Props ───────────────────────────────────────────────────────────
 
 interface AnthropometryCardProps {
-  personId: string;
-  patientId: string | null;
   history: AnthropometricSnapshot[];
   isLoading?: boolean;
   compact?: boolean;
@@ -30,11 +27,9 @@ interface AnthropometryCardProps {
 function HeroSection({
   latest,
   weightDelta,
-  editButton,
 }: Readonly<{
   latest: AnthropometricSnapshot;
   weightDelta: number | null;
-  editButton?: ReactNode;
 }>) {
   const daysAgo = differenceInDays(new Date(), new Date(latest.date));
   const weight = latest.weight;
@@ -55,7 +50,6 @@ function HeroSection({
           </>
         )}
         {weight == null || weightDelta == null ? null : <DeltaPill value={weightDelta} unit="kg" />}
-        {editButton}
       </div>
       {height == null ? null : (
         <div className="flex items-baseline gap-1.5">
@@ -141,20 +135,15 @@ function AnthropometryCardSkeleton({ compact }: Readonly<{ compact?: boolean }>)
 // ─── Main component ──────────────────────────────────────────────────
 
 export function AnthropometryCard({
-  personId,
-  patientId,
   history,
   isLoading,
   compact,
 }: Readonly<AnthropometryCardProps>) {
-  const [editOpen, setEditOpen] = useState(false);
-
   if (isLoading) {
     return <AnthropometryCardSkeleton compact={compact} />;
   }
 
   const latest = history[0];
-  const previous = history[1];
 
   if (!latest) {
     return (
@@ -166,7 +155,9 @@ export function AnthropometryCard({
     );
   }
 
-  const weightDelta = computeDelta(latest.weight, previous?.weight);
+  const currentState = selectCurrentStateSnapshot(history) ?? latest;
+  const weightHistory = history.filter((s) => s.weight != null);
+  const weightDelta = computeDelta(weightHistory[0]?.weight, weightHistory[1]?.weight);
 
   return (
     <div
@@ -175,30 +166,12 @@ export function AnthropometryCard({
         compact ? "p-3 lg:p-4" : "p-4 lg:p-5",
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <HeroSection
-          latest={latest}
-          weightDelta={weightDelta}
-          editButton={
-            <DetailEditButton
-              ariaLabel={m.anthropometry_edit_title()}
-              onClick={() => setEditOpen(true)}
-            />
-          }
-        />
-      </div>
+      <HeroSection latest={currentState} weightDelta={weightDelta} />
 
       <div className="my-4 h-px bg-border" />
 
-      <AnthropometryMeasurementDetails latest={latest} previous={previous} />
+      <AnthropometryMeasurementDetails latest={currentState} />
 
-      <EditAnthropometryDialog
-        personId={personId}
-        patientId={patientId}
-        snapshot={latest}
-        open={editOpen}
-        onOpenChange={setEditOpen}
-      />
     </div>
   );
 }
