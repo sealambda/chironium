@@ -7,7 +7,6 @@ import {
   Droplet,
   Pill,
   Scale,
-  Star,
   Stethoscope,
   Target,
   Utensils,
@@ -183,16 +182,7 @@ export type FeedEvent =
       id: string;
       date: string;
       actors?: FeedActor[];
-      variant: "created";
       payload: GoalRecord[];
-    }
-  | {
-      kind: "goal";
-      id: string;
-      date: string;
-      actors?: FeedActor[];
-      variant: "due";
-      payload: GoalRecord;
     }
   | {
       kind: "subscription";
@@ -277,7 +267,7 @@ export function getEventAccent(event: FeedEvent): FeedEventAccent {
     case "task":
       return "amber";
     case "goal":
-      return event.variant === "due" ? "emerald" : "sky";
+      return "sky";
     case "subscription":
       return SUBSCRIPTION_ACCENT[event.variant];
     case "anthropometry":
@@ -302,7 +292,7 @@ export function getEventIcon(event: FeedEvent): LucideIcon {
     case "task":
       return CalendarClock;
     case "goal":
-      return event.variant === "due" ? Target : Star;
+      return Target;
     case "subscription":
       return Activity;
     case "anthropometry":
@@ -327,9 +317,7 @@ export function getEventLabel(event: FeedEvent): string {
     case "task":
       return m.activity_event_reminder();
     case "goal":
-      return event.variant === "due"
-        ? m.activity_event_goal_due()
-        : m.activity_event_goal_created();
+      return m.activity_event_goal_created();
     case "subscription":
       return m.activity_event_subscription();
     case "anthropometry":
@@ -354,7 +342,7 @@ export function getEventLabel(event: FeedEvent): string {
 export function getEventCount(event: FeedEvent): number {
   switch (event.kind) {
     case "goal":
-      return event.variant === "created" ? event.payload.length : 1;
+      return event.payload.length;
     case "condition":
     case "allergy":
     case "medication":
@@ -371,14 +359,7 @@ function countWord(n: number): string {
   return toCardinal(n);
 }
 
-function verbForGoal(
-  event: Extract<FeedEvent, { kind: "goal" }>,
-  count: number,
-  word: string,
-): string {
-  if (event.variant === "due") {
-    return m.activity_verb_goal_due();
-  }
+function verbForGoal(count: number, word: string): string {
   return count > 1
     ? m.activity_verb_goal_created_plural({ count: word })
     : m.activity_verb_goal_created();
@@ -407,7 +388,7 @@ export function getEventVerb(event: FeedEvent, count = 1): string {
     case "task":
       return m.activity_verb_reminder();
     case "goal":
-      return verbForGoal(event, count, word);
+      return verbForGoal(count, word);
     case "subscription":
       return SUBSCRIPTION_VERB[event.variant]();
     case "anthropometry":

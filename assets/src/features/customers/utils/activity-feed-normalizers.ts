@@ -105,7 +105,6 @@ function normalizeMenstrualCycles(entries: MenstrualCycleEntry[] | undefined): F
 function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
   // Bucket "created" events by minute-precision timestamp so goals set simultaneously appear as one feed event.
   const createdBuckets = new Map<string, { goals: GoalRecord[]; actors: FeedActor[] }>();
-  const dueEvents: FeedEvent[] = [];
 
   for (const goal of goals) {
     const actor = mergeFeedActor(
@@ -131,17 +130,6 @@ function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
         actors: actor ? [actor] : [],
       });
     }
-
-    if (goal.dueDate) {
-      dueEvents.push({
-        kind: "goal",
-        id: `${goal.id}-due`,
-        date: `${goal.dueDate}T00:00:00.000Z`,
-        actors: uniqueActors([actor]),
-        variant: "due",
-        payload: goal,
-      });
-    }
   }
 
   const createdEvents: FeedEvent[] = Array.from(createdBuckets.entries()).map(
@@ -150,12 +138,11 @@ function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
       id: `goal-created-${bucketKey}`,
       date: `${bucketKey}:00.000Z`,
       actors: uniqueActors(bucketActors).length > 0 ? uniqueActors(bucketActors) : undefined,
-      variant: "created",
       payload: bucketGoals,
     }),
   );
 
-  return [...createdEvents, ...dueEvents];
+  return createdEvents;
 }
 
 function anthropometryObservationActors(snapshot: AnthropometricSnapshot): FeedActor[] {

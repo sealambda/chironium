@@ -323,9 +323,6 @@ function TaskReminderEditAction({
 }
 
 function singleEditableGoal(event: Extract<FeedEvent, { kind: "goal" }>): GoalRecord | null {
-  if (event.variant === "due") {
-    return event.payload;
-  }
   return event.payload.length === 1 ? (event.payload[0] ?? null) : null;
 }
 
@@ -336,12 +333,7 @@ function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
     case "task":
       return <TaskEvent task={event.payload} />;
     case "goal":
-      return (
-        <GoalEvent
-          goals={event.variant === "created" ? event.payload : [event.payload]}
-          variant={event.variant}
-        />
-      );
+      return <GoalEvent goals={event.payload} />;
     case "subscription":
       return (
         <SubscriptionEvent
