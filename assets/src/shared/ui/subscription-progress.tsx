@@ -12,6 +12,9 @@ interface SubscriptionProgressProps {
 }
 
 function segmentRounding(isFirst: boolean, isLast: boolean): string {
+  if (isFirst && isLast) {
+    return "rounded-full";
+  }
   if (isFirst) {
     return "rounded-r rounded-l-full";
   }
