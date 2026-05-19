@@ -73,9 +73,7 @@ export function AnthropometryEvent({ snapshot }: Readonly<AnthropometryEventProp
       {boxes.map((box) => (
         <div key={box.key} className="rounded-xl border bg-card px-4 py-3 text-center">
           <p className="text-foreground/65 text-xs">{box.label}</p>
-          <p className="mt-0.5 font-semibold text-foreground tabular-nums">
-            {box.value}
-          </p>
+          <p className="mt-0.5 font-semibold text-foreground tabular-nums">{box.value}</p>
         </div>
       ))}
     </div>
