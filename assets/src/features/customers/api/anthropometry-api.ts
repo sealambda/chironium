@@ -330,12 +330,13 @@ export function selectAnthropometryHistory(
 export function selectCurrentStateSnapshot(
   history: AnthropometricSnapshot[],
 ): AnthropometricSnapshot | null {
-  if (history.length === 0) {
+  const firstSnapshot = history.at(0);
+  if (!firstSnapshot) {
     return null;
   }
 
   const initial: AnthropometricSnapshot = {
-    date: (history.find((s) => s.weight != null) || history[0]).date,
+    date: (history.find((s) => s.weight != null) ?? firstSnapshot).date,
   };
 
   return history.reduce(

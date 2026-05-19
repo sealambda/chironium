@@ -139,9 +139,7 @@ export function CustomersPage() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [assignmentFilter, setAssignmentFilter] = useState<CustomerAssignmentFilter>(() =>
-    getStoredPersonFilterPreference(),
-  );
+  const [assignmentFilter, setAssignmentFilter] = useState<CustomerAssignmentFilter>(null);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [search, setSearch] = useState("");
   const [sortOption, setSortOption] = useState<PersonListSortOption>(
@@ -200,10 +198,21 @@ export function CustomersPage() {
   };
 
   const handleFilterApply = (nextFilter: CustomerAssignmentFilter) => {
-    storePersonFilterPreference(nextFilter);
+    if (selectedOrg?.id) {
+      storePersonFilterPreference(selectedOrg.id, nextFilter);
+    }
 
     setAssignmentFilter(nextFilter);
   };
+
+  useEffect(() => {
+    if (!selectedOrg?.id) {
+      setAssignmentFilter(null);
+      return;
+    }
+
+    setAssignmentFilter(getStoredPersonFilterPreference(selectedOrg.id));
+  }, [selectedOrg?.id]);
 
   useEffect(() => {
     if (!selectedOrg || isLoading || error) {
