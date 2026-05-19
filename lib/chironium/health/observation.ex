@@ -429,11 +429,16 @@ defmodule Chironium.Health.Observation do
           hip_cm = hip.value_quantity.value
           ratio = Decimal.div(waist_cm, hip_cm)
 
-          Ash.Changeset.change_attribute(changeset, :value_quantity, %{
+          effective_date_time =
+            Enum.max([waist.effective_date_time, hip.effective_date_time], DateTime)
+
+          changeset
+          |> Ash.Changeset.change_attribute(:value_quantity, %{
             system: @unit_of_measure_system,
             code: @unit_of_measure_code_ratio,
             value: Decimal.round(ratio, 2)
           })
+          |> Ash.Changeset.change_attribute(:effective_date_time, effective_date_time)
         else
           _ ->
             Ash.Changeset.add_error(changeset,

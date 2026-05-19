@@ -14,19 +14,20 @@ defmodule Mix.Tasks.Chironium.Seed.Goals do
 
     Helpers.ensure_started!()
     patients = Helpers.fetch_patients!(tenant)
+    practitioners = Helpers.fetch_practitioners!(tenant)
 
-    seed(tenant, patients)
+    seed(tenant, patients, practitioners)
 
     Helpers.info("[Seed] Goals created for #{length(patients)} patients.")
   end
 
   @doc "Seed 1–3 goals per patient."
-  def seed(tenant, patients) do
+  def seed(tenant, patients, practitioners) do
     opts = Helpers.ash_opts(tenant)
 
     Enum.each(patients, fn patient ->
       for _ <- 1..Enum.random(1..3) do
-        generate(goal(Keyword.merge(opts, subject_id: patient.id)))
+        generate(goal(Keyword.merge(opts, subject_id: patient.id, actor: Enum.random(practitioners))))
       end
     end)
   end
