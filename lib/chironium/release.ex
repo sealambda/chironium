@@ -93,7 +93,7 @@ defmodule Chironium.Release do
     patient_count = Keyword.get(opts, :patients, 50)
     practitioner_count = Keyword.get(opts, :practitioners, 10)
     invite_email = Keyword.get(opts, :invite)
-    role = Keyword.get(opts, :role, :member)
+    role = Keyword.get(opts, :role, :power_user)
 
     {user, org, tenant} = Organization.seed()
     IO.puts("[Seed] Organization '#{org.name}' created (tenant: #{tenant}).")
