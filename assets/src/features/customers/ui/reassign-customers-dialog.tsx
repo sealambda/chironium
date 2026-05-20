@@ -174,7 +174,7 @@ export function ReassignCustomersDialog({
                           variant="ghost"
                           size="icon-xs"
                           className="size-5 shrink-0 rounded-full"
-                          aria-label={m.customers_reassign_remove_professional_aria({
+                          aria-label={m.customers_reassign_remove_practitioner_aria({
                             name: p.label,
                           })}
                           disabled={submitting}

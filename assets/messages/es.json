@@ -236,7 +236,7 @@
   "customers_reassign_practitioners_label": "Profesionales",
   "customers_reassign_practitioners_placeholder": "Buscar por nombre…",
   "customers_reassign_practitioners_empty": "No hay profesionales coincidentes.",
-  "customers_reassign_remove_professional_aria": "Quitar a {name} de la selección",
+  "customers_reassign_remove_practitioner_aria": "Quitar a {name} de la selección",
   "customers_reassign_replace_assignments_label": "Reemplazar asignaciones existentes",
   "customers_reassign_replace_assignments_desc": "Quita las asignaciones actuales de profesionales para estos clientes antes de añadir las que eliges. Si está desactivado, se añaden nuevas asignaciones y se mantienen las existentes.",
   "customers_reassign_submit": "Aplicar",
