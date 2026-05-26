@@ -45,7 +45,6 @@
     "graphql-request": "~7.4.0",
     "libphonenumber-js": "~1.12.42",
     "lucide-react": "~1.11.0",
-    "marked": "~18.0.2",
     "n2words": "~4.0.0",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",

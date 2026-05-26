@@ -1,11 +1,11 @@
-import { Markdown } from "@tiptap/markdown";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import { Bold, Heading, Italic, List, ListOrdered } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/utils/utils";
+
+import { createMarkdownExtensions } from "./markdown-kit";
 
 interface MarkdownEditorProps {
   readonly value: string;
@@ -40,45 +40,52 @@ export function MarkdownEditor({
   disabled = false,
   className,
 }: MarkdownEditorProps) {
+  const onChangeRef = useRef(onChange);
+  const initialValueRef = useRef(value);
   const valueRef = useRef(value);
 
-  const editor = useEditor(
-    {
-      immediatelyRender: false,
-      editable: !disabled,
-      content: valueRef.current,
-      contentType: "markdown",
-      editorProps: {
-        attributes: ariaLabelledBy ? { "aria-labelledby": ariaLabelledBy } : {},
-      },
-      extensions: [
-        StarterKit.configure({
-          blockquote: false,
-          code: false,
-          codeBlock: false,
-          dropcursor: false,
-          gapcursor: false,
-          hardBreak: false,
-          heading: { levels: [2] },
-          horizontalRule: false,
-          strike: false,
-        }),
-        Markdown,
-      ],
-      onUpdate: ({ editor: currentEditor }) => {
-        const markdown = normalizeMarkdown(currentEditor.getMarkdown());
-        if (markdown !== valueRef.current) {
-          onChange(markdown);
-        }
-      },
-    },
-    [ariaLabelledBy, disabled, onChange],
+  onChangeRef.current = onChange;
+
+  const editorAttributes = useMemo<Record<string, string>>(() => {
+    const attributes: Record<string, string> = {};
+
+    if (ariaLabelledBy) {
+      attributes["aria-labelledby"] = ariaLabelledBy;
+    }
+
+    return attributes;
+  }, [ariaLabelledBy]);
+  const extensions = useMemo(() => createMarkdownExtensions(), []);
+  const editorProps = useMemo(
+    () => ({
+      attributes: editorAttributes,
+    }),
+    [editorAttributes],
   );
 
+  const editor = useEditor({
+    immediatelyRender: typeof window !== "undefined",
+    editable: !disabled,
+    content: initialValueRef.current,
+    contentType: "markdown",
+    editorProps,
+    extensions,
+    onUpdate: ({ editor: currentEditor }) => {
+      const markdown = normalizeMarkdown(currentEditor.getMarkdown());
+      if (markdown === valueRef.current) {
+        return;
+      }
+
+      valueRef.current = markdown;
+      onChangeRef.current(markdown);
+    },
+  });
+
   useEffect(() => {
-    if (!editor) {
+    if (!editor || editor.isDestroyed) {
       return;
     }
+
     valueRef.current = value;
     const current = normalizeMarkdown(editor.getMarkdown());
     if (current !== value) {
@@ -87,9 +94,10 @@ export function MarkdownEditor({
   }, [editor, value]);
 
   useEffect(() => {
-    if (!editor) {
+    if (!editor || editor.isDestroyed) {
       return;
     }
+
     editor.setEditable(!disabled);
   }, [disabled, editor]);
 
