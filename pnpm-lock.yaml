@@ -4,12 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    '@biomejs/biome':
-      specifier: 2.4.13
-      version: 2.4.13
-
 importers:
 
   .:
@@ -80,9 +74,6 @@ importers:
       lucide-react:
         specifier: ~1.11.0
         version: 1.11.0(react@19.2.6)
-      marked:
-        specifier: ~18.0.2
-        version: 18.0.3
       n2words:
         specifier: ~4.0.0
         version: 4.0.0
@@ -94,7 +85,7 @@ importers:
         version: link:../deps/phoenix_html
       phoenix_live_view:
         specifier: file:../deps/phoenix_live_view
-        version: link:../deps/phoenix_live_view
+        version: file:deps/phoenix_live_view
       posthog-js:
         specifier: ~1.372.1
         version: 1.372.10
@@ -197,7 +188,7 @@ importers:
         version: 8.0.12(@types/node@25.6.2)(jiti@2.7.0)
       vitest:
         specifier: ~4.1.5
-        version: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.2)(happy-dom@20.9.0)(jsdom@28.1.0(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.6.2)(typescript@6.0.3))(vite@8.0.12(@types/node@25.6.2)(jiti@2.7.0))
+        version: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.2)(happy-dom@20.9.0)(msw@2.14.6(@types/node@25.6.2)(typescript@6.0.3))(vite@8.0.12(@types/node@25.6.2)(jiti@2.7.0))
 
   deps/phoenix:
     devDependencies:
@@ -4646,11 +4637,6 @@ packages:
     engines: {node: '>= 20'}
     hasBin: true
 
-  marked@18.0.3:
-    resolution: {integrity: sha512-7VT90JOkDeaRWpfjOReRGPEKn0ecdARBkDGL+tT1wZY0efPPqkUxLUSmzy/C7TIylQYJC9STISEsCHrqb/7VIA==}
-    engines: {node: '>= 20'}
-    hasBin: true
-
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -5130,6 +5116,9 @@ packages:
 
   phoenix@1.7.21:
     resolution: {integrity: sha512-8wOvJ8pQXRxNbyFlMI+wQhK3bvX4Ps3FtUX2+0cV6lkcebe9VTIl+xS60FLAeaPieFg80djor5z/AKofnwqAUw==}
+
+  phoenix_live_view@file:deps/phoenix_live_view:
+    resolution: {directory: deps/phoenix_live_view, type: directory}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -11902,8 +11891,6 @@ snapshots:
 
   marked@17.0.6: {}
 
-  marked@18.0.3: {}
-
   math-intrinsics@1.1.0: {}
 
   mdast-util-definitions@5.1.2:
@@ -12541,6 +12528,10 @@ snapshots:
   pathe@2.0.3: {}
 
   phoenix@1.7.21: {}
+
+  phoenix_live_view@file:deps/phoenix_live_view:
+    dependencies:
+      morphdom: 2.7.8
 
   picocolors@1.1.1: {}
 
@@ -13611,7 +13602,7 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.7.0
 
-  vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.2)(happy-dom@20.9.0)(jsdom@28.1.0(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.6.2)(typescript@6.0.3))(vite@8.0.12(@types/node@25.6.2)(jiti@2.7.0)):
+  vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.2)(happy-dom@20.9.0)(msw@2.14.6(@types/node@25.6.2)(typescript@6.0.3))(vite@8.0.12(@types/node@25.6.2)(jiti@2.7.0)):
     dependencies:
       '@vitest/expect': 4.1.5
       '@vitest/mocker': 4.1.5(msw@2.14.6(@types/node@25.6.2)(typescript@6.0.3))(vite@8.0.12(@types/node@25.6.2)(jiti@2.7.0))
@@ -13637,7 +13628,6 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@types/node': 25.6.2
       happy-dom: 20.9.0
-      jsdom: 28.1.0(@noble/hashes@1.8.0)
     transitivePeerDependencies:
       - msw
 
