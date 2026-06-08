@@ -297,6 +297,45 @@ defmodule Chironium.Health.TaskLifecycleTest do
   end
 
   # ---------------------------------------------------------------------------
+  # State transition authorization
+  # ---------------------------------------------------------------------------
+
+  describe "state transition authorization" do
+    test "practitioner (member role) can transition task to :ready", ctx do
+      actor = setup_practitioner_actor(ctx)
+      task = create_task(ctx)
+
+      assert {:ok, ready} =
+               task
+               |> Ash.Changeset.for_update(:ready, %{}, actor: actor, tenant: ctx.tenant)
+               |> Ash.update()
+
+      assert ready.status == :ready
+    end
+
+    test "practitioner (member role) can transition task to :start", ctx do
+      actor = setup_practitioner_actor(ctx)
+      task = create_task(ctx) |> transition!(:ready, ctx)
+
+      assert {:ok, in_progress} =
+               task
+               |> Ash.Changeset.for_update(:start, %{}, actor: actor, tenant: ctx.tenant)
+               |> Ash.update()
+
+      assert in_progress.status == :in_progress
+    end
+
+    test "nil actor is denied for :ready transition", ctx do
+      task = create_task(ctx)
+
+      assert {:error, %Ash.Error.Forbidden{}} =
+               task
+               |> Ash.Changeset.for_update(:ready, %{}, actor: nil, tenant: ctx.tenant)
+               |> Ash.update()
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Destroy
   # ---------------------------------------------------------------------------
 
@@ -358,5 +397,44 @@ defmodule Chironium.Health.TaskLifecycleTest do
     task
     |> Ash.Changeset.for_update(action, %{}, authorize?: false, tenant: ctx.tenant)
     |> Ash.update!()
+  end
+
+  # Sets up a member user with a practitioner grant and returns the resolved domain actor.
+  defp setup_practitioner_actor(ctx) do
+    prac_user = generate(user())
+
+    Chironium.Accounts.OrganizationUsers
+    |> Ash.Changeset.for_create(
+      :create,
+      %{organization_id: ctx.organization.id, user_id: prac_user.id, role: :member},
+      authorize?: false
+    )
+    |> Ash.create!()
+
+    practitioner =
+      Chironium.Health.Practitioner
+      |> Ash.Changeset.for_create(
+        :create,
+        %{name: [%{text: "Dr. Test"}]},
+        authorize?: false,
+        tenant: ctx.tenant
+      )
+      |> Ash.create!()
+
+    Chironium.Accounts.PrincipalGrant
+    |> Ash.Changeset.for_create(
+      :create,
+      %{
+        user_id: prac_user.id,
+        principal_type: :practitioner,
+        principal_id: practitioner.id,
+        active: true
+      },
+      authorize?: false,
+      tenant: ctx.tenant
+    )
+    |> Ash.create!()
+
+    Chironium.Accounts.ActorResolver.resolve(prac_user, ctx.tenant)
   end
 end
