@@ -217,7 +217,7 @@ defmodule Chironium.Health.Task do
                     relationship: :for_patient}
     end
 
-    policy action([:create, :update, :destroy]) do
+    policy action_type([:create, :update, :destroy]) do
       authorize_if actor_present()
     end
   end
