@@ -30,8 +30,10 @@ import {
 } from "@/features/customers/ui/detail/subscription-management-dialogs";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
+import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import { completeTaskReminder } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { customersQueryKeys, personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
 
@@ -46,6 +48,37 @@ import { MenstrualCycleEvent } from "./menstrual-cycle-event";
 import { ObservationEvent } from "./observation-event";
 import { SubscriptionEvent } from "./subscription-event";
 import { TaskEvent } from "./task-event";
+
+type BadgeVariant = "success" | "warning" | "destructive" | "info" | "secondary";
+
+function taskStatusBadgeConfig(
+  status: PatientTask["status"],
+): { variant: BadgeVariant; label: string } | null {
+  switch (status) {
+    case "READY":
+      return { variant: "secondary", label: m.task_status_ready() };
+    case "IN_PROGRESS":
+      return { variant: "info", label: m.task_status_in_progress() };
+    case "ON_HOLD":
+      return { variant: "warning", label: m.task_status_on_hold() };
+    case "COMPLETED":
+      return { variant: "success", label: m.task_status_completed() };
+    case "CANCELLED":
+      return { variant: "secondary", label: m.task_status_cancelled() };
+    case "FAILED":
+      return { variant: "destructive", label: m.task_status_failed() };
+    default:
+      return null;
+  }
+}
+
+function TaskStatusBadge({ status }: Readonly<{ status: PatientTask["status"] }>) {
+  const config = taskStatusBadgeConfig(status);
+  if (!config) {
+    return null;
+  }
+  return <Badge variant={config.variant}>{config.label}</Badge>;
+}
 
 function EditChevron({ onClick }: Readonly<{ onClick: () => void }>) {
   return (
@@ -285,37 +318,41 @@ function TaskReminderEditAction({
   const [open, setOpen] = useState(false);
   const [completing, setCompleting] = useState(false);
 
+  const isCompleted = task.status === "COMPLETED";
+
   return (
     <div className="flex items-center gap-1">
-      <CompleteChevron
-        loading={completing}
-        onClick={() => {
-          if (!selectedOrg?.id || completing) {
-            return;
-          }
+      {!isCompleted && (
+        <CompleteChevron
+          loading={completing}
+          onClick={() => {
+            if (!selectedOrg?.id || completing) {
+              return;
+            }
 
-          setCompleting(true);
-          completeTaskReminder(task.id, selectedOrg.id)
-            .then(async () => {
-              await Promise.all([
-                queryClient.invalidateQueries({
-                  queryKey: personQueryKeys.reviewTasksScope(personId),
-                }),
-                queryClient.invalidateQueries({
-                  queryKey: personQueryKeys.patientTasksScope(personId),
-                }),
-                queryClient.invalidateQueries({ queryKey: tasksListQueryKey(selectedOrg.id) }),
-              ]);
-              toast.success(m.review_task_completed());
-            })
-            .catch(() => {
-              toast.error(m.onboarding_error());
-            })
-            .finally(() => {
-              setCompleting(false);
-            });
-        }}
-      />
+            setCompleting(true);
+            completeTaskReminder(task.id, selectedOrg.id)
+              .then(async () => {
+                await Promise.all([
+                  queryClient.invalidateQueries({
+                    queryKey: personQueryKeys.reviewTasksScope(personId),
+                  }),
+                  queryClient.invalidateQueries({
+                    queryKey: personQueryKeys.patientTasksScope(personId),
+                  }),
+                  queryClient.invalidateQueries({ queryKey: tasksListQueryKey(selectedOrg.id) }),
+                ]);
+                toast.success(m.review_task_completed());
+              })
+              .catch(() => {
+                toast.error(m.onboarding_error());
+              })
+              .finally(() => {
+                setCompleting(false);
+              });
+          }}
+        />
+      )}
       <EditChevron onClick={() => setOpen(true)} />
       <EditTaskReminderDialog personId={personId} task={task} open={open} onOpenChange={setOpen} />
     </div>
@@ -469,6 +506,11 @@ export function ActivityFeedTimeline({
               }
               actors={event.actors}
               date={event.date}
+              dateBadge={
+                event.kind === "task" ? (
+                  <TaskStatusBadge status={event.payload.status} />
+                ) : undefined
+              }
               isFuture={group.isFuture}
             >
               <EventBody event={event} />

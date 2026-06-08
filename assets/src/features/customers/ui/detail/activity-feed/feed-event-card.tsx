@@ -24,6 +24,8 @@ interface FeedEventCardProps {
   actors?: FeedActor[];
   /** ISO date string used for relative and absolute display. */
   date: string;
+  /** Optional badge rendered inline after the date (e.g. a status badge). */
+  dateBadge?: ReactNode;
   /** Reduces opacity for future/upcoming events. */
   isFuture?: boolean;
   children: ReactNode;
@@ -37,6 +39,7 @@ export function FeedEventCard({
   action,
   actors,
   date,
+  dateBadge,
   isFuture = false,
   children,
 }: Readonly<FeedEventCardProps>) {
@@ -104,15 +107,18 @@ export function FeedEventCard({
           </span>
           {action ? <span className="shrink-0">{action}</span> : null}
         </div>
-        <time dateTime={date} className="block text-muted-foreground text-xs">
-          {relative} · {absolute}
-          {primaryActor?.noteAuthorName ? (
-            <>
-              {" · "}
-              {m.activity_noted_by({ name: primaryActor.noteAuthorName })}
-            </>
-          ) : null}
-        </time>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <time dateTime={date} className="block text-muted-foreground text-xs">
+            {relative} · {absolute}
+            {primaryActor?.noteAuthorName ? (
+              <>
+                {" · "}
+                {m.activity_noted_by({ name: primaryActor.noteAuthorName })}
+              </>
+            ) : null}
+          </time>
+          {dateBadge}
+        </div>
         <div className="mt-3">{children}</div>
       </div>
     </article>
