@@ -32,9 +32,7 @@ defmodule Chironium.Accounts.OrganizationUpdateTest do
 
       assert {:ok, updated} =
                ctx.organization
-               |> Ash.Changeset.for_update(:update, %{preferred_locale: "es"},
-                 actor: power_user
-               )
+               |> Ash.Changeset.for_update(:update, %{preferred_locale: "es"}, actor: power_user)
                |> Ash.update()
 
       assert updated.preferred_locale == "es"

@@ -29,7 +29,9 @@ defmodule Mix.Tasks.Chironium.Seed.MenstrualCycles do
       for _ <- 1..Enum.random(1..3) do
         # Both observations share an effective_date_time so the frontend can pair them.
         effective_date_time = random_past_datetime(7..360)
-        cycle_opts = Keyword.merge(opts, subject_id: patient.id, actor: Enum.random(practitioners))
+
+        cycle_opts =
+          Keyword.merge(opts, subject_id: patient.id, actor: Enum.random(practitioners))
 
         generate(
           observation_menstrual_period_start(

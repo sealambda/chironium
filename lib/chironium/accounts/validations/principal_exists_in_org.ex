@@ -36,8 +36,7 @@ defmodule Chironium.Accounts.Validations.PrincipalExistsInOrg do
     case Ash.read_one(query, authorize?: false, tenant: tenant) do
       {:ok, nil} ->
         {:error,
-         field: :principal_id,
-         message: "no #{type} with that ID exists in this organization"}
+         field: :principal_id, message: "no #{type} with that ID exists in this organization"}
 
       {:ok, _} ->
         :ok

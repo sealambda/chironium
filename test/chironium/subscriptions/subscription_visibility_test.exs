@@ -173,7 +173,11 @@ defmodule Chironium.Subscriptions.SubscriptionVisibilityTest do
       %{
         person: %{
           name: [
-            %{use: :official, family: Faker.Person.last_name(), given: [Faker.Person.first_name()]}
+            %{
+              use: :official,
+              family: Faker.Person.last_name(),
+              given: [Faker.Person.first_name()]
+            }
           ],
           gender: :other
         }

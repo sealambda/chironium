@@ -124,7 +124,9 @@ defmodule ChironiumWeb.PlaywrightE2EController do
 
   defp forbidden(conn), do: conn |> put_status(:forbidden) |> text("Forbidden")
 
-  defp normalize_email(email) when is_binary(email), do: email |> String.trim() |> String.downcase()
+  defp normalize_email(email) when is_binary(email),
+    do: email |> String.trim() |> String.downcase()
+
   defp normalize_email(_), do: ""
 
   defp fetch_user(email) do

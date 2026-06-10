@@ -26,8 +26,8 @@ defmodule ChironiumWeb.Plugs.CheckCodegenStatus do
     expected = Application.get_env(:chironium, :playwright_e2e_secret)
     got = conn |> Plug.Conn.get_req_header("x-playwright-e2e-secret") |> List.first()
 
-    is_binary(expected) and expected != "" and is_binary(got) and byte_size(expected) == byte_size(got) and
+    is_binary(expected) and expected != "" and is_binary(got) and
+      byte_size(expected) == byte_size(got) and
       Plug.Crypto.secure_compare(expected, got)
   end
-
 end

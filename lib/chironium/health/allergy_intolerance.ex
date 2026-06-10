@@ -37,10 +37,6 @@ defmodule Chironium.Health.AllergyIntolerance do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
-  validations do
-    validate attributes_present([:onset_date_time, :onset_age, :onset_period], at_most: 1)
-  end
-
   policies do
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
@@ -53,6 +49,10 @@ defmodule Chironium.Health.AllergyIntolerance do
     policy action([:create, :update, :destroy]) do
       authorize_if actor_present()
     end
+  end
+
+  validations do
+    validate attributes_present([:onset_date_time, :onset_age, :onset_period], at_most: 1)
   end
 
   attributes do

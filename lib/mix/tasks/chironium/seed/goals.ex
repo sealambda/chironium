@@ -27,7 +27,9 @@ defmodule Mix.Tasks.Chironium.Seed.Goals do
 
     Enum.each(patients, fn patient ->
       for _ <- 1..Enum.random(1..3) do
-        generate(goal(Keyword.merge(opts, subject_id: patient.id, actor: Enum.random(practitioners))))
+        generate(
+          goal(Keyword.merge(opts, subject_id: patient.id, actor: Enum.random(practitioners)))
+        )
       end
     end)
   end

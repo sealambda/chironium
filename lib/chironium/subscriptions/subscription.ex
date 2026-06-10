@@ -134,12 +134,6 @@ defmodule Chironium.Subscriptions.Subscription do
     end
   end
 
-  calculations do
-    calculate :effective_end_date, :date, Chironium.Subscriptions.Calculations.EffectiveEndDate do
-      public? true
-    end
-  end
-
   relationships do
     belongs_to :subscriber, Chironium.CRM.Person do
       public? true
@@ -152,6 +146,12 @@ defmodule Chironium.Subscriptions.Subscription do
     end
 
     has_many :pauses, Chironium.Subscriptions.SubscriptionPause do
+      public? true
+    end
+  end
+
+  calculations do
+    calculate :effective_end_date, :date, Chironium.Subscriptions.Calculations.EffectiveEndDate do
       public? true
     end
   end
