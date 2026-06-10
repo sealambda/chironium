@@ -1,121 +1,71 @@
 ---
 name: sprint
 description: >-
-  Orchestrate an autonomous, multi-agent sprint from one or more tasks (features,
-  fixes, reviews). Run as `/sprint <tasks>`. The main session acts as orchestrator:
-  it triages tasks, schedules them on a dependency graph, dispatches specialist
-  subagents on isolated git worktrees, reconciles green worktrees into a sprint
-  branch with re-validation, runs a quality + audit lane, and opens a PR for human
-  merge. Use whenever the user hands over PM-level work to be executed end-to-end.
+  Run a Chironium autonomous sprint from one or more tasks (features, fixes, reviews).
+  This is the thin project binding over the installed plugins — the execution engine is
+  `superpowers` (git worktrees, planning, TDD, two-stage review); this skill ties it to
+  Chironium's stack, quality gates, the GraphQL contract seam, and PHI guardrails. Run as
+  `/sprint <tasks>` in your main session when handing over PM-level work end-to-end.
 ---
 
-# Sprint orchestrator
+# Chironium sprint (orchestration binding)
 
-You are the **orchestrator**, running in the **main session**. You decompose the
-requested work, dispatch specialist subagents, and own integration and quality.
+The **execution engine is the `superpowers` plugin** (brainstorm → git worktrees → plan →
+subagent execution → TDD red-green-refactor → two-stage review → finish). This skill is the
+thin Chironium-specific binding on top. Run `/sprint <tasks>` in your main session.
 
-> **Hard platform constraint:** subagents cannot spawn subagents (nesting depth = 1).
-> Therefore *all* dispatching happens from this main session. Never ask a specialist
-> to delegate; if more fan-out is needed, return here and dispatch again.
+> **Depth-1 constraint:** orchestrate from the main session — subagents cannot spawn subagents.
 
-The task list is in `$ARGUMENTS` (free-form; one or many items separated by `;` or
-newlines). If empty, ask the user for the tasks before proceeding.
+Tasks are in `$ARGUMENTS` (`;` or newline separated). If empty, ask the user for them.
 
-## Specialists (dispatch via the `Agent` tool, `subagent_type:` = the agent name)
+## Installed toolchain (see `.claude/README.md`)
+- **Engine:** `superpowers` — worktrees, plan, execute, TDD, review, finish.
+- **Backend:** `elixir-phoenix` (oliver-kriska) — `/phx:plan|work|review|audit`, Iron Laws,
+  compile/format/credo hooks, Tidewave MCP — plus the house-style Ash rules.
+- **Frontend:** `frontend-mobile-development` + `typescript-lsp` (live TS diagnostics) + house-style.
+- **Review:** `code-review` + `pr-review-toolkit`.
+- **Security/compliance:** `security-guidance` (always-on hooks) + `security-compliance` (HIPAA)
+  for PHI / authz / migrations.
+- **Git/PR:** `commit-commands` + `github`.
+- **Authoring/tuning:** `plugin-dev` + `skill-creator` (use its eval loop to fix sub-agent or
+  skill mis-dispatch).
 
-| Agent | Role | Default model |
-|---|---|---|
-| `chironium-backend` | Elixir/Ash/Phoenix implementation | sonnet |
-| `chironium-frontend` | React/TanScript/TanStack implementation | sonnet |
-| `chironium-qa` | Run tests/e2e, report failures | sonnet |
-| `chironium-code-auditor` | Opportunistic quality/idiom audit of touched code | haiku → sonnet |
-| `chironium-security-reviewer` | Authz, multitenancy, PHI, migrations review | opus |
-| `chironium-integrator` | Reconcile worktree branches into the sprint branch | opus |
+## Always
+Read `skills/chironium-house-style/SKILL.md` first. Never weaken Ash policies, `:context`
+multitenancy, or care-team visibility. Route authz / multitenancy / migration / money / PHI
+changes through security review **and a human merge gate**.
 
-UX/UI deep review is provided by the `ux-ui-dream-team` plugin once the
-`sealambda/claude-plugins` marketplace is wired in; until then `chironium-frontend`
-covers UI implementation against the house-style rules.
+## Workflow (Chironium specifics layered on the superpowers engine)
+0. **Triage** each task: type, scope, **risk** (PHI/authz/migration/money?), specialists, model, effort.
+1. **DAG + seams:** backend = `lib/`, frontend = `assets/src/features/*`. Independent tasks run in
+   parallel; dependent tasks wait.
+2. **Contract-first (cross-cutting):** land the Ash resource/action and regenerate
+   `priv/schema.graphql` on the sprint branch first, then `pnpm --dir assets gql:generate` so the
+   frontend consumes typed contracts. The GraphQL schema is the seam that keeps BE/FE parallel work
+   conflict-free.
+3. **Execute** via superpowers, one **worktree per task** (branch `sprint/<slug>/<task>`), using the
+   backend/frontend specialists. `typescript-lsp` gives live frontend diagnostics; the oliver-kriska
+   hooks compile/format/credo the backend as it edits.
+4. **Per-worktree gate:** backend — `mix compile --warnings-as-errors`, `mix format
+   --check-formatted`, `mix credo --strict`, relevant `mix test`; frontend — `pnpm --dir assets
+   quality` + `pnpm --dir assets test`.
+5. **Integrate into the sprint branch sequentially:** rebase each task branch onto the latest sprint
+   head, merge **one at a time**, and **re-run the gates on the sprint branch after every merge**
+   (worktree-green ≠ integration-green — semantic conflicts hide here). Resolve conflicts/breakage
+   before the next merge; keep the sprint branch green, never force-merge.
+6. **Review lane:** `code-review` + `pr-review-toolkit` on each diff; high-risk diffs (authz/PHI/
+   migration) → `security-compliance` + human sign-off. `security-guidance` runs automatically on
+   edits/commits.
+7. **Finalize:** full gates green on the sprint branch (mirror `pr-validation.yml`: `mix quality`,
+   `mix test`, `pnpm --dir assets quality`, `pnpm --dir assets test`, Playwright for UI) →
+   `/commit-push-pr` → PR. A human merges (no auto-merge to `main`). Summarize tasks, gate results,
+   and audit findings in the PR body.
 
-## Model & effort policy
+## Model & effort
+- **Opus / high:** this orchestrator, integration/reconciliation, and authz/PHI/migration review.
+- **Sonnet / medium:** implementation specialists, routine review, QA.
+- **Haiku-first:** audit/triage breadth, escalating on signal.
 
-- **Opus, high effort:** this orchestrator, the integrator, and any review touching
-  **authorization, `:context` multitenancy, DB migrations, money, or PHI**.
-- **Sonnet, medium:** implementation specialists, routine review, QA.
-- **Haiku first, escalate on signal:** breadth/triage (audit fan-out, log triage, search).
-- Scale effort with risk: mechanical work low; design and conflict-resolution high.
-- Keep each agent's tool allowlist tight; prefer `run_in_background: true` for fan-out.
-
-## Workflow
-
-### 0. Triage
-For each task, classify: **type** (feature/fix/review/chore), **scope** (files/areas),
-**team** (which specialists), **risk** (PHI? authz/policy? migration? money?), and
-**model/effort**. Read `skills/chironium-house-style/SKILL.md` so every downstream
-decision respects project conventions and invariants.
-
-### 1. Build the task DAG
-Order tasks by dependency and partition by **file-ownership seam** so parallel tasks
-touch disjoint files. Natural Chironium seams: backend = `lib/`, frontend =
-`assets/src/features/<feature>`. Independent tasks run in the same wave; dependent
-tasks wait.
-
-### 2. Contract-first for cross-cutting work
-For any task spanning backend **and** frontend, land the shared contract **before**
-fan-out: implement/adjust the Ash resource + action, regenerate the GraphQL schema
-(`priv/schema.graphql`), commit it to the sprint branch, then let the frontend task
-consume it via `pnpm --dir assets gql:generate`. The GraphQL schema is the seam that
-keeps backend/frontend parallel work conflict-free.
-
-### 3. Create the sprint branch
-From the current base, create `sprint/<yyyy-mm-dd>-<short-slug>`. This is the
-integration target. Each task gets its own branch `sprint/<slug>/<task-slug>`.
-
-### 4. Dispatch specialists (parallel, isolated)
-For each task in the current wave, call `Agent` with:
-- `subagent_type`: the specialist,
-- `isolation: "worktree"` (each agent gets its own checkout — no concurrent-write clashes),
-- `run_in_background: true` for parallelism,
-- a prompt that states: the task, the **exact branch name** to commit to
-  (`sprint/<slug>/<task-slug>`), the files it owns, the gates it must pass, and the
-  required return summary (files changed, gate results, branch, notes/risks).
-
-> **Operational note (validate in pilot):** fresh worktrees do not share `_build`,
-> `deps`, or `node_modules`. A worktree may need `mix deps.get` / `pnpm install`
-> before gates run. Prefer warming these once and reusing, or budget for setup time.
-
-### 5. Per-worktree green gate
-A task is integration-eligible only when its scoped gates pass **in its own worktree**:
-- backend: `mix compile --warnings-as-errors`, `mix format --check-formatted`,
-  `mix credo --strict`, and the relevant `mix test`.
-- frontend: `pnpm --dir assets quality` (Biome + tsc) and `pnpm --dir assets test`.
-
-### 6. Sequential integration (the part that actually prevents breakage)
-Worktree isolation prevents *concurrent-write* races, **not integration conflicts**
-(git-level or semantic). "Green in its worktree" is necessary, not sufficient. Hand
-the eligible branches to `chironium-integrator`, which merges them **one at a time**:
-rebase each onto the latest sprint head, merge, then **re-run the gates on the sprint
-branch after every merge**. On conflict or post-merge failure, the integrator resolves
-it or bounces the task back to its specialist with context. **Invariant: the sprint
-branch stays green.** Never force-merge a task that won't integrate cleanly.
-
-### 7. Quality + opportunistic audit (parallel lane)
-- Run `chironium-code-auditor` (background) over the *surroundings* of touched files.
-  Trivial, safe fixes are folded into scope; larger findings are logged to the run
-  report (and optionally filed as GitHub issues) for human triage — never silent
-  scope-creep.
-- Run `chironium-security-reviewer` on any diff flagged high-risk in triage. Wrap the
-  existing `/code-review` and `/security-review` skills rather than reinventing them.
-
-### 8. Finalize
-When the sprint branch is green end-to-end, open a PR (human merge gate — do **not**
-merge to `main`). The PR body summarizes: tasks completed, gate results, audit
-findings, and any backlog issues filed. Write a run report to
-`.claude/sprint/runs/<sprint-slug>.md` (tasks, agent, model, gate results, findings).
-
-## Guardrails (non-negotiable)
-- Never weaken Ash policies, `:context` multitenancy, or care-team visibility. Any diff
-  that touches authorization routes through `chironium-security-reviewer` + human sign-off.
-- Migrations, schema, and money changes are high-risk → opus review + human gate.
-- Never log secrets or PHI. Keep `sobelow` in the loop.
-- Stop and ask the user if a task is ambiguous, out of stated scope, or would require a
-  large refactor not requested.
+## Notes
+- Worktrees don't share `_build` / `deps` / `node_modules`; warm them or budget setup time per task.
+- If agents mis-route (wrong specialist picked), tune descriptions with the `skill-creator` eval loop.

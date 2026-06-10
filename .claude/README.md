@@ -1,78 +1,79 @@
 # Chironium autonomous sprint system
 
-A multi-agent system for running unattended sprints in this repo: you hand over one or
-more tasks (features, fixes, reviews) and a master orchestrator dispatches specialist
-agents on isolated git worktrees, reconciles their work into a sprint branch, audits the
-code it touches, and opens a PR for you to merge.
+A **reuse-first** multi-agent system: hand over tasks (features / fixes / reviews) and a master
+orchestrator (your main session) drives battle-tested community + Anthropic-official Claude Code
+plugins to plan, implement on isolated git worktrees, review, and open a PR — with PHI guardrails.
+We **assemble** proven plugins and author only thin project-specific glue.
 
-This is the **project-local** half of the design (see the architecture proposal). The
-reusable, stack-agnostic pieces are authored here as skills now and will be **promoted**
-into the `sealambda/claude-plugins` marketplace from a session scoped to that repo.
+## What's wired (declared in `.claude/settings.json`)
 
-## How to run
+Trusting this repo in Claude Code installs the marketplaces (`extraKnownMarketplaces`) and the
+enabled set (`enabledPlugins`) below, per-user on first trust. Every slug here is verified against
+its marketplace manifest.
 
-```
-/sprint <one or more tasks, separated by ; or newlines>
-```
+**Foundations / authoring**
+- `plugin-dev@claude-code-plugins` — author, validate, and package our own plugins/skills.
+- `example-skills@anthropic-agent-skills` — includes **skill-creator** (write → eval → optimize
+  skills) and **webapp-testing** (Playwright).
 
-The orchestrator (the `sprint` skill, run in your main session) then triages, schedules,
-dispatches, integrates, reviews, and finalizes. See `skills/sprint/SKILL.md`.
+**Orchestration engine**
+- `superpowers@superpowers-marketplace` — brainstorm → git worktrees → plan → subagent execution →
+  TDD (red-green-refactor) → two-stage review → finish. This is the sprint engine; our `sprint`
+  skill is a thin binding over it.
 
-## Layout
+**Review / security / git**
+- `code-review` + `pr-review-toolkit` (`@claude-code-plugins`) — correctness + multi-lens PR review.
+- `security-guidance@claude-code-plugins` — always-on security hooks (edit warnings, Stop diff
+  review, commit reviewer).
+- `security-compliance@claude-code-workflows` — HIPAA/SOC2/GDPR compliance + secrets scanning (PHI).
+- `commit-commands@claude-code-plugins` + `github@claude-plugins-official` — commit/push/PR + GitHub MCP.
 
-```
-.claude/
-  skills/
-    sprint/                     # the orchestrator workflow (/sprint)
-    chironium-house-style/      # project conventions + authz/multitenancy invariants
-    backend-engineer/           # generic role process + checklist  ─┐
-    frontend-engineer/          #                                     │ promotable to
-    qa-engineer/                #                                     ├ claude-plugins
-    code-auditor/               #                                     │ (stack-agnostic)
-    security-reviewer/          #                                     │
-    integration-reconciler/     # ────────────────────────────────────┘
-  agents/                       # thin specialists: model + tools + compose the skills
-    chironium-{backend,frontend,qa,code-auditor,security-reviewer,integrator}.md
-  hooks/
-    guard-bash.sh               # blocks catastrophic shell commands
-  settings.json                 # wires the guard hook
-  sprint/runs/                  # run reports land here
-```
+**Code intelligence**
+- `typescript-lsp@claude-plugins-official` — live TS/React diagnostics as agents edit.
 
-**Composition:** each `agents/chironium-*.md` is a thin wrapper that sets the model and
-tool allowlist, then reads and applies (a) `chironium-house-style` and (b) its generic
-role skill. The generic role skills carry no stack specifics, so they promote cleanly to
-the marketplace; `chironium-house-style` stays project-local.
+**Stack specialists**
+- `elixir-phoenix@oliver-kriska` — heavyweight Elixir/Phoenix/Ash engine (25 agents,
+  `/phx:plan|work|review|audit`, Iron Laws, compile/format/credo hooks, Tidewave MCP).
+- `frontend-mobile-development@claude-code-workflows` — frontend specialist depth.
 
-## Model & effort policy
+**Project glue we author (here, not the marketplace)**
+- `skills/chironium-house-style` — Ash/Phoenix + frontend conventions and the authz/multitenancy
+  invariants agents must never weaken.
+- `skills/sprint` — thin binding tying superpowers + the specialists to Chironium gates, the GraphQL
+  contract seam, and PHI guardrails.
+- `hooks/guard-bash.sh` — PreToolUse guard that blocks catastrophic `rm -rf`, force-push to
+  `main`/`master`, `--no-verify`, and piping remote scripts into a shell.
 
-- **Opus:** orchestrator, integrator, and any review of authz / multitenancy / migrations
-  / money / PHI.
-- **Sonnet:** implementation specialists, routine review, QA.
-- **Haiku → escalate:** audit/triage breadth.
+## Prerequisites
+- **Elixir LSP is not in the official marketplace.** The Elixir engine relies on oliver-kriska's
+  compile/format/credo hooks + your `mix quality` gates. Optionally add a community Elixir LSP later
+  (`Piebald-AI/claude-code-lsps`); it needs extra Claude Code config.
+- **`typescript-lsp`** needs `typescript-language-server` on PATH (`pnpm add -g typescript
+  typescript-language-server`, or project-local).
+- **`elixir-phoenix`** integrates the Tidewave MCP and ships hooks — review them before first run.
 
-## Guardrails
+## Using it
+- `/sprint <tasks>` — the Chironium binding (triage → plan → worktrees → integrate → review → PR).
+- Or drive `superpowers` directly (`/brainstorm`, plan, execute) for a single thread of work.
 
-- Authorization, `:context` multitenancy, and care-team visibility are invariants — any
-  diff touching them routes through `chironium-security-reviewer` + a human merge gate.
-- Migrations / money / PHI are high-risk and human-gated.
-- `hooks/guard-bash.sh` blocks catastrophic commands (e.g. `rm -rf` of key paths,
-  force-push to `main`). Enable hooks by trusting them when Claude Code prompts.
+## Security note (PHI)
+You chose to adopt the full recommended set now. **Third-party plugins (superpowers, oliver-kriska,
+wshobson) run with your privileges** — re-vet their hooks/manifests on each `claude plugin update`.
+The Anthropic tier (`claude-code-plugins`, `claude-plugins-official`, `anthropic-agent-skills`) is
+the safest. `security-guidance` + `security-compliance` + `guard-bash.sh` are the standing safety
+net; authz / multitenancy / migration diffs still require human review and merge (no auto-merge to
+`main`).
 
-## Known items to validate in the first pilot
+## Curation & optional add-ons
+The enabled set is deliberately curated to limit agent-dispatch ambiguity. Also available — enable
+with `claude plugin install <plugin>@<marketplace> --scope project`:
+- `claude-code-plugins`: `feature-dev`, `frontend-design`, `hookify`.
+- `claude-code-workflows`: `backend-development` (GraphQL), `tdd-workflows`, `unit-testing`,
+  `comprehensive-review`, `full-stack-orchestration`, `functional-programming`, `git-pr-workflows`,
+  `database-migrations`, `backend-api-security`.
+- `oliver-kriska`: `catchup`.
+- `anthropic-agent-skills`: `claude-api`, `document-skills`.
 
-- **Worktree setup cost:** fresh worktrees don't share `_build` / `deps` / `node_modules`;
-  gates may need `mix deps.get` / `pnpm install` per worktree. Warm and reuse if possible.
-- **Worktree branch persistence:** confirm specialist branches survive for the integrator
-  to merge; specialists commit to an explicit `sprint/<slug>/<task-slug>` branch to be safe.
-- **Experimental features:** "agent teams" (shared task list + mailbox) and scripted
-  "workflows" are optional accelerations — validate against current docs before relying on
-  them. The system here uses only stable primitives (subagents + worktree isolation + hooks).
-
-## Promotion path (later, from a claude-plugins-scoped session)
-
-Move `skills/{backend,frontend,qa,code-auditor,security-reviewer,integration-reconciler}`
-and `skills/sprint` into marketplace plugins; keep `chironium-house-style`, the
-`agents/chironium-*` wrappers, hooks, and `settings.json` here. The agents already
-reference role skills by name, so they keep working once those skills are installed via the
-marketplace.
+## Promotion path
+Project glue (house-style, the sprint binding, the guard hook) stays here. If a piece becomes
+reusable across products, package it with `plugin-dev` and publish to `sealambda/claude-plugins`.
