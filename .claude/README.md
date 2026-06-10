@@ -30,6 +30,8 @@ its marketplace manifest.
 
 **Code intelligence**
 - `typescript-lsp@claude-plugins-official` — live TS/React diagnostics as agents edit.
+- `expert-lsp@chironium-local` — **Expert** Elixir language server (`expert-lsp/expert`) for live
+  `.ex/.exs/.heex` diagnostics; shipped as a project-local plugin under `.claude/local-marketplace/`.
 
 **Stack specialists**
 - `elixir-phoenix@oliver-kriska` — heavyweight Elixir/Phoenix/Ash engine (25 agents,
@@ -43,11 +45,13 @@ its marketplace manifest.
   contract seam, and PHI guardrails.
 - `hooks/guard-bash.sh` — PreToolUse guard that blocks catastrophic `rm -rf`, force-push to
   `main`/`master`, `--no-verify`, and piping remote scripts into a shell.
+- `local-marketplace/expert-lsp` — project-local plugin wiring the **Expert** Elixir LSP.
 
 ## Prerequisites
-- **Elixir LSP is not in the official marketplace.** The Elixir engine relies on oliver-kriska's
-  compile/format/credo hooks + your `mix quality` gates. Optionally add a community Elixir LSP later
-  (`Piebald-AI/claude-code-lsps`); it needs extra Claude Code config.
+- **Expert (Elixir LSP)** needs the `expert` binary on PATH — download from
+  [expert-lsp/expert releases](https://github.com/expert-lsp/expert/releases) (requires the Elixir
+  toolchain). Until it's present the Elixir engine still works via oliver-kriska's compile/format/credo
+  hooks + your `mix quality` gates; only live in-editor diagnostics wait on the binary.
 - **`typescript-lsp`** needs `typescript-language-server` on PATH (`pnpm add -g typescript
   typescript-language-server`, or project-local).
 - **`elixir-phoenix`** integrates the Tidewave MCP and ships hooks — review them before first run.

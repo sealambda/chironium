@@ -1,0 +1,7 @@
+{
+  "name": "expert-lsp",
+  "description": "Expert Elixir language server (expert-lsp/expert) for live diagnostics on .ex/.exs/.heex files. Requires the `expert` binary on PATH.",
+  "version": "0.1.0",
+  "author": { "name": "Chironium" },
+  "homepage": "https://github.com/expert-lsp/expert"
+}

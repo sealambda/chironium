@@ -1,0 +1,12 @@
+{
+  "name": "chironium-local",
+  "owner": { "name": "Chironium" },
+  "description": "Project-local Claude Code plugins for the Chironium repo (not published to a remote marketplace).",
+  "plugins": [
+    {
+      "name": "expert-lsp",
+      "source": "./expert-lsp",
+      "description": "Expert Elixir language server (expert-lsp/expert) for live .ex/.exs/.heex diagnostics."
+    }
+  ]
+}

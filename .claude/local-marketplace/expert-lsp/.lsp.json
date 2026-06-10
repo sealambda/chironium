@@ -1,0 +1,10 @@
+{
+  "expert": {
+    "command": "expert",
+    "extensionToLanguage": {
+      ".ex": "elixir",
+      ".exs": "elixir",
+      ".heex": "elixir"
+    }
+  }
+}

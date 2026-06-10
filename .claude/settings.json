@@ -1,4 +1,32 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "plugin-dev@claude-code-plugins": true,
+    "example-skills@anthropic-agent-skills": true,
+    "superpowers@superpowers-marketplace": true,
+    "code-review@claude-code-plugins": true,
+    "pr-review-toolkit@claude-code-plugins": true,
+    "security-guidance@claude-code-plugins": true,
+    "commit-commands@claude-code-plugins": true,
+    "github@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "elixir-phoenix@oliver-kriska": true,
+    "security-compliance@claude-code-workflows": true,
+    "frontend-mobile-development@claude-code-workflows": true,
+    "expert-lsp@chironium-local": true
+  },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
       "source": {
@@ -35,33 +63,12 @@
         "source": "github",
         "repo": "anthropics/claude-code"
       }
-    }
-  },
-  "enabledPlugins": {
-    "plugin-dev@claude-code-plugins": true,
-    "example-skills@anthropic-agent-skills": true,
-    "superpowers@superpowers-marketplace": true,
-    "code-review@claude-code-plugins": true,
-    "pr-review-toolkit@claude-code-plugins": true,
-    "security-guidance@claude-code-plugins": true,
-    "commit-commands@claude-code-plugins": true,
-    "github@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "elixir-phoenix@oliver-kriska": true,
-    "security-compliance@claude-code-workflows": true,
-    "frontend-mobile-development@claude-code-workflows": true
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.sh"
-          }
-        ]
+    },
+    "chironium-local": {
+      "source": {
+        "source": "directory",
+        "path": ".claude/local-marketplace"
       }
-    ]
+    }
   }
 }
