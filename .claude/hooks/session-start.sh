@@ -30,9 +30,14 @@ run() {
 }
 reachable() { curl -fsS -o /dev/null --max-time 8 "$1" >/dev/null 2>&1; }
 
-# Preflight: surface a clear message if the network policy blocks a required registry.
-reachable https://repo.hex.pm/installs/ || \
-  log "WARNING: hex.pm appears blocked by the network policy; 'mix deps.get' will fail until repo.hex.pm and builds.hex.pm are allowed."
+# Preflight: backend provisioning needs Hex. If it's blocked, skip fast with guidance rather than
+# spend ~20 min compiling Erlang/OTP only to fail at `mix deps.get`.
+if ! reachable https://repo.hex.pm/; then
+  log "Hex (repo.hex.pm) is blocked by this environment's network policy — skipping provisioning."
+  log "Allowlist repo.hex.pm + builds.hex.pm (and mise.run, github.com, nodejs.org, registry.npmjs.org)"
+  log "in the environment's network policy, then start a new session. See .claude/README.md."
+  exit 0
+fi
 
 # Build dependencies for compiling Erlang/OTP (best-effort; skipped if apt/permissions absent).
 if command -v apt-get >/dev/null 2>&1; then
