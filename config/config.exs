@@ -24,6 +24,13 @@ config :phoenix_vite, PhoenixVite.Npm,
 
 config :ex_cldr, default_backend: Chironium.Cldr
 
+# ex_cldr downloads CLDR locale data over HTTPS at compile time. When building behind a
+# TLS-intercepting proxy (e.g. the Claude Code web sandbox egress gateway), point its HTTP client
+# at a CA bundle that trusts the proxy. No-op when CLDR_CACERTFILE is unset (normal dev/CI/prod).
+if cldr_cacertfile = System.get_env("CLDR_CACERTFILE") do
+  config :ex_cldr, cacertfile: cldr_cacertfile
+end
+
 config :ash_oban, pro?: false
 
 config :chironium, Oban,
