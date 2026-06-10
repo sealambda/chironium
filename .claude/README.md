@@ -56,6 +56,21 @@ its marketplace manifest.
   typescript-language-server`, or project-local).
 - **`elixir-phoenix`** integrates the Tidewave MCP and ships hooks — review them before first run.
 
+## Web-session provisioning
+
+`.claude/hooks/session-start.sh` (a `SessionStart` hook) installs the mise-pinned toolchain
+(Erlang/Elixir/Node/pnpm) + dependencies so web sessions can run the gates. It is **web-only**
+(`CLAUDE_CODE_REMOTE`), idempotent, and synchronous; the first run compiles Erlang/OTP (slow, then
+cached by the container).
+
+**Network policy — required allowlist.** The hook (and `mix`/`pnpm`) need outbound access to:
+`mise.run` (or `github.com` release assets), `github.com` / `codeload.github.com` /
+`objects.githubusercontent.com`, **`repo.hex.pm` + `builds.hex.pm` (Elixir packages — required)**,
+`nodejs.org`, and `registry.npmjs.org`. If the Claude Code web environment uses a restrictive
+network policy, allowlist these when creating the environment. **Without Hex, `mix deps.get` cannot
+run and the backend gates are unavailable** — this is an environment setting, not something the repo
+can fix.
+
 ## Using it
 - `/sprint <tasks>` — the Chironium binding (triage → plan → worktrees → integrate → review → PR).
 - Or drive `superpowers` directly (`/brainstorm`, plan, execute) for a single thread of work.
