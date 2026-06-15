@@ -31,21 +31,31 @@ interface NutritionCardProps {
 function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
   const macroTotal = totalKcalFromMacroGrams(gramsByMacro(plan));
   return (
-    <ul className="flex flex-1 flex-col justify-center gap-1.5">
+    <ul className="flex flex-1 flex-col justify-center gap-2">
       {MACRO_IDS.map((id) => {
         const meta = MACRO_META[id];
         const Icon = meta.icon;
         const grams = plan[meta.fieldKey];
         const pct = computeMacroPct(grams, meta.kcalPerGram, macroTotal);
         return (
-          <li key={id} className="flex items-center gap-2 text-sm">
-            <Icon className={cn("size-4 shrink-0", meta.iconClass)} aria-hidden />
-            <span className="text-foreground">{meta.label()}</span>
-            <span className="ml-auto font-medium text-foreground tabular-nums">
-              {grams} {m.common_unit_g()}
+          <li key={id} className="flex items-center gap-2.5 text-sm">
+            <span
+              className={cn(
+                "flex size-6 shrink-0 items-center justify-center rounded-md",
+                meta.softClass,
+              )}
+            >
+              <Icon className={cn("size-3.5", meta.iconClass)} aria-hidden />
             </span>
-            <span className="w-12 text-right text-muted-foreground text-xs tabular-nums">
-              {m.nutrition_macro_energy_pct({ pct })}
+            <span className="text-foreground">{meta.label()}</span>
+            <span className="ml-auto font-semibold text-foreground tabular-nums">
+              {grams}
+              <span className="ml-0.5 font-normal text-muted-foreground text-xs">
+                {m.common_unit_g()}
+              </span>
+            </span>
+            <span className="w-8 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
+              {pct}%
             </span>
           </li>
         );
@@ -81,7 +91,7 @@ export function NutritionCard({
         <NutritionDonut
           macros={gramsByMacro(current)}
           targetKcal={current.targetKcal}
-          className="w-24 shrink-0"
+          className="w-28 shrink-0"
         />
         <MacroLegend plan={current} />
       </div>

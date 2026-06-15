@@ -727,8 +727,6 @@
   "nutrition_bmr_suggest": "Suggest from BMR",
   "nutrition_bmr_missing": "Add weight, height, birth date and sex to estimate from BMR.",
   "nutrition_macro_unit_g_per_kg": "g/kg",
-  "nutrition_macro_unit_pct_kcal": "% kcal",
-  "nutrition_macro_energy_pct": "{pct}% kcal",
   "nutrition_macro_lock": "Lock",
   "nutrition_macro_unlock": "Unlock",
   "nutrition_balance_summary": "Macros {kcal} kcal · target {target} kcal",
