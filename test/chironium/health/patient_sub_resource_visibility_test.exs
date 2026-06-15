@@ -192,6 +192,44 @@ defmodule Chironium.Health.PatientSubResourceVisibilityTest do
       results = Chironium.Health.NutritionPlan |> Ash.read!(actor: actor_b, tenant: ctx.tenant)
       assert results == []
     end
+
+    test "practitioner can update a patient's nutrition plan", ctx do
+      {actor, patient} = setup_practitioner_with_patient(ctx)
+      plan = create_nutrition_plan(ctx, patient)
+
+      updated =
+        plan
+        |> Ash.Changeset.for_update(
+          :update,
+          %{target_kcal: 1800},
+          actor: actor,
+          tenant: ctx.tenant
+        )
+        |> Ash.update!()
+
+      assert updated.target_kcal == 1800
+    end
+
+    test "archiving a nutrition plan removes it from reads", ctx do
+      {actor, patient} = setup_practitioner_with_patient(ctx)
+      plan = create_nutrition_plan(ctx, patient)
+
+      Ash.destroy!(plan, actor: actor, tenant: ctx.tenant)
+
+      results = Chironium.Health.NutritionPlan |> Ash.read!(actor: actor, tenant: ctx.tenant)
+      refute Enum.any?(results, &(&1.id == plan.id))
+    end
+
+    test "computes macro energy calculations", ctx do
+      {actor, patient} = setup_practitioner_with_patient(ctx)
+      plan = create_nutrition_plan(ctx, patient)
+
+      loaded = Ash.load!(plan, [:nutrients_kcal, :delta_kcal], actor: actor, tenant: ctx.tenant)
+
+      # 50·4 + 200·4 + 70·9 = 1630 kcal; delta vs the 2000 kcal target = -370.
+      assert loaded.nutrients_kcal == 1630
+      assert loaded.delta_kcal == -370
+    end
   end
 
   # ---------------------------------------------------------------------------

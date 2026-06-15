@@ -41,6 +41,10 @@ defmodule Chironium.Health.NutritionPlan do
 
     mutations do
       create :create_nutrition_plan, :create
+
+      update :update_nutrition_plan, :update
+
+      destroy :delete_nutrition_plan, :destroy
     end
 
     queries do

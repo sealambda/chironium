@@ -7,6 +7,7 @@ import {
   selectFoodPreferenceLabels,
   selectFoodPreferencesHistory,
 } from "@/features/customers/api/food-preferences-api";
+import { nutritionPlanRecordedAt } from "@/features/customers/api/nutrition-plans-api";
 import {
   type ObservationsPage,
   selectLatestMenstrualCycle,
@@ -115,8 +116,15 @@ export function usePersonDetail(personId: string) {
     data: activeGoals,
     isLoading: patientDetail.isLoading,
   };
+  const nutritionPlansData = useMemo(
+    () =>
+      [...(patientDetail.data?.nutritionPlans ?? [])].sort((a, b) =>
+        nutritionPlanRecordedAt(b).localeCompare(nutritionPlanRecordedAt(a)),
+      ),
+    [patientDetail.data?.nutritionPlans],
+  );
   const nutritionPlans = {
-    data: patientDetail.data?.nutritionPlans ?? [],
+    data: nutritionPlansData,
     isLoading: patientDetail.isLoading,
   };
   const allergyIntolerances = {
@@ -133,7 +141,7 @@ export function usePersonDetail(personId: string) {
   };
 
   const currentSubscription = subscriptions.data?.[0];
-  const activeNutritionPlan = patientDetail.data?.nutritionPlans?.[0];
+  const activeNutritionPlan = nutritionPlansData[0];
 
   const isLoading = combineLoadingState(patientDetail, subscriptions);
 

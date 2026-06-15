@@ -42,6 +42,8 @@ export function PersonDetailPage() {
           onActiveTypeChange={setActiveRecordType}
           latestAnthropometry={detail.anthropometryHistory.data?.[0] ?? null}
           currentSubscription={detail.currentSubscription}
+          dateOfBirth={detail.person?.birthDate ?? null}
+          sex={detail.person?.gender ?? null}
         />
       ) : null}
     </div>
