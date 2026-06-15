@@ -5,6 +5,7 @@ import {
   FileText,
   Pill,
   RefreshCcwDot,
+  Salad,
   Scale,
   ShieldAlert,
   Stethoscope,
@@ -24,7 +25,9 @@ import { AddObservationDialog } from "@/features/customers/ui/detail/add-observa
 import { AddTaskReminderDialog } from "@/features/customers/ui/detail/add-task-reminder-dialog";
 import { AllergyDetailDialog } from "@/features/customers/ui/detail/allergy-detail-dialog";
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
+import { NutritionPlanDetailDialog } from "@/features/customers/ui/detail/nutrition-plan-detail-dialog";
 import * as m from "@/paraglide/messages";
+import type { AdministrativeGender } from "@/shared/types/schema-enums";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import {
   Dialog,
@@ -45,6 +48,7 @@ export type RecordType =
   | "allergy"
   | "menstrual_cycle"
   | "food_preferences"
+  | "nutrition"
   | "subscription";
 
 /** Paraglide message functions return the resolved string for the active locale. */
@@ -162,6 +166,14 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
         label: m.add_record_tile_food_pref,
         desc: m.add_record_food_pref_desc,
       },
+      {
+        id: "nutrition",
+        icon: Salad,
+        bgClassName: "bg-success-muted",
+        iconClassName: "text-success-muted-foreground",
+        label: m.add_record_tile_nutrition,
+        desc: m.add_record_nutrition_desc,
+      },
     ],
   },
 ];
@@ -203,6 +215,8 @@ interface AddRecordDialogProps {
   readonly onActiveTypeChange: (type: RecordType | null) => void;
   readonly latestAnthropometry?: AnthropometricSnapshot | null;
   readonly currentSubscription?: SubscriptionRecord;
+  readonly dateOfBirth?: string | null;
+  readonly sex?: AdministrativeGender | null;
 }
 
 export function AddRecordDialog({
@@ -214,6 +228,8 @@ export function AddRecordDialog({
   onActiveTypeChange,
   latestAnthropometry,
   currentSubscription,
+  dateOfBirth,
+  sex,
 }: AddRecordDialogProps) {
   const selectType = (type: RecordType) => {
     onOpenChange(false);
@@ -287,6 +303,18 @@ export function AddRecordDialog({
         personId={personId}
         patientId={patientId}
         open={activeType === "food_preferences"}
+        onOpenChange={handleChildOpenChange}
+      />
+      <NutritionPlanDetailDialog
+        mode="add"
+        personId={personId}
+        patientId={patientId}
+        organizationId=""
+        weightKg={latestAnthropometry?.weight ?? null}
+        heightCm={latestAnthropometry?.height ?? null}
+        dateOfBirth={dateOfBirth}
+        sex={sex}
+        open={activeType === "nutrition"}
         onOpenChange={handleChildOpenChange}
       />
       <EditSubscriptionDialog
