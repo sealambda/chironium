@@ -23,20 +23,10 @@ interface MacroFieldProps {
   readonly errors?: Array<{ message?: string } | undefined>;
 }
 
-/** Read-out column: a converted value with its unit underneath. */
-function Readout({ value, unit }: Readonly<{ value: string; unit: string }>) {
-  return (
-    <div className="flex flex-col items-end leading-tight">
-      <span className="font-medium text-foreground">{value}</span>
-      <span className="text-[0.6875rem] text-muted-foreground">{unit}</span>
-    </div>
-  );
-}
-
 /**
  * One macronutrient row in the plan dialog. Grams is the single editable unit
  * (most canonical); the equivalent **% of kcal** and **g/kg** are shown live
- * beside it — no unit switching. A lock pins this macro for auto-balance.
+ * underneath — no unit switching. A lock pins this macro for auto-balance.
  */
 export function MacroField({
   macroId,
@@ -70,8 +60,15 @@ export function MacroField({
   return (
     <Field data-invalid={(errors?.length ?? 0) > 0}>
       <div className="flex items-center justify-between gap-2">
-        <FieldLabel className="flex items-center gap-1.5">
-          <Icon className={cn("size-4 shrink-0", meta.iconClass)} aria-hidden />
+        <FieldLabel className="flex items-center gap-2 font-medium">
+          <span
+            className={cn(
+              "flex size-6 shrink-0 items-center justify-center rounded-md",
+              meta.softClass,
+            )}
+          >
+            <Icon className={cn("size-3.5", meta.iconClass)} aria-hidden />
+          </span>
           {meta.label()}
         </FieldLabel>
         <button
@@ -82,8 +79,8 @@ export function MacroField({
           aria-label={lockLabel}
           title={lockLabel}
           className={cn(
-            "cursor-pointer rounded p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
-            locked && "text-primary hover:text-primary",
+            "flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
+            locked && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
           )}
         >
           {locked ? (
@@ -93,22 +90,22 @@ export function MacroField({
           )}
         </button>
       </div>
-      <div className="flex items-center gap-3">
-        <NumberStepperInput
-          value={value}
-          onValueChange={onValueChange}
-          min={0}
-          step={5}
-          disabled={disabled}
-          decrementLabel={m.common_decrease()}
-          incrementLabel={m.common_increase()}
-          className="flex-1"
-        />
-        <div className="flex shrink-0 gap-3 text-xs tabular-nums">
-          <Readout value={pct > 0 ? String(pct) : "—"} unit={m.nutrition_macro_unit_pct_kcal()} />
-          <Readout value={gkg > 0 ? String(gkg) : "—"} unit={m.nutrition_macro_unit_g_per_kg()} />
-        </div>
-      </div>
+      <NumberStepperInput
+        value={value}
+        onValueChange={onValueChange}
+        min={0}
+        step={5}
+        disabled={disabled}
+        decrementLabel={m.common_decrease()}
+        incrementLabel={m.common_increase()}
+      />
+      <p className="flex items-center gap-1.5 text-muted-foreground text-xs tabular-nums">
+        <span className="font-medium text-foreground">{pct > 0 ? `${pct}%` : "—"}</span>
+        {m.common_unit_kcal()}
+        <span aria-hidden>·</span>
+        <span className="font-medium text-foreground">{gkg > 0 ? gkg : "—"}</span>
+        {m.nutrition_macro_unit_g_per_kg()}
+      </p>
       <FieldError errors={errors} />
     </Field>
   );

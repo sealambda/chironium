@@ -20,6 +20,8 @@ export interface MacroMeta {
   readonly arcClass: string;
   /** Icon / accent text colour (light + dark). */
   readonly iconClass: string;
+  /** Soft tinted background for the icon chip. */
+  readonly softClass: string;
   /** Solid swatch colour for legend dots. */
   readonly dotClass: string;
   readonly kcalPerGram: number;
@@ -33,6 +35,7 @@ export const MACRO_META: Record<MacroId, MacroMeta> = {
     icon: Beef,
     arcClass: "stroke-red-500",
     iconClass: "text-red-600 dark:text-red-400",
+    softClass: "bg-red-500/10",
     dotClass: "bg-red-500",
     kcalPerGram: KCAL_PER_G.protein,
   },
@@ -43,6 +46,7 @@ export const MACRO_META: Record<MacroId, MacroMeta> = {
     icon: Wheat,
     arcClass: "stroke-amber-500",
     iconClass: "text-amber-600 dark:text-amber-400",
+    softClass: "bg-amber-500/10",
     dotClass: "bg-amber-500",
     kcalPerGram: KCAL_PER_G.carbs,
   },
@@ -53,6 +57,7 @@ export const MACRO_META: Record<MacroId, MacroMeta> = {
     icon: Droplets,
     arcClass: "stroke-violet-500",
     iconClass: "text-violet-600 dark:text-violet-400",
+    softClass: "bg-violet-500/10",
     dotClass: "bg-violet-500",
     kcalPerGram: KCAL_PER_G.fat,
   },
