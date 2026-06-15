@@ -16,7 +16,6 @@ import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
-import { Route as AppCustomersCustomerIdNutritionRouteImport } from './routes/_app/customers_.$customerId_.nutrition'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -52,12 +51,6 @@ const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
   path: '/customers/$customerId',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCustomersCustomerIdNutritionRoute =
-  AppCustomersCustomerIdNutritionRouteImport.update({
-    id: '/customers_/$customerId_/nutrition',
-    path: '/customers/$customerId/nutrition',
-    getParentRoute: () => AppRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,7 +59,6 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
-  '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,7 +67,6 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
-  '/customers/$customerId/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,7 +77,6 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/subscriptions': typeof AppSubscriptionsRoute
   '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
-  '/_app/customers_/$customerId_/nutrition': typeof AppCustomersCustomerIdNutritionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,7 +87,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscriptions'
     | '/customers/$customerId'
-    | '/customers/$customerId/nutrition'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,7 +95,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/subscriptions'
     | '/customers/$customerId'
-    | '/customers/$customerId/nutrition'
   id:
     | '__root__'
     | '/'
@@ -116,7 +104,6 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/subscriptions'
     | '/_app/customers_/$customerId'
-    | '/_app/customers_/$customerId_/nutrition'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -175,13 +162,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomersCustomerIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/customers_/$customerId_/nutrition': {
-      id: '/_app/customers_/$customerId_/nutrition'
-      path: '/customers/$customerId/nutrition'
-      fullPath: '/customers/$customerId/nutrition'
-      preLoaderRoute: typeof AppCustomersCustomerIdNutritionRouteImport
-      parentRoute: typeof AppRoute
-    }
   }
 }
 
@@ -191,7 +171,6 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppSubscriptionsRoute: typeof AppSubscriptionsRoute
   AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
-  AppCustomersCustomerIdNutritionRoute: typeof AppCustomersCustomerIdNutritionRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -200,7 +179,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppSubscriptionsRoute: AppSubscriptionsRoute,
   AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
-  AppCustomersCustomerIdNutritionRoute: AppCustomersCustomerIdNutritionRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -7,6 +7,7 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
+import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import type {
   MenstrualCycleEntry,
   ObservationsPage,
@@ -35,6 +36,7 @@ interface UseActivityFeedParams {
   foodPreferences: FoodPreferenceHistoryItem[];
   observations: ObservationsPage;
   menstrualCycles: MenstrualCycleEntry[];
+  nutritionPlans: NutritionPlanRecord[];
   activeFilter: FeedEventKind | "all";
   personName?: string | null;
   enabled?: boolean;
@@ -61,6 +63,7 @@ export function useActivityFeed({
   foodPreferences,
   observations,
   menstrualCycles,
+  nutritionPlans,
   activeFilter,
   personName,
   enabled = true,
@@ -89,6 +92,7 @@ export function useActivityFeed({
         medications,
         foodPreferences,
         menstrualCycles,
+        nutritionPlans,
         activeFilter,
         personName,
       }),
@@ -103,6 +107,7 @@ export function useActivityFeed({
       medications,
       foodPreferences,
       menstrualCycles,
+      nutritionPlans,
       activeFilter,
       personName,
     ],

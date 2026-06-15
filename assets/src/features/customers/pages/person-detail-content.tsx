@@ -245,6 +245,7 @@ function PatientDetailCards({
           foodPreferences={foodPreferenceEntries}
           observations={observationEntries}
           menstrualCycles={menstrualCycleEntries}
+          nutritionPlans={detail.nutritionPlans.data}
           activeFilter={activeFilter}
           personName={person?.name ? formatPersonName(person.name) : null}
           openAddRecord={openAddRecord}

@@ -5,12 +5,10 @@ import {
   computeBmr,
   computeMacroPct,
   formatMacroUnitDisplay,
-  gramsFromUnitValue,
   isMacroMixBalanced,
   type MacroGrams,
   type MacroKey,
-  macroUnitsAllPreferred,
-  pickPreferredMacroUnit,
+  macroArcSegments,
   redistributeMacrosForTargetKcal,
   TOLERANCE_KCAL,
   totalKcalFromMacroGrams,
@@ -131,48 +129,6 @@ describe("redistributeMacrosForTargetKcal", () => {
   });
 });
 
-describe("gramsFromUnitValue", () => {
-  it("passes through whole grams", () => {
-    expect(gramsFromUnitValue({ unit: "grams", value: 150, kcalPerGram: 4, totalKcal: 2000 })).toBe(
-      150,
-    );
-  });
-
-  it("multiplies g/kg by bodyweight", () => {
-    expect(
-      gramsFromUnitValue({ unit: "gkg", value: 2, kcalPerGram: 4, totalKcal: 2000, weightKg: 80 }),
-    ).toBe(160);
-  });
-
-  it("returns null for g/kg without bodyweight", () => {
-    expect(
-      gramsFromUnitValue({ unit: "gkg", value: 2, kcalPerGram: 4, totalKcal: 2000 }),
-    ).toBeNull();
-  });
-
-  it("converts % of kcal into grams", () => {
-    // 30% of 2000 kcal = 600 kcal ÷ 4 = 150 g
-    expect(
-      gramsFromUnitValue({ unit: "percent", value: 30, kcalPerGram: 4, totalKcal: 2000 }),
-    ).toBe(150);
-  });
-
-  it("returns null for % without a target", () => {
-    expect(
-      gramsFromUnitValue({ unit: "percent", value: 30, kcalPerGram: 4, totalKcal: 0 }),
-    ).toBeNull();
-  });
-
-  it("clears the field for empty/negative input", () => {
-    expect(gramsFromUnitValue({ unit: "grams", value: 0, kcalPerGram: 4, totalKcal: 2000 })).toBe(
-      0,
-    );
-    expect(
-      gramsFromUnitValue({ unit: "gkg", value: -2, kcalPerGram: 4, totalKcal: 2000, weightKg: 80 }),
-    ).toBe(0);
-  });
-});
-
 describe("unitValueFromGrams", () => {
   it("round-trips g/kg", () => {
     expect(
@@ -219,25 +175,22 @@ describe("formatMacroUnitDisplay", () => {
   });
 });
 
-describe("preferred-unit selection", () => {
-  it("prefers g/kg when bodyweight is known", () => {
-    expect(pickPreferredMacroUnit(80, false)).toBe("gkg");
+describe("macroArcSegments", () => {
+  it("sizes segments by each macro's energy share and chains offsets", () => {
+    // protein 100g=400, carbs 100g=400, fat 100g=900 → total 1700 kcal.
+    const segments = macroArcSegments({ protein: 100, carbs: 100, fat: 100 });
+    expect(segments.map((s) => s.id)).toEqual(["protein", "carbs", "fat"]);
+    expect(segments[0]?.offset).toBe(0);
+    expect(segments[0]?.fraction).toBeCloseTo(400 / 1700, 5);
+    expect(segments[1]?.offset).toBeCloseTo(400 / 1700, 5);
+    expect(segments[2]?.offset).toBeCloseTo(800 / 1700, 5);
+    // Fractions cover the whole ring.
+    const total = segments.reduce((sum, s) => sum + s.fraction, 0);
+    expect(total).toBeCloseTo(1, 5);
   });
 
-  it("prefers % kcal when only a target exists", () => {
-    expect(pickPreferredMacroUnit(undefined, true)).toBe("percent");
-  });
-
-  it("falls back to grams with no context", () => {
-    expect(pickPreferredMacroUnit(undefined, false)).toBe("grams");
-  });
-
-  it("applies the preference to every macro field", () => {
-    expect(macroUnitsAllPreferred(80, true)).toEqual({
-      proteinG: "gkg",
-      carbsG: "gkg",
-      fatG: "gkg",
-    });
+  it("returns no segments for an empty plan", () => {
+    expect(macroArcSegments({ protein: 0, carbs: 0, fat: 0 })).toEqual([]);
   });
 });
 
