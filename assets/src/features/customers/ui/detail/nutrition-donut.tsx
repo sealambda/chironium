@@ -13,7 +13,9 @@ import {
 // Radius chosen so the circle circumference is exactly 100 — each macro's
 // percentage maps 1:1 to its stroke-dash length.
 const RADIUS = 15.91549431;
-const STROKE_WIDTH = 4;
+const STROKE_WIDTH = 4.5;
+// Small gap (in circumference-100 units) between adjacent macro arcs.
+const SEGMENT_GAP = 2;
 
 interface NutritionDonutProps {
   readonly macros: MacroGrams;
@@ -51,19 +53,23 @@ export function NutritionDonut({ macros, targetKcal, className }: Readonly<Nutri
           strokeWidth={STROKE_WIDTH}
           className="stroke-muted"
         />
-        {segments.map((segment) => (
-          <circle
-            key={segment.id}
-            cx="21"
-            cy="21"
-            r={RADIUS}
-            fill="none"
-            strokeWidth={STROKE_WIDTH}
-            className={MACRO_META[segment.id].arcClass}
-            strokeDasharray={`${segment.fraction * 100} ${100 - segment.fraction * 100}`}
-            strokeDashoffset={`${-segment.offset * 100}`}
-          />
-        ))}
+        {segments.map((segment) => {
+          const length = segment.fraction * 100;
+          const visible = Math.max(length - SEGMENT_GAP, 0.5);
+          return (
+            <circle
+              key={segment.id}
+              cx="21"
+              cy="21"
+              r={RADIUS}
+              fill="none"
+              strokeWidth={STROKE_WIDTH}
+              className={MACRO_META[segment.id].arcClass}
+              strokeDasharray={`${visible} ${100 - visible}`}
+              strokeDashoffset={`${-(segment.offset * 100) - SEGMENT_GAP / 2}`}
+            />
+          );
+        })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="font-bold text-2xl text-foreground tabular-nums leading-none">
