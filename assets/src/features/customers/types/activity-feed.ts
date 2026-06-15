@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Droplet,
   Pill,
+  Salad,
   Scale,
   Stethoscope,
   Target,
@@ -20,6 +21,7 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
+import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import type {
   MenstrualCycleEntry,
   ObservationItem,
@@ -230,6 +232,13 @@ export type FeedEvent =
       actors?: FeedActor[];
       variant: "inclusion" | "exclusion";
       payload: FoodPreferenceHistoryItem[];
+    }
+  | {
+      kind: "nutrition";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      payload: NutritionPlanRecord[];
     };
 
 export type FeedEventKind = FeedEvent["kind"];
@@ -282,6 +291,8 @@ export function getEventAccent(event: FeedEvent): FeedEventAccent {
       return "red";
     case "food-preference":
       return event.variant === "inclusion" ? "emerald" : "yellow";
+    case "nutrition":
+      return "emerald";
   }
 }
 
@@ -307,6 +318,8 @@ export function getEventIcon(event: FeedEvent): LucideIcon {
       return Droplet;
     case "food-preference":
       return Utensils;
+    case "nutrition":
+      return Salad;
   }
 }
 
@@ -336,6 +349,8 @@ export function getEventLabel(event: FeedEvent): string {
       return event.variant === "inclusion"
         ? m.activity_event_food_inclusion()
         : m.activity_event_food_exclusion();
+    case "nutrition":
+      return m.activity_event_nutrition();
   }
 }
 
@@ -348,6 +363,8 @@ export function getEventCount(event: FeedEvent): number {
     case "medication":
       return event.payload.length;
     case "food-preference":
+      return event.payload.length;
+    case "nutrition":
       return event.payload.length;
     default:
       return 1;
@@ -409,5 +426,9 @@ export function getEventVerb(event: FeedEvent, count = 1): string {
       return m.activity_verb_menstrual();
     case "food-preference":
       return verbForFoodPreference(event, count, word);
+    case "nutrition":
+      return count > 1
+        ? m.activity_verb_nutrition_plural({ count: word })
+        : m.activity_verb_nutrition();
   }
 }

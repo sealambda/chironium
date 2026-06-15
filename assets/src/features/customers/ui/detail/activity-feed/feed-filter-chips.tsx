@@ -7,6 +7,7 @@ import {
   Droplet,
   LayoutList,
   Pill,
+  Salad,
   Scale,
   Stethoscope,
   Target,
@@ -80,6 +81,12 @@ const CHIPS: readonly ChipConfig[] = [
     label: m.activity_filter_menstrual,
     icon: Droplet,
     activeClass: "border-destructive/20 bg-destructive-muted text-destructive-muted-foreground",
+  },
+  {
+    value: "nutrition",
+    label: m.activity_filter_nutrition,
+    icon: Salad,
+    activeClass: "border-success/20 bg-success-muted text-success-muted-foreground",
   },
   {
     value: "observation",

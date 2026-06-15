@@ -24,30 +24,18 @@ import { FormDialog } from "@/shared/ui/form-dialog";
 import { NumberStepperInput } from "@/shared/ui/number-stepper-input";
 import { cn } from "@/shared/utils/utils";
 
-import { MacroUnitField } from "./macro-unit-field";
+import { MacroField } from "./macro-field";
+import { MACRO_META } from "./nutrition-macros";
 import {
   ageFromBirthDate,
   computeBmr,
-  computeMacroPct,
-  KCAL_PER_G,
+  MACRO_IDS,
   type MacroGrams,
   type MacroKey,
-  type MacroUnit,
-  macroUnitsAllPreferred,
   redistributeMacrosForTargetKcal,
   TOLERANCE_KCAL,
   totalKcalFromMacroGrams,
 } from "./nutrition-plan-utils";
-
-const MACRO_FIELDS: ReadonlyArray<{
-  key: MacroKey;
-  label: () => string;
-  kcalPerGram: number;
-}> = [
-  { key: "proteinG", label: m.nutrition_field_protein, kcalPerGram: KCAL_PER_G.protein },
-  { key: "carbsG", label: m.nutrition_field_carbs, kcalPerGram: KCAL_PER_G.carbs },
-  { key: "fatG", label: m.nutrition_field_fat, kcalPerGram: KCAL_PER_G.fat },
-];
 
 const EMPTY_VALUES: NutritionPlanFormValues = {
   targetKcal: "",
@@ -103,9 +91,6 @@ export function NutritionPlanDetailDialog({
     onChange: controlledOnOpenChange,
   });
   const [saving, setSaving] = useState(false);
-  const [macroUnits, setMacroUnits] = useState<Record<MacroKey, MacroUnit>>(() =>
-    macroUnitsAllPreferred(weightKg ?? undefined, Boolean(item?.targetKcal)),
-  );
   const [locked, setLocked] = useState<ReadonlySet<MacroKey>>(() => new Set());
   const didResetOnOpen = useRef(false);
   const { selectedOrg } = useOrg();
@@ -156,12 +141,8 @@ export function NutritionPlanDetailDialog({
     }
     didResetOnOpen.current = true;
     form.reset(toFormValues(item));
-    setMacroUnits(macroUnitsAllPreferred(weightKg ?? undefined, Boolean(item?.targetKcal)));
     setLocked(new Set());
-  }, [open, item, weightKg, form]);
-
-  const setMacroUnit = (key: MacroKey, unit: MacroUnit) =>
-    setMacroUnits((prev) => ({ ...prev, [key]: unit }));
+  }, [open, item, form]);
 
   const toggleLock = (key: MacroKey) =>
     setLocked((prev) => {
@@ -280,34 +261,26 @@ export function NutritionPlanDetailDialog({
 
             return (
               <div className="flex flex-col gap-4">
-                {MACRO_FIELDS.map(({ key, label, kcalPerGram }) => (
-                  <form.Field key={key} name={key}>
-                    {(field) => {
-                      const grams = Number(field.state.value) || 0;
-                      return (
-                        <div className="flex flex-col gap-1">
-                          <MacroUnitField
-                            label={label()}
-                            grams={grams}
-                            unit={macroUnits[key]}
-                            kcalPerGram={kcalPerGram}
-                            totalKcal={targetKcal}
-                            weightKg={weightKg ?? undefined}
-                            energyPct={computeMacroPct(grams, kcalPerGram, targetKcal)}
-                            locked={locked.has(key)}
-                            disabled={saving}
-                            onGramsChange={(next) =>
-                              field.handleChange(next > 0 ? String(next) : "")
-                            }
-                            onUnitChange={(unit) => setMacroUnit(key, unit)}
-                            onToggleLock={() => toggleLock(key)}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </div>
-                      );
-                    }}
-                  </form.Field>
-                ))}
+                {MACRO_IDS.map((id) => {
+                  const meta = MACRO_META[id];
+                  return (
+                    <form.Field key={id} name={meta.fieldKey}>
+                      {(field) => (
+                        <MacroField
+                          macroId={id}
+                          value={field.state.value}
+                          onValueChange={field.handleChange}
+                          totalKcal={targetKcal}
+                          weightKg={weightKg ?? undefined}
+                          locked={locked.has(meta.fieldKey)}
+                          disabled={saving}
+                          onToggleLock={() => toggleLock(meta.fieldKey)}
+                          errors={field.state.meta.errors}
+                        />
+                      )}
+                    </form.Field>
+                  );
+                })}
 
                 {showMeter ? (
                   <div className="rounded-lg border border-border/60 bg-muted/30 p-3">

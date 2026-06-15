@@ -198,31 +198,6 @@ function roundTo(value: number, digits: number): number {
   return Math.round(value * factor) / factor;
 }
 
-/**
- * Convert a value entered in the chosen unit into whole grams.
- * Returns 0 for empty / non-positive input (clears the field) and null when the
- * unit needs context that is missing (bodyweight for g/kg, target kcal for %).
- */
-export function gramsFromUnitValue(args: UnitConversionArgs & { value: number }): number | null {
-  const { unit, value, kcalPerGram, totalKcal, weightKg } = args;
-  if (!Number.isFinite(value) || value <= 0) {
-    return 0;
-  }
-  if (unit === "grams") {
-    return Math.round(value);
-  }
-  if (unit === "gkg") {
-    if (!weightKg || weightKg <= 0) {
-      return null;
-    }
-    return Math.round(value * weightKg);
-  }
-  if (totalKcal <= 0) {
-    return null;
-  }
-  return Math.round(((value / 100) * totalKcal) / kcalPerGram);
-}
-
 /** Convert grams into the chosen unit. Returns 0 when the value can't be expressed. */
 export function unitValueFromGrams(args: UnitConversionArgs & { grams: number }): number {
   const { unit, grams, kcalPerGram, totalKcal, weightKg } = args;
@@ -252,30 +227,42 @@ export function formatMacroUnitDisplay(args: UnitConversionArgs & { grams: numbe
   return String(unitValueFromGrams(args));
 }
 
-// ─── Preferred-unit selection ────────────────────────────────────────
+// ─── Donut segments ──────────────────────────────────────────────────
 
-/**
- * Best default unit given the available context: g/kg when bodyweight is known,
- * else % kcal when a target exists, else absolute grams.
- */
-export function pickPreferredMacroUnit(
-  weightKg: number | undefined,
-  hasTargetKcal: boolean,
-): MacroUnit {
-  if (weightKg && weightKg > 0) {
-    return "gkg";
-  }
-  if (hasTargetKcal) {
-    return "percent";
-  }
-  return "grams";
+/** Stable nutrient identity, ordered protein → carbs → fat. */
+export type MacroId = "protein" | "carbs" | "fat";
+
+export const MACRO_IDS: readonly MacroId[] = ["protein", "carbs", "fat"];
+
+export interface MacroArcSegment {
+  readonly id: MacroId;
+  /** Share of the macro-derived energy this nutrient occupies (0–1). */
+  readonly fraction: number;
+  /** Cumulative fraction before this segment — its ring start offset (0–1). */
+  readonly offset: number;
 }
 
-/** The preferred unit applied uniformly to all three macro fields. */
-export function macroUnitsAllPreferred(
-  weightKg: number | undefined,
-  hasTargetKcal: boolean,
-): Record<MacroKey, MacroUnit> {
-  const unit = pickPreferredMacroUnit(weightKg, hasTargetKcal);
-  return { proteinG: unit, carbsG: unit, fatG: unit };
+/**
+ * Donut segments for the macro split, each sized by its share of the
+ * macro-derived energy (Atwater). Returns `[]` when there is no energy to
+ * divide (an empty plan), so the caller can render a neutral track.
+ */
+export function macroArcSegments(macros: MacroGrams): MacroArcSegment[] {
+  const kcal: Record<MacroId, number> = {
+    protein: macros.protein * KCAL_PER_G.protein,
+    carbs: macros.carbs * KCAL_PER_G.carbs,
+    fat: macros.fat * KCAL_PER_G.fat,
+  };
+  const total = kcal.protein + kcal.carbs + kcal.fat;
+  if (total <= 0) {
+    return [];
+  }
+
+  let offset = 0;
+  return MACRO_IDS.map((id) => {
+    const fraction = kcal[id] / total;
+    const segment: MacroArcSegment = { id, fraction, offset };
+    offset += fraction;
+    return segment;
+  });
 }

@@ -8,6 +8,7 @@ import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
+import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import type {
   MenstrualCycleEntry,
   ObservationsPage,
@@ -60,6 +61,7 @@ interface ActivityFeedCardProps {
   foodPreferences: FoodPreferenceHistoryItem[];
   observations: ObservationsPage;
   menstrualCycles: MenstrualCycleEntry[];
+  nutritionPlans: NutritionPlanRecord[];
   activeFilter: FeedEventKind | "all";
   personName?: string | null;
   openAddRecord?: () => void;
@@ -78,6 +80,7 @@ export function ActivityFeedCard({
   foodPreferences,
   observations,
   menstrualCycles,
+  nutritionPlans,
   activeFilter,
   personName,
   openAddRecord,
@@ -95,6 +98,7 @@ export function ActivityFeedCard({
     foodPreferences,
     observations,
     menstrualCycles,
+    nutritionPlans,
     activeFilter,
     personName,
   });
