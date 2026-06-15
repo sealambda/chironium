@@ -12,3 +12,12 @@ A running log of non-trivial UI/UX decisions, for cross-session consistency.
 - **Dialog: show all units at once, no switcher.** The per-macro unit dropdown was removed. Grams is the single editable unit (most canonical, what we persist); the equivalent **% kcal** and **g/kg** render live and read-only beside it, in that priority order. Each row carries the macro's color + icon and a lock toggle. BMR auto-suggest, the live balance meter, and one-click auto-balance are retained; balance stays a soft warning that never blocks save.
 
 **Validation:** `tsc`/`tsc -b`, `biome` (274 files), Vitest (69), and `pnpm build` all green; design-QA screenshots reviewed at desktop + mobile via the project's Playwright dev-auth path.
+
+## 2026-06-15 — Nutrition card: mobile-first overflow fix
+
+- **Context:** The donut + legend overflowed and clipped the `%` column at narrow widths (the clinical card is ~340–376px at every breakpoint). An earlier review missed it because screenshots cropped the card *element* (which sizes to its content) instead of the card in the page.
+- **Decision:** Make the legend shrink instead of overflow — `min-w-0` on the row + list, the macro name `truncate`s, and the grams/`%` columns are `shrink-0` so the data is never clipped. Donut reduced to `w-24` with an `text-xl` centre number so it fits the narrowest card.
+- **Rationale:** Mobile-first; the card is essentially the same width at all breakpoints, so it must hold at 375px first. Validated full-viewport at 375/768/1280/1440 — 0px horizontal overflow, no clipping, light + dark.
+- **Alternatives considered:** Stacking the donut above the legend on mobile — unnecessary once the legend shrinks cleanly, and it wastes vertical space.
+- **Scope:** `nutrition-card.tsx`, `nutrition-donut.tsx`.
+- **Visual language:** frontend-design baseline.

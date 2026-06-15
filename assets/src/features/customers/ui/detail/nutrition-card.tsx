@@ -31,14 +31,14 @@ interface NutritionCardProps {
 function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
   const macroTotal = totalKcalFromMacroGrams(gramsByMacro(plan));
   return (
-    <ul className="flex flex-1 flex-col justify-center gap-2">
+    <ul className="flex min-w-0 flex-1 flex-col justify-center gap-2">
       {MACRO_IDS.map((id) => {
         const meta = MACRO_META[id];
         const Icon = meta.icon;
         const grams = plan[meta.fieldKey];
         const pct = computeMacroPct(grams, meta.kcalPerGram, macroTotal);
         return (
-          <li key={id} className="flex items-center gap-2.5 text-sm">
+          <li key={id} className="flex min-w-0 items-center gap-2 text-sm">
             <span
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-md",
@@ -47,8 +47,8 @@ function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
             >
               <Icon className={cn("size-3.5", meta.iconClass)} aria-hidden />
             </span>
-            <span className="text-foreground">{meta.label()}</span>
-            <span className="ml-auto font-semibold text-foreground tabular-nums">
+            <span className="truncate text-foreground">{meta.label()}</span>
+            <span className="ml-auto shrink-0 font-semibold text-foreground tabular-nums">
               {grams}
               <span className="ml-0.5 font-normal text-muted-foreground text-xs">
                 {m.common_unit_g()}
@@ -87,11 +87,11 @@ export function NutritionCard({
   const body = current ? (
     <div className="flex flex-col gap-3">
       <TagsCardTitle>{m.nutrition_card_title()}</TagsCardTitle>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <NutritionDonut
           macros={gramsByMacro(current)}
           targetKcal={current.targetKcal}
-          className="w-28 shrink-0"
+          className="w-24 shrink-0"
         />
         <MacroLegend plan={current} />
       </div>
