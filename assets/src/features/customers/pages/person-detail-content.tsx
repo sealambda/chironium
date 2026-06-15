@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, UserPlus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
+import { selectCurrentStateSnapshot } from "@/features/customers/api/anthropometry-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import { createPatientForPerson } from "@/features/customers/api/patients-api";
 import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
@@ -15,6 +16,7 @@ import { ConditionsCard } from "@/features/customers/ui/detail/conditions-card";
 import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-preferences-card";
 import { MedicationsCard } from "@/features/customers/ui/detail/medications-card";
 import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
+import { NutritionCard } from "@/features/customers/ui/detail/nutrition-card";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -86,6 +88,36 @@ interface PatientDetailCardsProps {
   detail: ReturnType<typeof usePersonDetail>;
   organizationId: string;
   openAddRecord?: () => void;
+}
+
+/** Derives the patient's latest demographics and renders the nutrition card. */
+function PatientNutritionCard({
+  detail,
+  personId,
+  patientId,
+  organizationId,
+}: Readonly<{
+  detail: ReturnType<typeof usePersonDetail>;
+  personId: string;
+  patientId: string | null;
+  organizationId: string;
+}>) {
+  const { person, anthropometryHistory, nutritionPlans } = detail;
+  const current = selectCurrentStateSnapshot(anthropometryHistory.data ?? []);
+  return (
+    <NutritionCard
+      plans={nutritionPlans.data}
+      isLoading={nutritionPlans.isLoading}
+      compact
+      personId={personId}
+      patientId={patientId}
+      organizationId={organizationId}
+      weightKg={current?.weight ?? null}
+      heightCm={current?.height ?? null}
+      dateOfBirth={person?.birthDate ?? null}
+      sex={person?.gender ?? null}
+    />
+  );
 }
 
 function PatientDetailCards({
@@ -176,6 +208,14 @@ function PatientDetailCards({
               isLoading={foodPreferencesHistory.isLoading}
               compact
               personId={personId}
+              organizationId={organizationId}
+            />
+          </div>
+          <div className="lg:order-7 lg:col-span-3">
+            <PatientNutritionCard
+              detail={detail}
+              personId={personId}
+              patientId={patientId}
               organizationId={organizationId}
             />
           </div>
