@@ -426,12 +426,23 @@ export function ResumeActionDialog({
   trigger?: ReactElement;
 }>) {
   const [open, setOpen] = useState(false);
+  const [endDate, setEndDate] = useState(todayIso());
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setEndDate(todayIso());
+    }
+  }, [open]);
 
   const handleConfirm = async () => {
     setBusy(true);
     try {
-      await resumeSubscription(subscriptionId, {}, organizationId);
+      await resumeSubscription(
+        subscriptionId,
+        { endDate: endDate || undefined },
+        organizationId,
+      );
       await onMutated();
       setOpen(false);
     } catch {
@@ -451,6 +462,12 @@ export function ResumeActionDialog({
           <AlertDialogTitle>{m.subscription_resume_title()}</AlertDialogTitle>
           <AlertDialogDescription>{m.subscription_resume_desc()}</AlertDialogDescription>
         </AlertDialogHeader>
+        <FieldGroup>
+          <Field>
+            <FieldLabel>{m.subscription_field_resumed_at()}</FieldLabel>
+            <DatePickerString value={endDate} onChange={setEndDate} />
+          </Field>
+        </FieldGroup>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={busy}>{m.common_cancel()}</AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm} disabled={busy}>
