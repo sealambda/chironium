@@ -1,9 +1,8 @@
 defmodule Chironium.Subscriptions.Validations.ValidateResumedAt do
   @moduledoc """
-  Validates the `:end_date` argument on the `:resume` action:
+  Validates the `:end_date` argument on the `:resume` action.
 
-  - Must not be in the future.
-  - When an open pause exists, must be after the pause start date.
+  When an open pause exists, `end_date` must be after the pause start date.
   """
 
   use Ash.Resource.Validation
@@ -13,17 +12,11 @@ defmodule Chironium.Subscriptions.Validations.ValidateResumedAt do
   @impl true
   def validate(changeset, _opts, _context) do
     resumed_at = Ash.Changeset.get_argument(changeset, :end_date)
-    today = Date.utc_today()
 
-    cond do
-      is_nil(resumed_at) ->
-        :ok
-
-      Date.compare(resumed_at, today) == :gt ->
-        {:error, field: :end_date, message: "cannot be in the future"}
-
-      true ->
-        validate_against_open_pause(changeset, resumed_at)
+    if is_nil(resumed_at) do
+      :ok
+    else
+      validate_against_open_pause(changeset, resumed_at)
     end
   end
 
