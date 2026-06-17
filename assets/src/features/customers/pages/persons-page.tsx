@@ -24,8 +24,14 @@ import {
 } from "@/features/customers/api/persons-api";
 import { fetchSubscriptions } from "@/features/customers/api/subscriptions-api";
 import {
-  getStoredPersonFilterPreference,
-  storePersonFilterPreference,
+  hasCustomerListFilters,
+  useCustomerListFiltering,
+} from "@/features/customers/hooks/use-customer-list-filtering";
+import {
+  type CustomerListFilters,
+  DEFAULT_CUSTOMER_LIST_FILTERS,
+  getStoredCustomerListFilters,
+  storeCustomerListFilters,
 } from "@/features/customers/model/person-filter-preferences";
 import {
   getStoredPersonSortPreference,
@@ -33,7 +39,7 @@ import {
 } from "@/features/customers/model/person-sort-preferences";
 import { CustomerBulkActionBar } from "@/features/customers/ui/customer-bulk-action-bar";
 import { CustomerTable } from "@/features/customers/ui/customer-table";
-import { FilterByPractitionerDialog } from "@/features/customers/ui/filter-by-practitioner-dialog";
+import { CustomerFiltersDialog } from "@/features/customers/ui/filter-by-practitioner-dialog";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
 import { PersonCard } from "@/features/customers/ui/person-card";
 import { ReassignCustomersDialog } from "@/features/customers/ui/reassign-customers-dialog";
@@ -57,25 +63,13 @@ import { Loading } from "@/shared/ui/loading";
 import { formatPersonName } from "@/shared/utils/person-utils";
 import { customersQueryKeys } from "@/shared/utils/query-keys";
 
-interface PractitionerFilter {
-  kind: "practitioner";
-  id: string;
-  name: string;
-}
-
-interface UnassignedFilter {
-  kind: "unassigned";
-}
-
-type CustomerAssignmentFilter = PractitionerFilter | UnassignedFilter | null;
-
 function useCustomersPageData(
   orgId: string | undefined,
   sortOption: PersonListSortOption,
-  assignmentFilter: CustomerAssignmentFilter,
+  listFilters: CustomerListFilters,
 ) {
   const personAssignmentFilter: PersonAssignmentFilter =
-    assignmentFilter?.kind === "unassigned" ? "unassigned" : "all";
+    listFilters.assignment?.kind === "unassigned" ? "unassigned" : "all";
 
   const {
     data: persons,
@@ -101,14 +95,14 @@ function useCustomersPageData(
   const { data: practitionerPersonIds } = useQuery({
     queryKey: customersQueryKeys.practitionerPersonIds(
       orgId ?? "",
-      assignmentFilter?.kind === "practitioner" ? assignmentFilter.id : "",
+      listFilters.assignment?.kind === "practitioner" ? listFilters.assignment.id : "",
     ),
     queryFn: () =>
       fetchPersonIdsByPractitioner(
         orgId ?? "",
-        assignmentFilter?.kind === "practitioner" ? assignmentFilter.id : "",
+        listFilters.assignment?.kind === "practitioner" ? listFilters.assignment.id : "",
       ),
-    enabled: Boolean(orgId) && assignmentFilter?.kind === "practitioner",
+    enabled: Boolean(orgId) && listFilters.assignment?.kind === "practitioner",
   });
 
   const isLoading = (personsLoading && !persons) || subscriptionsLoading;
@@ -139,7 +133,9 @@ export function CustomersPage() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [assignmentFilter, setAssignmentFilter] = useState<CustomerAssignmentFilter>(null);
+  const [listFilters, setListFilters] = useState<CustomerListFilters>(
+    DEFAULT_CUSTOMER_LIST_FILTERS,
+  );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [search, setSearch] = useState("");
   const [sortOption, setSortOption] = useState<PersonListSortOption>(
@@ -149,13 +145,11 @@ export function CustomersPage() {
   const { customers, isLoading, error, practitionerPersonIdSet } = useCustomersPageData(
     selectedOrg?.id,
     sortOption,
-    assignmentFilter,
+    listFilters,
   );
 
-  const filtered = useMemo(
-    () => filterCustomers(customers, practitionerPersonIdSet, search),
-    [customers, practitionerPersonIdSet, search],
-  );
+  const { filtered, hasActiveListFilters, hiddenByFiltersCount, hasSearchQuery, showListControls } =
+    useCustomerListFiltering(customers, practitionerPersonIdSet, search, listFilters);
 
   const canUseUnassignedFilter = useMemo(() => {
     if (!selectedOrg || !user) {
@@ -197,21 +191,29 @@ export function CustomersPage() {
     ]);
   };
 
-  const handleFilterApply = (nextFilter: CustomerAssignmentFilter) => {
+  const handleFiltersApply = (nextFilters: CustomerListFilters) => {
     if (selectedOrg?.id) {
-      storePersonFilterPreference(selectedOrg.id, nextFilter);
+      storeCustomerListFilters(selectedOrg.id, nextFilters);
     }
 
-    setAssignmentFilter(nextFilter);
+    setListFilters(nextFilters);
+  };
+
+  const handleClearFilters = () => {
+    handleFiltersApply(DEFAULT_CUSTOMER_LIST_FILTERS);
+  };
+
+  const handleShowFinishedPlans = () => {
+    handleFiltersApply({ ...listFilters, hideFinishedPlans: false });
   };
 
   useEffect(() => {
     if (!selectedOrg?.id) {
-      setAssignmentFilter(null);
+      setListFilters(DEFAULT_CUSTOMER_LIST_FILTERS);
       return;
     }
 
-    setAssignmentFilter(getStoredPersonFilterPreference(selectedOrg.id));
+    setListFilters(getStoredCustomerListFilters(selectedOrg.id));
   }, [selectedOrg?.id]);
 
   useEffect(() => {
@@ -222,7 +224,7 @@ export function CustomersPage() {
 
     setHeaderContent(
       <div className="ml-auto flex w-full items-center justify-end gap-3">
-        {customers.length > 0 || assignmentFilter !== null ? (
+        {showListControls ? (
           <div className="hidden w-72 sm:block">
             <ListSearchField
               value={search}
@@ -241,7 +243,7 @@ export function CustomersPage() {
     return () => {
       setHeaderContent(null);
     };
-  }, [assignmentFilter, customers.length, error, isLoading, search, selectedOrg, setHeaderContent]);
+  }, [error, isLoading, search, selectedOrg, setHeaderContent, showListControls]);
 
   if (orgsLoading || (selectedOrg && isLoading)) {
     return <Loading />;
@@ -266,30 +268,34 @@ export function CustomersPage() {
   return (
     <div className="flex flex-col gap-4 pt-7">
       <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-baseline gap-2">
-          <h1
-            className="font-bold text-foreground text-xl uppercase tracking-wide"
-            data-testid="customers-heading"
-          >
-            {m.customers_title()}
-          </h1>
-          <span className="text-muted-foreground text-sm">({customers.length})</span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-baseline gap-2">
+            <h1
+              className="font-bold text-foreground text-xl uppercase tracking-wide"
+              data-testid="customers-heading"
+            >
+              {m.customers_title()}
+            </h1>
+            <span className="text-muted-foreground text-sm">({filtered.length})</span>
+          </div>
+          {hiddenByFiltersCount > 0 && !hasSearchQuery ? (
+            <p className="text-muted-foreground text-sm">
+              {m.customers_filters_hidden_count({ count: hiddenByFiltersCount })}
+            </p>
+          ) : null}
         </div>
-        {customers.length > 0 || assignmentFilter !== null ? (
+        {showListControls ? (
           <div className="hidden items-center gap-2 sm:flex">
             <CustomerSortDropdown
               sortOption={sortOption}
               onSortOptionChange={handleSortOptionChange}
             />
-            <PractitionerFilterButton
-              assignmentFilter={assignmentFilter}
-              onClick={() => setFilterOpen(true)}
-            />
+            <CustomerFiltersButton listFilters={listFilters} onClick={() => setFilterOpen(true)} />
           </div>
         ) : null}
       </header>
 
-      {customers.length > 0 || assignmentFilter !== null ? (
+      {showListControls ? (
         <div className="flex items-center gap-2 sm:hidden">
           <div className="min-w-0 flex-1">
             <ListSearchField
@@ -303,8 +309,8 @@ export function CustomersPage() {
             onSortOptionChange={handleSortOptionChange}
             compact
           />
-          <PractitionerFilterButton
-            assignmentFilter={assignmentFilter}
+          <CustomerFiltersButton
+            listFilters={listFilters}
             onClick={() => setFilterOpen(true)}
             compact
           />
@@ -313,8 +319,14 @@ export function CustomersPage() {
 
       <CustomerList
         items={filtered}
-        isEmpty={customers.length === 0 && assignmentFilter === null}
+        isEmpty={customers.length === 0 && !hasActiveListFilters}
+        filterEmptyState={
+          filtered.length === 0 && !hasSearchQuery && hasActiveListFilters ? "filters" : "search"
+        }
+        hideFinishedPlans={listFilters.hideFinishedPlans}
         onAdd={() => setOnboardingOpen(true)}
+        onClearFilters={handleClearFilters}
+        onShowFinishedPlans={handleShowFinishedPlans}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
       />
@@ -333,13 +345,13 @@ export function CustomersPage() {
         onCompleted={handleReassignCompleted}
       />
 
-      <FilterByPractitionerDialog
+      <CustomerFiltersDialog
         open={filterOpen}
         onOpenChange={setFilterOpen}
         organizationId={selectedOrg.id}
-        selectedFilter={assignmentFilter}
+        selectedFilters={listFilters}
         showUnassignedOption={canUseUnassignedFilter}
-        onApply={handleFilterApply}
+        onApply={handleFiltersApply}
       />
 
       <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
@@ -347,56 +359,49 @@ export function CustomersPage() {
   );
 }
 
-function filterCustomers(
-  customers: CustomerListItem[],
-  practitionerPersonIdSet: Set<string> | null,
-  search: string,
-): CustomerListItem[] {
-  let result = customers;
+function formatFilterSummary(filters: CustomerListFilters): string {
+  const parts: string[] = [];
 
-  if (practitionerPersonIdSet) {
-    result = result.filter((item) => practitionerPersonIdSet.has(item.person.id));
+  if (filters.assignment?.kind === "practitioner") {
+    parts.push(filters.assignment.name);
+  } else if (filters.assignment?.kind === "unassigned") {
+    parts.push(m.customers_filter_unassigned());
   }
 
-  const q = search.trim().toLowerCase();
-  if (q) {
-    result = result.filter((item) => formatPersonName(item.person.name).toLowerCase().includes(q));
+  if (filters.hideFinishedPlans) {
+    parts.push(m.customers_filters_hide_finished());
   }
 
-  return result;
+  return parts.join(", ");
 }
 
-function PractitionerFilterButton({
-  assignmentFilter,
+function CustomerFiltersButton({
+  listFilters,
   onClick,
   compact = false,
 }: Readonly<{
-  assignmentFilter: CustomerAssignmentFilter;
+  listFilters: CustomerListFilters;
   onClick: () => void;
   compact?: boolean;
 }>) {
-  let buttonLabel: string = m.customers_filter_by_practitioner();
-  if (assignmentFilter?.kind === "practitioner") {
-    buttonLabel = assignmentFilter.name;
-  } else if (assignmentFilter?.kind === "unassigned") {
-    buttonLabel = m.customers_filter_unassigned();
-  }
+  const hasActiveFilters = hasCustomerListFilters(listFilters);
+  const filterSummary = formatFilterSummary(listFilters);
 
   return (
     <Button
-      variant={assignmentFilter ? "secondary" : "outline"}
+      variant={hasActiveFilters ? "secondary" : "outline"}
       size={compact ? "icon-sm" : "sm"}
       type="button"
       onClick={onClick}
       aria-label={
-        assignmentFilter
-          ? m.customers_filter_by_practitioner_active_aria({ name: buttonLabel })
-          : m.customers_filter_by_practitioner()
+        hasActiveFilters
+          ? m.customers_filters_active_aria({ summary: filterSummary })
+          : m.customers_filters()
       }
-      data-testid="filter-practitioner-button"
+      data-testid="customer-filters-button"
     >
       <ListFilterIcon data-icon="inline-start" aria-hidden />
-      {compact ? null : <span>{buttonLabel}</span>}
+      {compact ? null : <span>{m.customers_filters()}</span>}
     </Button>
   );
 }
@@ -404,13 +409,21 @@ function PractitionerFilterButton({
 function CustomerList({
   items,
   isEmpty,
+  filterEmptyState,
+  hideFinishedPlans,
   onAdd,
+  onClearFilters,
+  onShowFinishedPlans,
   rowSelection,
   onRowSelectionChange,
 }: Readonly<{
   items: CustomerListItem[];
   isEmpty: boolean;
+  filterEmptyState: "search" | "filters";
+  hideFinishedPlans: boolean;
   onAdd: () => void;
+  onClearFilters: () => void;
+  onShowFinishedPlans: () => void;
   rowSelection: RowSelectionState;
   onRowSelectionChange: React.Dispatch<React.SetStateAction<RowSelectionState>>;
 }>) {
@@ -432,6 +445,28 @@ function CustomerList({
   }
 
   if (items.length === 0) {
+    if (filterEmptyState === "filters") {
+      const actions = [
+        {
+          label: m.customers_filters_clear(),
+          testId: "customers-clear-filters-button",
+          onAction: onClearFilters,
+        },
+      ];
+
+      if (hideFinishedPlans) {
+        actions.push({
+          label: m.customers_filters_show_finished(),
+          testId: "customers-show-finished-plans-button",
+          onAction: onShowFinishedPlans,
+        });
+      }
+
+      return (
+        <EmptyState icon={Search} title={m.customers_filters_no_active_plans()} actions={actions} />
+      );
+    }
+
     return <EmptyState icon={Search} title={m.customers_no_results()} />;
   }
 

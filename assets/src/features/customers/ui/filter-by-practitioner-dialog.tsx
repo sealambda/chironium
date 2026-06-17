@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import type { CustomerListFilters } from "@/features/customers/model/person-filter-preferences";
 import {
   fetchPractitionersList,
   sortPractitionersByGivenNameAsc,
@@ -16,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { ListSearchField } from "@/shared/ui/list-search-field";
 import { formatPersonName } from "@/shared/utils/person-utils";
 import { practitionersBulkReassignQueryKey } from "@/shared/utils/query-keys";
@@ -28,36 +29,40 @@ interface PractitionerItem {
 
 const UNASSIGNED_FILTER_VALUE = "__unassigned__";
 
-type CustomerAssignmentFilter =
-  | { kind: "practitioner"; id: string; name: string }
-  | { kind: "unassigned" }
-  | null;
-
-interface FilterByPractitionerDialogProps {
+interface CustomerFiltersDialogProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly organizationId: string;
-  readonly selectedFilter: CustomerAssignmentFilter;
+  readonly selectedFilters: CustomerListFilters;
   readonly showUnassignedOption: boolean;
-  readonly onApply: (filter: CustomerAssignmentFilter) => void;
+  readonly onApply: (filters: CustomerListFilters) => void;
 }
 
-export function FilterByPractitionerDialog({
+export function CustomerFiltersDialog({
   open,
   onOpenChange,
   organizationId,
-  selectedFilter,
+  selectedFilters,
   showUnassignedOption,
   onApply,
-}: Readonly<FilterByPractitionerDialogProps>) {
-  const [pendingValue, setPendingValue] = useState<string | null>(() => {
-    if (!selectedFilter) {
-      return null;
+}: Readonly<CustomerFiltersDialogProps>) {
+  const [pendingAssignmentValue, setPendingAssignmentValue] = useState<string | null>(() =>
+    assignmentToPendingValue(selectedFilters.assignment),
+  );
+  const [pendingHideFinishedPlans, setPendingHideFinishedPlans] = useState(
+    selectedFilters.hideFinishedPlans,
+  );
+  const [practitionerSearch, setPractitionerSearch] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      return;
     }
 
-    return selectedFilter.kind === "unassigned" ? UNASSIGNED_FILTER_VALUE : selectedFilter.id;
-  });
-  const [practitionerSearch, setPractitionerSearch] = useState("");
+    setPendingAssignmentValue(assignmentToPendingValue(selectedFilters.assignment));
+    setPendingHideFinishedPlans(selectedFilters.hideFinishedPlans);
+    setPractitionerSearch("");
+  }, [open, selectedFilters]);
 
   const { data: practitioners = [] } = useQuery({
     queryKey: practitionersBulkReassignQueryKey(organizationId),
@@ -81,18 +86,19 @@ export function FilterByPractitionerDialog({
     return comboItems.filter((item) => item.label.toLowerCase().includes(q));
   }, [comboItems, practitionerSearch]);
 
-  const selectedValue = useMemo(() => {
-    if (!selectedFilter) {
-      return null;
-    }
-
-    return selectedFilter.kind === "unassigned" ? UNASSIGNED_FILTER_VALUE : selectedFilter.id;
-  }, [selectedFilter]);
+  const selectedAssignmentValue = useMemo(
+    () => assignmentToPendingValue(selectedFilters.assignment),
+    [selectedFilters.assignment],
+  );
 
   const showPractitionerSearch = comboItems.length > 0;
   const showPractitionerEmptyState =
     filteredItems.length === 0 && practitionerSearch.trim().length > 0;
   const showNoPractitionerNotice = comboItems.length === 0;
+  const hasActiveFilters = selectedFilters.assignment !== null || selectedFilters.hideFinishedPlans;
+  const hasPendingChanges =
+    pendingAssignmentValue !== selectedAssignmentValue ||
+    pendingHideFinishedPlans !== selectedFilters.hideFinishedPlans;
 
   const renderUnassignedOption = () => {
     if (!showUnassignedOption) {
@@ -105,9 +111,11 @@ export function FilterByPractitionerDialog({
           <Checkbox
             id="filter-practitioner-unassigned"
             data-testid="filter-practitioner-checkbox-unassigned"
-            checked={pendingValue === UNASSIGNED_FILTER_VALUE}
+            checked={pendingAssignmentValue === UNASSIGNED_FILTER_VALUE}
             className="mt-0.5"
-            onCheckedChange={(value) => setPendingValue(value ? UNASSIGNED_FILTER_VALUE : null)}
+            onCheckedChange={(value) =>
+              setPendingAssignmentValue(value ? UNASSIGNED_FILTER_VALUE : null)
+            }
           />
           <label
             htmlFor="filter-practitioner-unassigned"
@@ -120,56 +128,49 @@ export function FilterByPractitionerDialog({
     );
   };
 
-  const reset = () => {
-    if (!selectedFilter) {
-      setPendingValue(null);
-    } else if (selectedFilter.kind === "unassigned") {
-      setPendingValue(UNASSIGNED_FILTER_VALUE);
-    } else {
-      setPendingValue(selectedFilter.id);
-    }
-    setPractitionerSearch("");
-  };
-
   const handleOpenChange = (next: boolean) => {
     onOpenChange(next);
-    if (!next) {
-      reset();
+  };
+
+  const resolveAssignment = (): CustomerListFilters["assignment"] => {
+    if (pendingAssignmentValue === UNASSIGNED_FILTER_VALUE) {
+      return { kind: "unassigned" };
     }
+
+    if (pendingAssignmentValue) {
+      const selectedItem = comboItems.find((item) => item.value === pendingAssignmentValue);
+      if (selectedItem) {
+        return {
+          kind: "practitioner",
+          id: selectedItem.value,
+          name: selectedItem.label,
+        };
+      }
+    }
+
+    return null;
   };
 
   const handleApply = () => {
-    if (pendingValue === UNASSIGNED_FILTER_VALUE) {
-      onApply({ kind: "unassigned" });
-    } else if (pendingValue) {
-      const selectedItem = comboItems.find((item) => item.value === pendingValue);
-      onApply(
-        selectedItem
-          ? { kind: "practitioner", id: selectedItem.value, name: selectedItem.label }
-          : null,
-      );
-    } else {
-      onApply(null);
-    }
+    onApply({
+      assignment: resolveAssignment(),
+      hideFinishedPlans: pendingHideFinishedPlans,
+    });
 
     onOpenChange(false);
-    setPractitionerSearch("");
   };
 
   const handleClear = () => {
-    onApply(null);
+    onApply({ assignment: null, hideFinishedPlans: false });
     onOpenChange(false);
-    setPractitionerSearch("");
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md" data-testid="filter-practitioner-dialog">
+      <DialogContent className="max-w-md" data-testid="customer-filters-dialog">
         <DialogHeader>
-          <DialogTitle>{m.customers_filter_by_practitioner_dialog_title()}</DialogTitle>
-          <DialogDescription>
-            {m.customers_filter_by_practitioner_dialog_description()}
-          </DialogDescription>
+          <DialogTitle>{m.customers_filters_dialog_title()}</DialogTitle>
+          <DialogDescription>{m.customers_filters_dialog_description()}</DialogDescription>
         </DialogHeader>
 
         <FieldGroup className="gap-5">
@@ -198,9 +199,11 @@ export function FilterByPractitionerDialog({
                           <Checkbox
                             id={rowId}
                             data-testid={`filter-practitioner-checkbox-${item.value}`}
-                            checked={pendingValue === item.value}
+                            checked={pendingAssignmentValue === item.value}
                             className="mt-0.5"
-                            onCheckedChange={(value) => setPendingValue(value ? item.value : null)}
+                            onCheckedChange={(value) =>
+                              setPendingAssignmentValue(value ? item.value : null)
+                            }
                           />
                           <label
                             htmlFor={rowId}
@@ -222,12 +225,36 @@ export function FilterByPractitionerDialog({
               </p>
             ) : null}
           </Field>
+
+          <Field className="gap-2">
+            <FieldLabel>{m.customers_filters_subscription_section()}</FieldLabel>
+            <div className="flex items-start gap-3 rounded-md border border-border/80 bg-background px-3 py-2.5">
+              <Checkbox
+                id="filter-hide-finished-plans"
+                data-testid="filter-hide-finished-plans-checkbox"
+                checked={pendingHideFinishedPlans}
+                className="mt-0.5"
+                onCheckedChange={(value) => setPendingHideFinishedPlans(Boolean(value))}
+              />
+              <div className="min-w-0 flex-1">
+                <label
+                  htmlFor="filter-hide-finished-plans"
+                  className="cursor-pointer text-foreground text-sm leading-snug"
+                >
+                  {m.customers_filters_hide_finished()}
+                </label>
+                <FieldDescription className="mt-1">
+                  {m.customers_filters_hide_finished_desc()}
+                </FieldDescription>
+              </div>
+            </div>
+          </Field>
         </FieldGroup>
 
         <DialogFooter>
-          {selectedFilter ? (
+          {hasActiveFilters ? (
             <Button type="button" variant="ghost" onClick={handleClear} className="mr-auto">
-              {m.customers_filter_by_practitioner_clear()}
+              {m.customers_filters_clear()}
             </Button>
           ) : null}
           <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
@@ -236,8 +263,8 @@ export function FilterByPractitionerDialog({
           <Button
             type="button"
             onClick={handleApply}
-            disabled={pendingValue === selectedValue}
-            data-testid="filter-practitioner-apply-button"
+            disabled={!hasPendingChanges}
+            data-testid="customer-filters-apply-button"
           >
             {m.customers_filter_by_practitioner_apply()}
           </Button>
@@ -245,4 +272,12 @@ export function FilterByPractitionerDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function assignmentToPendingValue(assignment: CustomerListFilters["assignment"]): string | null {
+  if (!assignment) {
+    return null;
+  }
+
+  return assignment.kind === "unassigned" ? UNASSIGNED_FILTER_VALUE : assignment.id;
 }
