@@ -12,6 +12,7 @@ export const ListSubscriptionsQuery = graphql(`
         id
         state
         startDate
+        effectiveEndDate
         subscriberId
         plan {
           id

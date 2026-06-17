@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, isValid, parseISO } from "date-fns";
 import { Pencil } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
+import { getDateLocale } from "@/shared/utils/date-locale";
 import { toDateInput } from "@/shared/utils/date-time-input";
 import {
   customersQueryKeys,
@@ -50,6 +52,19 @@ function stateBadgeVariant(state: string): BadgeVariant {
     default:
       return "outline";
   }
+}
+
+function formatSubscriptionEndDate(date: string | null | undefined): string | null {
+  if (!date) {
+    return null;
+  }
+
+  const parsedDate = parseISO(date);
+  if (!isValid(parsedDate)) {
+    return date;
+  }
+
+  return format(parsedDate, "PP", { locale: getDateLocale() });
 }
 
 function stateLabel(state: string): string {
@@ -199,6 +214,7 @@ export function EditSubscriptionDialog({
   }
 
   const state = currentSubscription?.state ?? "";
+  const effectiveEndDateLabel = formatSubscriptionEndDate(currentSubscription?.effectiveEndDate);
   const isEditing = Boolean(currentSubscription);
 
   return (
@@ -229,9 +245,17 @@ export function EditSubscriptionDialog({
             {isEditing ? m.subscription_manage_title() : m.step_subscription_title()}
           </DialogTitle>
           {isEditing ? (
-            <div className="flex flex-col items-start gap-1 pt-1">
-              <p className="font-medium text-sm">{m.subscription_status_label()}</p>
-              <Badge variant={stateBadgeVariant(state)}>{stateLabel(state)}</Badge>
+            <div className="flex flex-col items-start gap-2 pt-1">
+              <div className="flex flex-col items-start gap-1">
+                <p className="font-medium text-sm">{m.subscription_status_label()}</p>
+                <Badge variant={stateBadgeVariant(state)}>{stateLabel(state)}</Badge>
+              </div>
+              {effectiveEndDateLabel ? (
+                <div className="flex flex-col items-start gap-1">
+                  <p className="font-medium text-sm">{m.subscription_field_end_date()}</p>
+                  <p className="text-muted-foreground text-sm tabular-nums">{effectiveEndDateLabel}</p>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </DialogHeader>
