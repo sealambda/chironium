@@ -442,14 +442,17 @@ defmodule Chironium.Subscriptions.SubscriptionPauseTest do
   # --- Validation: resume end_date constraints --------------------------------
 
   describe "resume end_date validation" do
-    test "end_date in the future is rejected", ctx do
+    test "end_date in the future is accepted when after pause start", ctx do
+      pause_start = Date.utc_today()
       sub = create_subscription(ctx)
-      sub = suspend(sub, ctx, suspended_at: Date.utc_today())
-      tomorrow = Date.add(Date.utc_today(), 1)
+      sub = suspend(sub, ctx, suspended_at: pause_start)
+      future_end = Date.add(pause_start, 180)
 
-      assert_raise Ash.Error.Invalid, ~r/cannot be in the future/i, fn ->
-        resume(sub, ctx, end_date: tomorrow)
-      end
+      sub = resume(sub, ctx, end_date: future_end)
+      sub = load_with_pauses(sub, ctx)
+
+      assert sub.state == :active
+      assert hd(sub.pauses).end_date == future_end
     end
 
     test "end_date equal to pause start_date is rejected", ctx do
