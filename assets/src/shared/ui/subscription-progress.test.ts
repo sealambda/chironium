@@ -1,6 +1,11 @@
+import { format } from "date-fns";
 import { describe, expect, it } from "vitest";
 
-import { getSubscriptionProgressRatio, getSubscriptionProgressTone } from "./subscription-progress";
+import {
+  getSubscriptionProgressRatio,
+  getSubscriptionProgressTone,
+  resolveSubscriptionEndDate,
+} from "./subscription-progress";
 
 describe("subscription progress helpers", () => {
   it("clamps progress between zero and one", () => {
@@ -9,6 +14,16 @@ describe("subscription progress helpers", () => {
 
     expect(getSubscriptionProgressRatio(start, end, new Date("2025-12-01T00:00:00.000Z"))).toBe(0);
     expect(getSubscriptionProgressRatio(start, end, new Date("2026-06-01T00:00:00.000Z"))).toBe(1);
+  });
+
+  it("prefers effectiveEndDate over plan duration when provided", () => {
+    const endDate = resolveSubscriptionEndDate("2026-01-15", 1, "2026-02-20");
+    expect(format(endDate, "yyyy-MM-dd")).toBe("2026-02-20");
+  });
+
+  it("falls back to start date plus plan duration when effectiveEndDate is absent", () => {
+    const endDate = resolveSubscriptionEndDate("2026-01-15", 1);
+    expect(format(endDate, "yyyy-MM-dd")).toBe("2026-02-15");
   });
 
   it("maps elapsed time to subscription status tones", () => {

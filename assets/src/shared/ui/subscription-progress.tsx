@@ -1,4 +1,4 @@
-import { addMonths, format, formatISO } from "date-fns";
+import { addMonths, format, formatISO, parseISO } from "date-fns";
 
 import * as m from "@/paraglide/messages";
 import type { SubscriptionListItem } from "@/shared/types/subscriptions";
@@ -57,6 +57,20 @@ export function getSubscriptionProgressTone(progress: number): SubscriptionProgr
   return "success";
 }
 
+/** Resolve the subscription end date, preferring the pause-adjusted value from the API. */
+export function resolveSubscriptionEndDate(
+  startDateIso: string,
+  planDurationMonths: number,
+  effectiveEndDateIso?: string | null,
+): Date {
+  if (effectiveEndDateIso) {
+    return parseISO(effectiveEndDateIso);
+  }
+
+  const startDate = parseISO(startDateIso);
+  return parseISO(formatISO(addMonths(startDate, planDurationMonths), { representation: "date" }));
+}
+
 /**
  * Displays subscription progress as month-section circles.
  * Each circle represents one month; elapsed months are colored, remaining are neutral.
@@ -81,9 +95,11 @@ export function SubscriptionProgress({
   }
 
   const planDurationMonths = durationToMonths(subscription.plan?.duration);
-  const startDate = new Date(subscription.startDate);
-  const endDate = new Date(
-    formatISO(addMonths(startDate, planDurationMonths), { representation: "date" }),
+  const startDate = parseISO(subscription.startDate);
+  const endDate = resolveSubscriptionEndDate(
+    subscription.startDate,
+    planDurationMonths,
+    subscription.effectiveEndDate,
   );
 
   const progress = getSubscriptionProgressRatio(startDate, endDate);
