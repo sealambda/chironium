@@ -142,6 +142,50 @@ defmodule Chironium.Subscriptions.SubscriptionVisibilityTest do
     end
   end
 
+  describe "practitioner pause mutations (direct updateSubscriptionPause)" do
+    test "practitioner can update a pause on a visible subscription", ctx do
+      practitioner_user = generate(user())
+      create_membership(ctx.organization.id, practitioner_user.id, :member)
+
+      practitioner = create_practitioner(ctx, "Dr Pause Editor")
+      grant_practitioner(ctx, practitioner_user.id, practitioner.id)
+
+      patient = create_patient_with_person(ctx)
+      care_team = create_care_team(ctx, patient, :active, "Pause team")
+      add_participant(ctx, care_team, practitioner)
+
+      sub = create_subscription(ctx, patient.person_id)
+
+      sub =
+        sub
+        |> Ash.Changeset.for_update(:suspend, %{reason: "Original reason"},
+          actor: ctx.owner,
+          tenant: ctx.tenant,
+          authorize?: false
+        )
+        |> Ash.update!()
+
+      pause =
+        Chironium.Subscriptions.SubscriptionPause
+        |> Ash.Query.filter(subscription_id == ^sub.id)
+        |> Ash.read_one!(tenant: ctx.tenant, authorize?: false)
+
+      actor = enrich_actor(practitioner_user, ctx.tenant)
+
+      updated =
+        pause
+        |> Ash.Changeset.for_update(:update, %{
+          reason: "Updated reason",
+          start_date: pause.start_date,
+          end_date: Date.add(pause.start_date, 3)
+        }, actor: actor, tenant: ctx.tenant)
+        |> Ash.update!()
+
+      assert updated.reason == "Updated reason"
+      assert updated.end_date == Date.add(pause.start_date, 3)
+    end
+  end
+
   # -- Helpers ----------------------------------------------------------------
 
   defp create_membership(organization_id, user_id, role) do
