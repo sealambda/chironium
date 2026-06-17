@@ -4,16 +4,16 @@ defmodule Chironium.Subscriptions.SubscriptionPause do
     domain: Chironium.Subscriptions,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshGraphql.Resource, AshPaperTrail.Resource]
+    extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
   postgres do
     table "subscription_pauses"
 
-    # At most one open pause per subscription at any time.
+    # At most one open pause per subscription at any time (archived rows excluded).
     custom_indexes do
       index [:subscription_id],
         unique: true,
-        where: "end_date IS NULL",
+        where: "end_date IS NULL AND archived_at IS NULL",
         name: "subscription_pauses_one_open_per_subscription"
     end
   end
@@ -63,15 +63,15 @@ defmodule Chironium.Subscriptions.SubscriptionPause do
     end
 
     policy action_type(:read) do
-      # Pauses are only readable via the subscription relationship.
+      # Relationship loads (e.g. subscription → pauses) use AccessedFromRelationship.
+      # Direct access uses the same visibility chain as subscriptions.
       authorize_if Chironium.CRM.Checks.AccessedFromRelationship
+      authorize_if Chironium.Subscriptions.Checks.SubscriptionPauseVisibleToActor
     end
 
     policy action_type([:create, :update, :destroy]) do
-      # Restrict mutations to prevent desync with subscription state machine.
-      # Pauses can only be modified by actors who can access (read) the parent subscription.
-      authorize_if Chironium.CRM.Checks.AccessedFromRelationship
-      authorize_if relates_to_actor_via(:subscription, action: :read, on_result: :authorize_if)
+      # Match subscription mutation policy: tenant isolation is enforced by SetTenant.
+      authorize_if actor_present()
     end
   end
 

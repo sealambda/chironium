@@ -344,6 +344,55 @@ defmodule Chironium.Subscriptions.SubscriptionPauseTest do
 
   # --- Uniqueness constraint on open pauses ----------------------------------
 
+  describe "destroy" do
+    test "deleting a pause archives it instead of removing the row", ctx do
+      sub = create_subscription(ctx)
+      sub = suspend(sub, ctx, reason: "To be deleted")
+
+      pause =
+        SubscriptionPause
+        |> Ash.Query.filter(subscription_id == ^sub.id)
+        |> Ash.read_one!(tenant: ctx.tenant, authorize?: false)
+
+      assert :ok =
+               pause
+               |> Ash.Changeset.for_destroy(:destroy, %{}, actor: ctx.owner, tenant: ctx.tenant)
+               |> Ash.destroy()
+
+      assert SubscriptionPause
+             |> Ash.Query.filter(id == ^pause.id)
+             |> Ash.read_one(tenant: ctx.tenant, authorize?: false) == {:ok, nil}
+    end
+
+    test "archiving an open pause frees the one-open-pause slot", ctx do
+      sub = create_subscription(ctx)
+      sub = suspend(sub, ctx)
+
+      pause =
+        SubscriptionPause
+        |> Ash.Query.filter(subscription_id == ^sub.id and is_nil(end_date))
+        |> Ash.read_one!(tenant: ctx.tenant, authorize?: false)
+
+      assert :ok =
+               pause
+               |> Ash.Changeset.for_destroy(:destroy, %{}, actor: ctx.owner, tenant: ctx.tenant)
+               |> Ash.destroy()
+
+      assert SubscriptionPause
+             |> Ash.Changeset.for_create(
+               :open,
+               %{subscription_id: sub.id, start_date: Date.utc_today()},
+               tenant: ctx.tenant,
+               authorize?: false
+             )
+             |> Ash.create()
+             |> case do
+               {:ok, _} -> :ok
+               {:error, _} -> flunk("expected a new open pause after archiving the previous one")
+             end
+    end
+  end
+
   describe "uniqueness constraint" do
     test "cannot open a second pause while one is already open", ctx do
       sub = create_subscription(ctx)
