@@ -4,8 +4,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "engines": {
-    "node": "~>24.13",
-    "pnpm": "~>11.0"
+    "node": "~>24.13"
   },
   "scripts": {
     "assets:dev": "pnpm --filter chironium-assets dev",
@@ -28,23 +27,5 @@
     "@biomejs/biome": "catalog:",
     "husky": "~9.1.7"
   },
-  "pnpm": {
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "@typescript-eslint/eslint-plugin>typescript": "6",
-        "@typescript-eslint/parser>typescript": "6",
-        "@typescript-eslint/utils>typescript": "6",
-        "@typescript-eslint/type-utils>typescript": "6",
-        "@typescript-eslint/typescript-estree>typescript": "6",
-        "@typescript-eslint/project-service>typescript": "6",
-        "@typescript-eslint/tsconfig-utils>typescript": "6",
-        "eslint-plugin-jest>typescript": "6",
-        "@typescript-eslint/eslint-plugin>eslint": "10",
-        "@typescript-eslint/parser>eslint": "10",
-        "@typescript-eslint/type-utils>eslint": "10",
-        "@typescript-eslint/utils>eslint": "10"
-      }
-    }
-  },
-  "packageManager": "pnpm@11.0.8"
+  "packageManager": "pnpm@11.7.0"
 }
