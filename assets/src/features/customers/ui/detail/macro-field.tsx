@@ -41,7 +41,9 @@ export function MacroField({
 }: Readonly<MacroFieldProps>) {
   const meta = MACRO_META[macroId];
   const Icon = meta.icon;
-  const grams = Number(value) || 0;
+  // Clamp: a raw typed "-50" bypasses the stepper's min, and negative grams
+  // would skew the live %/g·kg read-outs (save is still Zod-guarded).
+  const grams = Math.max(0, Number(value) || 0);
   const pct = unitValueFromGrams({
     unit: "percent",
     grams,

@@ -8,7 +8,7 @@ import {
   isMacroMixBalanced,
   type MacroGrams,
   type MacroKey,
-  macroArcSegments,
+  macroAdherenceSegments,
   redistributeMacrosForTargetKcal,
   TOLERANCE_KCAL,
   totalKcalFromMacroGrams,
@@ -127,6 +127,47 @@ describe("redistributeMacrosForTargetKcal", () => {
     expect(values.fatG).toBeGreaterThan(0);
     expect(isMacroMixBalanced(gramsFromValues(values), 2000)).toBe(true);
   });
+
+  it("balances when only one macro is unlocked (two locked)", () => {
+    // protein 600 + fat 603 locked = 1203; carbs alone absorbs the remaining 397.
+    const locked = new Set<MacroKey>(["proteinG", "fatG"]);
+    const { values, lockedExceedsTarget } = redistributeMacrosForTargetKcal(1600, macros, locked);
+    expect(lockedExceedsTarget).toBe(false);
+    expect(values.proteinG).toBe(150);
+    expect(values.fatG).toBe(67);
+    expect(isMacroMixBalanced(gramsFromValues(values), 1600)).toBe(true);
+  });
+
+  it("uses the even fallback when the unlocked macros start at zero", () => {
+    // Only protein has a value and it is locked; carbs+fat (both 0) split the rest.
+    const locked = new Set<MacroKey>(["proteinG"]);
+    const { values, lockedExceedsTarget } = redistributeMacrosForTargetKcal(
+      1000,
+      { protein: 100, carbs: 0, fat: 0 },
+      locked,
+    );
+    expect(lockedExceedsTarget).toBe(false);
+    expect(values.proteinG).toBe(100);
+    expect(values.carbsG).toBeGreaterThan(0);
+    expect(values.fatG).toBeGreaterThan(0);
+    expect(isMacroMixBalanced(gramsFromValues(values), 1000)).toBe(true);
+  });
+
+  it("zeroes the unlocked macro and flags when locked exactly equals target", () => {
+    // protein 600 + carbs 800 = 1400 locked, target 1400 → no room for fat.
+    const locked = new Set<MacroKey>(["proteinG", "carbsG"]);
+    const { values, lockedExceedsTarget } = redistributeMacrosForTargetKcal(1400, macros, locked);
+    expect(lockedExceedsTarget).toBe(true);
+    expect(values.fatG).toBe(0);
+  });
+
+  it("leaves an all-locked plan untouched, flagging only when it overshoots", () => {
+    const locked = new Set<MacroKey>(["proteinG", "carbsG", "fatG"]);
+    const within = redistributeMacrosForTargetKcal(2003, macros, locked);
+    expect(within.lockedExceedsTarget).toBe(false);
+    expect(within.values).toEqual({ proteinG: 150, carbsG: 200, fatG: 67 });
+    expect(redistributeMacrosForTargetKcal(1000, macros, locked).lockedExceedsTarget).toBe(true);
+  });
 });
 
 describe("unitValueFromGrams", () => {
@@ -159,6 +200,24 @@ describe("unitValueFromGrams", () => {
       0,
     );
   });
+
+  it("clamps negative grams to 0 across every unit", () => {
+    expect(unitValueFromGrams({ unit: "grams", grams: -50, kcalPerGram: 4, totalKcal: 2000 })).toBe(
+      0,
+    );
+    expect(
+      unitValueFromGrams({ unit: "percent", grams: -50, kcalPerGram: 4, totalKcal: 2000 }),
+    ).toBe(0);
+    expect(
+      unitValueFromGrams({
+        unit: "gkg",
+        grams: -50,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+        weightKg: 80,
+      }),
+    ).toBe(0);
+  });
 });
 
 describe("formatMacroUnitDisplay", () => {
@@ -175,22 +234,48 @@ describe("formatMacroUnitDisplay", () => {
   });
 });
 
-describe("macroArcSegments", () => {
-  it("sizes segments by each macro's energy share and chains offsets", () => {
-    // protein 100g=400, carbs 100g=400, fat 100g=900 → total 1700 kcal.
-    const segments = macroArcSegments({ protein: 100, carbs: 100, fat: 100 });
-    expect(segments.map((s) => s.id)).toEqual(["protein", "carbs", "fat"]);
-    expect(segments[0]?.offset).toBe(0);
-    expect(segments[0]?.fraction).toBeCloseTo(400 / 1700, 5);
-    expect(segments[1]?.offset).toBeCloseTo(400 / 1700, 5);
-    expect(segments[2]?.offset).toBeCloseTo(800 / 1700, 5);
-    // Fractions cover the whole ring.
-    const total = segments.reduce((sum, s) => sum + s.fraction, 0);
-    expect(total).toBeCloseTo(1, 5);
+describe("macroAdherenceSegments", () => {
+  it("fills the ring and keeps the split when on or over target", () => {
+    // protein 100g=400, carbs 100g=400, fat 100g=900 → macroTotal 1700.
+    const onTarget = macroAdherenceSegments({ protein: 100, carbs: 100, fat: 100 }, 1700);
+    expect(onTarget.map((s) => s.id)).toEqual(["protein", "carbs", "fat"]);
+    expect(onTarget[0]?.offset).toBe(0);
+    expect(onTarget[0]?.fraction).toBeCloseTo(400 / 1700, 5);
+    expect(onTarget.reduce((sum, s) => sum + s.fraction, 0)).toBeCloseTo(1, 5);
+
+    // Over target → ring still full, proportional split (denom = macroTotal).
+    const over = macroAdherenceSegments({ protein: 100, carbs: 100, fat: 100 }, 1000);
+    expect(over.reduce((sum, s) => sum + s.fraction, 0)).toBeCloseTo(1, 5);
+    expect(over[0]?.fraction).toBeCloseTo(400 / 1700, 5);
   });
 
-  it("returns no segments for an empty plan", () => {
-    expect(macroArcSegments({ protein: 0, carbs: 0, fat: 0 })).toEqual([]);
+  it("leaves a muted gap proportional to the deficit when under target", () => {
+    // macroTotal 1700 of a 3400 target → ring half filled, half gap.
+    const under = macroAdherenceSegments({ protein: 100, carbs: 100, fat: 100 }, 3400);
+    expect(under.reduce((sum, s) => sum + s.fraction, 0)).toBeCloseTo(0.5, 5);
+    expect(under[0]?.offset).toBe(0);
+    expect(under[0]?.fraction).toBeCloseTo(400 / 3400, 5);
+    expect(under[1]?.offset).toBeCloseTo(400 / 3400, 5);
+  });
+
+  it("returns no segments for an empty plan or non-positive target", () => {
+    expect(macroAdherenceSegments({ protein: 0, carbs: 0, fat: 0 }, 2000)).toEqual([]);
+    expect(macroAdherenceSegments({ protein: 100, carbs: 0, fat: 0 }, 0)).toEqual([]);
+  });
+});
+
+describe("macro percentage basis", () => {
+  it("card % and dialog % both divide by target kcal", () => {
+    // 150 g protein × 4 = 600 kcal of a 2000 target = 30% on both surfaces.
+    const cardPct = computeMacroPct(150, 4, 2000);
+    const dialogPct = unitValueFromGrams({
+      unit: "percent",
+      grams: 150,
+      kcalPerGram: 4,
+      totalKcal: 2000,
+    });
+    expect(cardPct).toBe(30);
+    expect(cardPct).toBe(Math.round(dialogPct));
   });
 });
 

@@ -71,28 +71,31 @@ defmodule Chironium.Health.NutritionPlan do
   end
 
   attributes do
+    # Server-side bounds: the GraphQL API is the public contract and must not
+    # rely on the client's Zod schema. Caps are generous sanity limits (a target
+    # of 0 is nonsensical; macros of 0 g are legitimate), not clinical guidance.
     attribute :target_kcal, :integer do
       public? true
       allow_nil? false
-      constraints min: 0
+      constraints min: 1, max: 20_000
     end
 
     attribute :protein_g, :integer do
       public? true
       allow_nil? false
-      constraints min: 0
+      constraints min: 0, max: 2_000
     end
 
     attribute :carbs_g, :integer do
       public? true
       allow_nil? false
-      constraints min: 0
+      constraints min: 0, max: 2_000
     end
 
     attribute :fat_g, :integer do
       public? true
       allow_nil? false
-      constraints min: 0
+      constraints min: 0, max: 2_000
     end
   end
 
@@ -106,11 +109,24 @@ defmodule Chironium.Health.NutritionPlan do
   calculations do
     calculate :delta_kcal, :integer, expr(nutrients_kcal - target_kcal)
     calculate :nutrients_kcal, :integer, expr(protein_kcal + carbs_kcal + fat_kcal)
-    calculate :protein_perc, :float, expr(protein_kcal / nutrients_kcal)
+    # Guard the all-zero-macros case (a persistable state) against divide-by-zero,
+    # and force float division (integer/integer would truncate to 0/1 in SQL).
+    calculate :protein_perc,
+              :float,
+              expr(if(nutrients_kcal == 0, do: 0.0, else: protein_kcal * 1.0 / nutrients_kcal))
+
     calculate :protein_kcal, :integer, expr(protein_g * 4)
-    calculate :carbs_perc, :float, expr(carbs_kcal / nutrients_kcal)
+
+    calculate :carbs_perc,
+              :float,
+              expr(if(nutrients_kcal == 0, do: 0.0, else: carbs_kcal * 1.0 / nutrients_kcal))
+
     calculate :carbs_kcal, :integer, expr(carbs_g * 4)
-    calculate :fat_perc, :float, expr(fat_kcal / nutrients_kcal)
+
+    calculate :fat_perc,
+              :float,
+              expr(if(nutrients_kcal == 0, do: 0.0, else: fat_kcal * 1.0 / nutrients_kcal))
+
     calculate :fat_kcal, :integer, expr(fat_g * 9)
   end
 end

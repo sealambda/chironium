@@ -1,4 +1,4 @@
-import { Salad } from "lucide-react";
+import { Plus, Salad } from "lucide-react";
 import { useState } from "react";
 
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
@@ -8,11 +8,18 @@ import { TagsCardTitle } from "@/features/customers/ui/detail/tags-card-content"
 import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import * as m from "@/paraglide/messages";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
+import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/utils/utils";
 
 import { NutritionDonut } from "./nutrition-donut";
 import { gramsByMacro, MACRO_META } from "./nutrition-macros";
-import { computeMacroPct, MACRO_IDS, totalKcalFromMacroGrams } from "./nutrition-plan-utils";
+import {
+  computeMacroPct,
+  MACRO_IDS,
+  TOLERANCE_KCAL,
+  totalKcalFromMacroGrams,
+  unitValueFromGrams,
+} from "./nutrition-plan-utils";
 
 interface NutritionCardProps {
   /** Plans sorted newest-first; index 0 is the current plan. */
@@ -28,17 +35,31 @@ interface NutritionCardProps {
   readonly sex?: AdministrativeGender | null;
 }
 
-function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
-  const macroTotal = totalKcalFromMacroGrams(gramsByMacro(plan));
+/**
+ * Macro rows as a compact aligned grid: the name hugs its content and the
+ * g / % / g·kg values sit in tight aligned columns (no edge-to-edge push).
+ * Percentages are of the target kcal, matching the donut and the dialog.
+ */
+function MacroLegend({
+  plan,
+  weightKg,
+}: Readonly<{ plan: NutritionPlanRecord; weightKg?: number | null }>) {
   return (
-    <ul className="flex min-w-0 flex-1 flex-col justify-center gap-2">
+    <ul className="grid grid-cols-[auto_auto_auto_auto_auto] items-center gap-x-3 gap-y-2.5 text-sm">
       {MACRO_IDS.map((id) => {
         const meta = MACRO_META[id];
         const Icon = meta.icon;
         const grams = plan[meta.fieldKey];
-        const pct = computeMacroPct(grams, meta.kcalPerGram, macroTotal);
+        const pct = computeMacroPct(grams, meta.kcalPerGram, plan.targetKcal);
+        const gPerKg = unitValueFromGrams({
+          unit: "gkg",
+          grams,
+          kcalPerGram: meta.kcalPerGram,
+          totalKcal: plan.targetKcal,
+          weightKg: weightKg ?? undefined,
+        });
         return (
-          <li key={id} className="flex min-w-0 items-center gap-2 text-sm">
+          <li key={id} className="col-span-full grid grid-cols-subgrid items-center">
             <span
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-md",
@@ -47,20 +68,54 @@ function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
             >
               <Icon className={cn("size-3.5", meta.iconClass)} aria-hidden />
             </span>
-            <span className="truncate text-foreground">{meta.label()}</span>
-            <span className="ml-auto shrink-0 font-semibold text-foreground tabular-nums">
+            <span className="text-foreground">{meta.label()}</span>
+            <span className="text-right font-semibold text-foreground tabular-nums">
               {grams}
               <span className="ml-0.5 font-normal text-muted-foreground text-xs">
                 {m.common_unit_g()}
               </span>
             </span>
-            <span className="w-8 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
-              {pct}%
+            <span className="text-right text-muted-foreground tabular-nums">{pct}%</span>
+            <span className="text-right text-muted-foreground text-xs tabular-nums">
+              {gPerKg > 0 ? (
+                <>
+                  {gPerKg}
+                  <span className="ml-0.5">{m.nutrition_macro_unit_g_per_kg()}</span>
+                </>
+              ) : (
+                "—"
+              )}
             </span>
           </li>
         );
       })}
     </ul>
+  );
+}
+
+/** Populated card: title, the centered adherence donut + off-target delta, then the macro grid. */
+function NutritionCardContent({
+  plan,
+  weightKg,
+}: Readonly<{ plan: NutritionPlanRecord; weightKg?: number | null }>) {
+  const macros = gramsByMacro(plan);
+  const delta = totalKcalFromMacroGrams(macros) - plan.targetKcal;
+  const offTarget = Math.abs(delta) > TOLERANCE_KCAL;
+  return (
+    <div className="flex flex-col gap-3">
+      <TagsCardTitle>{m.nutrition_card_title()}</TagsCardTitle>
+      <div className="flex flex-col items-center gap-1.5">
+        <NutritionDonut macros={macros} targetKcal={plan.targetKcal} className="w-32" />
+        {offTarget ? (
+          <p className="font-semibold text-amber-800 text-xs tabular-nums dark:text-amber-400">
+            {m.nutrition_balance_off({
+              delta: `${delta > 0 ? "+" : ""}${delta.toLocaleString()}`,
+            })}
+          </p>
+        ) : null}
+      </div>
+      <MacroLegend plan={plan} weightKg={weightKg} />
+    </div>
   );
 }
 
@@ -77,26 +132,17 @@ export function NutritionCard({
   sex,
 }: Readonly<NutritionCardProps>) {
   const [editing, setEditing] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   const canInteract = Boolean(personId && organizationId);
+  // Adding also needs the patient record id to attach the plan to.
+  const canAdd = canInteract && Boolean(patientId);
   const safePersonId = personId ?? "";
   const safeOrgId = organizationId ?? "";
   const current = plans.at(0);
 
-  const body = current ? (
-    <div className="flex flex-col gap-3">
-      <TagsCardTitle>{m.nutrition_card_title()}</TagsCardTitle>
-      <div className="flex items-center gap-3">
-        <NutritionDonut
-          macros={gramsByMacro(current)}
-          targetKcal={current.targetKcal}
-          className="w-24 shrink-0"
-        />
-        <MacroLegend plan={current} />
-      </div>
-    </div>
-  ) : null;
+  const body = current ? <NutritionCardContent plan={current} weightKg={weightKg} /> : null;
 
   return (
     <>
@@ -106,6 +152,14 @@ export function NutritionCard({
         emptyIcon={Salad}
         emptyTitle={m.nutrition_empty_title()}
         emptyDescription={m.nutrition_empty_desc()}
+        emptyAction={
+          canAdd ? (
+            <Button size="sm" onClick={() => setAdding(true)}>
+              <Plus className="size-4" aria-hidden />
+              {m.nutrition_add_title()}
+            </Button>
+          ) : undefined
+        }
         compact={compact}
       >
         {canInteract && current ? (
@@ -121,6 +175,25 @@ export function NutritionCard({
           body
         )}
       </TagsCardShell>
+
+      {canAdd ? (
+        <NutritionPlanDetailDialog
+          mode="add"
+          personId={safePersonId}
+          patientId={patientId ?? null}
+          organizationId={safeOrgId}
+          weightKg={weightKg}
+          heightCm={heightCm}
+          dateOfBirth={dateOfBirth}
+          sex={sex}
+          open={adding}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAdding(false);
+            }
+          }}
+        />
+      ) : null}
 
       {canInteract && current ? (
         <>

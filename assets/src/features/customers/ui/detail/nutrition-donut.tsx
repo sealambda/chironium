@@ -6,14 +6,14 @@ import {
   computeMacroPct,
   type MacroGrams,
   type MacroId,
-  macroArcSegments,
+  macroAdherenceSegments,
   totalKcalFromMacroGrams,
 } from "./nutrition-plan-utils";
 
 // Radius chosen so the circle circumference is exactly 100 — each macro's
 // percentage maps 1:1 to its stroke-dash length.
 const RADIUS = 15.91549431;
-const STROKE_WIDTH = 4.5;
+const STROKE_WIDTH = 4;
 // Small gap (in circumference-100 units) between adjacent macro arcs.
 const SEGMENT_GAP = 2;
 
@@ -24,21 +24,23 @@ interface NutritionDonutProps {
 }
 
 /**
- * Ring chart of the macro energy split with the target kcal in the centre.
- * Hand-rolled SVG (no chart dependency); arc geometry comes from the tested
- * `macroArcSegments` helper. Exposed to assistive tech as a single labelled image.
+ * Target-adherence ring: arcs fill toward the target kcal shown in the centre,
+ * leaving a muted gap when the macros fall short. Hand-rolled SVG (no chart
+ * dependency); arc geometry comes from the tested `macroAdherenceSegments`
+ * helper. Exposed to assistive tech as a single labelled image.
  */
 export function NutritionDonut({ macros, targetKcal, className }: Readonly<NutritionDonutProps>) {
-  const segments = macroArcSegments(macros);
+  const segments = macroAdherenceSegments(macros, targetKcal);
   const macroTotal = totalKcalFromMacroGrams(macros);
-  const pct = (id: MacroId) => computeMacroPct(macros[id], MACRO_META[id].kcalPerGram, macroTotal);
+  const pct = (id: MacroId) => computeMacroPct(macros[id], MACRO_META[id].kcalPerGram, targetKcal);
 
   return (
     <div
       className={cn("relative aspect-square", className)}
       role="img"
       aria-label={m.nutrition_donut_aria({
-        kcal: targetKcal.toLocaleString(),
+        consumed: macroTotal.toLocaleString(),
+        target: targetKcal.toLocaleString(),
         protein: pct("protein"),
         carbs: pct("carbs"),
         fat: pct("fat"),
@@ -72,7 +74,7 @@ export function NutritionDonut({ macros, targetKcal, className }: Readonly<Nutri
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-bold text-foreground text-xl tabular-nums leading-none">
+        <span className="font-bold text-2xl text-foreground tabular-nums leading-none">
           {targetKcal.toLocaleString()}
         </span>
         <span className="mt-0.5 text-muted-foreground text-xs">{m.common_unit_kcal()}</span>

@@ -11,6 +11,8 @@ interface TagsCardShellProps {
   readonly emptyIcon: LucideIcon;
   readonly emptyTitle: ReactNode;
   readonly emptyDescription: ReactNode;
+  /** Optional call-to-action rendered in the empty state (e.g. an "Add" button). */
+  readonly emptyAction?: ReactNode;
   readonly compact?: boolean;
   readonly columns?: 1 | 2;
   readonly children: ReactNode;
@@ -22,6 +24,7 @@ export function TagsCardShell({
   emptyIcon,
   emptyTitle,
   emptyDescription,
+  emptyAction,
   compact,
   columns = 1,
   children,
@@ -31,7 +34,12 @@ export function TagsCardShell({
   }
   if (isEmpty) {
     return (
-      <CustomerDetailEmptyCard icon={emptyIcon} title={emptyTitle} description={emptyDescription} />
+      <CustomerDetailEmptyCard
+        icon={emptyIcon}
+        title={emptyTitle}
+        description={emptyDescription}
+        action={emptyAction}
+      />
     );
   }
   return (

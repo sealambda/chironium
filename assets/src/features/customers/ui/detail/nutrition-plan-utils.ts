@@ -236,31 +236,35 @@ export const MACRO_IDS: readonly MacroId[] = ["protein", "carbs", "fat"];
 
 export interface MacroArcSegment {
   readonly id: MacroId;
-  /** Share of the macro-derived energy this nutrient occupies (0–1). */
+  /** Share of the whole ring this nutrient occupies (0–1). */
   readonly fraction: number;
   /** Cumulative fraction before this segment — its ring start offset (0–1). */
   readonly offset: number;
 }
 
 /**
- * Donut segments for the macro split, each sized by its share of the
- * macro-derived energy (Atwater). Returns `[]` when there is no energy to
- * divide (an empty plan), so the caller can render a neutral track.
+ * Donut segments sized so the ring reads as a target-adherence gauge: when the
+ * macros fall short of the target the arcs leave a muted gap (the deficit); when
+ * they meet or exceed it the ring fills completely. Each macro keeps its share of
+ * the filled portion. `denom = max(target, macroTotal)` is the single formula
+ * that produces both behaviours. Returns `[]` for an empty plan or a non-positive
+ * target so the caller can render a neutral track.
  */
-export function macroArcSegments(macros: MacroGrams): MacroArcSegment[] {
+export function macroAdherenceSegments(macros: MacroGrams, targetKcal: number): MacroArcSegment[] {
   const kcal: Record<MacroId, number> = {
     protein: macros.protein * KCAL_PER_G.protein,
     carbs: macros.carbs * KCAL_PER_G.carbs,
     fat: macros.fat * KCAL_PER_G.fat,
   };
-  const total = kcal.protein + kcal.carbs + kcal.fat;
-  if (total <= 0) {
+  const macroTotal = kcal.protein + kcal.carbs + kcal.fat;
+  if (macroTotal <= 0 || targetKcal <= 0) {
     return [];
   }
 
+  const denom = Math.max(targetKcal, macroTotal);
   let offset = 0;
   return MACRO_IDS.map((id) => {
-    const fraction = kcal[id] / total;
+    const fraction = kcal[id] / denom;
     const segment: MacroArcSegment = { id, fraction, offset };
     offset += fraction;
     return segment;

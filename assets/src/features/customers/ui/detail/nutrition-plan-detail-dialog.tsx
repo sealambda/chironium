@@ -92,7 +92,10 @@ export function NutritionPlanDetailDialog({
   });
   const [saving, setSaving] = useState(false);
   const [locked, setLocked] = useState<ReadonlySet<MacroKey>>(() => new Set());
-  const didResetOnOpen = useRef(false);
+  // Tracks which record the form was last reset for, so re-opening or an
+  // underlying record change re-seeds the form (a plain "did reset" flag would
+  // leave stale values if `item` refetches while the dialog is open).
+  const lastResetKey = useRef<string | null>(null);
   const { selectedOrg } = useOrg();
   const queryClient = useQueryClient();
   const orgId = organizationId || selectedOrg?.id || "";
@@ -133,13 +136,14 @@ export function NutritionPlanDetailDialog({
 
   useEffect(() => {
     if (!open) {
-      didResetOnOpen.current = false;
+      lastResetKey.current = null;
       return;
     }
-    if (didResetOnOpen.current) {
+    const key = item?.id ?? "new";
+    if (lastResetKey.current === key) {
       return;
     }
-    didResetOnOpen.current = true;
+    lastResetKey.current = key;
     form.reset(toFormValues(item));
     setLocked(new Set());
   }, [open, item, form]);
@@ -165,6 +169,15 @@ export function NutritionPlanDetailDialog({
   const age = dateOfBirth ? ageFromBirthDate(dateOfBirth) : null;
   const bmrSex = sex === "MALE" || sex === "FEMALE" ? sex : null;
   const canSuggestBmr = Boolean(weightKg && heightCm && age && bmrSex);
+  // When disabled, name the exact blocker(s) rather than a generic message —
+  // Mifflin–St Jeor needs a male/female sex, so an "Other"/"Unknown" record
+  // can't be estimated even when weight, height and birth date are present.
+  const bmrBlockers = [
+    weightKg ? null : m.nutrition_bmr_need_weight(),
+    heightCm ? null : m.nutrition_bmr_need_height(),
+    age ? null : m.nutrition_bmr_need_birth_date(),
+    bmrSex ? null : m.nutrition_bmr_need_sex(),
+  ].filter((reason) => reason !== null);
 
   const handleSuggestBmr = () => {
     if (!(weightKg && heightCm && age && bmrSex)) {
@@ -234,9 +247,7 @@ export function NutritionPlanDetailDialog({
                 disabled={saving}
               />
               <FieldError errors={field.state.meta.errors} />
-              {canSuggestBmr ? null : (
-                <FieldDescription>{m.nutrition_bmr_missing()}</FieldDescription>
-              )}
+              {canSuggestBmr ? null : <FieldDescription>{bmrBlockers.join(" ")}</FieldDescription>}
             </Field>
           )}
         </form.Field>
@@ -244,10 +255,10 @@ export function NutritionPlanDetailDialog({
         {/* Macros + live balance meter */}
         <form.Subscribe
           selector={(state) => ({
-            targetKcal: Number(state.values.targetKcal) || 0,
-            proteinG: Number(state.values.proteinG) || 0,
-            carbsG: Number(state.values.carbsG) || 0,
-            fatG: Number(state.values.fatG) || 0,
+            targetKcal: Math.max(0, Number(state.values.targetKcal) || 0),
+            proteinG: Math.max(0, Number(state.values.proteinG) || 0),
+            carbsG: Math.max(0, Number(state.values.carbsG) || 0),
+            fatG: Math.max(0, Number(state.values.fatG) || 0),
           })}
         >
           {({ targetKcal, proteinG, carbsG, fatG }) => {

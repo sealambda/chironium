@@ -5,6 +5,8 @@ interface CustomerDetailEmptyCardProps {
   readonly icon: LucideIcon;
   readonly title: ReactNode;
   readonly description?: ReactNode;
+  /** Optional call-to-action (e.g. an "Add" button) rendered under the description. */
+  readonly action?: ReactNode;
 }
 
 /** Centered empty state for a clinical summary card.
@@ -13,6 +15,7 @@ export function CustomerDetailEmptyCard({
   icon: Icon,
   title,
   description,
+  action,
 }: Readonly<CustomerDetailEmptyCardProps>) {
   return (
     <div className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-border/50 border-dashed bg-card p-4 text-center lg:p-5">
@@ -21,6 +24,7 @@ export function CustomerDetailEmptyCard({
       {description ? (
         <p className="line-clamp-2 max-w-xs text-muted-foreground text-xs">{description}</p>
       ) : null}
+      {action ? <div className="mt-1">{action}</div> : null}
     </div>
   );
 }

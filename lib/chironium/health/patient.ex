@@ -161,6 +161,9 @@ defmodule Chironium.Health.Patient do
       description "Nutrition plans for the patient"
       public? true
       destination_attribute :patient_id
+      # Newest-first so the card's "current plan" (index 0) and the `limit:`
+      # truncation are deterministic server-side, mirroring :observations.
+      default_sort inserted_at: :desc
     end
   end
 end
