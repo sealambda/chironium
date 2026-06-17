@@ -106,6 +106,8 @@ defmodule Chironium.Subscriptions.Subscription do
         allow_nil? false
       end
 
+      validate Chironium.Subscriptions.Validations.ValidateResumedAt
+
       change transition_state(:active)
       change Chironium.Subscriptions.Changes.ClosePause
     end
