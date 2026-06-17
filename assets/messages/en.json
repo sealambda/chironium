@@ -602,6 +602,7 @@
   "subscription_action_suspend": "Pause",
   "subscription_action_cancel": "End",
   "subscription_action_resume": "Resume",
+  "subscription_actions_title": "Actions",
   "subscription_suspend_title": "Pause subscription",
   "subscription_suspend_desc": "Pause this subscription temporarily. You can resume it later.",
   "subscription_cancel_title": "End subscription",

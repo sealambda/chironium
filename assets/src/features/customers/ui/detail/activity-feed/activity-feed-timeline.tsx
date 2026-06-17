@@ -80,14 +80,17 @@ function TaskStatusBadge({ status }: Readonly<{ status: PatientTask["status"] }>
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
-function EditChevron({ onClick }: Readonly<{ onClick: () => void }>) {
+function EditChevron({ onClick, title }: Readonly<{ onClick: () => void; title?: string }>) {
+  const label = title ?? m.history_edit_element_title();
+
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon-sm"
       className="rounded-full text-muted-foreground hover:text-foreground"
-      aria-label={m.history_edit_element_title()}
+      aria-label={label}
+      title={label}
       onClick={onClick}
     >
       <Pencil aria-hidden />
@@ -99,13 +102,16 @@ function CompleteChevron({
   onClick,
   loading,
 }: Readonly<{ onClick: () => void; loading: boolean }>) {
+  const label = m.review_task_complete();
+
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon-sm"
       className="rounded-full text-muted-foreground hover:text-foreground"
-      aria-label={m.review_task_complete()}
+      aria-label={label}
+      title={label}
       onClick={onClick}
       loading={loading}
       disabled={loading}
@@ -198,7 +204,7 @@ function SubscriptionEditAction({
   );
 }
 
-function SubscriptionHeaderActions({
+function SubscriptionFeedActions({
   personId,
   organizationId,
   subscription,
@@ -239,6 +245,7 @@ function SubscriptionHeaderActions({
                 size="icon-sm"
                 className="rounded-full text-muted-foreground hover:text-foreground"
                 aria-label={m.subscription_action_suspend()}
+                title={m.subscription_action_suspend()}
               >
                 <Pause aria-hidden />
               </Button>
@@ -255,6 +262,7 @@ function SubscriptionHeaderActions({
                 size="icon-sm"
                 className="rounded-full text-muted-foreground hover:text-destructive"
                 aria-label={m.subscription_action_cancel()}
+                title={m.subscription_action_cancel()}
               >
                 <Ban aria-hidden />
               </Button>
@@ -273,6 +281,7 @@ function SubscriptionHeaderActions({
               size="icon-sm"
               className="rounded-full text-muted-foreground hover:text-foreground"
               aria-label={m.subscription_action_resume()}
+              title={m.subscription_action_resume()}
             >
               <RotateCw aria-hidden />
             </Button>
@@ -282,6 +291,34 @@ function SubscriptionHeaderActions({
       <SubscriptionEditAction subscription={subscription} personId={personId} />
     </div>
   );
+}
+
+function findActionableSubscriptionEventId(
+  groups: FeedDateGroup[],
+  currentSubscriptionId: string | null,
+): string | null {
+  if (!currentSubscriptionId) {
+    return null;
+  }
+
+  let eventId: string | null = null;
+  let latestTime = Number.NEGATIVE_INFINITY;
+
+  for (const group of groups) {
+    for (const event of group.events) {
+      if (event.kind !== "subscription" || event.payload.id !== currentSubscriptionId) {
+        continue;
+      }
+
+      const time = new Date(event.date).getTime();
+      if (time > latestTime) {
+        latestTime = time;
+        eventId = event.id;
+      }
+    }
+  }
+
+  return eventId;
 }
 
 function MenstrualCycleEditAction({
@@ -399,17 +436,17 @@ function EventAction({
   personId,
   organizationId,
   patientId,
-  isLatestSubscription,
+  isCurrentSubscriptionActionEvent,
 }: Readonly<{
   event: FeedEvent;
   personId: string;
   organizationId: string;
   patientId: string | null;
-  isLatestSubscription: boolean;
+  isCurrentSubscriptionActionEvent: boolean;
 }>) {
-  if (event.kind === "subscription" && isLatestSubscription) {
+  if (event.kind === "subscription" && isCurrentSubscriptionActionEvent) {
     return (
-      <SubscriptionHeaderActions
+      <SubscriptionFeedActions
         personId={personId}
         organizationId={organizationId}
         subscription={event.payload}
@@ -444,6 +481,7 @@ interface ActivityFeedTimelineProps {
   personId: string;
   patientId: string | null;
   organizationId: string;
+  currentSubscriptionId: string | null;
 }
 
 export function ActivityFeedTimeline({
@@ -451,27 +489,16 @@ export function ActivityFeedTimeline({
   personId,
   patientId,
   organizationId,
+  currentSubscriptionId,
 }: Readonly<ActivityFeedTimelineProps>) {
   if (groups.length === 0) {
     return null;
   }
 
-  // Only the most recent subscription event is editable — earlier entries are
-  // historical and shouldn't expose the edit affordance.
-  let latestSubscriptionId: string | null = null;
-  let latestSubscriptionTime = Number.NEGATIVE_INFINITY;
-  for (const group of groups) {
-    for (const event of group.events) {
-      if (event.kind !== "subscription") {
-        continue;
-      }
-      const time = new Date(event.date).getTime();
-      if (time > latestSubscriptionTime) {
-        latestSubscriptionTime = time;
-        latestSubscriptionId = event.id;
-      }
-    }
-  }
+  const actionableSubscriptionEventId = findActionableSubscriptionEventId(
+    groups,
+    currentSubscriptionId,
+  );
 
   return (
     <div className="max-w-2xl">
@@ -501,7 +528,7 @@ export function ActivityFeedTimeline({
                   personId={personId}
                   organizationId={organizationId}
                   patientId={patientId}
-                  isLatestSubscription={event.id === latestSubscriptionId}
+                  isCurrentSubscriptionActionEvent={event.id === actionableSubscriptionEventId}
                 />
               }
               actors={event.actors}
