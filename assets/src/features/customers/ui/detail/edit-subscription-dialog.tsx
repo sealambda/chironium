@@ -11,7 +11,10 @@ import {
   updateSubscription,
 } from "@/features/customers/api/subscriptions-api";
 import { subscriptionSchema } from "@/features/customers/model/onboarding-schemas";
-import { PausesSection } from "@/features/customers/ui/detail/subscription-management-dialogs";
+import {
+  PausesSection,
+  SubscriptionActionsSection,
+} from "@/features/customers/ui/detail/subscription-management-dialogs";
 import { SubscriptionFormFields } from "@/features/customers/ui/subscription/subscription-form-fields";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
@@ -253,12 +256,24 @@ export function EditSubscriptionDialog({
               {effectiveEndDateLabel ? (
                 <div className="flex flex-col items-start gap-1">
                   <p className="font-medium text-sm">{m.subscription_field_end_date()}</p>
-                  <p className="text-muted-foreground text-sm tabular-nums">{effectiveEndDateLabel}</p>
+                  <p className="text-muted-foreground text-sm tabular-nums">
+                    {effectiveEndDateLabel}
+                  </p>
                 </div>
               ) : null}
             </div>
           ) : null}
         </DialogHeader>
+
+        {currentSubscription ? (
+          <SubscriptionActionsSection
+            subscriptionId={currentSubscription.id}
+            subscriptionState={currentSubscription.state}
+            organizationId={organizationId}
+            onMutated={invalidateSubscriptionQueries}
+            onCloseParent={() => setOpen(false)}
+          />
+        ) : null}
 
         <SubscriptionFormFields
           plans={plans}
