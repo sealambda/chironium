@@ -388,29 +388,31 @@ export function CancelActionDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
         render={trigger ?? <Button variant="destructive">{m.subscription_action_cancel()}</Button>}
       />
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{m.subscription_cancel_title()}</AlertDialogTitle>
-          <AlertDialogDescription>{m.subscription_cancel_desc()}</AlertDialogDescription>
-        </AlertDialogHeader>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{m.subscription_cancel_title()}</DialogTitle>
+          <DialogDescription>{m.subscription_cancel_desc()}</DialogDescription>
+        </DialogHeader>
         <FieldGroup>
           <Field>
             <FieldLabel>{m.subscription_field_end_date()}</FieldLabel>
             <DatePickerString value={endDate} onChange={setEndDate} />
           </Field>
         </FieldGroup>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>{m.common_cancel()}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={handleConfirm} disabled={busy}>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+            {m.common_cancel()}
+          </Button>
+          <Button variant="destructive" onClick={handleConfirm} loading={busy}>
             {m.subscription_action_cancel()}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -438,11 +440,7 @@ export function ResumeActionDialog({
   const handleConfirm = async () => {
     setBusy(true);
     try {
-      await resumeSubscription(
-        subscriptionId,
-        { endDate: endDate || undefined },
-        organizationId,
-      );
+      await resumeSubscription(subscriptionId, { endDate: endDate || undefined }, organizationId);
       await onMutated();
       setOpen(false);
     } catch {
@@ -453,28 +451,106 @@ export function ResumeActionDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
         render={trigger ?? <Button variant="outline">{m.subscription_action_resume()}</Button>}
       />
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{m.subscription_resume_title()}</AlertDialogTitle>
-          <AlertDialogDescription>{m.subscription_resume_desc()}</AlertDialogDescription>
-        </AlertDialogHeader>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{m.subscription_resume_title()}</DialogTitle>
+          <DialogDescription>{m.subscription_resume_desc()}</DialogDescription>
+        </DialogHeader>
         <FieldGroup>
           <Field>
             <FieldLabel>{m.subscription_field_resumed_at()}</FieldLabel>
             <DatePickerString value={endDate} onChange={setEndDate} />
           </Field>
         </FieldGroup>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>{m.common_cancel()}</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} disabled={busy}>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+            {m.common_cancel()}
+          </Button>
+          <Button onClick={handleConfirm} loading={busy}>
             {m.subscription_action_resume()}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface SubscriptionActionsProps {
+  readonly subscriptionId: string;
+  readonly subscriptionState: string;
+  readonly organizationId: string;
+  readonly onMutated: () => Promise<void>;
+  readonly onCloseParent?: () => void;
+  readonly compact?: boolean;
+}
+
+export function SubscriptionActions({
+  subscriptionId,
+  subscriptionState,
+  organizationId,
+  onMutated,
+  onCloseParent,
+  compact = false,
+}: Readonly<SubscriptionActionsProps>) {
+  const buttonSize = compact ? "sm" : "default";
+
+  if (subscriptionState === "active") {
+    return (
+      <div
+        className={
+          compact
+            ? "flex flex-wrap items-center gap-2"
+            : "flex flex-col gap-2 sm:flex-row sm:flex-wrap"
+        }
+      >
+        <SuspendActionDialog
+          subscriptionId={subscriptionId}
+          organizationId={organizationId}
+          onMutated={onMutated}
+          trigger={
+            <Button type="button" variant="outline" size={buttonSize}>
+              {m.subscription_action_suspend()}
+            </Button>
+          }
+        />
+        <CancelActionDialog
+          subscriptionId={subscriptionId}
+          organizationId={organizationId}
+          onMutated={onMutated}
+          onCloseParent={onCloseParent}
+          trigger={
+            <Button type="button" variant="destructive" size={buttonSize}>
+              {m.subscription_action_cancel()}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  return (
+    <ResumeActionDialog
+      subscriptionId={subscriptionId}
+      organizationId={organizationId}
+      onMutated={onMutated}
+      trigger={
+        <Button type="button" variant="outline" size={buttonSize}>
+          {m.subscription_action_resume()}
+        </Button>
+      }
+    />
+  );
+}
+
+export function SubscriptionActionsSection(props: Readonly<SubscriptionActionsProps>) {
+  return (
+    <section className="space-y-2 border-t pt-4">
+      <h3 className="font-medium text-sm">{m.subscription_actions_title()}</h3>
+      <SubscriptionActions {...props} />
+    </section>
   );
 }

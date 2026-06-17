@@ -128,6 +128,7 @@ export function ActivityFeedCard({
           personId={personId}
           patientId={patientId}
           organizationId={organizationId}
+          currentSubscriptionId={subscriptions[0]?.id ?? null}
         />
         <FeedShowMore hasMore={hasMore} onShowMore={showMore} />
       </>

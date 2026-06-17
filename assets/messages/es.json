@@ -613,6 +613,7 @@
   "subscription_action_suspend": "Pausar",
   "subscription_action_cancel": "Finalizar",
   "subscription_action_resume": "Reanudar",
+  "subscription_actions_title": "Acciones",
   "subscription_suspend_title": "Pausar suscripción",
   "subscription_suspend_desc": "Pausa esta suscripción temporalmente. Puedes reanudarla más adelante.",
   "subscription_cancel_title": "Finalizar suscripción",
