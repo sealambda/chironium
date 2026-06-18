@@ -18,7 +18,7 @@ vi.mock("@/features/customers/utils/person-detail-cache", () => ({
   invalidatePersonDetail: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/features/org/hooks/use-org", () => ({
+vi.mock("@/shared/session/use-org", () => ({
   useOrg: () => ({ selectedOrg: { id: "org-1" } }),
 }));
 
@@ -27,7 +27,9 @@ vi.mock("sonner", () => ({
 }));
 
 function renderDialog(node: ReactElement) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(<QueryClientProvider client={queryClient}>{node}</QueryClientProvider>);
 }
 
@@ -52,10 +54,18 @@ describe("NutritionPlanDetailDialog", () => {
     // Four number inputs in DOM order: target kcal, protein, carbs, fat (grams default).
     const inputs = screen.getAllByRole("spinbutton");
     expect(inputs).toHaveLength(4);
-    fireEvent.change(inputs[0] as HTMLInputElement, { target: { value: "2000" } });
-    fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: "150" } });
-    fireEvent.change(inputs[2] as HTMLInputElement, { target: { value: "200" } });
-    fireEvent.change(inputs[3] as HTMLInputElement, { target: { value: "67" } });
+    fireEvent.change(inputs[0] as HTMLInputElement, {
+      target: { value: "2000" },
+    });
+    fireEvent.change(inputs[1] as HTMLInputElement, {
+      target: { value: "150" },
+    });
+    fireEvent.change(inputs[2] as HTMLInputElement, {
+      target: { value: "200" },
+    });
+    fireEvent.change(inputs[3] as HTMLInputElement, {
+      target: { value: "67" },
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 

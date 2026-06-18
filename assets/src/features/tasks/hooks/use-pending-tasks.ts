@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { useOrg } from "@/features/org/hooks/use-org";
 import { fetchPendingTasks } from "@/features/tasks/api/tasks-api";
+import { useOrg } from "@/shared/session/use-org";
 import { tasksListQueryKey } from "@/shared/utils/query-keys";
 
 /**

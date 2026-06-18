@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { acceptInvitation, rejectInvitation } from "@/features/org/api/org-api";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { MutationError } from "@/shared/api/error-utils";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,

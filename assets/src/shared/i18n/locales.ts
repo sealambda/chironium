@@ -4,7 +4,7 @@ import type { ElementType } from "react";
 import * as m from "@/paraglide/messages";
 import { baseLocale, isLocale, type Locale } from "@/paraglide/runtime";
 
-export const DEFAULT_LOCALE: Locale = baseLocale;
+const DEFAULT_LOCALE: Locale = baseLocale;
 
 export const LOCALE_OPTIONS: Record<Locale, { flag: ElementType; label: () => string }> = {
   en: { flag: Flags.GB, label: m.nav_lang_en },

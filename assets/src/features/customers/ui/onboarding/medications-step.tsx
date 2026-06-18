@@ -3,8 +3,8 @@ import {
   useTerminologyPendingFields,
   useTerminologyTagList,
 } from "@/features/customers/hooks/use-terminology-tag-list";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { FieldGroup } from "@/shared/ui/field";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 

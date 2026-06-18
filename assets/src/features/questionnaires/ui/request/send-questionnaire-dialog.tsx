@@ -4,13 +4,13 @@ import { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { invalidatePatientTasks } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import {
   type QuestionnaireLink,
   requestQuestionnaire,
 } from "@/features/questionnaires/api/questionnaire-requests-api";
 import { fetchQuestionnaires } from "@/features/questionnaires/api/questionnaires-api";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {

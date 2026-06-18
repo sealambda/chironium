@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 
 import { updatePreferredLocale } from "@/features/user/api/user-api";
-import { useUserStore } from "@/features/user/store/user-store";
 import * as m from "@/paraglide/messages";
 import type { Locale } from "@/paraglide/runtime";
 import { useLocale } from "@/shared/i18n/locale-provider";
+import { useUserStore } from "@/shared/session/user-store";
 import { LocaleSelect } from "@/shared/ui/locale-select";
 import { cn } from "@/shared/utils/utils";
 

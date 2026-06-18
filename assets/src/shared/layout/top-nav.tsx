@@ -1,4 +1,4 @@
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+import { useCurrentUser } from "@/shared/session/use-current-user";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/utils/utils";
 

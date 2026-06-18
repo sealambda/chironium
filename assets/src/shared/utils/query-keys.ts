@@ -10,7 +10,7 @@ export const ORG_QUERY_KEY = ["orgs", "accessible"] as const;
 export const USER_QUERY_KEY = ["user", "current"] as const;
 
 /** Prefix for `fetchOrganizationSettings`; append `organizationId`. */
-export const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
+const ORG_SETTINGS_QUERY_KEY = ["org", "settings"] as const;
 
 export function orgSettingsQueryKey(organizationId: string) {
   return [...ORG_SETTINGS_QUERY_KEY, organizationId] as const;

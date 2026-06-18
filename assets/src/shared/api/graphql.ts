@@ -57,7 +57,9 @@ export async function requestGraphql<TResult>({
       // Phoenix will handle the redirect back after re-authentication.
       if (isAuthError(error)) {
         window.location.href = AUTH_URLS.signIn;
-        throw new Error("Session expired - redirecting to sign-in", { cause: error });
+        throw new Error("Session expired - redirecting to sign-in", {
+          cause: error,
+        });
       }
 
       const message = error.response.errors

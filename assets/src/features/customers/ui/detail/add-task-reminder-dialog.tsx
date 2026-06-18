@@ -6,7 +6,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { invalidatePatientTasks } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import {
   createTask,
   fetchTasksForPatient,
@@ -14,6 +13,7 @@ import {
 } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {

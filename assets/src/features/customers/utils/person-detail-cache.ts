@@ -19,8 +19,12 @@ export function invalidatePersonAndOrg(
   organizationId: string,
 ) {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: personQueryKeys.patientDetailScope(personId) }),
-    queryClient.invalidateQueries({ queryKey: customersQueryKeys.personsPrefix(organizationId) }),
+    queryClient.invalidateQueries({
+      queryKey: personQueryKeys.patientDetailScope(personId),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: customersQueryKeys.personsPrefix(organizationId),
+    }),
   ]);
 }
 

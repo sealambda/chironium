@@ -94,7 +94,6 @@ export function useDetailModeEffect(headerContent: ReactNode, contentKey: string
   // We intentionally exclude headerContent from deps to avoid infinite loops
   // caused by JSX elements creating new references on each render.
   // The contentKey serves as a stable identifier for when content should update.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: contentKey is intentionally used as the trigger instead of headerContent to avoid infinite loops from JSX reference changes.
   useEffect(() => {
     setHeaderContent(headerContent);
   }, [contentKey, setHeaderContent]);

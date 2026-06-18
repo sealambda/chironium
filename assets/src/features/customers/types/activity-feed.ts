@@ -30,6 +30,8 @@ import type {
   MenstrualCycleEntry,
   ObservationItem,
 } from "@/features/customers/api/observations-api";
+import type { FeedEventAccent } from "@/features/customers/types/activity-feed-accents";
+import type { VersionActorSource } from "@/features/customers/types/version-actor-source";
 import type { QuestionnaireResponseRecord } from "@/features/questionnaires/api/questionnaire-responses-api";
 import type { QuestionnaireRequestStatus } from "@/features/questionnaires/model/questionnaire-request-status";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
@@ -37,58 +39,10 @@ import * as m from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 
-export type FeedEventAccent =
-  | "blue"
-  | "amber"
-  | "emerald"
-  | "orange"
-  | "red"
-  | "slate"
-  | "sky"
-  | "violet"
-  | "yellow";
-
-export const accentIconClass: Record<FeedEventAccent, string> = {
-  blue: "text-blue-800 dark:text-blue-300",
-  amber: "text-amber-700 dark:text-amber-300",
-  emerald: "text-emerald-700 dark:text-emerald-300",
-  orange: "text-orange-700 dark:text-orange-300",
-  red: "text-red-700 dark:text-red-300",
-  slate: "text-slate-700 dark:text-slate-300",
-  sky: "text-sky-700 dark:text-sky-300",
-  violet: "text-violet-700 dark:text-violet-300",
-  yellow: "text-yellow-700 dark:text-yellow-300",
-};
-
-export const accentDotBgClass: Record<FeedEventAccent, string> = {
-  blue: "bg-blue-100 dark:bg-blue-900/30",
-  amber: "bg-amber-100 dark:bg-amber-900/30",
-  emerald: "bg-emerald-100 dark:bg-emerald-900/30",
-  orange: "bg-orange-100 dark:bg-orange-900/30",
-  red: "bg-red-100 dark:bg-red-900/30",
-  slate: "bg-slate-100 dark:bg-slate-800/60",
-  sky: "bg-sky-100 dark:bg-sky-900/30",
-  violet: "bg-violet-100 dark:bg-violet-900/30",
-  yellow: "bg-yellow-100 dark:bg-yellow-900/30",
-};
-
 export interface FeedActor {
   name: string;
   id?: string;
   noteAuthorName?: string;
-}
-
-export interface VersionActorSource {
-  changedBy?: { id: string; name?: string | null } | null;
-  changedByPractitioner?: {
-    id: string;
-    name?: ReadonlyArray<{
-      text?: string | null;
-      given?: readonly string[] | null;
-      family?: string | null;
-    }> | null;
-  } | null;
-  changedByPatient?: { id: string } | null;
 }
 
 function practitionerDisplayName(
@@ -164,7 +118,11 @@ export function mergeFeedActor(
     if (recorder.name === noteAuthor.name) {
       return { name: recorder.name, id: recorder.id };
     }
-    return { name: recorder.name, id: recorder.id, noteAuthorName: noteAuthor.name };
+    return {
+      name: recorder.name,
+      id: recorder.id,
+      noteAuthorName: noteAuthor.name,
+    };
   }
   if (recorder) {
     return { name: recorder.name, id: recorder.id };
@@ -199,7 +157,13 @@ export type FeedEvent =
       actors?: FeedActor[];
       payload: ObservationItem;
     }
-  | { kind: "task"; id: string; date: string; actors?: FeedActor[]; payload: PatientTask }
+  | {
+      kind: "task";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      payload: PatientTask;
+    }
   | {
       kind: "goal";
       id: string;
@@ -214,7 +178,12 @@ export type FeedEvent =
       actors?: FeedActor[];
       variant: "started" | "finished" | "paused" | "resumed" | "cancelled";
       payload: SubscriptionRecord;
-      pause?: { id: string; startDate: string; endDate?: string | null; reason?: string | null };
+      pause?: {
+        id: string;
+        startDate: string;
+        endDate?: string | null;
+        reason?: string | null;
+      };
     }
   | {
       kind: "anthropometry";
@@ -223,7 +192,13 @@ export type FeedEvent =
       actors?: FeedActor[];
       payload: AnthropometricSnapshot;
     }
-  | { kind: "condition"; id: string; date: string; actors?: FeedActor[]; payload: ConditionItem[] }
+  | {
+      kind: "condition";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      payload: ConditionItem[];
+    }
   | {
       kind: "allergy";
       id: string;

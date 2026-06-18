@@ -497,7 +497,13 @@ export async function createPatientWithPerson(
     variables: {
       input: {
         person: {
-          name: [{ given: [data.givenName], family: data.familyName, text: fullName }],
+          name: [
+            {
+              given: [data.givenName],
+              family: data.familyName,
+              text: fullName,
+            },
+          ],
           birthDate: data.birthDate || undefined,
           gender: data.gender || undefined,
           telecom: telecom.length > 0 ? telecom : undefined,

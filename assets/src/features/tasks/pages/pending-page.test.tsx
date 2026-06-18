@@ -55,7 +55,7 @@ vi.mock("@/features/customers/utils/person-detail-cache", () => ({
   invalidatePatientTasks: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/features/org/hooks/use-org", () => ({
+vi.mock("@/shared/session/use-org", () => ({
   useOrg: () => ({ selectedOrg: { id: "org-1" } }),
 }));
 

@@ -1,4 +1,4 @@
-export interface TerminologyCoding {
+interface TerminologyCoding {
   system: string;
   code: string;
   version?: string | null;

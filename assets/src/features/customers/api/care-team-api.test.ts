@@ -33,7 +33,9 @@ describe("fetchPersonIdsByPractitioner", () => {
   });
 
   it("returns an empty array when there are no matching care teams", async () => {
-    requestGraphqlMock.mockResolvedValueOnce({ listCareTeams: { results: [] } });
+    requestGraphqlMock.mockResolvedValueOnce({
+      listCareTeams: { results: [] },
+    });
 
     const result = await fetchPersonIdsByPractitioner("org-1", "prac-1");
 

@@ -1,5 +1,5 @@
 import type { PatientObservation } from "@/features/customers/api/patients-api";
-import type { VersionActorSource } from "@/features/customers/types/activity-feed";
+import type { VersionActorSource } from "@/features/customers/types/version-actor-source";
 import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
@@ -48,7 +48,7 @@ export interface FoodPreferencesData {
 }
 
 /** A single coding entry for coded values. */
-export interface ObservationCoding {
+interface ObservationCoding {
   system: string;
   code: string;
   display?: string | null;

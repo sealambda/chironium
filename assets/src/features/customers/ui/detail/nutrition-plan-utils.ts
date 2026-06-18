@@ -13,7 +13,7 @@ export const TOLERANCE_KCAL = 10;
 export type MacroKey = "proteinG" | "carbsG" | "fatG";
 
 /** How a macro amount is entered: absolute grams, grams per kg bodyweight, or % of target kcal. */
-export type MacroUnit = "gkg" | "percent" | "grams";
+type MacroUnit = "gkg" | "percent" | "grams";
 
 /** Macro amounts in grams, keyed by nutrient. */
 export interface MacroGrams {
@@ -21,13 +21,6 @@ export interface MacroGrams {
   carbs: number;
   fat: number;
 }
-
-/** kcal-per-gram for each form field, so callers don't re-map keys. */
-export const MACRO_KCAL_PER_G: Record<MacroKey, number> = {
-  proteinG: KCAL_PER_G.protein,
-  carbsG: KCAL_PER_G.carbs,
-  fatG: KCAL_PER_G.fat,
-};
 
 // ─── Energy maths ────────────────────────────────────────────────────
 
@@ -52,7 +45,7 @@ export function computeMacroPct(grams: number, kcalPerGram: number, totalKcal: n
 }
 
 /** Absolute difference (kcal) between the macro-derived energy and the target. */
-export function macroBalanceDeltaKcal(macros: MacroGrams, targetKcal: number): number {
+function macroBalanceDeltaKcal(macros: MacroGrams, targetKcal: number): number {
   return totalKcalFromMacroGrams(macros) - targetKcal;
 }
 
@@ -150,7 +143,10 @@ export function redistributeMacrosForTargetKcal(
   const unlocked = entries.filter((entry) => !lockedFields.has(entry.key));
   if (unlocked.length === 0) {
     const lockedKcal = entries.reduce((sum, entry) => sum + entry.grams * entry.factor, 0);
-    return { values, lockedExceedsTarget: lockedKcal > targetKcal + TOLERANCE_KCAL };
+    return {
+      values,
+      lockedExceedsTarget: lockedKcal > targetKcal + TOLERANCE_KCAL,
+    };
   }
 
   const lockedKcal = entries

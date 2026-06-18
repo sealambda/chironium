@@ -4,7 +4,6 @@ import { ArrowLeft, Eye, Pencil, Save, Trash2 } from "lucide-react";
 import { useEffect, useReducer, useState } from "react";
 import { toast } from "sonner";
 
-import { useOrg } from "@/features/org/hooks/use-org";
 import {
   createQuestionnaire,
   deleteQuestionnaire,
@@ -26,6 +25,7 @@ import { QuestionnaireBuilder } from "@/features/questionnaires/ui/builder/quest
 import { FillItems } from "@/features/questionnaires/ui/fill/fill-items";
 import * as m from "@/paraglide/messages";
 import { Route } from "@/routes/_app/questionnaires_.$questionnaireId";
+import { useOrg } from "@/shared/session/use-org";
 import {
   AlertDialog,
   AlertDialogAction,

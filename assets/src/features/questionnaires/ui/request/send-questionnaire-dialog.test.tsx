@@ -23,7 +23,7 @@ vi.mock("@/features/customers/utils/person-detail-cache", () => ({
   invalidatePatientTasks: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/features/org/hooks/use-org", () => ({
+vi.mock("@/shared/session/use-org", () => ({
   // UTC+14 all year, so the result differs from the test machine's zone.
   useOrg: () => ({ selectedOrg: { id: "org-1", timezone: "Pacific/Kiritimati" } }),
 }));

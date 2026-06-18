@@ -4,10 +4,10 @@ import { toast } from "sonner";
 
 import { createGoal, type GoalRecord, updateGoal } from "@/features/customers/api/goals-api";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useCurrentUser } from "@/shared/session/use-current-user";
+import { useOrg } from "@/shared/session/use-org";
 import type { GoalCategory, GoalPriority } from "@/shared/types/schema-enums";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
@@ -189,7 +189,10 @@ export function AddGoalDialog({
             <Select
               value={priority}
               onValueChange={(v) => setPriority(v ?? "")}
-              items={PRIORITY_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
+              items={PRIORITY_OPTIONS.map(({ value, label }) => ({
+                value,
+                label: label(),
+              }))}
             >
               <SelectTrigger className="w-full" disabled={saving}>
                 <SelectValue placeholder={m.goals_priority_placeholder()} />
@@ -211,7 +214,10 @@ export function AddGoalDialog({
             <Select
               value={category}
               onValueChange={(v) => setCategory(v ?? "")}
-              items={CATEGORY_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
+              items={CATEGORY_OPTIONS.map(({ value, label }) => ({
+                value,
+                label: label(),
+              }))}
             >
               <SelectTrigger className="w-full" disabled={saving}>
                 <SelectValue placeholder={m.goals_category_placeholder()} />

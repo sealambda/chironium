@@ -1,10 +1,10 @@
 import { format, formatDistanceToNowStrict, parseISO } from "date-fns";
 
-import { useOrg } from "@/features/org/hooks/use-org";
 import type { QuestionnaireRequestStatus } from "@/features/questionnaires/model/questionnaire-request-status";
 import { isOpenQuestionnaireRequest } from "@/features/questionnaires/model/questionnaire-request-status";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Badge } from "@/shared/ui/badge";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { inZone } from "@/shared/utils/date-time-input";
