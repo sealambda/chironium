@@ -378,18 +378,15 @@ defmodule Chironium.Subscriptions.SubscriptionPauseTest do
                |> Ash.Changeset.for_destroy(:destroy, %{}, actor: ctx.owner, tenant: ctx.tenant)
                |> Ash.destroy()
 
-      assert SubscriptionPause
-             |> Ash.Changeset.for_create(
-               :open,
-               %{subscription_id: sub.id, start_date: Date.utc_today()},
-               tenant: ctx.tenant,
-               authorize?: false
-             )
-             |> Ash.create()
-             |> case do
-               {:ok, _} -> :ok
-               {:error, _} -> flunk("expected a new open pause after archiving the previous one")
-             end
+      assert {:ok, _} =
+               SubscriptionPause
+               |> Ash.Changeset.for_create(
+                 :open,
+                 %{subscription_id: sub.id, start_date: Date.utc_today()},
+                 tenant: ctx.tenant,
+                 authorize?: false
+               )
+               |> Ash.create()
     end
   end
 
