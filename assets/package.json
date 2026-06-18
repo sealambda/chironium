@@ -17,6 +17,8 @@
     "precommit": "biome check . && tsc --noEmit",
     "preview": "vite preview",
     "quality": "biome check . && tsc --noEmit",
+    "messages:sync": "node scripts/sync-messages.mjs",
+    "messages:sync:check": "node scripts/sync-messages.mjs --check",
     "typecheck": "tsc --noEmit",
     "gql:generate": "gql.tada generate output --tsconfig tsconfig.app.json",
     "gql:check": "gql.tada check --tsconfig tsconfig.app.json",
