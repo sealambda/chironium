@@ -157,15 +157,15 @@ function PatientDetailCards({
     <div className="flex flex-col gap-10 pb-10">
       {/* Mini-dashboard: clinical summary cards in a responsive grid */}
       <Section title={m.clinical_summary()} collapsible>
-        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-10">
-          <div className="lg:order-1 lg:col-span-3">
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="sm:order-1 lg:order-0">
             <AnthropometryCard
               history={anthropometryEntries}
               isLoading={anthropometryHistory.isLoading}
               compact
             />
           </div>
-          <div className="lg:order-4 lg:col-span-3">
+          <div className="sm:order-2 lg:order-0">
             <MenstrualCycleCard
               personId={personId}
               patientId={patientId}
@@ -174,7 +174,15 @@ function PatientDetailCards({
               compact
             />
           </div>
-          <div className="lg:order-2 lg:col-span-3">
+          <div className="sm:order-3 sm:col-span-2 lg:order-0 lg:col-span-1">
+            <PatientNutritionCard
+              detail={detail}
+              personId={personId}
+              patientId={patientId}
+              organizationId={organizationId}
+            />
+          </div>
+          <div className="sm:order-4 lg:order-0">
             <ConditionsCard
               items={personConditions}
               isLoading={conditions.isLoading}
@@ -183,16 +191,7 @@ function PatientDetailCards({
               organizationId={organizationId}
             />
           </div>
-          <div className="lg:order-5 lg:col-span-3">
-            <MedicationsCard
-              items={personMedications}
-              isLoading={medications.isLoading}
-              compact
-              personId={personId}
-              organizationId={organizationId}
-            />
-          </div>
-          <div className="lg:order-3 lg:col-span-4">
+          <div className="sm:order-6 sm:col-span-2 lg:order-0 lg:col-span-2">
             <AllergyIntoleranceCard
               items={personAllergyIntolerances}
               isLoading={allergyIntolerances.isLoading}
@@ -202,20 +201,21 @@ function PatientDetailCards({
               organizationId={organizationId}
             />
           </div>
-          <div className="lg:order-6 lg:col-span-4">
-            <FoodPreferencesCard
-              history={foodPreferencesHistory.data ?? []}
-              isLoading={foodPreferencesHistory.isLoading}
+          <div className="sm:order-5 lg:order-0">
+            <MedicationsCard
+              items={personMedications}
+              isLoading={medications.isLoading}
               compact
               personId={personId}
               organizationId={organizationId}
             />
           </div>
-          <div className="lg:order-7 lg:col-span-3">
-            <PatientNutritionCard
-              detail={detail}
+          <div className="sm:order-7 sm:col-span-2 lg:order-0 lg:col-span-2">
+            <FoodPreferencesCard
+              history={foodPreferencesHistory.data ?? []}
+              isLoading={foodPreferencesHistory.isLoading}
+              compact
               personId={personId}
-              patientId={patientId}
               organizationId={organizationId}
             />
           </div>
@@ -229,7 +229,7 @@ function PatientDetailCards({
           openAddRecord == null ? null : <AddRecordButton onClick={openAddRecord} compactOnMobile />
         }
       >
-        <div className="pb-0.5">
+        <div className="min-w-0 pb-0.5">
           <FeedFilterChips active={activeFilter} onChange={setActiveFilter} />
         </div>
         <ActivityFeedCard

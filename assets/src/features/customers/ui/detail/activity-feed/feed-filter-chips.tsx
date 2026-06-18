@@ -125,26 +125,32 @@ export function FeedFilterChips({ active, onChange }: Readonly<FeedFilterChipsPr
   });
 
   return (
-    <fieldset className="m-0 flex flex-wrap gap-1.5 border-0 p-0">
-      <legend className="sr-only">{m.activity_filter_legend()}</legend>
-      {chips.map(({ value, label, icon: Icon, activeClass }) => {
-        const isActive = active === value;
-        return (
-          <button
-            key={value}
-            type="button"
-            onClick={() => onChange(value)}
-            aria-pressed={isActive}
-            className={cn(
-              "flex cursor-pointer items-center justify-center gap-1 rounded-full border px-3 py-1 font-medium text-xs transition-colors",
-              isActive ? activeClass : INACTIVE_BUTTON_CLASS,
-            )}
-          >
-            <Icon className="size-3 shrink-0" aria-hidden />
-            <span className="truncate">{label()}</span>
-          </button>
-        );
-      })}
-    </fieldset>
+    <div className="relative w-full min-w-0">
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent"
+        aria-hidden
+      />
+      <fieldset className="m-0 flex w-full min-w-0 flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain border-0 p-0 pe-6 [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden">
+        <legend className="sr-only">{m.activity_filter_legend()}</legend>
+        {chips.map(({ value, label, icon: Icon, activeClass }) => {
+          const isActive = active === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onChange(value)}
+              aria-pressed={isActive}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-full border px-3 py-1 font-medium text-xs transition-colors",
+                isActive ? activeClass : INACTIVE_BUTTON_CLASS,
+              )}
+            >
+              <Icon className="size-3 shrink-0" aria-hidden />
+              <span>{label()}</span>
+            </button>
+          );
+        })}
+      </fieldset>
+    </div>
   );
 }

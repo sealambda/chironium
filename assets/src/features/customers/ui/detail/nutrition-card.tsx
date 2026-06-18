@@ -2,6 +2,7 @@ import { Salad } from "lucide-react";
 import { useState } from "react";
 
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
+import { DetailEditButton } from "@/features/customers/ui/detail/detail-edit-button";
 import { NutritionPlanDetailDialog } from "@/features/customers/ui/detail/nutrition-plan-detail-dialog";
 import { NutritionRemoveDialog } from "@/features/customers/ui/detail/nutrition-remove-dialog";
 import { TagsCardTitle } from "@/features/customers/ui/detail/tags-card-content";
@@ -31,14 +32,14 @@ interface NutritionCardProps {
 function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
   const macroTotal = totalKcalFromMacroGrams(gramsByMacro(plan));
   return (
-    <ul className="flex min-w-0 flex-1 flex-col justify-center gap-2">
+    <ul className="grid w-fit @max-[22rem]/nutrition:grid-cols-[auto_auto_auto] grid-cols-[auto_max-content_auto_auto] gap-x-2 gap-y-2 lg:w-full lg:min-w-0 lg:flex-1 lg:grid-cols-[auto_1fr_auto_auto]">
       {MACRO_IDS.map((id) => {
         const meta = MACRO_META[id];
         const Icon = meta.icon;
         const grams = plan[meta.fieldKey];
         const pct = computeMacroPct(grams, meta.kcalPerGram, macroTotal);
         return (
-          <li key={id} className="flex min-w-0 items-center gap-2 text-sm">
+          <li key={id} className="col-span-full grid grid-cols-subgrid items-center gap-x-2">
             <span
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-md",
@@ -47,16 +48,16 @@ function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
             >
               <Icon className={cn("size-3.5", meta.iconClass)} aria-hidden />
             </span>
-            <span className="truncate text-foreground">{meta.label()}</span>
-            <span className="ml-auto shrink-0 font-semibold text-foreground tabular-nums">
+            <span className="@max-[22rem]/nutrition:sr-only truncate pr-5 text-foreground text-sm">
+              {meta.label()}
+            </span>
+            <span className="text-right font-semibold text-foreground text-sm tabular-nums">
               {grams}
               <span className="ml-0.5 font-normal text-muted-foreground text-xs">
                 {m.common_unit_g()}
               </span>
             </span>
-            <span className="w-8 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
-              {pct}%
-            </span>
+            <span className="text-right text-muted-foreground text-xs tabular-nums">{pct}%</span>
           </li>
         );
       })}
@@ -85,13 +86,18 @@ export function NutritionCard({
   const current = plans.at(0);
 
   const body = current ? (
-    <div className="flex flex-col gap-3">
-      <TagsCardTitle>{m.nutrition_card_title()}</TagsCardTitle>
-      <div className="flex items-center gap-3">
+    <div className="@container/nutrition flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <TagsCardTitle>{m.nutrition_card_title()}</TagsCardTitle>
+        {canInteract ? (
+          <DetailEditButton ariaLabel={m.nutrition_edit_title()} onClick={() => setEditing(true)} />
+        ) : null}
+      </div>
+      <div className="flex items-center justify-center gap-4 lg:justify-start lg:gap-3">
         <NutritionDonut
           macros={gramsByMacro(current)}
           targetKcal={current.targetKcal}
-          className="w-24 shrink-0"
+          className="w-32 shrink-0"
         />
         <MacroLegend plan={current} />
       </div>
@@ -108,18 +114,7 @@ export function NutritionCard({
         emptyDescription={m.nutrition_empty_desc()}
         compact={compact}
       >
-        {canInteract && current ? (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            aria-label={m.nutrition_edit_title()}
-            className="-m-1 cursor-pointer rounded-lg p-1 text-left transition-colors hover:bg-accent/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {body}
-          </button>
-        ) : (
-          body
-        )}
+        {body}
       </TagsCardShell>
 
       {canInteract && current ? (
@@ -146,7 +141,7 @@ export function NutritionCard({
             }}
           />
 
-          {removingId !== null ? (
+          {removingId === null ? null : (
             <NutritionRemoveDialog
               id={removingId}
               personId={safePersonId}
@@ -158,7 +153,7 @@ export function NutritionCard({
                 }
               }}
             />
-          ) : null}
+          )}
         </>
       ) : null}
     </>
