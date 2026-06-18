@@ -1,0 +1,29 @@
+title = "chironium gitleaks config"
+
+# Extend the upstream default rule pack (https://github.com/gitleaks/gitleaks).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated/vendored files and known false positives"
+paths = [
+  '''pnpm-lock\.yaml''',
+  '''mix\.lock''',
+  '''assets/src/paraglide/.*''',
+  '''assets/src/graphql-env\.d\.ts''',
+  '''assets/src/routeTree\.gen\.ts''',
+  '''.*\.test\.(ts|tsx)$''',
+  '''assets/e2e/.*''',
+  '''\.env\.example$''',
+  '''envs/.*''',
+  # Phoenix dev/test configs carry committed LOCAL-ONLY dummy secrets (dev secret_key_base,
+  # test token salts, "postgres" dev password) — never used in prod (prod reads runtime env).
+  '''config/dev\.exs''',
+  '''config/test\.exs''',
+]
+
+# Regex allowlist — high-entropy strings that are NOT secrets.
+regexes = [
+  # Long Tailwind utility-class strings trip the generic high-entropy detector.
+  '''(class|className)\s*=\s*["'][^"']*["']''',
+]
