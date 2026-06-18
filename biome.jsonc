@@ -1,5 +1,8 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
+  // This IS the single root config; `biome migrate` wrongly set this to false, which made
+  // Biome ignore indentStyle and fall back to its tab default. Must stay true.
+  "root": true,
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
@@ -44,42 +47,52 @@
     // Only non-default rules and severity overrides are listed below.
     "rules": {
       "complexity": {
-        // Force decomposition of complex functions (default threshold: 15).
+        // Force decomposition of complex functions (Sonar-standard threshold: 15). Blocking.
         // https://www.sonarsource.com/docs/CognitiveComplexity.pdf
-        "noExcessiveCognitiveComplexity": "warn",
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": { "maxAllowedComplexity": 15 }
+        },
 
         // Ban shorthand coercions (+str, !!val); require explicit String(), Boolean().
         // https://google.github.io/styleguide/tsguide.html#type-coercion
-        "noImplicitCoercions": "warn",
+        "noImplicitCoercions": "error",
 
         // Prefer for...of — supports break/continue/await, better debugging.
         // https://github.com/airbnb/javascript#iterators--nope
-        "noForEach": "warn"
+        "noForEach": "error",
+
+        // .find() over .filter()[0] — clearer intent and short-circuits.
+        "useArrayFind": "warn"
       },
       "correctness": {
         // Dead code removal.
         // https://github.com/airbnb/javascript#variables--no-unused-vars
-        "noUnusedImports": "warn",
-        "noUnusedVariables": "warn",
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error",
 
         // https://www.typescriptlang.org/tsconfig/#noUnusedParameters
-        "noUnusedFunctionParameters": "warn"
+        "noUnusedFunctionParameters": "error"
       },
       "performance": {
         // Barrel files and re-export-all hurt Vite/Rollup tree-shaking.
         // https://vitejs.dev/guide/performance#reduce-resolve-operations
         // https://marvinh.dev/blog/speeding-up-javascript-ecosystem-part-7/
-        "noBarrelFile": "warn",
-        "noReExportAll": "warn",
+        "noBarrelFile": "error",
+        "noReExportAll": "error",
 
         // delete deoptimizes V8 hidden classes; use destructuring or undefined assignment.
         // https://v8.dev/blog/fast-properties
-        "noDelete": "warn"
+        "noDelete": "error"
       },
       "security": {
         // Detect hardcoded API keys/tokens. Set to warn because long Tailwind class
         // strings trigger false positives (high entropy detection).
-        "noSecrets": "warn"
+        "noSecrets": "warn",
+
+        // Block raw HTML injection (XSS). Biome 2.5 dropped this from recommended; we keep it
+        // on so the one audited TipTap-markdown usage stays explicitly justified via biome-ignore.
+        "noDangerouslySetInnerHtml": "error"
       },
       "style": {
         // Named exports only — better refactoring, IDE support, and tree-shaking.
@@ -173,7 +186,17 @@
 
         // Only throw Error objects, not strings or literals.
         // https://github.com/airbnb/javascript#exceptions
-        "useThrowOnlyError": "warn"
+        "useThrowOnlyError": "warn",
+        // God-file gate: cap file length (code lines only). Blocking.
+        // https://biomejs.dev/linter/rules/no-excessive-lines-per-file/
+        "noExcessiveLinesPerFile": {
+          "level": "error",
+          "options": { "maxLines": 400, "skipBlankLines": true }
+        },
+
+        // Preserve error chains when re-throwing: new Error("msg", { cause }).
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+        "useErrorCause": "warn"
       },
       "suspicious": {
         // No stray console.log in production; allow warn/error for legitimate logging.
@@ -201,16 +224,7 @@
 
         // forwardRef is legacy in React 19; ref is a regular prop.
         // https://react.dev/blog/2024/12/05/react-19#ref-as-a-prop
-        "noReactForwardRef": "warn"
-      },
-      "nursery": {
-        // Catch unhandled Promises — the leading cause of silent async failures.
-        // https://typescript-eslint.io/rules/no-floating-promises/
-        "noFloatingPromises": "error",
-
-        // Prevent Promises in wrong places (event handlers, conditionals).
-        // https://typescript-eslint.io/rules/no-misused-promises/
-        "noMisusedPromises": "error",
+        "noReactForwardRef": "warn",
 
         // {count && <X/>} renders "0" to the DOM when count is 0.
         // https://github.com/jsx-eslint/eslint-plugin-react/blob/master/docs/rules/jsx-no-leaked-render.md
@@ -227,7 +241,16 @@
 
         // .sort() without comparator uses lexicographic order — known JS trap.
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
-        "useArraySortCompare": "error",
+        "useArraySortCompare": "error"
+      },
+      "nursery": {
+        // Catch unhandled Promises — the leading cause of silent async failures.
+        // https://typescript-eslint.io/rules/no-floating-promises/
+        "noFloatingPromises": "error",
+
+        // Prevent Promises in wrong places (event handlers, conditionals).
+        // https://typescript-eslint.io/rules/no-misused-promises/
+        "noMisusedPromises": "error",
 
         // Only await Promises, not plain values.
         // https://typescript-eslint.io/rules/await-thenable/
@@ -236,13 +259,6 @@
         // Exhaustive switch on union types — catch missing cases at compile time.
         // https://typescript-eslint.io/rules/switch-exhaustiveness-check/
         "useExhaustiveSwitchCases": "warn",
-
-        // Preserve error chains when re-throwing: new Error("msg", { cause }).
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
-        "useErrorCause": "warn",
-
-        // .find() over .filter()[0] — clearer intent and short-circuits.
-        "useFind": "warn",
 
         // Sort Tailwind utility classes for consistency.
         // https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
@@ -368,7 +384,8 @@
           "style": {
             "useNamingConvention": "off"
           },
-          "nursery": {
+          "nursery": {},
+          "suspicious": {
             "noShadow": "off"
           }
         }

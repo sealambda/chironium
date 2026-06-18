@@ -1,0 +1,32 @@
+# Lefthook — git hooks for chironium.
+# Fast, staged-scope checks on commit; heavier full-repo checks on push. CI is authoritative.
+# Binaries (gitleaks) come from mise; biome/commitlint from the pnpm workspace.
+# Docs: https://lefthook.dev/configuration/
+
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      # biome.jsonc lives at the repo root, so run from root with root-relative {staged_files}.
+      glob: "*.{ts,tsx,js,jsx,json,jsonc,css}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+    secrets:
+      # Resolve the mise-managed gitleaks binary (not on the hook shell's bare PATH).
+      run: mise exec -- gitleaks git --staged --redact --no-banner --config .gitleaks.toml
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: pnpm --filter chironium-assets typecheck
+    check:
+      run: pnpm --filter chironium-assets check
+    audit:
+      # New advisories land without any change of ours, so catch them before pushing.
+      run: pnpm deps:audit

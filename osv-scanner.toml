@@ -1,0 +1,18 @@
+# OSV-Scanner configuration — https://google.github.io/osv-scanner/configuration/
+#
+# SCA gate for the JS/pnpm dependency tree (scans pnpm-lock.yaml). Any high/critical
+# CVE must be remediated (via pnpm overrides / a dependency bump) OR explicitly ignored
+# here WITH a reason and a review date. Keep this list short and revisit on every
+# Renovate run. Example:
+#
+# [[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# ignoreUntil = 2026-09-16
+# reason = "No upstream fix available; not reachable from our code paths. Re-review on this date."
+
+# --- No-upstream-fix, dev-tooling-only (shadcn CLI dependency chain; not in app runtime) ---
+
+[[IgnoredVulns]]
+id = "GHSA-g3ch-rx76-35fx"
+ignoreUntil = 2026-09-17
+reason = "vue-template-compiler 2.7.16: no fixed version exists. Transitive dev-only dep of the shadcn CLI (no Vue in this React app). Re-review on this date."
