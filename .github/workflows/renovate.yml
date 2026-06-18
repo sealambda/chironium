@@ -1,0 +1,25 @@
+name: Renovate
+
+# Self-hosted Renovate runner (FOSS). Inert until enabled in repo settings:
+# set the RENOVATE_ENABLED variable to "true" and provide a RENOVATE_TOKEN secret (a PAT).
+
+on:
+  schedule:
+    - cron: "0 4 * * 1" # Mondays 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  renovate:
+    if: ${{ vars.RENOVATE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: renovatebot/github-action@8217b3fc286df088d7c27f3255fe8414463bc0fd # v46.1.15
+        with:
+          configurationFile: renovate.json
+          token: ${{ secrets.RENOVATE_TOKEN }}
