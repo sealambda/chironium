@@ -21,12 +21,18 @@
     "assets:test": "pnpm --filter chironium-assets test",
     "assets:e2e": "pnpm --filter chironium-assets e2e",
     "assets:e2e:ui": "pnpm --filter chironium-assets e2e:ui",
+    "assets:dup": "pnpm --filter chironium-assets dup",
+    "assets:deadcode": "pnpm --filter chironium-assets deadcode",
+    "assets:arch": "pnpm --filter chironium-assets arch",
+    "assets:quality": "pnpm --filter chironium-assets quality",
     "deps:audit": "pnpm audit --prod --audit-level high",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
-    "husky": "~9.1.7"
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "lefthook": "^2.1.9"
   },
   "packageManager": "pnpm@11.22.0"
 }
