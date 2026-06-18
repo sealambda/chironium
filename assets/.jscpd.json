@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/kucherenko/jscpd/master/packages/jscpd/schema.json",
+  "threshold": 5,
+  "minTokens": 70,
+  "minLines": 5,
+  "reporters": ["consoleFull"],
+  "absolute": true,
+  "gitignore": true,
+  "pattern": "src/**/*.{ts,tsx}",
+  "ignore": [
+    "**/*.gen.ts",
+    "**/paraglide/**",
+    "**/graphql-env.d.ts",
+    "**/graphql.ts",
+    "**/gql/**",
+    "**/*.test.{ts,tsx}",
+    "**/*.spec.{ts,tsx}"
+  ]
+}

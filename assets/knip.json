@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["src/main.tsx", "js/app.js", "src/shared/ui/**", "src/graphql.ts"],
+  "project": ["src/**/*.{ts,tsx}", "js/**/*.js"],
+  "ignoreDependencies": [
+    "@fontsource-variable/inter",
+    "tw-animate-css",
+    "tailwindcss",
+    "daisyui",
+    "shadcn",
+    "phoenix-colocated"
+  ],
+  "ignoreBinaries": ["biome"]
+}
