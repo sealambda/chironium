@@ -15,7 +15,7 @@ const { updateTaskReminder, deleteTaskReminder, toast } = vi.hoisted(() => ({
 
 vi.mock("sonner", () => ({ toast }));
 
-vi.mock("@/features/org/hooks/use-org", () => ({
+vi.mock("@/shared/session/use-org", () => ({
   useOrg: () => ({ selectedOrg: { id: "org-1" } }),
 }));
 

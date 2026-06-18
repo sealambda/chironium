@@ -97,7 +97,6 @@ export function TagsCardPillList({ children, className }: Readonly<TagsCardPillL
         >
           <div className={cn("flex flex-wrap gap-1.5", className)}>
             {items.map((item, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: stable index for measurement wrapper
               <div key={i} data-chip>
                 {item}
               </div>

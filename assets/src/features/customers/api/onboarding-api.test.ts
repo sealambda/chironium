@@ -10,7 +10,10 @@ import { submitOnboarding } from "@/features/customers/api/onboarding-api";
 
 describe("submitOnboarding", () => {
   it("creates a customer record from the onboarding draft", async () => {
-    createPatientWithPerson.mockResolvedValue({ patientId: "pat_1", personId: "person_1" });
+    createPatientWithPerson.mockResolvedValue({
+      patientId: "pat_1",
+      personId: "person_1",
+    });
 
     await submitOnboarding(
       {

@@ -20,9 +20,9 @@ import {
   formatFhirSubstitutionLabel,
 } from "@/features/customers/utils/clinical-history-display";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useOrg } from "@/shared/session/use-org";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";

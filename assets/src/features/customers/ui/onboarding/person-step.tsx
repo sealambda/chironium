@@ -2,8 +2,8 @@ import { useForm } from "@tanstack/react-form";
 
 import type { PersonFormData } from "@/features/customers/api/patients-api";
 import {
-  CONSECUTIVE_SPECIALS,
-  NAME_PATTERN,
+  personFamilyNameField,
+  personGivenNameField,
   personSchema,
 } from "@/features/customers/model/onboarding-schemas";
 import * as m from "@/paraglide/messages";
@@ -93,18 +93,8 @@ export function PersonStep({
           <form.Field
             name="givenName"
             validators={{
-              onBlur: ({ value }) => {
-                if (!value || value.trim().length < 2) {
-                  return m.validation_given_name_min();
-                }
-                if (!NAME_PATTERN.test(value)) {
-                  return m.validation_given_name_format();
-                }
-                if (CONSECUTIVE_SPECIALS.test(value)) {
-                  return m.validation_given_name_consecutive();
-                }
-                return undefined;
-              },
+              onBlur: ({ value }) =>
+                personGivenNameField.safeParse(value).error?.issues[0]?.message,
             }}
           >
             {(field) => (
@@ -144,18 +134,8 @@ export function PersonStep({
           <form.Field
             name="familyName"
             validators={{
-              onBlur: ({ value }) => {
-                if (!value || value.trim().length < 2) {
-                  return m.validation_family_name_min();
-                }
-                if (!NAME_PATTERN.test(value)) {
-                  return m.validation_family_name_format();
-                }
-                if (CONSECUTIVE_SPECIALS.test(value)) {
-                  return m.validation_family_name_consecutive();
-                }
-                return undefined;
-              },
+              onBlur: ({ value }) =>
+                personFamilyNameField.safeParse(value).error?.issues[0]?.message,
             }}
           >
             {(field) => (
@@ -213,7 +193,10 @@ export function PersonStep({
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value as AdministrativeGender)}
-                  items={GENDER_OPTIONS.map(({ value, label }) => ({ value, label: label() }))}
+                  items={GENDER_OPTIONS.map(({ value, label }) => ({
+                    value,
+                    label: label(),
+                  }))}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder={m.gender_placeholder()} />

@@ -1,7 +1,7 @@
 import { useShallow } from "zustand/react/shallow";
 
 import type { UserProfile } from "@/features/user/api/user-api";
-import { useUserStore } from "@/features/user/store/user-store";
+import { useUserStore } from "@/shared/session/user-store";
 
 export interface CurrentUserState {
   user: UserProfile | null;

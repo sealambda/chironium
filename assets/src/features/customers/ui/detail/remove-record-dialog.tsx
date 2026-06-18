@@ -2,8 +2,8 @@ import { type QueryKey, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import {
   AlertDialog,
   AlertDialogAction,

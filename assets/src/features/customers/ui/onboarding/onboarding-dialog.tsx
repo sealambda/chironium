@@ -11,9 +11,9 @@ import type {
 } from "@/features/customers/api/observations-api";
 import { type OnboardingDraft, submitOnboarding } from "@/features/customers/api/onboarding-api";
 import type { PersonFormData } from "@/features/customers/api/patients-api";
-import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
+import { useCurrentUser } from "@/shared/session/use-current-user";
+import { useOrg } from "@/shared/session/use-org";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -292,7 +292,10 @@ function StepContent({ organizationId, wizard, onClose }: StepContentProps) {
           }
           onBack={() => goBack(3)}
           onSaveDraft={(data) =>
-            saveDraft({ pathologies: data.pathologies, allergies: data.allergies })
+            saveDraft({
+              pathologies: data.pathologies,
+              allergies: data.allergies,
+            })
           }
         />
       );

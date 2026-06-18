@@ -110,9 +110,11 @@ export function useTerminologyTagSearchField({
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<TerminologySuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [menuStyle, setMenuStyle] = useState<{ top: number; left: number; width: number } | null>(
-    null,
-  );
+  const [menuStyle, setMenuStyle] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
   const inputContainerRef = useRef<HTMLDivElement | null>(null);
   const locale = getLocale();
 

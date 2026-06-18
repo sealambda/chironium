@@ -77,8 +77,14 @@ const FIELD_COPY: Record<
   AnthropometryMeasurementFieldName,
   { label: () => string; placeholder: () => string }
 > = {
-  weightKg: { label: m.field_weight_kg, placeholder: m.field_weight_placeholder },
-  heightCm: { label: m.field_height_cm, placeholder: m.field_height_placeholder },
+  weightKg: {
+    label: m.field_weight_kg,
+    placeholder: m.field_weight_placeholder,
+  },
+  heightCm: {
+    label: m.field_height_cm,
+    placeholder: m.field_height_placeholder,
+  },
   chestCm: { label: m.field_chest_cm, placeholder: m.field_chest_placeholder },
   waistCm: { label: m.field_waist_cm, placeholder: m.field_waist_placeholder },
   hipCm: { label: m.field_hip_cm, placeholder: m.field_hip_placeholder },

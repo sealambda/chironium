@@ -4,7 +4,6 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { ClipboardList, FilePlus2, Plus } from "lucide-react";
 import { useState } from "react";
 
-import { useOrg } from "@/features/org/hooks/use-org";
 import {
   fetchQuestionnaires,
   type QuestionnaireListItem,
@@ -12,6 +11,7 @@ import {
 } from "@/features/questionnaires/api/questionnaires-api";
 import { QUESTIONNAIRE_TEMPLATES } from "@/features/questionnaires/model/templates";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";

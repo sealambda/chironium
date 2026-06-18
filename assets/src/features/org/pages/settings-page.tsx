@@ -11,7 +11,6 @@ import {
   revokeInvitation,
   updateOrganizationSettings,
 } from "@/features/org/api/org-api";
-import { useOrg } from "@/features/org/hooks/use-org";
 import {
   EditMemberRoleDialog,
   type EditMemberRoleTarget,
@@ -33,10 +32,11 @@ import {
   memberRowHasActions,
   type SettingsMemberTableRow,
 } from "@/features/org/utils/settings-member-table-model";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import type { Locale } from "@/paraglide/runtime";
 import { toLocaleOrDefault } from "@/shared/i18n/locales";
+import { useCurrentUser } from "@/shared/session/use-current-user";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";

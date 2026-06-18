@@ -14,7 +14,9 @@ import * as m from "@/paraglide/messages";
 const positiveIntegerString = z
   .string()
   .trim()
-  .refine((value) => value.length > 0, { message: m.validation_positive_number() })
+  .refine((value) => value.length > 0, {
+    message: m.validation_positive_number(),
+  })
   .refine(
     (value) => {
       const parsed = Number(value);

@@ -11,7 +11,7 @@ function hasActivePractitionerGrant(
   );
 }
 
-export type MemberSource =
+type MemberSource =
   | { kind: "owner"; userId: string }
   | { kind: "membership"; organizationUserId: string; userId: string }
   | { kind: "invitation"; invitationId: string; expired: boolean };

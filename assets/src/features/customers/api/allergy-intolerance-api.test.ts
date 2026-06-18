@@ -36,7 +36,10 @@ describe("allergy intolerance mutations", () => {
 
   it("creates onset date values as offset-aware DateTime payloads", async () => {
     requestGraphqlMock.mockResolvedValueOnce({
-      createAllergyIntolerance: { result: { id: "allergy-1", type: "ALLERGY" }, errors: null },
+      createAllergyIntolerance: {
+        result: { id: "allergy-1", type: "ALLERGY" },
+        errors: null,
+      },
     });
 
     await createAllergyIntolerance(
@@ -64,7 +67,10 @@ describe("allergy intolerance mutations", () => {
 
   it("updates onset periods as offset-aware DateTime payloads", async () => {
     requestGraphqlMock.mockResolvedValueOnce({
-      updateAllergyIntolerance: { result: { id: "allergy-1", type: "ALLERGY" }, errors: null },
+      updateAllergyIntolerance: {
+        result: { id: "allergy-1", type: "ALLERGY" },
+        errors: null,
+      },
     });
 
     await updateAllergyIntolerance(

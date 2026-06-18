@@ -18,9 +18,9 @@ import {
   toAnthropometryValuesInput,
 } from "@/features/customers/ui/detail/anthropometry-form-fields";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useOrg } from "@/shared/session/use-org";
 import { FormDialog } from "@/shared/ui/form-dialog";
 
 interface AddAnthropometryDialogProps {

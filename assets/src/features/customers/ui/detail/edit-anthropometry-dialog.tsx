@@ -17,8 +17,8 @@ import {
 } from "@/features/customers/ui/detail/anthropometry-form-fields";
 import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-history-entry-dialog";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { isoToDateTimeInputParts } from "@/shared/utils/date-time-input";
 

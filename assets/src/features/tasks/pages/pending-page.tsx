@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { QuestionnaireRequestStatusBadge } from "@/features/customers/ui/detail/activity-feed/questionnaire-request-event";
 import { invalidatePatientTasks } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import type { QuestionnaireLink } from "@/features/questionnaires/api/questionnaire-requests-api";
 import { questionnaireRequestStatus } from "@/features/questionnaires/model/questionnaire-request-status";
 import { QuestionnaireLinkDialog } from "@/features/questionnaires/ui/request/questionnaire-link-dialog";
@@ -19,6 +18,7 @@ import {
 } from "@/features/tasks/api/tasks-api";
 import { usePendingTasks } from "@/features/tasks/hooks/use-pending-tasks";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";

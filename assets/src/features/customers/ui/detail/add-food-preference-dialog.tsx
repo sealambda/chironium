@@ -5,10 +5,10 @@ import { toast } from "sonner";
 import { createFoodObservations } from "@/features/customers/api/food-preferences-api";
 import { useTerminologyTagList } from "@/features/customers/hooks/use-terminology-tag-list";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useCurrentUser } from "@/shared/session/use-current-user";
+import { useOrg } from "@/shared/session/use-org";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { TerminologyTagInput } from "@/shared/ui/terminology-tag-input";
 

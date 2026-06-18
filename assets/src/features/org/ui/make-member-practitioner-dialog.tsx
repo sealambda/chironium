@@ -16,14 +16,18 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 
-export type PractitionerNamePreset = {
+type PractitionerNamePreset = {
   givenName: string;
   familyName: string;
 };
 
 export type MakePractitionerTarget =
   | { type: "user"; userId: string; namePreset?: PractitionerNamePreset }
-  | { type: "invitation"; invitationId: string; namePreset?: PractitionerNamePreset };
+  | {
+      type: "invitation";
+      invitationId: string;
+      namePreset?: PractitionerNamePreset;
+    };
 
 interface MakeMemberPractitionerDialogProps {
   readonly open: boolean;

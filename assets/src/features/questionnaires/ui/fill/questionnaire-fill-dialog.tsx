@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import { submitResponse } from "@/features/questionnaires/api/questionnaire-responses-api";
 import {
   fetchQuestionnaire,
@@ -17,6 +16,7 @@ import {
 import type { Answer } from "@/features/questionnaires/model/questionnaire-schemas";
 import { FillItems } from "@/features/questionnaires/ui/fill/fill-items";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,

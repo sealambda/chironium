@@ -5,13 +5,13 @@ import { toast } from "sonner";
 
 import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-history-entry-dialog";
 import { invalidatePatientTasks } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import {
   deleteTaskReminder,
   type PatientTask,
   updateTaskReminder,
 } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { FormDialog } from "@/shared/ui/form-dialog";

@@ -14,7 +14,7 @@ const { acceptInvitation, rejectInvitation, toastError } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/features/org/api/org-api", () => ({ acceptInvitation, rejectInvitation }));
-vi.mock("@/features/org/hooks/use-org", () => ({
+vi.mock("@/shared/session/use-org", () => ({
   useOrg: () => ({ refreshOrgs: vi.fn(), selectOrg: vi.fn() }),
 }));
 vi.mock("sonner", () => ({ toast: { error: toastError, success: vi.fn() } }));

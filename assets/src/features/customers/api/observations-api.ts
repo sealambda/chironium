@@ -1,158 +1,39 @@
-import type { PatientObservation } from "@/features/customers/api/patients-api";
+import {
+  isLegacyMenstrualCycleObservation,
+  newestFirst,
+  parseMenstrualCycleSummary,
+  summarizeFirstClassMenstrualCycle,
+  summarizeMenstrualCycleStart,
+} from "@/features/customers/api/observations-api.menstrual";
+import {
+  CODES,
+  CreateObservationMutation,
+  DeleteObservationMutation,
+  LogMenstrualPeriodDurationMutation,
+  LogMenstrualPeriodStartMutation,
+  UpdateObservationMutation,
+} from "@/features/customers/api/observations-api.queries";
+import type {
+  ClinicalNoteFormData,
+  MenstrualCycleEntry,
+  MenstrualCycleRecordFormData,
+  MenstrualCycleSummary,
+  ObservationItem,
+  ObservationsPage,
+} from "@/features/customers/api/observations-api.types";
 import { toAuthorInput } from "@/features/customers/utils/annotation-author";
-import { graphql } from "@/graphql";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
-import { isoToDateInput, toDateTimeInput } from "@/shared/utils/date-time-input";
+import { toDateTimeInput } from "@/shared/utils/date-time-input";
 
-type CodeTypes =
-  | "clinicalNote"
-  | "dietInclusion"
-  | "dietExclusion"
-  | "menstrualCycle"
-  | "bodyWeight"
-  | "bodyHeight";
-
-const CODES: Record<CodeTypes, string> = {
-  clinicalNote: "clinical-note",
-  dietInclusion: "diet-inclusion",
-  dietExclusion: "diet-exclusion",
-  menstrualCycle: "364307006",
-  bodyWeight: "29463-7",
-  bodyHeight: "8302-2",
-};
-
-// ─── Mutations ───────────────────────────────────────────────────────
-
-const CreateObservationMutation = graphql(`
-  mutation CreateObservation($input: CreateObservationInput!) {
-    createObservation(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogMenstrualPeriodStartMutation = graphql(`
-  mutation LogMenstrualPeriodStart($input: LogMenstrualPeriodStartInput!) {
-    logMenstrualPeriodStart(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogMenstrualPeriodDurationMutation = graphql(`
-  mutation LogMenstrualPeriodDuration($input: LogMenstrualPeriodDurationInput!) {
-    logMenstrualPeriodDuration(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const UpdateObservationMutation = graphql(`
-  mutation UpdateObservation($id: ID!, $input: UpdateObservationInput) {
-    updateObservation(id: $id, input: $input) {
-      result {
-        id
-        valueString
-        note {
-          text
-          time
-          authorReference
-          authorString
-        }
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const DeleteObservationMutation = graphql(`
-  mutation DeleteObservation($id: ID!) {
-    deleteObservation(id: $id) {
-      result {
-        id
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-// ─── Types ───────────────────────────────────────────────────────────
-
-/** Form data for recording a menstrual period from the person detail page. */
-export interface MenstrualCycleRecordFormData {
-  startDate: string;
-  durationDays: number | null;
-  notes: string;
-}
-
-/** Form data for creating or editing a free-text observation. */
-export interface ClinicalNoteFormData {
-  body: string;
-  effectiveDate?: string | null;
-  effectiveTime?: string | null;
-}
-
-/** Input for adding or replacing annotation notes on a resource. */
-export interface AnnotationInput {
-  text: string;
-  authorReference?: string | null;
-  authorString?: string | null;
-  time?: string | null;
-}
-
-/** A single observation item returned by the centralized patient query. */
-export type ObservationItem = PatientObservation;
-
-/** Paginated observations result. */
-export interface ObservationsPage {
-  items: ObservationItem[];
-  count: number;
-  endKeyset: string | null;
-}
-
-export interface MenstrualCycleSummary {
-  startDate: string | null;
-  endDate: string | null;
-  durationDays: number | null;
-  notes: string | null;
-  startObservationId?: string | null;
-  durationObservationId?: string | null;
-  sourceNotes?: ObservationItem["note"] | null;
-  paperTrailVersions?: ObservationItem["paperTrailVersions"] | null;
-  /** The patient reported the cycle themselves, through a questionnaire. */
-  selfReported?: boolean;
-}
-
-/** A single menstrual cycle event identified by the period-start observation. */
-export interface MenstrualCycleEntry extends MenstrualCycleSummary {
-  /** ID of the underlying period-start observation. */
-  id: string;
-  /** Period-start timestamp suitable for ordering feed events. */
-  effectiveDateTime: string;
-}
+export type {
+  ClinicalNoteFormData,
+  MenstrualCycleEntry,
+  MenstrualCycleRecordFormData,
+  MenstrualCycleSummary,
+  ObservationItem,
+  ObservationsPage,
+} from "@/features/customers/api/observations-api.types";
 
 // ─── Functions ───────────────────────────────────────────────────────
 
@@ -352,16 +233,6 @@ function isDisplayable(item: ObservationItem): boolean {
   return !item.code || item.code.text === CODES.clinicalNote;
 }
 
-function isLegacyMenstrualCycleObservation(item: ObservationItem): boolean {
-  return item.code?.coding?.some((coding) => coding.code === CODES.menstrualCycle) ?? false;
-}
-
-function newestFirst<T extends { effectiveDateTime?: string | null }>(items: readonly T[]): T[] {
-  return [...items].sort((a, b) =>
-    (b.effectiveDateTime ?? "").localeCompare(a.effectiveDateTime ?? ""),
-  );
-}
-
 /**
  * Select all observations for the list page.
  */
@@ -375,125 +246,6 @@ export function selectObservationsList(
     items,
     count: items.length,
     endKeyset: null,
-  };
-}
-
-function parseMenstrualCycleSummary(rawText: string): MenstrualCycleSummary {
-  const fields = rawText.split("|");
-
-  let startDate: string | null = null;
-  let endDate: string | null = null;
-  let notes: string | null = null;
-
-  for (const field of fields) {
-    const trimmed = field.trim();
-    if (!trimmed) {
-      continue;
-    }
-    if (trimmed.startsWith("start:")) {
-      const value = trimmed.slice("start:".length).trim();
-      startDate = value || null;
-      continue;
-    }
-    if (trimmed.startsWith("end:")) {
-      const value = trimmed.slice("end:".length).trim();
-      endDate = value || null;
-      continue;
-    }
-    if (trimmed.startsWith("notes:")) {
-      const value = trimmed.slice("notes:".length).trim();
-      notes = value || null;
-    }
-  }
-
-  return { startDate, endDate, durationDays: null, notes };
-}
-
-function toDateOnly(value: string | null | undefined): string | null {
-  const date = isoToDateInput(value);
-  return date || null;
-}
-
-function parseDurationDays(value: string | number | null | undefined): number | null {
-  if (value == null) {
-    return null;
-  }
-  const durationDays = Number.parseInt(String(value), 10);
-  return Number.isFinite(durationDays) ? durationDays : null;
-}
-
-function addInclusiveDuration(startDate: string, durationDays: number): string | null {
-  if (durationDays < 1) {
-    return null;
-  }
-
-  const date = new Date(`${startDate}T00:00:00.000Z`);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  date.setUTCDate(date.getUTCDate() + durationDays - 1);
-  return date.toISOString().slice(0, 10);
-}
-
-function firstNoteText(
-  ...records: Array<{ note?: readonly { text?: string | null }[] | null } | null | undefined>
-): string | null {
-  for (const record of records) {
-    const text = record?.note?.find((note) => note.text?.trim())?.text?.trim();
-    if (text) {
-      return text;
-    }
-  }
-  return null;
-}
-
-function firstNoteSource(
-  ...records: Array<{ note?: ObservationItem["note"] | null } | null | undefined>
-): ObservationItem["note"] | null {
-  for (const record of records) {
-    if (record?.note?.length) {
-      return record.note;
-    }
-  }
-  return null;
-}
-
-function summarizeFirstClassMenstrualCycle(
-  starts: readonly ObservationItem[],
-  durations: readonly ObservationItem[],
-): MenstrualCycleSummary | null {
-  const startRecord = starts[0];
-  if (!startRecord) {
-    return null;
-  }
-  return summarizeMenstrualCycleStart(startRecord, durations);
-}
-
-function summarizeMenstrualCycleStart(
-  startRecord: ObservationItem,
-  durations: readonly ObservationItem[],
-): MenstrualCycleSummary | null {
-  const startDate = toDateOnly(startRecord.valueDateTime ?? startRecord.effectiveDateTime);
-  if (!startDate) {
-    return null;
-  }
-
-  const matchingDuration = durations.find(
-    (record) => toDateOnly(record.effectiveDateTime) === startDate,
-  );
-  const durationDays = parseDurationDays(matchingDuration?.valueQuantity?.value);
-
-  return {
-    startDate,
-    endDate: durationDays == null ? null : addInclusiveDuration(startDate, durationDays),
-    durationDays,
-    notes: firstNoteText(startRecord, matchingDuration),
-    startObservationId: startRecord.id,
-    durationObservationId: matchingDuration?.id ?? null,
-    sourceNotes: firstNoteSource(startRecord, matchingDuration),
-    paperTrailVersions: startRecord.paperTrailVersions ?? matchingDuration?.paperTrailVersions,
-    selfReported: startRecord.selfReported === true || matchingDuration?.selfReported === true,
   };
 }
 
@@ -573,12 +325,6 @@ export function selectMenstrualCycleHistory(
   }
 
   return newestFirst(entries);
-}
-
-/** Parsed title and body from a free-text observation's valueString. */
-export interface ParsedClinicalNote {
-  title: string;
-  body: string;
 }
 
 // ─── Mutation functions ───────────────────────────────────────────────

@@ -17,8 +17,8 @@ import {
 } from "@/features/customers/ui/detail/subscription-management-dialogs";
 import { SubscriptionFormFields } from "@/features/customers/ui/subscription/subscription-form-fields";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import type { SubscriptionPlan, SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";

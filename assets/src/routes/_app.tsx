@@ -2,12 +2,12 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 
-import { useOrg } from "@/features/org/hooks/use-org";
-import { OrgStoreSync } from "@/features/org/store/org-store-sync";
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
 import { PendingInvitationsDialog } from "@/features/org/ui/pending-invitations-dialog";
 import * as m from "@/paraglide/messages";
 import { AppShell } from "@/shared/layout/app-shell";
+import { OrgStoreSync } from "@/shared/session/org-store-sync";
+import { useOrg } from "@/shared/session/use-org";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 

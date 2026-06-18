@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 
-import { useOrgStore } from "@/features/org/store/org-store";
+import { useOrgStore } from "@/shared/session/org-store";
 
 /**
  * Hook to access organization state.
