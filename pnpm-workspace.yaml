@@ -8,9 +8,24 @@ allowBuilds:
   '@parcel/watcher': false
   core-js: false
   esbuild: false
+  lefthook: true
   msw: false
   protobufjs: false
   unrs-resolver: false
 
+# Security overrides — pin vulnerable transitive deps to fixed versions (osv-scanner SCA gate).
+# Most originate from the shadcn CLI devDep chain (dev tooling, not app runtime). See osv-scanner.toml.
+overrides:
+  '@babel/core': ^7.29.6
+  '@opentelemetry/core': ^2.8.0
+  dompurify: ^3.4.9
+  hono: ^4.12.25
+  nodemailer: ^8.0.9
+  protobufjs: ^7.6.3
+  qs: ^6.15.2
+  vite: ^8.0.16
+  ws: ^8.21.0
+  js-yaml: ^4.2.0
+
 catalog:
-  '@biomejs/biome': 2.4.13
+  '@biomejs/biome': 2.5.0
