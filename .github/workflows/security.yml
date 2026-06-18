@@ -1,0 +1,84 @@
+name: Security
+
+# FOSS security gates. All tools are pinned in mise.toml and installed individually
+# (install: false) so this workflow never builds the Elixir/Erlang toolchain.
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: gitleaks (secret scanning)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0 # full history
+          persist-credentials: false
+      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          install: false
+          cache: true
+      - run: mise install gitleaks
+      - name: gitleaks
+        run: mise exec -- gitleaks git --no-banner --redact --config .gitleaks.toml .
+
+  sca:
+    name: osv-scanner (dependency CVEs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          install: false
+          cache: true
+      - run: mise install osv-scanner
+      # Scoped to the JS dependency tree (frontend). Honors osv-scanner.toml allowlist.
+      - name: osv-scanner
+        run: mise exec -- osv-scanner scan source --lockfile pnpm-lock.yaml --config osv-scanner.toml
+
+  sast:
+    name: opengrep (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          install: false
+          cache: true
+      - run: mise install opengrep
+      - name: opengrep
+        run: >-
+          mise exec -- opengrep scan
+          --config p/typescript --config p/react --config p/javascript
+          --config p/owasp-top-ten --config p/secrets
+          --severity ERROR --error assets/src
+
+  workflows:
+    name: actionlint + zizmor (workflow security)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          install: false
+          cache: true
+      - run: mise install actionlint zizmor
+      - name: actionlint
+        run: mise exec -- actionlint
+      - name: zizmor
+        run: mise exec -- zizmor .github/workflows
