@@ -1,6 +1,8 @@
 defmodule Chironium.Subscriptions.SubscriptionVisibilityTest do
   use Chironium.DataCase, async: false
 
+  require Ash.Query
+
   import Chironium.Generator
 
   setup do
@@ -154,10 +156,8 @@ defmodule Chironium.Subscriptions.SubscriptionVisibilityTest do
       care_team = create_care_team(ctx, patient, :active, "Pause team")
       add_participant(ctx, care_team, practitioner)
 
-      sub = create_subscription(ctx, patient.person_id)
-
       sub =
-        sub
+        create_subscription(ctx, patient.person_id)
         |> Ash.Changeset.for_update(:suspend, %{reason: "Original reason"},
           actor: ctx.owner,
           tenant: ctx.tenant,
