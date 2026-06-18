@@ -13,10 +13,10 @@ import {
 } from "@/features/customers/api/observations-api";
 import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-history-entry-dialog";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useCurrentUser } from "@/shared/session/use-current-user";
+import { useOrg } from "@/shared/session/use-org";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { FormDialog } from "@/shared/ui/form-dialog";

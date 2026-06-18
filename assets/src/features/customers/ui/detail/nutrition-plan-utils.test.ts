@@ -121,7 +121,11 @@ describe("redistributeMacrosForTargetKcal", () => {
   });
 
   it("distributes evenly from an all-zero plan", () => {
-    const { values } = redistributeMacrosForTargetKcal(2000, { protein: 0, carbs: 0, fat: 0 });
+    const { values } = redistributeMacrosForTargetKcal(2000, {
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+    });
     expect(values.proteinG).toBeGreaterThan(0);
     expect(values.carbsG).toBeGreaterThan(0);
     expect(values.fatG).toBeGreaterThan(0);
@@ -185,28 +189,58 @@ describe("unitValueFromGrams", () => {
 
   it("round-trips % of kcal", () => {
     expect(
-      unitValueFromGrams({ unit: "percent", grams: 150, kcalPerGram: 4, totalKcal: 2000 }),
+      unitValueFromGrams({
+        unit: "percent",
+        grams: 150,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+      }),
     ).toBe(30);
   });
 
   it("falls back to 0 when context is missing", () => {
-    expect(unitValueFromGrams({ unit: "gkg", grams: 160, kcalPerGram: 4, totalKcal: 2000 })).toBe(
-      0,
-    );
-    expect(unitValueFromGrams({ unit: "percent", grams: 150, kcalPerGram: 4, totalKcal: 0 })).toBe(
-      0,
-    );
-    expect(unitValueFromGrams({ unit: "grams", grams: 0, kcalPerGram: 4, totalKcal: 2000 })).toBe(
-      0,
-    );
+    expect(
+      unitValueFromGrams({
+        unit: "gkg",
+        grams: 160,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+      }),
+    ).toBe(0);
+    expect(
+      unitValueFromGrams({
+        unit: "percent",
+        grams: 150,
+        kcalPerGram: 4,
+        totalKcal: 0,
+      }),
+    ).toBe(0);
+    expect(
+      unitValueFromGrams({
+        unit: "grams",
+        grams: 0,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+      }),
+    ).toBe(0);
   });
 
   it("clamps negative grams to 0 across every unit", () => {
-    expect(unitValueFromGrams({ unit: "grams", grams: -50, kcalPerGram: 4, totalKcal: 2000 })).toBe(
-      0,
-    );
     expect(
-      unitValueFromGrams({ unit: "percent", grams: -50, kcalPerGram: 4, totalKcal: 2000 }),
+      unitValueFromGrams({
+        unit: "grams",
+        grams: -50,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+      }),
+    ).toBe(0);
+    expect(
+      unitValueFromGrams({
+        unit: "percent",
+        grams: -50,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+      }),
     ).toBe(0);
     expect(
       unitValueFromGrams({
@@ -223,13 +257,23 @@ describe("unitValueFromGrams", () => {
 describe("formatMacroUnitDisplay", () => {
   it("is empty when grams are unset", () => {
     expect(
-      formatMacroUnitDisplay({ unit: "grams", grams: 0, kcalPerGram: 4, totalKcal: 2000 }),
+      formatMacroUnitDisplay({
+        unit: "grams",
+        grams: 0,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+      }),
     ).toBe("");
   });
 
   it("renders the converted value", () => {
     expect(
-      formatMacroUnitDisplay({ unit: "grams", grams: 150, kcalPerGram: 4, totalKcal: 2000 }),
+      formatMacroUnitDisplay({
+        unit: "grams",
+        grams: 150,
+        kcalPerGram: 4,
+        totalKcal: 2000,
+      }),
     ).toBe("150");
   });
 });

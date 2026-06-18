@@ -7,8 +7,8 @@ import type { Person } from "@/features/customers/api/persons-api";
 import { updatePerson } from "@/features/customers/api/persons-api";
 import { PersonStep } from "@/features/customers/ui/onboarding/person-step";
 import { invalidatePersonAndOrg } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
 

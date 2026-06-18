@@ -11,7 +11,7 @@ function hasActivePractitionerGrant(
   );
 }
 
-export type MemberSource =
+type MemberSource =
   | { kind: "owner"; userId: string }
   | { kind: "membership"; organizationUserId: string; userId: string }
   | { kind: "invitation"; invitationId: string };
@@ -209,7 +209,10 @@ export function buildSettingsMemberRows(
           hasPractitionerRole: grants,
         }),
         status: m.settings_member_status_pending(),
-        source: { kind: "invitation", invitationId: invitation.id } satisfies MemberSource,
+        source: {
+          kind: "invitation",
+          invitationId: invitation.id,
+        } satisfies MemberSource,
         orgRole: invitation.role,
         isOwner: false,
         hasPractitionerGrant: grants,

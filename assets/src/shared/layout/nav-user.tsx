@@ -1,7 +1,7 @@
 import { ChevronsUpDown, LogOut } from "lucide-react";
 
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
+import { useCurrentUser } from "@/shared/session/use-current-user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
   DropdownMenu,

@@ -1,9 +1,9 @@
 import { LogOut } from "lucide-react";
 import { useEffect } from "react";
 
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
+import { useCurrentUser } from "@/shared/session/use-current-user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { LanguageToggle } from "@/shared/ui/language-toggle";

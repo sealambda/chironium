@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import { createClinicalNoteObservations } from "@/features/customers/api/observations-api";
 import { ObservationForm } from "@/features/customers/ui/observation-form";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useOrg } from "@/shared/session/use-org";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { toDateTimeInputParts } from "@/shared/utils/date-time-input";
 

@@ -243,14 +243,14 @@ export interface OrgCreationDraft {
 }
 
 /** Principal grant fields needed for settings role display (matches GraphQL selection). */
-export interface PrincipalGrantRow {
+interface PrincipalGrantRow {
   principalType: PrincipalType;
   principalId: string;
   active: boolean;
 }
 
 /** A user row returned with organization settings (owner or member). */
-export interface OrganizationMemberUser {
+interface OrganizationMemberUser {
   id: string;
   email: string;
   name: string | null;
@@ -260,7 +260,7 @@ export interface OrganizationMemberUser {
 }
 
 /** Join row for org membership; `role` is `OrganizationUserRole`. */
-export interface OrganizationMembershipRow {
+interface OrganizationMembershipRow {
   id: string;
   role: OrganizationUserRole;
   principalGrants: PrincipalGrantRow[];

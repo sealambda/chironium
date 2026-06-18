@@ -36,7 +36,10 @@ function formatDuration(cycle: MenstrualCycleEntry): string | null {
   if (!isValid(start) || !isValid(end)) {
     return null;
   }
-  return formatDistanceStrict(start, end, { locale: getDateLocale(), unit: "day" });
+  return formatDistanceStrict(start, end, {
+    locale: getDateLocale(),
+    unit: "day",
+  });
 }
 
 export function MenstrualCycleEvent({ cycle }: Readonly<MenstrualCycleEventProps>) {

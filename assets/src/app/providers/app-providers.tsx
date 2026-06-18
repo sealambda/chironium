@@ -5,8 +5,8 @@ import { StrictMode } from "react";
 
 import { InnerApp } from "@/app/inner-app";
 import { router } from "@/app/router";
-import { UserStoreSync } from "@/features/user/store/user-store-sync";
 import { LocaleProvider } from "@/shared/i18n/locale-provider";
+import { UserStoreSync } from "@/shared/session/user-store-sync";
 import { ThemeProvider } from "@/shared/theme/theme-provider";
 import { Toaster } from "@/shared/ui/sonner";
 

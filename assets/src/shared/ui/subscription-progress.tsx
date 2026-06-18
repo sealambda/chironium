@@ -83,7 +83,9 @@ export function SubscriptionProgress({
   const planDurationMonths = durationToMonths(subscription.plan?.duration);
   const startDate = new Date(subscription.startDate);
   const endDate = new Date(
-    formatISO(addMonths(startDate, planDurationMonths), { representation: "date" }),
+    formatISO(addMonths(startDate, planDurationMonths), {
+      representation: "date",
+    }),
   );
 
   const progress = getSubscriptionProgressRatio(startDate, endDate);
@@ -115,7 +117,6 @@ export function SubscriptionProgress({
             segmentRounding(isFirst, isLast),
             i < elapsedMonths ? progressToneClass : "bg-muted",
           );
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length month segments never reorder
           return <div key={i} className={cls} aria-hidden="true" />;
         })}
       </div>

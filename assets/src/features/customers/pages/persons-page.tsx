@@ -1,17 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import type { RowSelectionState } from "@tanstack/react-table";
-import {
-  ArrowDownIcon,
-  ArrowUpDownIcon,
-  ArrowUpIcon,
-  Building2,
-  ListFilterIcon,
-  Plus,
-  Search,
-  Users,
-} from "lucide-react";
-import type * as React from "react";
+import { Building2, ListFilterIcon, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchPersonIdsByPractitioner } from "@/features/customers/api/care-team-api";
@@ -31,26 +20,18 @@ import {
   getStoredPersonSortPreference,
   storePersonSortPreference,
 } from "@/features/customers/model/person-sort-preferences";
+import { CustomerList } from "@/features/customers/pages/persons-page-list";
+import { CustomerSortDropdown } from "@/features/customers/pages/persons-page-sort";
 import { CustomerBulkActionBar } from "@/features/customers/ui/customer-bulk-action-bar";
-import { CustomerTable } from "@/features/customers/ui/customer-table";
 import { FilterByPractitionerDialog } from "@/features/customers/ui/filter-by-practitioner-dialog";
 import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-dialog";
-import { PersonCard } from "@/features/customers/ui/person-card";
 import { ReassignCustomersDialog } from "@/features/customers/ui/reassign-customers-dialog";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
+import { useCurrentUser } from "@/shared/session/use-current-user";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { ListSearchField } from "@/shared/ui/list-search-field";
 import { Loading } from "@/shared/ui/loading";
@@ -188,8 +169,12 @@ export function CustomersPage() {
   const handleReassignCompleted = () => {
     const orgId = selectedOrg?.id ?? "";
     void Promise.all([
-      queryClient.invalidateQueries({ queryKey: customersQueryKeys.personsPrefix(orgId) }),
-      queryClient.invalidateQueries({ queryKey: customersQueryKeys.subscriptions(orgId) }),
+      queryClient.invalidateQueries({
+        queryKey: customersQueryKeys.personsPrefix(orgId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: customersQueryKeys.subscriptions(orgId),
+      }),
       queryClient.invalidateQueries({
         queryKey: customersQueryKeys.practitionerPersonIdsPrefix(orgId),
       }),
@@ -390,7 +375,9 @@ function PractitionerFilterButton({
       onClick={onClick}
       aria-label={
         assignmentFilter
-          ? m.customers_filter_by_practitioner_active_aria({ name: buttonLabel })
+          ? m.customers_filter_by_practitioner_active_aria({
+              name: buttonLabel,
+            })
           : m.customers_filter_by_practitioner()
       }
       data-testid="filter-practitioner-button"
@@ -399,218 +386,4 @@ function PractitionerFilterButton({
       {compact ? null : <span>{buttonLabel}</span>}
     </Button>
   );
-}
-
-function CustomerList({
-  items,
-  isEmpty,
-  onAdd,
-  rowSelection,
-  onRowSelectionChange,
-}: Readonly<{
-  items: CustomerListItem[];
-  isEmpty: boolean;
-  onAdd: () => void;
-  rowSelection: RowSelectionState;
-  onRowSelectionChange: React.Dispatch<React.SetStateAction<RowSelectionState>>;
-}>) {
-  if (isEmpty) {
-    return (
-      <EmptyState
-        icon={Users}
-        title={m.customers_empty()}
-        description={m.customers_empty_desc()}
-        actions={[
-          {
-            label: m.customer_add(),
-            testId: "customers-new-button-empty",
-            onAction: onAdd,
-          },
-        ]}
-      />
-    );
-  }
-
-  if (items.length === 0) {
-    return <EmptyState icon={Search} title={m.customers_no_results()} />;
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      {/* Mobile: stacked cards with bulk selection */}
-      <div className="flex flex-col gap-3 lg:hidden">
-        {items.map((item) => {
-          const id = item.person.id;
-          const name = formatPersonName(item.person.name);
-          return (
-            <div key={id} className="relative">
-              <Checkbox
-                aria-label={m.customers_select_row_aria({ name })}
-                checked={Boolean(rowSelection[id])}
-                className="absolute top-4 right-4 z-10"
-                onCheckedChange={(value) => {
-                  const selected = Boolean(value);
-                  onRowSelectionChange((prev) => {
-                    if (selected) {
-                      return { ...prev, [id]: true };
-                    }
-                    const next = { ...prev };
-                    delete next[id];
-                    return next;
-                  });
-                }}
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-              />
-              <Link
-                to="/customers/$customerId"
-                params={{ customerId: id }}
-                className="block min-w-0"
-              >
-                <PersonCard item={item} />
-              </Link>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Desktop: data table */}
-      <div className="hidden lg:block">
-        <CustomerTable
-          items={items}
-          rowSelection={rowSelection}
-          onRowSelectionChange={onRowSelectionChange}
-        />
-      </div>
-    </div>
-  );
-}
-
-function CustomerSortDropdown({
-  sortOption,
-  onSortOptionChange,
-  compact = false,
-}: Readonly<{
-  sortOption: PersonListSortOption;
-  onSortOptionChange: (sort: PersonListSortOption) => void;
-  compact?: boolean;
-}>) {
-  const selectedSortLabel = getSortOptionLabel(sortOption);
-  const SortIcon = getSortTriggerIcon(sortOption);
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="outline" size={compact ? "icon-sm" : "sm"} type="button" />}
-      >
-        <SortIcon data-icon="inline-start" aria-hidden />
-        <span className={compact ? "sr-only" : undefined}>{selectedSortLabel}</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{m.customers_sort_by()}</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => onSortOptionChange(getNextRecentSort(sortOption))}>
-          {m.customers_sort_recent()}
-          <RecentSortIcon sortOption={sortOption} />
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSortOptionChange(getNextGivenNameSort(sortOption))}>
-          {m.customers_sort_given_name()}
-          <GivenNameSortIcon sortOption={sortOption} />
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSortOptionChange(getNextFamilyNameSort(sortOption))}>
-          {m.customers_sort_family_name()}
-          <FamilyNameSortIcon sortOption={sortOption} />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function getSortTriggerIcon(sortOption: PersonListSortOption): typeof ArrowUpDownIcon {
-  if (
-    sortOption === "moreRecent" ||
-    sortOption === "givenNameDesc" ||
-    sortOption === "familyNameDesc"
-  ) {
-    return ArrowDownIcon;
-  }
-
-  if (
-    sortOption === "lessRecent" ||
-    sortOption === "givenNameAsc" ||
-    sortOption === "familyNameAsc"
-  ) {
-    return ArrowUpIcon;
-  }
-
-  return ArrowUpDownIcon;
-}
-
-function RecentSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
-  if (sortOption === "moreRecent") {
-    return <ArrowDownIcon className="ml-auto opacity-60" aria-hidden />;
-  }
-  if (sortOption === "lessRecent") {
-    return <ArrowUpIcon className="ml-auto opacity-60" aria-hidden />;
-  }
-  return <ArrowUpDownIcon className="ml-auto opacity-60" aria-hidden />;
-}
-
-function GivenNameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
-  if (sortOption === "givenNameDesc") {
-    return <ArrowDownIcon className="ml-auto opacity-60" aria-hidden />;
-  }
-  if (sortOption === "givenNameAsc") {
-    return <ArrowUpIcon className="ml-auto opacity-60" aria-hidden />;
-  }
-  return <ArrowUpDownIcon className="ml-auto opacity-60" aria-hidden />;
-}
-
-function FamilyNameSortIcon({ sortOption }: Readonly<{ sortOption: PersonListSortOption }>) {
-  if (sortOption === "familyNameDesc") {
-    return <ArrowDownIcon className="ml-auto opacity-60" aria-hidden />;
-  }
-  if (sortOption === "familyNameAsc") {
-    return <ArrowUpIcon className="ml-auto opacity-60" aria-hidden />;
-  }
-  return <ArrowUpDownIcon className="ml-auto opacity-60" aria-hidden />;
-}
-
-function getSortOptionLabel(sortOption: PersonListSortOption): string {
-  if (sortOption === "moreRecent") {
-    return m.customers_sort_more_recent();
-  }
-  if (sortOption === "lessRecent") {
-    return m.customers_sort_less_recent();
-  }
-  if (sortOption === "givenNameAsc") {
-    return m.customers_sort_given_name_asc();
-  }
-  if (sortOption === "givenNameDesc") {
-    return m.customers_sort_given_name_desc();
-  }
-  if (sortOption === "familyNameAsc") {
-    return m.customers_sort_family_name_asc();
-  }
-  return m.customers_sort_family_name_desc();
-}
-
-function getNextRecentSort(sortOption: PersonListSortOption): PersonListSortOption {
-  if (sortOption === "moreRecent") {
-    return "lessRecent";
-  }
-  return "moreRecent";
-}
-
-function getNextGivenNameSort(sortOption: PersonListSortOption): PersonListSortOption {
-  if (sortOption === "givenNameAsc") {
-    return "givenNameDesc";
-  }
-  return "givenNameAsc";
-}
-
-function getNextFamilyNameSort(sortOption: PersonListSortOption): PersonListSortOption {
-  if (sortOption === "familyNameAsc") {
-    return "familyNameDesc";
-  }
-  return "familyNameAsc";
 }

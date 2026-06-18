@@ -7,8 +7,8 @@ import {
   type PlanFormData,
   submitOrgCreation,
 } from "@/features/org/api/org-api";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { ResponsiveStepIndicator } from "@/shared/ui/responsive-step-indicator";
 import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";

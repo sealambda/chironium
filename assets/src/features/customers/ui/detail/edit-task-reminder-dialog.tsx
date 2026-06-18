@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-history-entry-dialog";
-import { useOrg } from "@/features/org/hooks/use-org";
 import {
   deleteTaskReminder,
   type PatientTask,
   updateTaskReminder,
 } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { FormDialog } from "@/shared/ui/form-dialog";
@@ -64,8 +64,12 @@ export function EditTaskReminderDialog({
         });
 
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.reviewTasksScope(personId) }),
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.patientTasksScope(personId) }),
+          queryClient.invalidateQueries({
+            queryKey: personQueryKeys.reviewTasksScope(personId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: personQueryKeys.patientTasksScope(personId),
+          }),
         ]);
 
         toast.success(m.review_task_updated());

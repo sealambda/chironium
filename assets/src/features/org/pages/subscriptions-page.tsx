@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { fetchSubscriptionPlans } from "@/features/customers/api/subscriptions-api";
 import { fetchOrganizationSettings } from "@/features/org/api/org-api";
-import { useOrg } from "@/features/org/hooks/use-org";
 import { AddSubscriptionPlanDialog } from "@/features/org/ui/add-subscription-plan-dialog";
 import {
   formatSubscriptionPlanDurationText,
@@ -12,9 +11,10 @@ import {
 } from "@/features/org/ui/subscription-plan-columns";
 import { SubscriptionPlansTable } from "@/features/org/ui/subscription-plans-table";
 import { canManageOrgMembers } from "@/features/org/utils/settings-member-table-model";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
 import { useDetailMode } from "@/shared/layout/detail-context";
+import { useCurrentUser } from "@/shared/session/use-current-user";
+import { useOrg } from "@/shared/session/use-org";
 import type { SubscriptionPlan } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
@@ -55,7 +55,9 @@ export function SubscriptionsPage() {
   });
 
   const invalidatePlans = () =>
-    queryClient.invalidateQueries({ queryKey: subscriptionPlansQueryKey(selectedOrg?.id ?? "") });
+    queryClient.invalidateQueries({
+      queryKey: subscriptionPlansQueryKey(selectedOrg?.id ?? ""),
+    });
 
   useEffect(() => {
     if (!selectedOrg || plansLoading || plansError) {

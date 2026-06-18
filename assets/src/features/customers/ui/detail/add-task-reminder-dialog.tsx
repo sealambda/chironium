@@ -5,10 +5,10 @@ import { ClipboardClock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { useOrg } from "@/features/org/hooks/use-org";
 import { createTask, fetchTasksForPatient } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import { DatePickerString } from "@/shared/ui/date-picker";
 import {
@@ -102,9 +102,15 @@ export function AddTaskReminderDialog({
         });
 
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.reviewTasksScope(personId) }),
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.patientTasksScope(personId) }),
-          queryClient.invalidateQueries({ queryKey: tasksListQueryKey(selectedOrg.id) }),
+          queryClient.invalidateQueries({
+            queryKey: personQueryKeys.reviewTasksScope(personId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: personQueryKeys.patientTasksScope(personId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: tasksListQueryKey(selectedOrg.id),
+          }),
         ]);
 
         toast.success(m.review_task_created());

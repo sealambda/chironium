@@ -74,7 +74,10 @@ describe("condition mutations", () => {
 
   it("updates conditions without sending recordedDate", async () => {
     requestGraphqlMock.mockResolvedValueOnce({
-      updateCondition: { result: { id: "condition-1", note: [] }, errors: null },
+      updateCondition: {
+        result: { id: "condition-1", note: [] },
+        errors: null,
+      },
     });
 
     await updateCondition(

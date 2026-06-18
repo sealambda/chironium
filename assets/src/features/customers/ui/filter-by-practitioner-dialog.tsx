@@ -145,7 +145,11 @@ export function FilterByPractitionerDialog({
       const selectedItem = comboItems.find((item) => item.value === pendingValue);
       onApply(
         selectedItem
-          ? { kind: "practitioner", id: selectedItem.value, name: selectedItem.label }
+          ? {
+              kind: "practitioner",
+              id: selectedItem.value,
+              name: selectedItem.label,
+            }
           : null,
       );
     } else {

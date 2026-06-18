@@ -2,9 +2,9 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 
-import { useOrg } from "@/features/org/hooks/use-org";
 import { OrgSelector } from "@/features/org/ui/org-selector";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import { LanguageToggle } from "@/shared/ui/language-toggle";
 import { Sheet, SheetContent } from "@/shared/ui/sheet";

@@ -14,9 +14,9 @@ import {
   nutritionPlanFormSchema,
 } from "@/features/customers/model/nutrition-plan-schema";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
+import { useOrg } from "@/shared/session/use-org";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/shared/ui/field";
@@ -262,7 +262,11 @@ export function NutritionPlanDetailDialog({
           })}
         >
           {({ targetKcal, proteinG, carbsG, fatG }) => {
-            const macros: MacroGrams = { protein: proteinG, carbs: carbsG, fat: fatG };
+            const macros: MacroGrams = {
+              protein: proteinG,
+              carbs: carbsG,
+              fat: fatG,
+            };
             const macroTotal = totalKcalFromMacroGrams(macros);
             const delta = macroTotal - targetKcal;
             const hasMacros = proteinG > 0 || carbsG > 0 || fatG > 0;
@@ -297,7 +301,10 @@ export function NutritionPlanDetailDialog({
                   <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-muted-foreground text-sm">
-                        {m.nutrition_balance_summary({ kcal: macroTotal, target: targetKcal })}
+                        {m.nutrition_balance_summary({
+                          kcal: macroTotal,
+                          target: targetKcal,
+                        })}
                       </p>
                       {balanced ? null : (
                         <Button

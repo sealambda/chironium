@@ -16,7 +16,7 @@ import {
 } from "@/features/customers/api/observations-api";
 import { fetchPatientDetail } from "@/features/customers/api/patients-api";
 import { fetchSubscriptionsByPerson } from "@/features/customers/api/subscriptions-api";
-import { useOrg } from "@/features/org/hooks/use-org";
+import { useOrg } from "@/shared/session/use-org";
 import { personQueryKeys } from "@/shared/utils/query-keys";
 
 /** Combine loading states from multiple queries. */
@@ -24,8 +24,15 @@ function combineLoadingState(...queries: UseQueryResult<unknown, Error>[]) {
   return queries.some((q) => q.isLoading);
 }
 
-const EMPTY_FOOD_PREFERENCE_LABELS: FoodPreferencesData = { included: [], excluded: [] };
-const EMPTY_OBSERVATIONS_PAGE: ObservationsPage = { items: [], count: 0, endKeyset: null };
+const EMPTY_FOOD_PREFERENCE_LABELS: FoodPreferencesData = {
+  included: [],
+  excluded: [],
+};
+const EMPTY_OBSERVATIONS_PAGE: ObservationsPage = {
+  items: [],
+  count: 0,
+  endKeyset: null,
+};
 
 /**
  * Hook to fetch and manage all person detail data.

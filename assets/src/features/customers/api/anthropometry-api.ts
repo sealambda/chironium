@@ -1,140 +1,30 @@
+import {
+  extractValue,
+  normalizeQuantity,
+  quantityCodeForObservation,
+  UNIT_OF_MEASURE_SYSTEM,
+} from "@/features/customers/api/anthropometry-api.helpers";
+import {
+  DeleteAnthropometryObservationMutation,
+  LogArmCircumferenceMutation,
+  LogBodyHeightMutation,
+  LogBodyWeightMutation,
+  LogChestCircumferenceMutation,
+  LogHipCircumferenceMutation,
+  LogThighCircumferenceMutation,
+  LogWaistCircumferenceMutation,
+  UpdateAnthropometryObservationMutation,
+} from "@/features/customers/api/anthropometry-api.queries";
 import type { PatientObservation } from "@/features/customers/api/patients-api";
-import type { VersionActorSource } from "@/features/customers/types/activity-feed";
-import { graphql } from "@/graphql";
+import type { VersionActorSource } from "@/features/customers/types/version-actor-source";
 import { unwrapMutationResult } from "@/shared/api/error-utils";
 import { requestGraphql } from "@/shared/api/graphql";
 import { toDateTimeInput } from "@/shared/utils/date-time-input";
 
-// ─── Mutations ───────────────────────────────────────────────────────
-
-const LogBodyHeightMutation = graphql(`
-  mutation LogBodyHeight($input: LogBodyHeightInput!) {
-    logBodyHeight(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogBodyWeightMutation = graphql(`
-  mutation LogBodyWeight($input: LogBodyWeightInput!) {
-    logBodyWeight(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogChestCircumferenceMutation = graphql(`
-  mutation LogChestCircumference($input: LogChestCircumferenceInput!) {
-    logChestCircumference(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogWaistCircumferenceMutation = graphql(`
-  mutation LogWaistCircumference($input: LogWaistCircumferenceInput!) {
-    logWaistCircumference(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogHipCircumferenceMutation = graphql(`
-  mutation LogHipCircumference($input: LogHipCircumferenceInput!) {
-    logHipCircumference(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogArmCircumferenceMutation = graphql(`
-  mutation LogArmCircumference($input: LogArmCircumferenceInput!) {
-    logArmCircumference(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const LogThighCircumferenceMutation = graphql(`
-  mutation LogThighCircumference($input: LogThighCircumferenceInput!) {
-    logThighCircumference(input: $input) {
-      result {
-        id
-        status
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const UpdateAnthropometryObservationMutation = graphql(`
-  mutation UpdateAnthropometryObservation($id: ID!, $input: UpdateObservationInput) {
-    updateObservation(id: $id, input: $input) {
-      result {
-        id
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
-const DeleteAnthropometryObservationMutation = graphql(`
-  mutation DeleteAnthropometryObservation($id: ID!) {
-    deleteObservation(id: $id) {
-      result {
-        id
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** A point-in-time snapshot of all anthropometric measurements for a person. */
-export interface AnthropometryAnnotation {
+interface AnthropometryAnnotation {
   text?: string | null;
   authorReference?: string | null;
   authorString?: string | null;
@@ -149,7 +39,7 @@ type HeightKey = "height";
 type AnthropometryMeasureKey = WeightKey | HeightKey | CircumferenceKey;
 type AnthropometryObservationKey = AnthropometryMeasureKey | "bmi" | "whr";
 
-export interface AnthropometryObservationRef {
+interface AnthropometryObservationRef {
   id: string;
   note: AnthropometryAnnotation[];
   paperTrailVersions?: VersionActorSource[];
@@ -197,25 +87,9 @@ export interface AnthropometryUpdateInput {
   thighCm: number | null;
 }
 
-export interface AnthropometryAnnotationInput {
-  text: string;
-  authorReference?: string | null;
-  authorString?: string | null;
-  time?: string | null;
-}
-
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 type ObservationRecord = PatientObservation;
-
-/** Parse the numeric value from a FHIR valueQuantity string, returning undefined on NaN or missing data. */
-export function extractValue(obs: ObservationRecord | undefined): number | undefined {
-  if (!obs?.valueQuantity?.value) {
-    return undefined;
-  }
-  const n = Number.parseFloat(obs.valueQuantity.value);
-  return Number.isNaN(n) ? undefined : n;
-}
 
 function anthropometryKeyForObservation(
   obs: ObservationRecord,
@@ -387,16 +261,6 @@ export async function logAnthropometry(
   );
 }
 
-function normalizeQuantity(value: number) {
-  return Number.isInteger(value) ? value : Number(value.toFixed(2));
-}
-
-const UNIT_OF_MEASURE_SYSTEM = "http://unitsofmeasure.org";
-
-function quantityCodeForObservation(observationKey: AnthropometryMeasureKey): "kg" | "cm" {
-  return observationKey === "weight" ? "kg" : "cm";
-}
-
 async function updateQuantityObservation(
   id: string,
   observationKey: AnthropometryMeasureKey,
@@ -453,7 +317,9 @@ async function logNewObservation(
     case "chest": {
       const result = await requestGraphql({
         document: LogChestCircumferenceMutation,
-        variables: { input: { subjectId, chestCircumferenceCm: value, effectiveDateTime } },
+        variables: {
+          input: { subjectId, chestCircumferenceCm: value, effectiveDateTime },
+        },
         organizationId,
       });
       unwrapMutationResult(result.logChestCircumference, "Failed to log chest circumference.");
@@ -462,7 +328,9 @@ async function logNewObservation(
     case "waist": {
       const result = await requestGraphql({
         document: LogWaistCircumferenceMutation,
-        variables: { input: { subjectId, waistCircumferenceCm: value, effectiveDateTime } },
+        variables: {
+          input: { subjectId, waistCircumferenceCm: value, effectiveDateTime },
+        },
         organizationId,
       });
       unwrapMutationResult(result.logWaistCircumference, "Failed to log waist circumference.");
@@ -471,7 +339,9 @@ async function logNewObservation(
     case "hip": {
       const result = await requestGraphql({
         document: LogHipCircumferenceMutation,
-        variables: { input: { subjectId, hipCircumferenceCm: value, effectiveDateTime } },
+        variables: {
+          input: { subjectId, hipCircumferenceCm: value, effectiveDateTime },
+        },
         organizationId,
       });
       unwrapMutationResult(result.logHipCircumference, "Failed to log hip circumference.");
@@ -480,7 +350,9 @@ async function logNewObservation(
     case "arm": {
       const result = await requestGraphql({
         document: LogArmCircumferenceMutation,
-        variables: { input: { subjectId, armCircumferenceCm: value, effectiveDateTime } },
+        variables: {
+          input: { subjectId, armCircumferenceCm: value, effectiveDateTime },
+        },
         organizationId,
       });
       unwrapMutationResult(result.logArmCircumference, "Failed to log arm circumference.");
@@ -489,7 +361,9 @@ async function logNewObservation(
     case "thigh": {
       const result = await requestGraphql({
         document: LogThighCircumferenceMutation,
-        variables: { input: { subjectId, thighCircumferenceCm: value, effectiveDateTime } },
+        variables: {
+          input: { subjectId, thighCircumferenceCm: value, effectiveDateTime },
+        },
         organizationId,
       });
       unwrapMutationResult(result.logThighCircumference, "Failed to log thigh circumference.");

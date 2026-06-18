@@ -23,7 +23,9 @@ async function createOrgWithPlan(page: Page, runId: string) {
     expect(page.getByTestId("no-org-create-organization-button")).toBeVisible({
       timeout: TIMEOUT_MS,
     }),
-    expect(page.getByTestId("settings-heading")).toBeVisible({ timeout: TIMEOUT_MS }),
+    expect(page.getByTestId("settings-heading")).toBeVisible({
+      timeout: TIMEOUT_MS,
+    }),
   ]);
 
   if (await page.getByTestId("no-org-create-organization-button").isVisible()) {
@@ -53,7 +55,9 @@ async function createOrgWithPlan(page: Page, runId: string) {
 
 async function openOnboarding(page: Page) {
   await page.goto("/app/customers");
-  await expect(page.getByTestId("customers-heading")).toBeVisible({ timeout: TIMEOUT_MS });
+  await expect(page.getByTestId("customers-heading")).toBeVisible({
+    timeout: TIMEOUT_MS,
+  });
 
   await page.getByTestId("customers-new-button-header").click();
   const dialog = page.getByTestId("customer-onboarding-dialog");
@@ -226,7 +230,9 @@ async function editCustomerFromDetail(page: Page, updatedGivenName: string) {
   // Reopen and verify the edited start date is now the current subscription date.
   await openAddRecordTile(page, "subscription");
   await expect(subscriptionDialog).toBeVisible({ timeout: TIMEOUT_MS });
-  await expect(startDateInput).toHaveValue(updatedDateValue, { timeout: TIMEOUT_MS });
+  await expect(startDateInput).toHaveValue(updatedDateValue, {
+    timeout: TIMEOUT_MS,
+  });
   await page.keyboard.press("Escape");
   await expect(subscriptionDialog).toBeHidden({ timeout: TIMEOUT_MS });
 

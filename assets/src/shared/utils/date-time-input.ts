@@ -2,9 +2,9 @@ import { endOfDay, format, formatISO, isValid, parse, startOfDay } from "date-fn
 
 import { getLocale } from "@/paraglide/runtime";
 
-export const DATE_INPUT_FORMAT = "yyyy-MM-dd";
-export const TIME_INPUT_FORMAT = "HH:mm";
-export const DATE_TIME_INPUT_FORMAT = `${DATE_INPUT_FORMAT} ${TIME_INPUT_FORMAT}`;
+const DATE_INPUT_FORMAT = "yyyy-MM-dd";
+const TIME_INPUT_FORMAT = "HH:mm";
+const DATE_TIME_INPUT_FORMAT = `${DATE_INPUT_FORMAT} ${TIME_INPUT_FORMAT}`;
 
 export interface DateTimeInputParts {
   date: string;
@@ -15,7 +15,7 @@ export function toDateInput(value: Date): string {
   return format(value, DATE_INPUT_FORMAT);
 }
 
-export function toTimeInput(value: Date): string {
+function toTimeInput(value: Date): string {
   return format(value, TIME_INPUT_FORMAT);
 }
 

@@ -176,7 +176,10 @@ export function AddSubscriptionPlanDialog({
                   }
                 }}
                 disabled={isSubmitting}
-                items={DURATION_UNITS.map(({ value, label }) => ({ value, label: label() }))}
+                items={DURATION_UNITS.map(({ value, label }) => ({
+                  value,
+                  label: label(),
+                }))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={m.duration_placeholder()} />

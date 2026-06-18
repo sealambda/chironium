@@ -111,7 +111,9 @@ async function acceptInvitation(page: Page, inviteCode: string) {
   const invitationCodeInput = page.getByTestId("invitation-code-input");
   const acceptButton = page.getByTestId("invitation-accept-button");
   await expect(invitationCodeInput).toBeVisible({ timeout: TIMEOUT_MS });
-  await expect(invitationCodeInput).toHaveValue(inviteCode, { timeout: TIMEOUT_MS });
+  await expect(invitationCodeInput).toHaveValue(inviteCode, {
+    timeout: TIMEOUT_MS,
+  });
   await expect(acceptButton).toBeVisible({ timeout: TIMEOUT_MS });
 
   await acceptButton.click();

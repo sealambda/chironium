@@ -18,8 +18,8 @@ import { MedicationsCard } from "@/features/customers/ui/detail/medications-card
 import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
 import { NutritionCard } from "@/features/customers/ui/detail/nutrition-card";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
-import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { useOrg } from "@/shared/session/use-org";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
 import { formatPersonName } from "@/shared/utils/person-utils";

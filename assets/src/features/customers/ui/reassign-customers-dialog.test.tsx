@@ -47,7 +47,9 @@ describe("ReassignCustomersDialog", () => {
         active: true,
       },
     ]);
-    bulkReassignPractitionersToCustomers.mockResolvedValue({ personsSkippedWithoutPatient: [] });
+    bulkReassignPractitionersToCustomers.mockResolvedValue({
+      personsSkippedWithoutPatient: [],
+    });
 
     renderWithQueryClient(
       <ReassignCustomersDialog
@@ -89,7 +91,9 @@ describe("ReassignCustomersDialog", () => {
         active: true,
       },
     ]);
-    bulkReassignPractitionersToCustomers.mockResolvedValue({ personsSkippedWithoutPatient: [] });
+    bulkReassignPractitionersToCustomers.mockResolvedValue({
+      personsSkippedWithoutPatient: [],
+    });
 
     renderWithQueryClient(
       <ReassignCustomersDialog
@@ -133,7 +137,9 @@ describe("ReassignCustomersDialog", () => {
         active: true,
       },
     ]);
-    bulkReassignPractitionersToCustomers.mockResolvedValue({ personsSkippedWithoutPatient: [] });
+    bulkReassignPractitionersToCustomers.mockResolvedValue({
+      personsSkippedWithoutPatient: [],
+    });
 
     renderWithQueryClient(
       <ReassignCustomersDialog
