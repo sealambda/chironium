@@ -6,6 +6,7 @@ import type { AnthropometricSnapshot } from "@/features/customers/api/anthropome
 import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
+import type { MedicationRequestItem } from "@/features/customers/api/medication-requests-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import type {
@@ -32,6 +33,7 @@ interface UseActivityFeedParams {
   conditions: ConditionItem[];
   allergyIntolerances: AllergyIntoleranceItem[];
   medications: MedicationItem[];
+  medicationRequests: MedicationRequestItem[];
   anthropometry: AnthropometricSnapshot[];
   foodPreferences: FoodPreferenceHistoryItem[];
   observations: ObservationsPage;
@@ -59,6 +61,7 @@ export function useActivityFeed({
   conditions,
   allergyIntolerances,
   medications,
+  medicationRequests,
   anthropometry,
   foodPreferences,
   observations,
@@ -90,6 +93,7 @@ export function useActivityFeed({
         conditions,
         allergyIntolerances,
         medications,
+        prescriptions: medicationRequests,
         foodPreferences,
         menstrualCycles,
         nutritionPlans,
@@ -105,6 +109,7 @@ export function useActivityFeed({
       conditions,
       allergyIntolerances,
       medications,
+      medicationRequests,
       foodPreferences,
       menstrualCycles,
       nutritionPlans,

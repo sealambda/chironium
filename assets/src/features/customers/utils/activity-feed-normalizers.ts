@@ -5,6 +5,7 @@ import type { AnthropometricSnapshot } from "@/features/customers/api/anthropome
 import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
+import type { MedicationRequestItem } from "@/features/customers/api/medication-requests-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import type {
@@ -51,6 +52,7 @@ interface BuildActivityFeedEventsInput {
   conditions: ConditionItem[];
   allergyIntolerances: AllergyIntoleranceItem[];
   medications: MedicationItem[];
+  prescriptions: MedicationRequestItem[];
   foodPreferences: FoodPreferenceHistoryItem[] | undefined;
   menstrualCycles: MenstrualCycleEntry[] | undefined;
   nutritionPlans: NutritionPlanRecord[] | undefined;
@@ -312,6 +314,20 @@ function normalizeMedications(items: MedicationItem[]): FeedEvent[] {
   }));
 }
 
+function normalizePrescriptions(items: MedicationRequestItem[]): FeedEvent[] {
+  // Prescriptions are timestamped when authored; fall back to the audit trail.
+  return bucketByMinute(
+    items,
+    (item) => item.authoredOn ?? item.paperTrailVersions?.[0]?.versionInsertedAt ?? nowIso(),
+  ).map((group) => ({
+    kind: "prescription",
+    id: group.items.map((item) => item.id).join("-"),
+    date: group.date,
+    actors: group.actors.length > 0 ? group.actors : undefined,
+    payload: group.items,
+  }));
+}
+
 function normalizeFoodPreferences(items: FoodPreferenceHistoryItem[] | undefined): FeedEvent[] {
   const buckets = new Map<
     string,
@@ -482,6 +498,7 @@ export function buildActivityFeedEvents({
   conditions,
   allergyIntolerances,
   medications,
+  prescriptions,
   foodPreferences,
   menstrualCycles,
   nutritionPlans,
@@ -497,6 +514,7 @@ export function buildActivityFeedEvents({
     ...normalizeConditions(conditions),
     ...normalizeAllergyIntolerances(allergyIntolerances),
     ...normalizeMedications(medications),
+    ...normalizePrescriptions(prescriptions),
     ...normalizeFoodPreferences(foodPreferences),
     ...normalizeMenstrualCycles(menstrualCycles),
     ...normalizeNutritionPlans(nutritionPlans),

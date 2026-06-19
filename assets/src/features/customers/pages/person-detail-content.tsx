@@ -253,6 +253,7 @@ function PatientDetailCards({
           conditions={personConditions}
           allergyIntolerances={personAllergyIntolerances}
           medications={personMedications}
+          medicationRequests={personMedicationRequests}
           anthropometry={anthropometryEntries}
           foodPreferences={foodPreferenceEntries}
           observations={observationEntries}
