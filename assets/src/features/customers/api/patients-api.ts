@@ -166,6 +166,51 @@ const PatientWorkspaceByPersonQuery = graphql(`
             }
           }
         }
+        medicationRequests(limit: 250) {
+          id
+          status
+          intent
+          medication {
+            text
+            coding {
+              system
+              code
+              version
+              display(locale: $locale)
+            }
+          }
+          authoredOn
+          requester {
+            id
+            name {
+              text
+              given
+              family
+            }
+          }
+          note {
+            text
+            time
+            authorReference
+            authorString
+          }
+          paperTrailVersions(limit: 1) {
+            versionActionName
+            versionInsertedAt
+            changedBy {
+              id
+              name
+            }
+            changedByPractitioner {
+              id
+              name {
+                text
+                given
+                family
+              }
+            }
+          }
+        }
         goals(
           sort: [{ field: PRIORITY, order: ASC }]
           limit: 250
@@ -346,6 +391,7 @@ export type AllergyIntoleranceItem = NonNullable<PatientDetail["allergyIntoleran
 export type ConditionItem = NonNullable<PatientDetail["conditions"]>[number];
 export type GoalRecord = NonNullable<PatientDetail["goals"]>[number];
 export type MedicationItem = NonNullable<PatientDetail["medicationStatements"]>[number];
+export type MedicationRequestItem = NonNullable<PatientDetail["medicationRequests"]>[number];
 export type NutritionPlanRecord = NonNullable<PatientDetail["nutritionPlans"]>[number];
 export type PatientObservation = NonNullable<PatientDetail["observations"]>[number];
 

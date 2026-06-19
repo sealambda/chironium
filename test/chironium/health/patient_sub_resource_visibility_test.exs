@@ -1,7 +1,7 @@
 defmodule Chironium.Health.PatientSubResourceVisibilityTest do
   @moduledoc """
   Verifies that Observation, Condition, Goal, AllergyIntolerance, MedicationStatement,
-  NutritionPlan, and Task are scoped to the actor's care-team patients.
+  MedicationRequest, NutritionPlan, and Task are scoped to the actor's care-team patients.
   """
   use Chironium.DataCase, async: false
 
@@ -167,6 +167,48 @@ defmodule Chironium.Health.PatientSubResourceVisibilityTest do
         Chironium.Health.MedicationStatement |> Ash.read!(actor: actor_b, tenant: ctx.tenant)
 
       assert results == []
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # MedicationRequest
+  # ---------------------------------------------------------------------------
+
+  describe "MedicationRequest visibility" do
+    test "practitioner in care team can read patient's medication requests", ctx do
+      {actor, patient} = setup_practitioner_with_patient(ctx)
+      med = create_medication_request(ctx, patient)
+
+      results =
+        Chironium.Health.MedicationRequest |> Ash.read!(actor: actor, tenant: ctx.tenant)
+
+      assert Enum.any?(results, &(&1.id == med.id))
+    end
+
+    test "practitioner NOT in care team cannot read medication requests", ctx do
+      {_actor_a, patient} = setup_practitioner_with_patient(ctx)
+      {actor_b, _other_patient} = setup_practitioner_with_patient(ctx)
+
+      _med = create_medication_request(ctx, patient)
+
+      results =
+        Chironium.Health.MedicationRequest |> Ash.read!(actor: actor_b, tenant: ctx.tenant)
+
+      assert results == []
+    end
+
+    test "requester defaults to the acting practitioner", ctx do
+      {actor, patient} = setup_practitioner_with_patient(ctx)
+
+      med =
+        Chironium.Health.MedicationRequest
+        |> Ash.Changeset.for_create(:create, %{subject_id: patient.id},
+          actor: actor,
+          tenant: ctx.tenant
+        )
+        |> Ash.create!()
+
+      assert med.requester_id == actor.id
     end
   end
 
@@ -398,6 +440,17 @@ defmodule Chironium.Health.PatientSubResourceVisibilityTest do
 
   defp create_medication_statement(ctx, patient) do
     Chironium.Health.MedicationStatement
+    |> Ash.Changeset.for_create(
+      :create,
+      %{subject_id: patient.id},
+      authorize?: false,
+      tenant: ctx.tenant
+    )
+    |> Ash.create!()
+  end
+
+  defp create_medication_request(ctx, patient) do
+    Chironium.Health.MedicationRequest
     |> Ash.Changeset.for_create(
       :create,
       %{subject_id: patient.id},
