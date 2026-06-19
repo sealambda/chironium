@@ -4,12 +4,20 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import {
+  type MedicationRequestCourseOfTherapy,
   type MedicationRequestItem,
   type MedicationRequestStatus,
   type PrescriptionFormInput,
+  SUBSTITUTION_CODES,
+  type SubstitutionChoice,
+  type SubstitutionCode,
   updatePrescription,
 } from "@/features/customers/api/medication-requests-api";
-import { formatFhirMedicationRequestStatusLabel } from "@/features/customers/utils/clinical-history-display";
+import {
+  formatFhirCourseOfTherapyLabel,
+  formatFhirMedicationRequestStatusLabel,
+  formatFhirSubstitutionLabel,
+} from "@/features/customers/utils/clinical-history-display";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -47,16 +55,39 @@ const STATUS_OPTIONS: readonly MedicationRequestStatus[] = [
   "CANCELLED",
 ];
 
+/** Course-of-therapy values, with a sentinel for "not specified". */
+const COURSE_NONE = "NONE";
+const COURSE_OPTIONS: readonly MedicationRequestCourseOfTherapy[] = [
+  "CONTINUOUS",
+  "ACUTE",
+  "SEASONAL",
+];
+
+/** Sentinel for the "not specified" option (distinct from the "N" = none code). */
+const SUBSTITUTION_UNSET = "UNSET";
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 function nameOf(item: MedicationRequestItem): string {
   return item.medication?.text ?? item.medication?.coding?.[0]?.display ?? "";
 }
 
+function substitutionToChoice(item: MedicationRequestItem): SubstitutionChoice {
+  const code = item.substitution?.allowedCodeableConcept?.coding?.[0]?.code;
+  return code && (SUBSTITUTION_CODES as readonly string[]).includes(code)
+    ? (code as SubstitutionCode)
+    : "";
+}
+
 function itemToFormValues(item: MedicationRequestItem): PrescriptionFormInput {
+  const refills = item.dispenseRequest?.numberOfRepeatsAllowed;
   return {
     name: nameOf(item),
     status: (item.status ?? "ACTIVE") as MedicationRequestStatus,
+    courseOfTherapy: item.courseOfTherapyType ?? "",
+    dosageText: item.dosageInstruction?.[0]?.text ?? "",
+    refills: refills == null ? "" : String(refills),
+    substitution: substitutionToChoice(item),
     note: item.note?.[0]?.text ?? "",
   };
 }
@@ -64,6 +95,10 @@ function itemToFormValues(item: MedicationRequestItem): PrescriptionFormInput {
 const EMPTY_VALUES: PrescriptionFormInput = {
   name: "",
   status: "ACTIVE",
+  courseOfTherapy: "",
+  dosageText: "",
+  refills: "",
+  substitution: "",
   note: "",
 };
 
@@ -96,7 +131,7 @@ export function PrescriptionDetailDialog({
 
       setSaving(true);
       try {
-        await updatePrescription(item.id, { ...value, name: value.name.trim() }, orgId);
+        await updatePrescription(item, { ...value, name: value.name.trim() }, orgId);
         toast.success(m.prescription_edit_success());
         await invalidatePersonDetail(queryClient, personId);
         setOpen(false);
@@ -174,6 +209,126 @@ export function PrescriptionDetailDialog({
               </Select>
             </Field>
           )}
+        </form.Field>
+
+        {/* Course of therapy */}
+        <form.Field name="courseOfTherapy">
+          {(field) => {
+            const value = field.state.value || COURSE_NONE;
+            return (
+              <Field>
+                <FieldLabel>{m.prescription_field_course()}</FieldLabel>
+                <Select
+                  value={value}
+                  onValueChange={(next) =>
+                    field.handleChange(
+                      next === COURSE_NONE ? "" : (next as MedicationRequestCourseOfTherapy),
+                    )
+                  }
+                  disabled={saving}
+                  items={[
+                    { value: COURSE_NONE, label: m.prescription_field_course_none() },
+                    ...COURSE_OPTIONS.map((v) => ({
+                      value: v,
+                      label: formatFhirCourseOfTherapyLabel(v),
+                    })),
+                  ]}
+                >
+                  <SelectTrigger className="w-full" disabled={saving}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectPositioner>
+                    <SelectContent>
+                      <SelectItem value={COURSE_NONE}>
+                        {m.prescription_field_course_none()}
+                      </SelectItem>
+                      {COURSE_OPTIONS.map((v) => (
+                        <SelectItem key={v} value={v}>
+                          {formatFhirCourseOfTherapyLabel(v)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectPositioner>
+                </Select>
+              </Field>
+            );
+          }}
+        </form.Field>
+
+        {/* Dosage instructions */}
+        <form.Field name="dosageText">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.prescription_field_dosage()}</FieldLabel>
+              <Textarea
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder={m.prescription_field_dosage_placeholder()}
+                disabled={saving}
+                rows={2}
+              />
+            </Field>
+          )}
+        </form.Field>
+
+        {/* Refills */}
+        <form.Field name="refills">
+          {(field) => (
+            <Field>
+              <FieldLabel>{m.prescription_field_refills()}</FieldLabel>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder={m.prescription_field_refills_placeholder()}
+                inputMode="numeric"
+                disabled={saving}
+              />
+            </Field>
+          )}
+        </form.Field>
+
+        {/* Substitution */}
+        <form.Field name="substitution">
+          {(field) => {
+            const value = field.state.value || SUBSTITUTION_UNSET;
+            return (
+              <Field>
+                <FieldLabel>{m.prescription_field_substitution()}</FieldLabel>
+                <Select
+                  value={value}
+                  onValueChange={(next) =>
+                    field.handleChange(
+                      next === SUBSTITUTION_UNSET ? "" : (next as SubstitutionChoice),
+                    )
+                  }
+                  disabled={saving}
+                  items={[
+                    { value: SUBSTITUTION_UNSET, label: m.prescription_field_course_none() },
+                    ...SUBSTITUTION_CODES.map((code) => ({
+                      value: code,
+                      label: formatFhirSubstitutionLabel(code),
+                    })),
+                  ]}
+                >
+                  <SelectTrigger className="w-full" disabled={saving}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectPositioner>
+                    <SelectContent>
+                      <SelectItem value={SUBSTITUTION_UNSET}>
+                        {m.prescription_field_course_none()}
+                      </SelectItem>
+                      {SUBSTITUTION_CODES.map((code) => (
+                        <SelectItem key={code} value={code}>
+                          {formatFhirSubstitutionLabel(code)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectPositioner>
+                </Select>
+              </Field>
+            );
+          }}
         </form.Field>
 
         {/* Note */}

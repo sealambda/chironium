@@ -8,6 +8,7 @@ import { PrescriptionDetailDialog } from "@/features/customers/ui/detail/prescri
 import { PrescriptionRemoveDialog } from "@/features/customers/ui/detail/prescription-remove-dialog";
 import { TagsCardColumn } from "@/features/customers/ui/detail/tags-card-content";
 import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
+import { formatFhirCourseOfTherapyLabel } from "@/features/customers/utils/clinical-history-display";
 import { displayTextFromCodeableConcept } from "@/features/customers/utils/codeable-concept-display";
 import * as m from "@/paraglide/messages";
 import { getDateLocale } from "@/shared/utils/date-locale";
@@ -34,14 +35,25 @@ function isInactive(item: MedicationRequestItem): boolean {
   return item.status !== "ACTIVE";
 }
 
-/** "Dr. Rossi · 12 Jun 2026" — whichever parts are present. */
+/** "Dr. Rossi · 12 Jun 2026 · Continuous · 2 refills" — whichever parts exist. */
 function prescriberLabel(item: MedicationRequestItem): string {
   const name = item.requester?.name?.[0];
   const prescriber = name?.text ?? [name?.given, name?.family].filter(Boolean).join(" ").trim();
   const date = item.authoredOn
     ? format(new Date(item.authoredOn), "d MMM yyyy", { locale: getDateLocale() })
     : "";
-  return [prescriber, date].filter(Boolean).join(" · ");
+  const course = item.courseOfTherapyType
+    ? formatFhirCourseOfTherapyLabel(item.courseOfTherapyType)
+    : "";
+  const refills = item.dispenseRequest?.numberOfRepeatsAllowed;
+  const refillsLabel =
+    refills != null && refills > 0 ? m.prescription_refills_count({ count: refills }) : "";
+  return [prescriber, date, course, refillsLabel].filter(Boolean).join(" · ");
+}
+
+/** Free-text dosage instructions, if any. */
+function dosageOf(item: MedicationRequestItem): string {
+  return item.dosageInstruction?.[0]?.text?.trim() ?? "";
 }
 
 export function PrescriptionsCard({
@@ -77,6 +89,7 @@ export function PrescriptionsCard({
           <div className="flex flex-col gap-3">
             {entries.map(({ item, label }) => {
               const subtitle = prescriberLabel(item);
+              const dosage = dosageOf(item);
               return (
                 <div key={item.id} className="flex flex-col gap-1">
                   <div className="flex flex-wrap gap-1.5">
@@ -87,6 +100,9 @@ export function PrescriptionsCard({
                       {label}
                     </MedicationPill>
                   </div>
+                  {dosage ? (
+                    <span className="pl-1 text-foreground/80 text-xs">{dosage}</span>
+                  ) : null}
                   {subtitle ? (
                     <span className="pl-1 text-muted-foreground text-xs">{subtitle}</span>
                   ) : null}
