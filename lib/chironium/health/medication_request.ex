@@ -75,10 +75,33 @@ defmodule Chironium.Health.MedicationRequest do
       default :order
     end
 
-    # TODO: Dosage instructions and dispense request.
+    attribute :course_of_therapy_type, Chironium.Health.MedicationRequest.CourseOfTherapyType do
+      description "The overall pattern of administration (continuous, acute, seasonal)."
+      public? true
+    end
 
     attribute :medication, Chironium.Datatypes.CodeableConcept do
       description "What medication was prescribed."
+      public? true
+    end
+
+    attribute :reason, {:array, Chironium.Datatypes.CodeableConcept} do
+      description "The clinical reason(s) the medication was prescribed."
+      public? true
+    end
+
+    attribute :dosage_instruction, {:array, Chironium.Datatypes.Dosage} do
+      description "How the medication should be taken."
+      public? true
+    end
+
+    attribute :dispense_request, Chironium.Health.MedicationRequest.DispenseRequest do
+      description "How the medication should be dispensed (quantity, refills, validity)."
+      public? true
+    end
+
+    attribute :substitution, Chironium.Health.MedicationRequest.Substitution do
+      description "Whether a substitute medication may be dispensed."
       public? true
     end
 

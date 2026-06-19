@@ -487,7 +487,14 @@ defmodule Chironium.Generator do
         [
           status: Enum.random([:active, :active, :completed]),
           intent: :order,
+          course_of_therapy_type: Enum.random([:continuous, :acute, :seasonal]),
           medication: %{text: Enum.random(medications)},
+          dosage_instruction: [random_dosage()],
+          dispense_request: %{
+            number_of_repeats_allowed: Enum.random(0..5),
+            quantity: %{value: Enum.random([28, 30, 60, 90]), unit: "tablet"}
+          },
+          substitution: random_substitution(),
           authored_on: random_past_datetime(0..365),
           note: [
             Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)
@@ -498,6 +505,42 @@ defmodule Chironium.Generator do
       Chironium.Health.MedicationRequest
       |> Ash.Changeset.for_create(:create, Map.new(params), ash_opts)
     end)
+  end
+
+  defp random_dosage do
+    {frequency, period, period_unit, text} =
+      Enum.random([
+        {1, 1, :d, "Take one tablet by mouth once daily"},
+        {2, 1, :d, "Take one tablet by mouth twice daily"},
+        {1, 8, :h, "Take one tablet by mouth every 8 hours"},
+        {1, 1, :wk, "Take one tablet by mouth once weekly"}
+      ])
+
+    %{
+      text: text,
+      frequency: frequency,
+      period: period,
+      period_unit: period_unit,
+      dose_quantity: %{value: 1, unit: "tablet"}
+    }
+  end
+
+  @substitution_system "http://terminology.hl7.org/CodeSystem/v3-substanceAdminSubstitution"
+
+  defp random_substitution do
+    {code, text} =
+      Enum.random([
+        {"G", "generic composition"},
+        {"TE", "therapeutic alternative"},
+        {"N", "none"}
+      ])
+
+    %{
+      allowed_codeable_concept: %{
+        coding: [%{system: @substitution_system, code: code}],
+        text: text
+      }
+    }
   end
 
   def allergy_intolerance(opts \\ []) do

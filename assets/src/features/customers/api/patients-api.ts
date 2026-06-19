@@ -170,6 +170,7 @@ const PatientWorkspaceByPersonQuery = graphql(`
           id
           status
           intent
+          courseOfTherapyType
           medication {
             text
             coding {
@@ -177,6 +178,47 @@ const PatientWorkspaceByPersonQuery = graphql(`
               code
               version
               display(locale: $locale)
+            }
+          }
+          dosageInstruction {
+            text
+            patientInstruction
+            asNeeded
+            frequency
+            period
+            periodUnit
+            route {
+              text
+            }
+            doseQuantity {
+              value
+              unit
+            }
+          }
+          dispenseRequest {
+            numberOfRepeatsAllowed
+            quantity {
+              value
+              unit
+            }
+            expectedSupplyDuration {
+              value
+              code
+            }
+            validityPeriod {
+              start
+              end
+            }
+          }
+          substitution {
+            allowedCodeableConcept {
+              coding {
+                system
+                code
+              }
+            }
+            reason {
+              text
             }
           }
           authoredOn

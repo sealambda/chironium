@@ -64,10 +64,15 @@ defmodule Chironium.Health.MedicationStatement do
       default :recorded
     end
 
-    # TODO: Dosage and effective period/timing
+    # TODO: effective period/timing
 
     attribute :medication, Chironium.Datatypes.CodeableConcept do
       description "What medication was taken."
+      public? true
+    end
+
+    attribute :dosage, {:array, Chironium.Datatypes.Dosage} do
+      description "How the medication is/was taken."
       public? true
     end
 
