@@ -17,6 +17,7 @@ import { FoodPreferencesCard } from "@/features/customers/ui/detail/food-prefere
 import { MedicationsCard } from "@/features/customers/ui/detail/medications-card";
 import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cycle-card";
 import { NutritionCard } from "@/features/customers/ui/detail/nutrition-card";
+import { PrescriptionsCard } from "@/features/customers/ui/detail/prescriptions-card";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
@@ -135,6 +136,7 @@ function PatientDetailCards({
     conditions,
     allergyIntolerances,
     medications,
+    medicationRequests,
     foodPreferencesHistory,
     menstrualCycle,
     menstrualCycleHistory,
@@ -145,6 +147,7 @@ function PatientDetailCards({
   const personConditions = conditions.data ?? [];
   const personAllergyIntolerances = allergyIntolerances.data ?? [];
   const personMedications = medications.data ?? [];
+  const personMedicationRequests = medicationRequests.data ?? [];
   const anthropometryEntries = anthropometryHistory.data ?? [];
   const foodPreferenceEntries = foodPreferencesHistory.data ?? [];
   const menstrualCycleData = menstrualCycle.data ?? null;
@@ -191,7 +194,7 @@ function PatientDetailCards({
               organizationId={organizationId}
             />
           </div>
-          <div className="sm:order-6 sm:col-span-2 lg:order-0 lg:col-span-2">
+          <div className="sm:order-7 sm:col-span-2 lg:order-0 lg:col-span-2">
             <AllergyIntoleranceCard
               items={personAllergyIntolerances}
               isLoading={allergyIntolerances.isLoading}
@@ -210,7 +213,16 @@ function PatientDetailCards({
               organizationId={organizationId}
             />
           </div>
-          <div className="sm:order-7 sm:col-span-2 lg:order-0 lg:col-span-2">
+          <div className="sm:order-6 sm:col-span-2 lg:order-0 lg:col-span-1">
+            <PrescriptionsCard
+              items={personMedicationRequests}
+              isLoading={medicationRequests.isLoading}
+              compact
+              personId={personId}
+              organizationId={organizationId}
+            />
+          </div>
+          <div className="sm:order-8 sm:col-span-2 lg:order-0 lg:col-span-2">
             <FoodPreferencesCard
               history={foodPreferencesHistory.data ?? []}
               isLoading={foodPreferencesHistory.isLoading}

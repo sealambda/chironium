@@ -21,6 +21,7 @@ defmodule Chironium.Health.Patient do
       :allergy_intolerances,
       :conditions,
       :goals,
+      :medication_requests,
       :medication_statements,
       :observations,
       :care_teams,
@@ -134,6 +135,12 @@ defmodule Chironium.Health.Patient do
 
     has_many :goals, Chironium.Health.Goal do
       description "Health goals for the patient"
+      public? true
+      destination_attribute :subject_id
+    end
+
+    has_many :medication_requests, Chironium.Health.MedicationRequest do
+      description "Medications prescribed to the patient by a practitioner"
       public? true
       destination_attribute :subject_id
     end

@@ -476,6 +476,30 @@ defmodule Chironium.Generator do
     end)
   end
 
+  def medication_request(opts \\ []) do
+    {ash_opts, data_opts} = split_opts(opts)
+    author_fields = note_author(Keyword.get(ash_opts, :actor))
+
+    StreamData.repeatedly(fn ->
+      medications = seed_medication_labels()
+
+      params =
+        [
+          status: Enum.random([:active, :active, :completed]),
+          intent: :order,
+          medication: %{text: Enum.random(medications)},
+          authored_on: random_past_datetime(0..365),
+          note: [
+            Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)
+          ]
+        ]
+        |> Keyword.merge(data_opts)
+
+      Chironium.Health.MedicationRequest
+      |> Ash.Changeset.for_create(:create, Map.new(params), ash_opts)
+    end)
+  end
+
   def allergy_intolerance(opts \\ []) do
     {ash_opts, data_opts} = split_opts(opts)
     author_fields = note_author(Keyword.get(ash_opts, :actor))

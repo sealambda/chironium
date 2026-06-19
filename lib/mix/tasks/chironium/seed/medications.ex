@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Chironium.Seed.Medications do
-  @moduledoc "Seed medication statements for existing patients in an organization."
+  @moduledoc "Seed medication statements and prescriptions for existing patients in an organization."
   @shortdoc "Seed medications"
 
   use Mix.Task
@@ -21,7 +21,10 @@ defmodule Mix.Tasks.Chironium.Seed.Medications do
     Helpers.info("[Seed] Medications created for #{length(patients)} patients.")
   end
 
-  @doc "Seed 0–3 medication statements per patient."
+  @doc """
+  Seed each patient with 0–3 pre-existing medication statements and 0–2
+  practitioner-prescribed medication requests.
+  """
   def seed(tenant, patients, practitioners) do
     opts = Helpers.ash_opts(tenant)
 
@@ -30,6 +33,12 @@ defmodule Mix.Tasks.Chironium.Seed.Medications do
       |> Enum.take_random(Enum.random(0..3))
       |> Enum.each(fn label ->
         generate(medication_statement(Keyword.merge(opts, subject_id: patient.id, medication: %{text: label}, actor: Enum.random(practitioners))))
+      end)
+
+      seed_medication_labels()
+      |> Enum.take_random(Enum.random(0..2))
+      |> Enum.each(fn label ->
+        generate(medication_request(Keyword.merge(opts, subject_id: patient.id, medication: %{text: label}, actor: Enum.random(practitioners))))
       end)
     end)
   end

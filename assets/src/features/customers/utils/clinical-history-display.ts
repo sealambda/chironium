@@ -48,3 +48,33 @@ export function formatFhirMedicationStatusLabel(value: string | null | undefined
       return humanizeUnknownEnumToken(v);
   }
 }
+
+/** Localized FHIR MedicationRequest status. */
+export function formatFhirMedicationRequestStatusLabel(value: string | null | undefined): string {
+  if (!value) {
+    return EMPTY_VALUE_PLACEHOLDER;
+  }
+  const v = value.toUpperCase();
+  switch (v) {
+    case "ACTIVE":
+      return m.fhir_medication_request_status_active();
+    case "ON_HOLD":
+      return m.fhir_medication_request_status_on_hold();
+    case "ENDED":
+      return m.fhir_medication_request_status_ended();
+    case "STOPPED":
+      return m.fhir_medication_request_status_stopped();
+    case "COMPLETED":
+      return m.fhir_medication_request_status_completed();
+    case "CANCELLED":
+      return m.fhir_medication_request_status_cancelled();
+    case "ENTERED_IN_ERROR":
+      return m.fhir_medication_request_status_entered_in_error();
+    case "DRAFT":
+      return m.fhir_medication_request_status_draft();
+    case "UNKNOWN":
+      return m.fhir_medication_request_status_unknown();
+    default:
+      return humanizeUnknownEnumToken(v);
+  }
+}

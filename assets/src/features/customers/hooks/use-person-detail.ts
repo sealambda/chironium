@@ -139,6 +139,10 @@ export function usePersonDetail(personId: string) {
     data: patientDetail.data?.medicationStatements ?? [],
     isLoading: patientDetail.isLoading,
   };
+  const medicationRequests = {
+    data: patientDetail.data?.medicationRequests ?? [],
+    isLoading: patientDetail.isLoading,
+  };
 
   const currentSubscription = subscriptions.data?.[0];
   const activeNutritionPlan = nutritionPlansData[0];
@@ -163,6 +167,7 @@ export function usePersonDetail(personId: string) {
     allergyIntolerances,
     conditions,
     medications,
+    medicationRequests,
     currentSubscription,
     activeNutritionPlan,
     isLoading,

@@ -9,6 +9,7 @@ import {
   Scale,
   ShieldAlert,
   Stethoscope,
+  Tablets,
   Target,
   Utensils,
 } from "lucide-react";
@@ -22,6 +23,7 @@ import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
 import { AddMedicationsDialog } from "@/features/customers/ui/detail/add-medications-dialog";
 import { AddMenstrualCycleDialog } from "@/features/customers/ui/detail/add-menstrual-cycle-dialog";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
+import { AddPrescriptionsDialog } from "@/features/customers/ui/detail/add-prescriptions-dialog";
 import { AddTaskReminderDialog } from "@/features/customers/ui/detail/add-task-reminder-dialog";
 import { AllergyDetailDialog } from "@/features/customers/ui/detail/allergy-detail-dialog";
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
@@ -45,6 +47,7 @@ export type RecordType =
   | "reminder"
   | "condition"
   | "medication"
+  | "prescription"
   | "allergy"
   | "menstrual_cycle"
   | "food_preferences"
@@ -136,6 +139,14 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
         iconClassName: "text-info-muted-foreground",
         label: m.add_record_tile_medication,
         desc: m.add_record_medication_desc,
+      },
+      {
+        id: "prescription",
+        icon: Tablets,
+        bgClassName: "bg-info-muted",
+        iconClassName: "text-info-muted-foreground",
+        label: m.add_record_tile_prescription,
+        desc: m.add_record_prescription_desc,
       },
       {
         id: "allergy",
@@ -283,6 +294,12 @@ export function AddRecordDialog({
         personId={personId}
         patientId={patientId}
         open={activeType === "medication"}
+        onOpenChange={handleChildOpenChange}
+      />
+      <AddPrescriptionsDialog
+        personId={personId}
+        patientId={patientId}
+        open={activeType === "prescription"}
         onOpenChange={handleChildOpenChange}
       />
       <AddMenstrualCycleDialog

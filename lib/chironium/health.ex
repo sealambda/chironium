@@ -16,6 +16,7 @@ defmodule Chironium.Health do
       Chironium.Health.CareTeamParticipant,
       Chironium.Health.Condition,
       Chironium.Health.Goal,
+      Chironium.Health.MedicationRequest,
       Chironium.Health.MedicationStatement,
       Chironium.Health.NutritionPlan,
       Chironium.Health.Observation,
@@ -35,6 +36,7 @@ defmodule Chironium.Health do
     resource Chironium.Health.CareTeamParticipant
     resource Chironium.Health.Condition
     resource Chironium.Health.Goal
+    resource Chironium.Health.MedicationRequest
     resource Chironium.Health.MedicationStatement
     resource Chironium.Health.NutritionPlan
     resource Chironium.Health.Observation
