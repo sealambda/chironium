@@ -9,6 +9,7 @@ import {
   Salad,
   Scale,
   Stethoscope,
+  Tablets,
   Target,
   Utensils,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import type { AnthropometricSnapshot } from "@/features/customers/api/anthropome
 import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
+import type { MedicationRequestItem } from "@/features/customers/api/medication-requests-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import type {
@@ -219,6 +221,13 @@ export type FeedEvent =
       payload: MedicationItem[];
     }
   | {
+      kind: "prescription";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      payload: MedicationRequestItem[];
+    }
+  | {
       kind: "menstrual";
       id: string;
       date: string;
@@ -287,6 +296,8 @@ export function getEventAccent(event: FeedEvent): FeedEventAccent {
       return event.aiType === "ALLERGY" ? "red" : "orange";
     case "medication":
       return "violet";
+    case "prescription":
+      return "blue";
     case "menstrual":
       return "red";
     case "food-preference":
@@ -314,6 +325,8 @@ export function getEventIcon(event: FeedEvent): LucideIcon {
       return AlertTriangle;
     case "medication":
       return Pill;
+    case "prescription":
+      return Tablets;
     case "menstrual":
       return Droplet;
     case "food-preference":
@@ -343,6 +356,8 @@ export function getEventLabel(event: FeedEvent): string {
         : m.activity_event_intolerance();
     case "medication":
       return m.activity_event_medication();
+    case "prescription":
+      return m.activity_event_prescription();
     case "menstrual":
       return m.activity_event_menstrual();
     case "food-preference":
@@ -361,6 +376,7 @@ export function getEventCount(event: FeedEvent): number {
     case "condition":
     case "allergy":
     case "medication":
+    case "prescription":
       return event.payload.length;
     case "food-preference":
       return event.payload.length;
@@ -422,6 +438,10 @@ export function getEventVerb(event: FeedEvent, count = 1): string {
       return count > 1
         ? m.activity_verb_medication_plural({ count: word })
         : m.activity_verb_medication();
+    case "prescription":
+      return count > 1
+        ? m.activity_verb_prescription_plural({ count: word })
+        : m.activity_verb_prescription();
     case "menstrual":
       return m.activity_verb_menstrual();
     case "food-preference":

@@ -10,6 +10,7 @@ import {
   Salad,
   Scale,
   Stethoscope,
+  Tablets,
   Target,
   Utensils,
 } from "lucide-react";
@@ -74,6 +75,12 @@ const CHIPS: readonly ChipConfig[] = [
     value: "medication",
     label: m.activity_filter_medications,
     icon: Pill,
+    activeClass: "border-info/20 bg-info-muted text-info-muted-foreground",
+  },
+  {
+    value: "prescription",
+    label: m.activity_filter_prescriptions,
+    icon: Tablets,
     activeClass: "border-info/20 bg-info-muted text-info-muted-foreground",
   },
   {

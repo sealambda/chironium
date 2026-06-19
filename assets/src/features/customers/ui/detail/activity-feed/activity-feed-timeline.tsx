@@ -47,6 +47,7 @@ import { MedicationEvent } from "./medication-event";
 import { MenstrualCycleEvent } from "./menstrual-cycle-event";
 import { NutritionEvent } from "./nutrition-event";
 import { ObservationEvent } from "./observation-event";
+import { PrescriptionEvent } from "./prescription-event";
 import { SubscriptionEvent } from "./subscription-event";
 import { TaskEvent } from "./task-event";
 
@@ -425,6 +426,8 @@ function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
       return <AllergyEvent allergies={event.payload} />;
     case "medication":
       return <MedicationEvent medication={event.payload} />;
+    case "prescription":
+      return <PrescriptionEvent prescriptions={event.payload} />;
     case "menstrual":
       return <MenstrualCycleEvent cycle={event.payload} />;
     case "food-preference":

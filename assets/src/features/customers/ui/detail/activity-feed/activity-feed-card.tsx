@@ -7,6 +7,7 @@ import type { AnthropometricSnapshot } from "@/features/customers/api/anthropome
 import type { ConditionItem } from "@/features/customers/api/condition-api";
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
+import type { MedicationRequestItem } from "@/features/customers/api/medication-requests-api";
 import type { MedicationItem } from "@/features/customers/api/medications-api";
 import type { NutritionPlanRecord } from "@/features/customers/api/nutrition-plans-api";
 import type {
@@ -57,6 +58,7 @@ interface ActivityFeedCardProps {
   conditions: ConditionItem[];
   allergyIntolerances: AllergyIntoleranceItem[];
   medications: MedicationItem[];
+  medicationRequests: MedicationRequestItem[];
   anthropometry: AnthropometricSnapshot[];
   foodPreferences: FoodPreferenceHistoryItem[];
   observations: ObservationsPage;
@@ -76,6 +78,7 @@ export function ActivityFeedCard({
   conditions,
   allergyIntolerances,
   medications,
+  medicationRequests,
   anthropometry,
   foodPreferences,
   observations,
@@ -94,6 +97,7 @@ export function ActivityFeedCard({
     conditions,
     allergyIntolerances,
     medications,
+    medicationRequests,
     anthropometry,
     foodPreferences,
     observations,
