@@ -36,7 +36,15 @@ export function PrescriptionEvent({ prescriptions }: PrescriptionEventProps) {
         const elements: ReactNode[] = [];
 
         if (name) {
-          elements.push(<MedicationPill key={`${item.id}-name`}>{name}</MedicationPill>);
+          elements.push(
+            <MedicationPill
+              key={`${item.id}-name`}
+              variant="recommended"
+              isPast={item.status !== "ACTIVE"}
+            >
+              {name}
+            </MedicationPill>,
+          );
         }
 
         if (item.status && !SILENT_STATUSES.has(statusKey)) {

@@ -176,7 +176,7 @@ function PatientDetailCards({
               compact
             />
           </div>
-          <div className="sm:order-3 sm:col-span-2 lg:order-0 lg:col-span-1">
+          <div className="sm:order-3 lg:order-0 lg:col-span-1">
             <PatientNutritionCard
               detail={detail}
               personId={personId}
@@ -203,7 +203,7 @@ function PatientDetailCards({
               organizationId={organizationId}
             />
           </div>
-          <div className="sm:order-5 sm:col-span-2 lg:order-0 lg:col-span-1">
+          <div className="grid grid-cols-1 gap-3 sm:order-5 sm:col-span-2 lg:order-0 lg:col-span-3 lg:grid-cols-2">
             <MedicationsSupplementsCard
               medications={personMedications}
               medicationRequests={personMedicationRequests}
@@ -212,8 +212,6 @@ function PatientDetailCards({
               personId={personId}
               organizationId={organizationId}
             />
-          </div>
-          <div className="sm:order-8 sm:col-span-2 lg:order-0 lg:col-span-2">
             <FoodPreferencesCard
               history={foodPreferencesHistory.data ?? []}
               isLoading={foodPreferencesHistory.isLoading}

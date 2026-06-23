@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import {
+  createPrescription,
   type MedicationRequestCourseOfTherapy,
   type MedicationRequestItem,
   type MedicationRequestStatus,
@@ -38,8 +39,10 @@ import { Textarea } from "@/shared/ui/textarea";
 // ─── Types ───────────────────────────────────────────────────────────
 
 interface PrescriptionDetailDialogProps {
+  readonly mode: "create" | "edit";
   readonly item?: MedicationRequestItem;
   readonly personId: string;
+  readonly patientId?: string | null;
   readonly organizationId: string;
   readonly open?: boolean;
   readonly onOpenChange?: (open: boolean) => void;
@@ -105,8 +108,10 @@ const EMPTY_VALUES: PrescriptionFormInput = {
 // ─── Component ───────────────────────────────────────────────────────
 
 export function PrescriptionDetailDialog({
+  mode,
   item,
   personId,
+  patientId,
   organizationId,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
@@ -123,16 +128,26 @@ export function PrescriptionDetailDialog({
   const orgId = organizationId || selectedOrg?.id || "";
 
   const form = useForm({
-    defaultValues: item ? itemToFormValues(item) : EMPTY_VALUES,
+    defaultValues: mode === "edit" && item ? itemToFormValues(item) : EMPTY_VALUES,
     onSubmit: async ({ value }) => {
-      if (!value.name.trim() || !item) {
+      if (!value.name.trim()) {
         return;
       }
 
       setSaving(true);
       try {
-        await updatePrescription(item, { ...value, name: value.name.trim() }, orgId);
-        toast.success(m.prescription_edit_success());
+        const input = { ...value, name: value.name.trim() };
+        if (mode === "create") {
+          if (!patientId) {
+            toast.error(m.onboarding_error());
+            return;
+          }
+          await createPrescription(input, patientId, orgId);
+          toast.success(m.prescription_add_success());
+        } else if (item) {
+          await updatePrescription(item, input, orgId);
+          toast.success(m.prescription_edit_success());
+        }
         await invalidatePersonDetail(queryClient, personId);
         setOpen(false);
         form.reset();
@@ -144,15 +159,20 @@ export function PrescriptionDetailDialog({
     },
   });
 
-  const title = m.prescription_edit_title({ name: item ? nameOf(item) : "" });
+  const title =
+    mode === "create"
+      ? m.prescription_dialog_title()
+      : m.prescription_edit_title({ name: item ? nameOf(item) : "" });
   return (
     <FormDialog
       open={open}
       onOpenChange={setOpen}
       title={title}
-      description={m.prescription_edit_desc()}
+      description={
+        mode === "create" ? m.add_record_prescription_desc() : m.prescription_edit_desc()
+      }
       contentClassName="sm:max-w-md"
-      onDelete={onRemoveClick}
+      onDelete={mode === "edit" ? onRemoveClick : undefined}
       onSubmit={() => form.handleSubmit()}
       saving={saving}
     >

@@ -6,374 +6,383 @@ import type { AdministrativeGender } from "@/shared/types/schema-enums";
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
-const PatientWorkspaceByPersonQuery = graphql(`
-  query PatientWorkspaceByPerson($personId: ID!, $locale: String) {
-    listPatients(filter: { personId: { eq: $personId } }, first: 1) {
-      results {
-        id
-        personId
-        person {
+const PatientWorkspaceProfileFragment = graphql(`
+  fragment PatientWorkspaceProfile on Patient @_unmask {
+    id
+    personId
+    person {
+      id
+      name {
+        given
+        family
+      }
+      telecom {
+        system
+        value
+        use
+      }
+      gender
+      birthDate
+    }
+    allergyIntolerances(limit: 250) {
+      id
+      type
+      clinicalStatus
+      verificationStatus
+      code {
+        text
+        coding {
+          system
+          code
+          version
+          display(locale: $locale)
+        }
+      }
+      onsetDateTime
+      onsetAge {
+        value
+        code
+      }
+      onsetPeriod {
+        start
+        end
+      }
+      recordedDate
+      lastOccurrence
+      note {
+        text
+        time
+        authorReference
+        authorString
+      }
+      paperTrailVersions(limit: 1) {
+        versionActionName
+        versionInsertedAt
+        changedBy {
+          id
+          name
+        }
+        changedByPractitioner {
           id
           name {
+            text
             given
             family
           }
-          telecom {
-            system
-            value
-            use
-          }
-          gender
-          birthDate
         }
-        allergyIntolerances(limit: 250) {
+      }
+    }
+    conditions(limit: 250) {
+      id
+      clinicalStatus
+      verificationStatus
+      code {
+        text
+        coding {
+          system
+          code
+          version
+          display(locale: $locale)
+        }
+      }
+      onsetDateTime
+      onsetAge {
+        value
+        code
+      }
+      onsetPeriod {
+        start
+        end
+      }
+      abatementDateTime
+      abatementPeriod {
+        start
+        end
+      }
+      recordedDate
+      note {
+        text
+        time
+        authorReference
+        authorString
+      }
+      paperTrailVersions(limit: 1) {
+        versionActionName
+        versionInsertedAt
+        changedBy {
           id
-          type
-          clinicalStatus
-          verificationStatus
-          code {
+          name
+        }
+        changedByPractitioner {
+          id
+          name {
             text
-            coding {
-              system
-              code
-              version
-              display(locale: $locale)
-            }
-          }
-          onsetDateTime
-          onsetAge {
-            value
-            code
-          }
-          onsetPeriod {
-            start
-            end
-          }
-          recordedDate
-          lastOccurrence
-          note {
-            text
-            time
-            authorReference
-            authorString
-          }
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
+            given
+            family
           }
         }
-        conditions(limit: 250) {
-          id
-          clinicalStatus
-          verificationStatus
-          code {
-            text
-            coding {
-              system
-              code
-              version
-              display(locale: $locale)
-            }
-          }
-          onsetDateTime
-          onsetAge {
-            value
-            code
-          }
-          onsetPeriod {
-            start
-            end
-          }
-          abatementDateTime
-          abatementPeriod {
-            start
-            end
-          }
-          recordedDate
-          note {
-            text
-            time
-            authorReference
-            authorString
-          }
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
-          }
+      }
+    }
+    medicationStatements(limit: 250) {
+      id
+      status
+      medication {
+        text
+        coding {
+          system
+          code
+          version
+          display(locale: $locale)
         }
-        medicationStatements(limit: 250) {
+      }
+      effectiveDateTime
+      effectivePeriod {
+        start
+        end
+      }
+      dateAsserted
+      note {
+        text
+        time
+        authorReference
+        authorString
+      }
+      paperTrailVersions(limit: 1) {
+        versionActionName
+        versionInsertedAt
+        changedBy {
           id
-          status
-          medication {
-            text
-            coding {
-              system
-              code
-              version
-              display(locale: $locale)
-            }
-          }
-          effectiveDateTime
-          effectivePeriod {
-            start
-            end
-          }
-          dateAsserted
-          note {
-            text
-            time
-            authorReference
-            authorString
-          }
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
-          }
+          name
         }
-        medicationRequests(limit: 250) {
+        changedByPractitioner {
           id
-          status
-          intent
-          courseOfTherapyType
-          medication {
+          name {
             text
-            coding {
-              system
-              code
-              version
-              display(locale: $locale)
-            }
-          }
-          dosageInstruction {
-            text
-            patientInstruction
-            asNeeded
-            frequency
-            period
-            periodUnit
-            route {
-              text
-            }
-            doseQuantity {
-              value
-              unit
-            }
-          }
-          dispenseRequest {
-            numberOfRepeatsAllowed
-            quantity {
-              value
-              unit
-            }
-            expectedSupplyDuration {
-              value
-              code
-            }
-            validityPeriod {
-              start
-              end
-            }
-          }
-          substitution {
-            allowedCodeableConcept {
-              coding {
-                system
-                code
-              }
-            }
-            reason {
-              text
-            }
-          }
-          authoredOn
-          requester {
-            id
-            name {
-              text
-              given
-              family
-            }
-          }
-          note {
-            text
-            time
-            authorReference
-            authorString
-          }
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
-          }
-        }
-        goals(
-          sort: [{ field: PRIORITY, order: ASC }]
-          limit: 250
-        ) {
-          id
-          lifecycleStatus
-          achievementStatus
-          priority
-          description {
-            text
-          }
-          startDate
-          dueDate
-          category
-          note {
-            text
-            time
-            authorString
-            authorReference
-          }
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
-          }
-        }
-        nutritionPlans(limit: 250) {
-          id
-          targetKcal
-          proteinG
-          carbsG
-          fatG
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
-          }
-        }
-        observations(
-          sort: [{ field: EFFECTIVE_DATE_TIME, order: DESC }]
-          limit: 250
-        ) {
-          id
-          status
-          observationType
-          code {
-            text
-            coding {
-              system
-              code
-              version
-              display(locale: $locale)
-            }
-          }
-          effectiveDateTime
-          valueString
-          valueDateTime
-          valueQuantity {
-            value
-            unit
-            system
-            code
-          }
-          valueCodeableConcept {
-            text
-            coding {
-              system
-              code
-              version
-              display(locale: $locale)
-            }
-          }
-          note {
-            text
-            time
-            authorReference
-            authorString
-          }
-          paperTrailVersions(limit: 1) {
-            versionActionName
-            versionInsertedAt
-            changedBy {
-              id
-              name
-            }
-            changedByPractitioner {
-              id
-              name {
-                text
-                given
-                family
-              }
-            }
+            given
+            family
           }
         }
       }
     }
   }
 `);
+
+const PatientWorkspaceCareFragment = graphql(`
+  fragment PatientWorkspaceCare on Patient @_unmask {
+    medicationRequests(limit: 250) {
+      id
+      status
+      intent
+      courseOfTherapyType
+      medication {
+        text
+        coding {
+          system
+          code
+          version
+          display(locale: $locale)
+        }
+      }
+      dosageInstruction {
+        text
+        patientInstruction
+        asNeeded
+        frequency
+        period
+        periodUnit
+        route {
+          text
+        }
+        doseQuantity {
+          value
+          unit
+        }
+      }
+      dispenseRequest {
+        numberOfRepeatsAllowed
+        quantity {
+          value
+          unit
+        }
+        expectedSupplyDuration {
+          value
+          code
+        }
+        validityPeriod {
+          start
+          end
+        }
+      }
+      substitution {
+        allowedCodeableConcept {
+          coding {
+            system
+            code
+          }
+        }
+        reason {
+          text
+        }
+      }
+      authoredOn
+      requester {
+        id
+        name {
+          text
+          given
+          family
+        }
+      }
+      note {
+        text
+        time
+        authorReference
+        authorString
+      }
+      paperTrailVersions(limit: 1) {
+        versionActionName
+        versionInsertedAt
+        changedBy {
+          id
+          name
+        }
+        changedByPractitioner {
+          id
+          name {
+            text
+            given
+            family
+          }
+        }
+      }
+    }
+    goals(sort: [{ field: PRIORITY, order: ASC }], limit: 250) {
+      id
+      lifecycleStatus
+      achievementStatus
+      priority
+      description {
+        text
+      }
+      startDate
+      dueDate
+      category
+      note {
+        text
+        time
+        authorString
+        authorReference
+      }
+      paperTrailVersions(limit: 1) {
+        versionActionName
+        versionInsertedAt
+        changedBy {
+          id
+          name
+        }
+        changedByPractitioner {
+          id
+          name {
+            text
+            given
+            family
+          }
+        }
+      }
+    }
+    nutritionPlans(limit: 250) {
+      id
+      targetKcal
+      proteinG
+      carbsG
+      fatG
+      paperTrailVersions(limit: 1) {
+        versionActionName
+        versionInsertedAt
+        changedBy {
+          id
+          name
+        }
+        changedByPractitioner {
+          id
+          name {
+            text
+            given
+            family
+          }
+        }
+      }
+    }
+    observations(sort: [{ field: EFFECTIVE_DATE_TIME, order: DESC }], limit: 250) {
+      id
+      status
+      observationType
+      code {
+        text
+        coding {
+          system
+          code
+          version
+          display(locale: $locale)
+        }
+      }
+      effectiveDateTime
+      valueString
+      valueDateTime
+      valueQuantity {
+        value
+        unit
+        system
+        code
+      }
+      valueCodeableConcept {
+        text
+        coding {
+          system
+          code
+          version
+          display(locale: $locale)
+        }
+      }
+      note {
+        text
+        time
+        authorReference
+        authorString
+      }
+      paperTrailVersions(limit: 1) {
+        versionActionName
+        versionInsertedAt
+        changedBy {
+          id
+          name
+        }
+        changedByPractitioner {
+          id
+          name {
+            text
+            given
+            family
+          }
+        }
+      }
+    }
+  }
+`);
+
+const PatientWorkspaceByPersonQuery = graphql(
+  `
+    query PatientWorkspaceByPerson($personId: ID!, $locale: String) {
+      listPatients(filter: { personId: { eq: $personId } }, first: 1) {
+        results {
+          ...PatientWorkspaceProfile
+          ...PatientWorkspaceCare
+        }
+      }
+    }
+  `,
+  [PatientWorkspaceProfileFragment, PatientWorkspaceCareFragment],
+);
 
 // ─── Mutations ───────────────────────────────────────────────────────
 
@@ -437,6 +446,8 @@ export type MedicationRequestItem = NonNullable<PatientDetail["medicationRequest
 export type NutritionPlanRecord = NonNullable<PatientDetail["nutritionPlans"]>[number];
 export type PatientObservation = NonNullable<PatientDetail["observations"]>[number];
 
+type PatientWorkspaceByPersonResult = ResultOf<typeof PatientWorkspaceByPersonQuery>;
+
 // ─── Functions ───────────────────────────────────────────────────────
 
 /**
@@ -491,7 +502,7 @@ export async function fetchPatientDetail(
     return null;
   }
 
-  const result = await requestGraphql({
+  const result = await requestGraphql<PatientWorkspaceByPersonResult>({
     document: PatientWorkspaceByPersonQuery,
     variables: { personId, locale: getLocale() },
     organizationId,

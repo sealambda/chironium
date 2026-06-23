@@ -23,11 +23,11 @@ import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
 import { AddMedicationsDialog } from "@/features/customers/ui/detail/add-medications-dialog";
 import { AddMenstrualCycleDialog } from "@/features/customers/ui/detail/add-menstrual-cycle-dialog";
 import { AddObservationDialog } from "@/features/customers/ui/detail/add-observation-dialog";
-import { AddPrescriptionsDialog } from "@/features/customers/ui/detail/add-prescriptions-dialog";
 import { AddTaskReminderDialog } from "@/features/customers/ui/detail/add-task-reminder-dialog";
 import { AllergyDetailDialog } from "@/features/customers/ui/detail/allergy-detail-dialog";
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
 import { NutritionPlanDetailDialog } from "@/features/customers/ui/detail/nutrition-plan-detail-dialog";
+import { PrescriptionDetailDialog } from "@/features/customers/ui/detail/prescription-detail-dialog";
 import * as m from "@/paraglide/messages";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
@@ -296,9 +296,11 @@ export function AddRecordDialog({
         open={activeType === "medication"}
         onOpenChange={handleChildOpenChange}
       />
-      <AddPrescriptionsDialog
+      <PrescriptionDetailDialog
+        mode="create"
         personId={personId}
         patientId={patientId}
+        organizationId=""
         open={activeType === "prescription"}
         onOpenChange={handleChildOpenChange}
       />

@@ -8,14 +8,15 @@ vi.mock("@/shared/api/error-utils", () => ({
 }));
 
 import {
-  type MedicationRequestItem,
+  createPrescription,
   type PrescriptionFormInput,
+  type PrescriptionUpdateSource,
   SUBSTITUTION_SYSTEM,
   updatePrescription,
 } from "@/features/customers/api/medication-requests-api";
 
 /** A prescription seeded with the structured dosage/dispense the form can't edit. */
-function richItem(): MedicationRequestItem {
+function richItem(): PrescriptionUpdateSource {
   return {
     id: "mr_1",
     dosageInstruction: [
@@ -42,7 +43,7 @@ function richItem(): MedicationRequestItem {
       },
       reason: { text: "Brand required" },
     },
-  } as unknown as MedicationRequestItem;
+  } satisfies PrescriptionUpdateSource;
 }
 
 function form(overrides: Partial<PrescriptionFormInput> = {}): PrescriptionFormInput {
@@ -58,15 +59,114 @@ function form(overrides: Partial<PrescriptionFormInput> = {}): PrescriptionFormI
   };
 }
 
+type DosageInstructionRow = NonNullable<PrescriptionUpdateSource["dosageInstruction"]>[number];
+
+function dosageRow(
+  text: string,
+  overrides: Partial<DosageInstructionRow> = {},
+): DosageInstructionRow {
+  return {
+    text,
+    patientInstruction: null,
+    asNeeded: null,
+    frequency: null,
+    period: null,
+    periodUnit: null,
+    route: null,
+    doseQuantity: null,
+    ...overrides,
+  } satisfies DosageInstructionRow;
+}
+
 /** A prescription with no structured detail yet (the create path makes these). */
-function bareItem(): MedicationRequestItem {
-  return { id: "mr_bare" } as unknown as MedicationRequestItem;
+function bareItem(): PrescriptionUpdateSource {
+  return { id: "mr_bare" } satisfies PrescriptionUpdateSource;
 }
 
 function sentInput() {
   requestGraphql.mockResolvedValue({ updateMedicationRequest: { result: { id: "mr_1" } } });
   return requestGraphql;
 }
+
+function sentCreateInput() {
+  requestGraphql.mockResolvedValue({ createMedicationRequest: { result: { id: "mr_new" } } });
+  return requestGraphql;
+}
+
+interface SubstitutionMutationInput {
+  allowedCodeableConcept?: {
+    coding?: { system?: string; code?: string }[];
+    text?: string;
+  } | null;
+  reason?: { text?: string };
+}
+
+interface PrescriptionMutationInput {
+  medication?: { text?: string };
+  status?: string;
+  courseOfTherapyType?: string | null;
+  dosageInstruction?: Record<string, unknown>[];
+  dispenseRequest?: Record<string, unknown> | null;
+  substitution?: SubstitutionMutationInput | null;
+  note?: { text?: string }[];
+  intent?: string;
+  subjectId?: string;
+}
+
+function getMutationInput(mock: ReturnType<typeof vi.fn>): PrescriptionMutationInput {
+  const request = mock.mock.calls[0]?.[0];
+  if (request === undefined || typeof request !== "object" || request === null) {
+    throw new Error("Expected requestGraphql to receive a mutation request.");
+  }
+  const { variables } = request satisfies { variables: { input: PrescriptionMutationInput } };
+  return variables.input;
+}
+
+describe("createPrescription", () => {
+  beforeEach(() => {
+    requestGraphql.mockClear();
+  });
+
+  it("sends the full form payload on create", async () => {
+    const mock = sentCreateInput();
+
+    await createPrescription(
+      form({
+        name: "Vitamin D",
+        dosageText: "1 capsule daily",
+        refills: "1",
+        substitution: "G",
+        note: "Take with food",
+        courseOfTherapy: "CONTINUOUS",
+      }),
+      "patient_1",
+      "org_1",
+    );
+
+    expect(mock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variables: {
+          input: {
+            medication: { text: "Vitamin D" },
+            status: "COMPLETED",
+            courseOfTherapyType: "CONTINUOUS",
+            dosageInstruction: [{ text: "1 capsule daily" }],
+            dispenseRequest: { numberOfRepeatsAllowed: 1 },
+            substitution: {
+              allowedCodeableConcept: {
+                coding: [{ system: SUBSTITUTION_SYSTEM, code: "G" }],
+              },
+            },
+            note: [{ text: "Take with food" }],
+            intent: "ORDER",
+            subjectId: "patient_1",
+          },
+        },
+        organizationId: "org_1",
+      }),
+    );
+  });
+});
 
 describe("updatePrescription", () => {
   beforeEach(() => {
@@ -78,9 +178,9 @@ describe("updatePrescription", () => {
 
     await updatePrescription(richItem(), form({ status: "COMPLETED" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     // The unexposed structured fields survive the edit.
-    expect(input.dosageInstruction[0]).toMatchObject({
+    expect(input.dosageInstruction?.[0]).toMatchObject({
       text: "Take one tablet by mouth once daily",
       frequency: 1,
       doseQuantity: { value: "1", unit: "tablet" },
@@ -96,7 +196,7 @@ describe("updatePrescription", () => {
 
     await updatePrescription(richItem(), form({ refills: "" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.dispenseRequest).toMatchObject({
       numberOfRepeatsAllowed: null,
       quantity: { value: "30", unit: "tablet" },
@@ -108,8 +208,8 @@ describe("updatePrescription", () => {
 
     await updatePrescription(richItem(), form({ dosageText: "Two tablets nightly" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
-    expect(input.dosageInstruction[0]).toMatchObject({
+    const input = getMutationInput(mock);
+    expect(input.dosageInstruction?.[0]).toMatchObject({
       text: "Two tablets nightly",
       frequency: 1,
       doseQuantity: { value: "1", unit: "tablet" },
@@ -121,11 +221,11 @@ describe("updatePrescription", () => {
 
     await updatePrescription(richItem(), form({ substitution: "G" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
-    expect(input.substitution.allowedCodeableConcept.coding).toEqual([
+    const input = getMutationInput(mock);
+    expect(input.substitution?.allowedCodeableConcept?.coding).toEqual([
       { system: SUBSTITUTION_SYSTEM, code: "G" },
     ]);
-    expect(input.substitution.reason).toMatchObject({ text: "Brand required" });
+    expect(input.substitution?.reason).toMatchObject({ text: "Brand required" });
   });
 
   it("clears the substitution code but keeps the reason when set to unspecified", async () => {
@@ -133,7 +233,7 @@ describe("updatePrescription", () => {
 
     await updatePrescription(richItem(), form({ substitution: "" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.substitution).toMatchObject({
       allowedCodeableConcept: null,
       reason: { text: "Brand required" },
@@ -145,7 +245,7 @@ describe("updatePrescription", () => {
 
     await updatePrescription(bareItem(), form({ dosageText: "1 tablet daily" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.dosageInstruction).toEqual([{ text: "1 tablet daily" }]);
   });
 
@@ -154,32 +254,32 @@ describe("updatePrescription", () => {
     const item = {
       id: "mr_multi",
       dosageInstruction: [
-        { text: "morning dose", frequency: 1 },
-        { text: "evening dose", frequency: 1 },
+        dosageRow("morning dose", { frequency: 1 }),
+        dosageRow("evening dose", { frequency: 1 }),
       ],
-    } as unknown as MedicationRequestItem;
+    } satisfies PrescriptionUpdateSource;
 
     await updatePrescription(item, form({ dosageText: "morning dose (updated)" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.dosageInstruction).toHaveLength(2);
-    expect(input.dosageInstruction[0]).toMatchObject({
+    expect(input.dosageInstruction?.[0]).toMatchObject({
       text: "morning dose (updated)",
       frequency: 1,
     });
-    expect(input.dosageInstruction[1]).toMatchObject({ text: "evening dose" });
+    expect(input.dosageInstruction?.[1]).toMatchObject({ text: "evening dose" });
   });
 
   it("drops the instruction when text is cleared and no structured data remains", async () => {
     const mock = sentInput();
     const item = {
       id: "mr_text_only",
-      dosageInstruction: [{ text: "1 tablet" }],
-    } as unknown as MedicationRequestItem;
+      dosageInstruction: [dosageRow("1 tablet")],
+    } satisfies PrescriptionUpdateSource;
 
     await updatePrescription(item, form({ dosageText: "" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.dosageInstruction).toEqual([]);
   });
 
@@ -188,7 +288,7 @@ describe("updatePrescription", () => {
 
     await updatePrescription(bareItem(), form({ refills: "3" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.dispenseRequest).toEqual({ numberOfRepeatsAllowed: 3 });
   });
 
@@ -197,7 +297,7 @@ describe("updatePrescription", () => {
 
     await updatePrescription(bareItem(), form({ refills: "-2" }), "org_1");
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.dispenseRequest).toBeNull();
   });
 
@@ -210,7 +310,7 @@ describe("updatePrescription", () => {
       "org_1",
     );
 
-    const input = mock.mock.calls[0][0].variables.input;
+    const input = getMutationInput(mock);
     expect(input.medication).toEqual({ text: "Aspirin 100 mg" });
     expect(input.status).toBe("ACTIVE");
     expect(input.courseOfTherapyType).toBe("ACUTE");
