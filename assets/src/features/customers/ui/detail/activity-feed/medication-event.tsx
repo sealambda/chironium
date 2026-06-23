@@ -36,7 +36,15 @@ export function MedicationEvent({ medication }: MedicationEventProps) {
         const elements: ReactNode[] = [];
 
         if (name) {
-          elements.push(<MedicationPill key={`${item.id}-name`}>{name}</MedicationPill>);
+          elements.push(
+            <MedicationPill
+              key={`${item.id}-name`}
+              variant="other"
+              isPast={Boolean(item.effectivePeriod?.end)}
+            >
+              {name}
+            </MedicationPill>,
+          );
         }
 
         if (item.status && !SILENT_STATUSES.has(statusKey)) {

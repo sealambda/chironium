@@ -295,9 +295,9 @@ export function getEventAccent(event: FeedEvent): FeedEventAccent {
     case "allergy":
       return event.aiType === "ALLERGY" ? "red" : "orange";
     case "medication":
-      return "violet";
-    case "prescription":
       return "blue";
+    case "prescription":
+      return "violet";
     case "menstrual":
       return "red";
     case "food-preference":
