@@ -19,6 +19,7 @@ import { MenstrualCycleCard } from "@/features/customers/ui/detail/menstrual-cyc
 import { NutritionCard } from "@/features/customers/ui/detail/nutrition-card";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { QuestionnaireResponsesCard } from "@/features/questionnaires/ui/detail/questionnaire-responses-card";
 import * as m from "@/paraglide/messages";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 import { Button } from "@/shared/ui/button";
@@ -219,6 +220,9 @@ function PatientDetailCards({
               personId={personId}
               organizationId={organizationId}
             />
+          </div>
+          <div className="sm:order-6 sm:col-span-2 lg:order-0 lg:col-span-3">
+            <QuestionnaireResponsesCard patientId={patientId} organizationId={organizationId} />
           </div>
         </div>
       </Section>

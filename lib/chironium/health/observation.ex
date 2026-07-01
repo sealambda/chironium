@@ -911,6 +911,14 @@ defmodule Chironium.Health.Observation do
       allow_nil? false
       public? true
     end
+
+    # FHIR `Observation.derivedFrom`. Set when an observation is extracted from a
+    # questionnaire response (see ExtractObservations); kept internal/non-public and used
+    # to make re-extraction idempotent.
+    belongs_to :derived_from_response, Chironium.Health.QuestionnaireResponse do
+      description "The questionnaire response this observation was extracted from, if any."
+      public? false
+    end
   end
 
   calculations do

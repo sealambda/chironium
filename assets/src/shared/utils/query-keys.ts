@@ -30,6 +30,21 @@ export function tasksListQueryKey(organizationId: string) {
   return ["tasks", "list", organizationId] as const;
 }
 
+/** Questionnaire library (definitions) and a single definition for the builder. */
+export const questionnairesQueryKeys = {
+  list(organizationId: string) {
+    return ["questionnaires", "list", organizationId] as const;
+  },
+  detail(organizationId: string, id: string) {
+    return ["questionnaires", "detail", organizationId, id] as const;
+  },
+};
+
+/** A patient's questionnaire responses (patient detail history). */
+export function patientResponsesQueryKey(organizationId: string, patientId: string) {
+  return ["questionnaire-responses", organizationId, patientId] as const;
+}
+
 /** Customers list and related org-scoped customer caches. */
 export const customersQueryKeys = {
   persons(
