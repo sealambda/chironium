@@ -22,6 +22,8 @@ defmodule Chironium.Health do
       Chironium.Health.Observation,
       Chironium.Health.Patient,
       Chironium.Health.Practitioner,
+      Chironium.Health.Questionnaire,
+      Chironium.Health.QuestionnaireResponse,
       Chironium.Health.Task
     ]
   end
@@ -42,6 +44,8 @@ defmodule Chironium.Health do
     resource Chironium.Health.Observation
     resource Chironium.Health.Patient
     resource Chironium.Health.Practitioner
+    resource Chironium.Health.Questionnaire
+    resource Chironium.Health.QuestionnaireResponse
     resource Chironium.Health.Task
   end
 end

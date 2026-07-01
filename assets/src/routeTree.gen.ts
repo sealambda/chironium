@@ -13,8 +13,10 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppQuestionnairesRouteImport } from './routes/_app/questionnaires'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
+import { Route as AppQuestionnairesQuestionnaireIdRouteImport } from './routes/_app/questionnaires_.$questionnaireId'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
 
 const AppRoute = AppRouteImport.update({
@@ -36,6 +38,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppQuestionnairesRoute = AppQuestionnairesRouteImport.update({
+  id: '/questionnaires',
+  path: '/questionnaires',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -46,6 +53,12 @@ const AppCustomersRoute = AppCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AppRoute,
 } as any)
+const AppQuestionnairesQuestionnaireIdRoute =
+  AppQuestionnairesQuestionnaireIdRouteImport.update({
+    id: '/questionnaires_/$questionnaireId',
+    path: '/questionnaires/$questionnaireId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
   id: '/customers_/$customerId',
   path: '/customers/$customerId',
@@ -56,17 +69,21 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
   '/profile': typeof AppProfileRoute
+  '/questionnaires': typeof AppQuestionnairesRoute
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
+  '/questionnaires/$questionnaireId': typeof AppQuestionnairesQuestionnaireIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
   '/profile': typeof AppProfileRoute
+  '/questionnaires': typeof AppQuestionnairesRoute
   '/settings': typeof AppSettingsRoute
   '/subscriptions': typeof AppSubscriptionsRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
+  '/questionnaires/$questionnaireId': typeof AppQuestionnairesQuestionnaireIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -74,9 +91,11 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/customers': typeof AppCustomersRoute
   '/_app/profile': typeof AppProfileRoute
+  '/_app/questionnaires': typeof AppQuestionnairesRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/subscriptions': typeof AppSubscriptionsRoute
   '/_app/customers_/$customerId': typeof AppCustomersCustomerIdRoute
+  '/_app/questionnaires_/$questionnaireId': typeof AppQuestionnairesQuestionnaireIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -84,26 +103,32 @@ export interface FileRouteTypes {
     | '/'
     | '/customers'
     | '/profile'
+    | '/questionnaires'
     | '/settings'
     | '/subscriptions'
     | '/customers/$customerId'
+    | '/questionnaires/$questionnaireId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/customers'
     | '/profile'
+    | '/questionnaires'
     | '/settings'
     | '/subscriptions'
     | '/customers/$customerId'
+    | '/questionnaires/$questionnaireId'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/_app/customers'
     | '/_app/profile'
+    | '/_app/questionnaires'
     | '/_app/settings'
     | '/_app/subscriptions'
     | '/_app/customers_/$customerId'
+    | '/_app/questionnaires_/$questionnaireId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -141,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/questionnaires': {
+      id: '/_app/questionnaires'
+      path: '/questionnaires'
+      fullPath: '/questionnaires'
+      preLoaderRoute: typeof AppQuestionnairesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profile': {
       id: '/_app/profile'
       path: '/profile'
@@ -153,6 +185,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof AppCustomersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/questionnaires_/$questionnaireId': {
+      id: '/_app/questionnaires_/$questionnaireId'
+      path: '/questionnaires/$questionnaireId'
+      fullPath: '/questionnaires/$questionnaireId'
+      preLoaderRoute: typeof AppQuestionnairesQuestionnaireIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/customers_/$customerId': {
@@ -168,17 +207,21 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppQuestionnairesRoute: typeof AppQuestionnairesRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSubscriptionsRoute: typeof AppSubscriptionsRoute
   AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
+  AppQuestionnairesQuestionnaireIdRoute: typeof AppQuestionnairesQuestionnaireIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
   AppProfileRoute: AppProfileRoute,
+  AppQuestionnairesRoute: AppQuestionnairesRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSubscriptionsRoute: AppSubscriptionsRoute,
   AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
+  AppQuestionnairesQuestionnaireIdRoute: AppQuestionnairesQuestionnaireIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

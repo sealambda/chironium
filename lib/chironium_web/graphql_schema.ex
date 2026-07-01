@@ -13,6 +13,7 @@ defmodule ChironiumWeb.GraphqlSchema do
     auto_generate_sdl_file?: true
 
   import_types Absinthe.Plug.Types
+  import_types ChironiumWeb.Schema.QuestionnaireTypes
 
   query do
     # TODO Return entire scope (actor, tenant, locale, ...)

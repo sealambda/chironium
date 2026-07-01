@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarClock,
+  ClipboardList,
   CreditCard,
   FileText,
   Pill,
@@ -28,6 +29,7 @@ import { AllergyDetailDialog } from "@/features/customers/ui/detail/allergy-deta
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
 import { NutritionPlanDetailDialog } from "@/features/customers/ui/detail/nutrition-plan-detail-dialog";
 import { PrescriptionDetailDialog } from "@/features/customers/ui/detail/prescription-detail-dialog";
+import { QuestionnaireFillDialog } from "@/features/questionnaires/ui/fill/questionnaire-fill-dialog";
 import * as m from "@/paraglide/messages";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
@@ -52,6 +54,7 @@ export type RecordType =
   | "menstrual_cycle"
   | "food_preferences"
   | "nutrition"
+  | "questionnaire"
   | "subscription";
 
 /** Paraglide message functions return the resolved string for the active locale. */
@@ -94,6 +97,14 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
         label: m.add_record_tile_measurement,
         desc: m.add_record_measurement_desc,
         priority: "primary",
+      },
+      {
+        id: "questionnaire",
+        icon: ClipboardList,
+        bgClassName: "bg-muted",
+        iconClassName: "text-muted-foreground",
+        label: m.add_record_tile_questionnaire,
+        desc: m.add_record_questionnaire_desc,
       },
       {
         id: "reminder",
@@ -308,6 +319,12 @@ export function AddRecordDialog({
         personId={personId}
         patientId={patientId}
         open={activeType === "menstrual_cycle"}
+        onOpenChange={handleChildOpenChange}
+      />
+      <QuestionnaireFillDialog
+        personId={personId}
+        patientId={patientId}
+        open={activeType === "questionnaire"}
         onOpenChange={handleChildOpenChange}
       />
       <AllergyDetailDialog
