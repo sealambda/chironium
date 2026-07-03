@@ -41,7 +41,6 @@ defmodule Chironium.Generator do
   ]
 
   # RxNorm-coded medications.
-  @rxnorm_system "http://www.nlm.nih.gov/research/umls/rxnorm"
   @rxnorm_medications [
     {"860975", "Metformin 500mg"},
     {"314076", "Lisinopril 10mg"},
@@ -701,16 +700,6 @@ defmodule Chironium.Generator do
   defp random_condition_code do
     {code, display} = Enum.random(@snomed_conditions)
     %{coding: [%{system: @snomed_system, code: code}], text: display}
-  end
-
-  defp random_allergen_code do
-    {code, display} = Enum.random(@snomed_allergens)
-    %{coding: [%{system: @snomed_system, code: code}], text: display}
-  end
-
-  defp random_medication_code do
-    {code, display} = Enum.random(@rxnorm_medications)
-    %{coding: [%{system: @rxnorm_system, code: code}], text: display}
   end
 
   # Returns a keyword list with all condition temporal fields plus clinical_status.

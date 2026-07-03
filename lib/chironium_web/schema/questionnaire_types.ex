@@ -67,6 +67,10 @@ defmodule ChironiumWeb.Schema.QuestionnaireTypes do
     field :read_only, :boolean
     field :max_length, :integer
     field :answer_constraint, :string
+    # Pragmatic flattening of the FHIR minValue/maxValue extensions: bounds a numeric
+    # question and, when both are set on an `integer`, renders it as a rating scale.
+    field :min_value, :integer
+    field :max_value, :integer
     field :answer_option, list_of(:questionnaire_answer_option_input)
     field :enable_when, list_of(:questionnaire_enable_when_input)
     field :enable_behavior, :string

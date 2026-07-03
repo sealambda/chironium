@@ -135,6 +135,67 @@ defmodule Chironium.Health.QuestionnaireTest do
                )
                |> Ash.create()
     end
+
+    test "rejects enableWhen with an unknown operator or missing answer value", ctx do
+      base = %{"linkId" => "q1", "type" => "boolean", "text" => "A"}
+
+      bad_operator = [
+        base,
+        %{
+          "linkId" => "q2",
+          "type" => "string",
+          "enableWhen" => [%{"question" => "q1", "operator" => "matches", "answerBoolean" => true}]
+        }
+      ]
+
+      missing_value = [
+        base,
+        %{
+          "linkId" => "q2",
+          "type" => "string",
+          "enableWhen" => [%{"question" => "q1", "operator" => "="}]
+        }
+      ]
+
+      for items <- [bad_operator, missing_value] do
+        assert {:error, _} =
+                 Questionnaire
+                 |> Ash.Changeset.for_create(:create, %{title: "Bad", item: items},
+                   authorize?: false,
+                   tenant: ctx.tenant
+                 )
+                 |> Ash.create()
+      end
+    end
+
+    test "accepts a comparison enableWhen and a bounded scale question", ctx do
+      items = [
+        %{"linkId" => "pain", "type" => "integer", "text" => "Pain", "minValue" => 1, "maxValue" => 10},
+        %{
+          "linkId" => "advice",
+          "type" => "text",
+          "text" => "Tell us more",
+          "enableWhen" => [%{"question" => "pain", "operator" => ">=", "answerInteger" => 7}]
+        }
+      ]
+
+      questionnaire = create_questionnaire(ctx, items)
+      assert [%{"minValue" => 1, "maxValue" => 10} | _] = questionnaire.item
+    end
+
+    test "rejects inverted minValue/maxValue bounds", ctx do
+      items = [
+        %{"linkId" => "pain", "type" => "integer", "text" => "Pain", "minValue" => 10, "maxValue" => 1}
+      ]
+
+      assert {:error, _} =
+               Questionnaire
+               |> Ash.Changeset.for_create(:create, %{title: "Bad", item: items},
+                 authorize?: false,
+                 tenant: ctx.tenant
+               )
+               |> Ash.create()
+    end
   end
 
   describe "response normalization (server authority)" do

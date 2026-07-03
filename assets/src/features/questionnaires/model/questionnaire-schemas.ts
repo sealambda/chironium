@@ -81,6 +81,9 @@ export interface QuestionnaireItem {
   repeats?: boolean | null;
   readOnly?: boolean | null;
   maxLength?: number | null;
+  /** Flattened FHIR minValue/maxValue extensions: numeric bounds; on `integer`, a scale. */
+  minValue?: number | null;
+  maxValue?: number | null;
   answerConstraint?: "optionsOnly" | "optionsOrType" | "optionsOrString" | null;
   answerOption?: AnswerOption[] | null;
   enableWhen?: EnableWhen[] | null;
@@ -100,6 +103,8 @@ export const questionnaireItemSchema: z.ZodType<QuestionnaireItem> = z.lazy(() =
     repeats: z.boolean().nullish(),
     readOnly: z.boolean().nullish(),
     maxLength: z.number().int().nullish(),
+    minValue: z.number().nullish(),
+    maxValue: z.number().nullish(),
     answerConstraint: z.enum(["optionsOnly", "optionsOrType", "optionsOrString"]).nullish(),
     answerOption: z.array(answerOptionSchema).nullish(),
     enableWhen: z.array(enableWhenSchema).nullish(),

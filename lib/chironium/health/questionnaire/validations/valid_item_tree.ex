@@ -2,7 +2,9 @@ defmodule Chironium.Health.Questionnaire.Validations.ValidItemTree do
   @moduledoc """
   Validates a `Questionnaire.item` JSON tree: every node has a non-empty `linkId` and a
   recognized `type`, `linkId`s are unique across the whole tree, `enableWhen` entries
-  reference an existing `linkId`, and `answerOption` entries carry exactly one value.
+  reference an existing `linkId` with a known operator and exactly one `answer[x]`,
+  `answerOption` entries carry exactly one value, and `minValue`/`maxValue` bounds
+  form a sane range.
 
   A draft questionnaire may have no items yet, so an empty/absent tree is valid.
   Keys follow FHIR's JSON form (camelCase strings).
@@ -52,6 +54,7 @@ defmodule Chironium.Health.Questionnaire.Validations.ValidItemTree do
 
       true ->
         with :ok <- validate_answer_options(node),
+             :ok <- validate_bounds(node),
              :ok <- validate_list(node["item"] || []) do
           :ok
         end
@@ -73,6 +76,23 @@ defmodule Chironium.Health.Questionnaire.Validations.ValidItemTree do
 
   defp validate_answer_options(_), do: :ok
 
+  # `minValue`/`maxValue` (the flattened FHIR extensions) must form a sane numeric range.
+  defp validate_bounds(%{"linkId" => link_id} = node) do
+    min = node["minValue"]
+    max = node["maxValue"]
+
+    cond do
+      not (is_nil(min) or is_number(min)) or not (is_nil(max) or is_number(max)) ->
+        {:error, "minValue/maxValue on #{link_id} must be numbers"}
+
+      is_number(min) and is_number(max) and min >= max ->
+        {:error, "minValue must be below maxValue on #{link_id}"}
+
+      true ->
+        :ok
+    end
+  end
+
   defp validate_unique_link_ids(link_ids) do
     duplicates = link_ids -- Enum.uniq(link_ids)
 
@@ -82,24 +102,42 @@ defmodule Chironium.Health.Questionnaire.Validations.ValidItemTree do
     end
   end
 
+  @enable_operators ~w(exists = != > < >= <=)
+
   defp validate_enable_when(items, link_ids) do
     Enum.reduce_while(items, :ok, fn node, :ok ->
       conditions = node["enableWhen"] || []
 
-      referenced_missing =
-        Enum.find(conditions, fn condition ->
-          not MapSet.member?(link_ids, condition["question"])
-        end)
+      with :ok <- validate_conditions(conditions, node["linkId"], link_ids),
+           :ok <- validate_enable_when(node["item"] || [], link_ids) do
+        {:cont, :ok}
+      else
+        error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp validate_conditions(conditions, link_id, link_ids) do
+    Enum.reduce_while(conditions, :ok, fn condition, :ok ->
+      answer_keys =
+        condition
+        |> Map.keys()
+        |> Enum.filter(&(String.starts_with?(&1, "answer") and not is_nil(condition[&1])))
 
       cond do
-        referenced_missing ->
-          {:halt, {:error, "enableWhen on #{node["linkId"]} references unknown question"}}
+        not MapSet.member?(link_ids, condition["question"]) ->
+          {:halt, {:error, "enableWhen on #{link_id} references unknown question"}}
+
+        condition["operator"] not in @enable_operators ->
+          {:halt,
+           {:error,
+            "enableWhen on #{link_id} has an unknown operator #{inspect(condition["operator"])}"}}
+
+        length(answer_keys) != 1 ->
+          {:halt, {:error, "enableWhen on #{link_id} must carry exactly one answer value"}}
 
         true ->
-          case validate_enable_when(node["item"] || [], link_ids) do
-            :ok -> {:cont, :ok}
-            error -> {:halt, error}
-          end
+          {:cont, :ok}
       end
     end)
   end
