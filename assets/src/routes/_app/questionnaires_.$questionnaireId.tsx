@@ -7,7 +7,13 @@ const QuestionnaireBuilderPage = lazy(() =>
   })),
 );
 
-/** Builder for a single questionnaire. The id `new` creates a fresh definition. */
+/**
+ * Builder for a single questionnaire. The id `new` creates a fresh definition,
+ * optionally seeded from a template (`?template=measurements|nutrition|cycle`).
+ */
 export const Route = createFileRoute("/_app/questionnaires_/$questionnaireId")({
+  validateSearch: (search: Record<string, unknown>): { template?: string } => ({
+    template: typeof search.template === "string" ? search.template : undefined,
+  }),
   component: QuestionnaireBuilderPage,
 });

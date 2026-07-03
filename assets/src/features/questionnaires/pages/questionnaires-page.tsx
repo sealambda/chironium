@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNowStrict } from "date-fns";
-import { ClipboardList, Plus } from "lucide-react";
+import { ClipboardList, FilePlus2, Plus } from "lucide-react";
+import { useState } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
@@ -9,10 +10,18 @@ import {
   type QuestionnaireListItem,
   type QuestionnaireStatus,
 } from "@/features/questionnaires/api/questionnaires-api";
+import { QUESTIONNAIRE_TEMPLATES } from "@/features/questionnaires/model/templates";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { getDateLocale } from "@/shared/utils/date-locale";
@@ -78,10 +87,64 @@ function QuestionnaireRow({
   );
 }
 
+/** "Start from scratch or a template" picker, shown when creating a questionnaire. */
+function TemplatePickerDialog({
+  open,
+  onOpenChange,
+  onPick,
+}: Readonly<{
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onPick: (templateId: string | undefined) => void;
+}>) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg" showCloseButton>
+        <DialogHeader>
+          <DialogTitle>{m.questionnaire_template_pick_title()}</DialogTitle>
+          <DialogDescription>{m.questionnaire_template_pick_desc()}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Card
+            className="cursor-pointer p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
+            onClick={() => onPick(undefined)}
+          >
+            <div className="flex items-center gap-3">
+              <FilePlus2 className="size-5 shrink-0 text-muted-foreground" />
+              <div>
+                <p className="font-medium text-sm">{m.questionnaire_template_blank()}</p>
+                <p className="text-muted-foreground text-sm">
+                  {m.questionnaire_template_blank_desc()}
+                </p>
+              </div>
+            </div>
+          </Card>
+          {QUESTIONNAIRE_TEMPLATES.map((template) => (
+            <Card
+              key={template.id}
+              className="cursor-pointer p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
+              onClick={() => onPick(template.id)}
+            >
+              <div className="flex items-center gap-3">
+                <ClipboardList className="size-5 shrink-0 text-muted-foreground" />
+                <div>
+                  <p className="font-medium text-sm">{template.name()}</p>
+                  <p className="text-muted-foreground text-sm">{template.description()}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function QuestionnairesPage() {
   const { selectedOrg } = useOrg();
   const navigate = useNavigate();
   const orgId = selectedOrg?.id;
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const { data: questionnaires, isLoading } = useQuery({
     queryKey: questionnairesQueryKeys.list(orgId ?? ""),
@@ -89,8 +152,12 @@ export function QuestionnairesPage() {
     enabled: Boolean(orgId),
   });
 
-  const open = (id: string) =>
-    navigate({ to: "/questionnaires/$questionnaireId", params: { questionnaireId: id } });
+  const open = (id: string, template?: string) =>
+    navigate({
+      to: "/questionnaires/$questionnaireId",
+      params: { questionnaireId: id },
+      search: template ? { template } : undefined,
+    });
 
   function renderContent() {
     if (isLoading) {
@@ -102,7 +169,7 @@ export function QuestionnairesPage() {
           icon={ClipboardList}
           title={m.questionnaire_empty_title()}
           description={m.questionnaire_empty_desc()}
-          actions={[{ label: m.questionnaire_new(), onAction: () => open("new") }]}
+          actions={[{ label: m.questionnaire_new(), onAction: () => setPickerOpen(true) }]}
         />
       );
     }
@@ -123,13 +190,22 @@ export function QuestionnairesPage() {
     <div className="mx-auto w-full max-w-3xl space-y-4 p-4 lg:p-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-semibold text-xl">{m.questionnaire_library_title()}</h1>
-        <Button onClick={() => open("new")}>
+        <Button onClick={() => setPickerOpen(true)}>
           <Plus className="size-4" />
           {m.questionnaire_new()}
         </Button>
       </div>
 
       {renderContent()}
+
+      <TemplatePickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onPick={(templateId) => {
+          setPickerOpen(false);
+          void open("new", templateId);
+        }}
+      />
     </div>
   );
 }

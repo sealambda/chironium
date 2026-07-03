@@ -1,9 +1,10 @@
 import type { QuestionnaireStatus } from "@/features/questionnaires/api/questionnaires-api";
-import type {
-  AnswerOption,
-  EnableWhen,
-  ItemType,
-  QuestionnaireItem,
+import {
+  type AnswerOption,
+  type EnableWhen,
+  type ItemType,
+  isAnswerable,
+  type QuestionnaireItem,
 } from "@/features/questionnaires/model/questionnaire-schemas";
 
 /**
@@ -87,6 +88,72 @@ function removeNode(items: QuestionnaireItem[], linkId: string): QuestionnaireIt
     .map((node) => (node.item ? { ...node, item: removeNode(node.item, linkId) } : node));
 }
 
+/** All linkIds in the subtree rooted at `linkId` (the node itself plus descendants). */
+function subtreeLinkIds(items: QuestionnaireItem[], linkId: string): Set<string> {
+  const ids = new Set<string>();
+  const collect = (node: QuestionnaireItem) => {
+    ids.add(node.linkId);
+    for (const child of node.item ?? []) {
+      collect(child);
+    }
+  };
+  const find = (nodes: QuestionnaireItem[]) => {
+    for (const node of nodes) {
+      if (node.linkId === linkId) {
+        collect(node);
+        return;
+      }
+      if (node.item) {
+        find(node.item);
+      }
+    }
+  };
+  find(items);
+  return ids;
+}
+
+/** Drop `enableWhen` conditions that reference any of the removed linkIds. */
+function stripDanglingConditions(
+  items: QuestionnaireItem[],
+  removed: Set<string>,
+): QuestionnaireItem[] {
+  return items.map((node) => {
+    const conditions = (node.enableWhen ?? []).filter(
+      (condition) => !removed.has(condition.question),
+    );
+    return {
+      ...node,
+      enableWhen: conditions.length > 0 ? conditions : undefined,
+      item: node.item ? stripDanglingConditions(node.item, removed) : node.item,
+    };
+  });
+}
+
+/** Drop properties that no longer apply after an item's type changed. */
+function sanitizeForType(node: QuestionnaireItem): QuestionnaireItem {
+  const next = { ...node };
+  if (next.type !== "coding") {
+    next.answerOption = undefined;
+    next.answerConstraint = undefined;
+  }
+  if (next.type !== "quantity") {
+    next.unit = undefined;
+  }
+  if (next.type !== "integer" && next.type !== "decimal") {
+    next.minValue = undefined;
+    next.maxValue = undefined;
+  }
+  if (!isAnswerable(next.type)) {
+    next.required = undefined;
+    next.repeats = undefined;
+    next.code = undefined;
+  }
+  if (next.type !== "group") {
+    next.item = undefined;
+  }
+  return next;
+}
+
 function insertChild(
   items: QuestionnaireItem[],
   parentLinkId: string | null,
@@ -114,7 +181,12 @@ function moveNode(
       return items;
     }
     const next = [...items];
-    [next[index], next[target]] = [next[target], next[index]];
+    const moved = next[index];
+    const displaced = next[target];
+    if (moved && displaced) {
+      next[index] = displaced;
+      next[target] = moved;
+    }
     return next;
   }
   return items.map((node) =>
@@ -142,11 +214,23 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
     case "updateItem":
       return {
         ...state,
-        items: mapNode(state.items, action.linkId, (node) => ({ ...node, ...action.patch })),
+        items: mapNode(state.items, action.linkId, (node) => {
+          const next = { ...node, ...action.patch };
+          return action.patch.type && action.patch.type !== node.type
+            ? sanitizeForType(next)
+            : next;
+        }),
       };
 
-    case "removeItem":
-      return { ...state, items: removeNode(state.items, action.linkId) };
+    case "removeItem": {
+      // Deleting a question must also delete conditions that point at it (or at
+      // anything inside it), or the definition would no longer validate.
+      const removed = subtreeLinkIds(state.items, action.linkId);
+      return {
+        ...state,
+        items: stripDanglingConditions(removeNode(state.items, action.linkId), removed),
+      };
+    }
 
     case "moveItem":
       return { ...state, items: moveNode(state.items, action.linkId, action.direction) };
@@ -154,6 +238,59 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
     default:
       return state;
   }
+}
+
+// ─── Pre-save authoring checks ───────────────────────────────────────
+
+function someItem(
+  items: QuestionnaireItem[],
+  predicate: (node: QuestionnaireItem) => boolean,
+): boolean {
+  return items.some((node) => predicate(node) || someItem(node.item ?? [], predicate));
+}
+
+/** A comparison condition whose value was never filled in (the server rejects these). */
+export function hasIncompleteConditions(items: QuestionnaireItem[]): boolean {
+  return someItem(items, (node) =>
+    (node.enableWhen ?? []).some(
+      (condition) =>
+        condition.question === "" ||
+        (condition.operator !== "exists" &&
+          condition.answerBoolean == null &&
+          condition.answerString == null &&
+          condition.answerInteger == null &&
+          condition.answerDecimal == null &&
+          condition.answerDate == null &&
+          condition.answerCoding == null),
+    ),
+  );
+}
+
+/** Scale bounds that would be rejected by the server (min must be below max). */
+export function hasInvalidScaleBounds(items: QuestionnaireItem[]): boolean {
+  return someItem(
+    items,
+    (node) => node.minValue != null && node.maxValue != null && node.minValue >= node.maxValue,
+  );
+}
+
+/**
+ * Whether the definition uses features beyond the simple authoring surface (free text /
+ * options). The builder starts in advanced mode for these so no configuration is hidden.
+ */
+export function needsAdvancedAuthoring(items: QuestionnaireItem[]): boolean {
+  const simpleTypes: string[] = ["text", "string", "coding"];
+  return someItem(
+    items,
+    (node) =>
+      !simpleTypes.includes(node.type) ||
+      (node.enableWhen ?? []).length > 0 ||
+      (node.code ?? []).length > 0 ||
+      node.required === true ||
+      node.minValue != null ||
+      node.maxValue != null ||
+      node.unit != null,
+  );
 }
 
 // ─── Small helpers for the item editor ───────────────────────────────
@@ -166,12 +303,15 @@ export function emptyEnableWhen(question: string): EnableWhen {
   return { question, operator: "exists", answerBoolean: true };
 }
 
-/** All linkIds that precede `linkId` in a depth-first walk — valid `enableWhen` sources. */
-export function precedingLinkIds(
+/**
+ * The answerable questions that precede `linkId` in a depth-first walk — the valid
+ * `enableWhen` sources. Groups and display items cannot be answered, so they are skipped.
+ */
+export function precedingQuestions(
   items: QuestionnaireItem[],
   linkId: string,
-): { linkId: string; text: string }[] {
-  const result: { linkId: string; text: string }[] = [];
+): QuestionnaireItem[] {
+  const result: QuestionnaireItem[] = [];
   let found = false;
   const visit = (nodes: QuestionnaireItem[]) => {
     for (const node of nodes) {
@@ -179,7 +319,9 @@ export function precedingLinkIds(
         found = true;
         return;
       }
-      result.push({ linkId: node.linkId, text: node.text || node.linkId });
+      if (isAnswerable(node.type)) {
+        result.push(node);
+      }
       if (node.item) {
         visit(node.item);
         if (found) {

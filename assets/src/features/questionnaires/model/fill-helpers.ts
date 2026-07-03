@@ -1,12 +1,17 @@
 import type {
   Answer,
+  EnableWhen,
   QuestionnaireItem,
   ResponseItem,
 } from "@/features/questionnaires/model/questionnaire-schemas";
 import { isAnswerable } from "@/features/questionnaires/model/questionnaire-schemas";
 
-/** Flat map of linkId → the single answer captured for that question. */
-export type AnswerMap = Record<string, Answer | undefined>;
+/**
+ * Flat map of linkId → the answers captured for that question. FHIR models
+ * `QuestionnaireResponse.answer` as a list; most questions hold one entry, questions
+ * with `repeats` may hold several.
+ */
+export type AnswerMap = Record<string, Answer[] | undefined>;
 
 function hasValue(answer: Answer | undefined): boolean {
   if (!answer) {
@@ -17,20 +22,20 @@ function hasValue(answer: Answer | undefined): boolean {
   );
 }
 
+/** Whether the question has at least one non-empty answer. */
+export function isAnswered(answers: Answer[] | undefined): boolean {
+  return (answers ?? []).some(hasValue);
+}
+
 /** A condition's expected answer value, normalized for comparison. */
-function conditionValue(condition: {
-  answerBoolean?: boolean | null;
-  answerString?: string | null;
-  answerInteger?: number | null;
-  answerDecimal?: number | null;
-  answerDate?: string | null;
-}): unknown {
+function conditionValue(condition: EnableWhen): unknown {
   return (
     condition.answerBoolean ??
     condition.answerString ??
     condition.answerInteger ??
     condition.answerDecimal ??
     condition.answerDate ??
+    condition.answerCoding?.code ??
     null
   );
 }
@@ -53,6 +58,28 @@ function answerValue(answer: Answer | undefined): unknown {
   );
 }
 
+/** Whether one captured answer satisfies a comparison condition. */
+function matches(answer: Answer, condition: EnableWhen): boolean {
+  const left = answerValue(answer);
+  const right = conditionValue(condition);
+  switch (condition.operator) {
+    case "=":
+      return left === right;
+    case "!=":
+      return left !== right;
+    case ">":
+      return Number(left) > Number(right);
+    case "<":
+      return Number(left) < Number(right);
+    case ">=":
+      return Number(left) >= Number(right);
+    case "<=":
+      return Number(left) <= Number(right);
+    default:
+      return true;
+  }
+}
+
 /** Whether an item is shown, given the current answers and its `enableWhen` rules. */
 export function isEnabled(item: QuestionnaireItem, answers: AnswerMap): boolean {
   const conditions = item.enableWhen ?? [];
@@ -61,28 +88,12 @@ export function isEnabled(item: QuestionnaireItem, answers: AnswerMap): boolean 
   }
 
   const results = conditions.map((condition) => {
-    const answer = answers[condition.question];
+    const captured = (answers[condition.question] ?? []).filter(hasValue);
     if (condition.operator === "exists") {
-      return hasValue(answer) === (condition.answerBoolean ?? true);
+      return captured.length > 0 === (condition.answerBoolean ?? true);
     }
-    const left = answerValue(answer);
-    const right = conditionValue(condition);
-    switch (condition.operator) {
-      case "=":
-        return left === right;
-      case "!=":
-        return left !== right;
-      case ">":
-        return Number(left) > Number(right);
-      case "<":
-        return Number(left) < Number(right);
-      case ">=":
-        return Number(left) >= Number(right);
-      case "<=":
-        return Number(left) <= Number(right);
-      default:
-        return true;
-    }
+    // FHIR: a comparison condition is met when *any* captured answer satisfies it.
+    return captured.some((answer) => matches(answer, condition));
   });
 
   // FHIR `enableBehavior`: all conditions, or any. Default to `all`.
@@ -111,9 +122,9 @@ export function buildResponseTree(items: QuestionnaireItem[], answers: AnswerMap
     }
 
     if (isAnswerable(item.type)) {
-      const answer = answers[item.linkId];
-      if (hasValue(answer) && answer) {
-        result.push({ linkId: item.linkId, answer: [answer] });
+      const captured = (answers[item.linkId] ?? []).filter(hasValue);
+      if (captured.length > 0) {
+        result.push({ linkId: item.linkId, answer: captured });
       }
     }
   }
@@ -134,7 +145,7 @@ export function missingRequired(items: QuestionnaireItem[], answers: AnswerMap):
         visit(node.item ?? []);
         continue;
       }
-      if (isAnswerable(node.type) && node.required && !hasValue(answers[node.linkId])) {
+      if (isAnswerable(node.type) && node.required && !isAnswered(answers[node.linkId])) {
         missing.push(node.linkId);
       }
     }
