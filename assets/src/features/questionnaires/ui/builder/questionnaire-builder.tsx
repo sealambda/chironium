@@ -1,5 +1,14 @@
-import { ChevronDown, ChevronUp, Plus, SlidersHorizontal, Trash2 } from "lucide-react";
-import { type Dispatch, useState } from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Circle,
+  Copy,
+  Plus,
+  SlidersHorizontal,
+  Square,
+  Trash2,
+} from "lucide-react";
+import { type Dispatch, useEffect, useRef, useState } from "react";
 
 import type { QuestionnaireStatus } from "@/features/questionnaires/api/questionnaires-api";
 import {
@@ -83,28 +92,61 @@ function codeToTags(item: QuestionnaireItem): TerminologyTag[] {
   }));
 }
 
+/**
+ * Google-Forms-style options editor: each row is prefixed with the glyph the patient
+ * will see (radio circle for single choice, square for multiple), placeholders are
+ * numbered, and Enter inserts the next option and moves focus into it.
+ */
 function AnswerOptionsEditor({
   item,
   dispatch,
 }: Readonly<{ item: QuestionnaireItem; dispatch: Dispatch<BuilderAction> }>) {
   const options = item.answerOption ?? [];
+  const [pendingFocus, setPendingFocus] = useState<number | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (pendingFocus !== null) {
+      inputRefs.current[pendingFocus]?.focus();
+      setPendingFocus(null);
+    }
+  }, [pendingFocus]);
 
   const update = (next: AnswerOption[]) =>
     dispatch({ type: "updateItem", linkId: item.linkId, patch: { answerOption: next } });
 
+  const insertAt = (index: number) => {
+    const next = [...options];
+    next.splice(index, 0, emptyAnswerOption());
+    update(next);
+    setPendingFocus(index);
+  };
+
+  const Glyph = item.repeats ? Square : Circle;
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <FieldLabel>{m.questionnaire_options_label()}</FieldLabel>
       {options.map((option, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: editable option list with no stable id
         <div key={`${item.linkId}-opt-${index}`} className="flex items-center gap-2">
+          <Glyph className="size-4 shrink-0 text-muted-foreground/60" />
           <Input
+            ref={(el) => {
+              inputRefs.current[index] = el;
+            }}
             value={option.valueString ?? ""}
-            placeholder={m.questionnaire_option_placeholder()}
+            placeholder={m.questionnaire_option_n({ number: index + 1 })}
             onChange={(e) => {
               const next = [...options];
               next[index] = { valueString: e.target.value };
               update(next);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                insertAt(index + 1);
+              }
             }}
           />
           <Button
@@ -118,15 +160,14 @@ function AnswerOptionsEditor({
           </Button>
         </div>
       ))}
-      <Button
+      <button
         type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => update([...options, emptyAnswerOption()])}
+        className="flex w-full items-center gap-2 rounded-md px-0 py-1.5 text-left hover:bg-muted/50"
+        onClick={() => insertAt(options.length)}
       >
-        <Plus className="size-4" />
-        {m.questionnaire_add_option()}
-      </Button>
+        <Glyph className="size-4 shrink-0 text-muted-foreground/30" />
+        <span className="text-muted-foreground text-sm">{m.questionnaire_add_option()}</span>
+      </button>
     </div>
   );
 }
@@ -639,6 +680,7 @@ function ItemEditor({
   allItems,
   organizationId,
   advanced,
+  focusLinkId,
   dispatch,
   depth,
 }: Readonly<{
@@ -646,6 +688,7 @@ function ItemEditor({
   allItems: QuestionnaireItem[];
   organizationId: string;
   advanced: boolean;
+  focusLinkId: string | null | undefined;
   dispatch: Dispatch<BuilderAction>;
   depth: number;
 }>) {
@@ -664,12 +707,21 @@ function ItemEditor({
   return (
     <div className="rounded-lg border border-border/60 bg-card p-3">
       <div className="flex items-center gap-2">
+        <Input
+          value={item.text ?? ""}
+          placeholder={
+            isGroup ? m.questionnaire_section_placeholder() : m.questionnaire_question_placeholder()
+          }
+          autoFocus={item.linkId === focusLinkId}
+          onChange={(e) => patch({ text: e.target.value })}
+          className={isGroup ? "flex-1 font-medium" : "flex-1"}
+        />
         <Select
           value={item.type}
           onValueChange={(v) => patch({ type: (v ?? "text") as ItemType })}
           items={typeChoices.map((t) => ({ value: t, label: typeLabel(t) }))}
         >
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-36 shrink-0">
             <SelectValue />
           </SelectTrigger>
           <SelectPositioner>
@@ -682,14 +734,6 @@ function ItemEditor({
             </SelectContent>
           </SelectPositioner>
         </Select>
-        <Input
-          value={item.text ?? ""}
-          placeholder={
-            isGroup ? m.questionnaire_section_placeholder() : m.questionnaire_question_placeholder()
-          }
-          onChange={(e) => patch({ text: e.target.value })}
-          className="flex-1"
-        />
         <Button
           type="button"
           variant="ghost"
@@ -707,6 +751,15 @@ function ItemEditor({
           onClick={() => dispatch({ type: "moveItem", linkId: item.linkId, direction: 1 })}
         >
           <ChevronDown className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={m.questionnaire_duplicate()}
+          onClick={() => dispatch({ type: "duplicateItem", linkId: item.linkId })}
+        >
+          <Copy className="size-4" />
         </Button>
         <Button
           type="button"
@@ -736,6 +789,7 @@ function ItemEditor({
               allItems={allItems}
               organizationId={organizationId}
               advanced={advanced}
+              focusLinkId={focusLinkId}
               dispatch={dispatch}
               depth={depth + 1}
             />
@@ -878,6 +932,11 @@ export function QuestionnaireBuilder({
             {m.questionnaire_advanced()}
           </Button>
         </div>
+        {state.items.length === 0 ? (
+          <div className="rounded-lg border border-border/60 border-dashed p-6 text-center text-muted-foreground text-sm">
+            {m.questionnaire_builder_empty()}
+          </div>
+        ) : null}
         {state.items.map((item) => (
           <ItemEditor
             key={item.linkId}
@@ -885,6 +944,7 @@ export function QuestionnaireBuilder({
             allItems={state.items}
             organizationId={organizationId}
             advanced={advanced}
+            focusLinkId={state.focusLinkId}
             dispatch={dispatch}
             depth={0}
           />

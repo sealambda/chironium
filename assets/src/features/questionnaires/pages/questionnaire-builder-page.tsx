@@ -19,6 +19,8 @@ import {
   emptyBuilderState,
   hasIncompleteConditions,
   hasInvalidScaleBounds,
+  hasOptionlessChoices,
+  pruneEmptyOptions,
 } from "@/features/questionnaires/model/builder-reducer";
 import type { AnswerMap } from "@/features/questionnaires/model/fill-helpers";
 import { findTemplate } from "@/features/questionnaires/model/templates";
@@ -145,13 +147,19 @@ export function QuestionnaireBuilderPage() {
       toast.error(m.questionnaire_scale_invalid());
       return;
     }
+    if (hasOptionlessChoices(state.items)) {
+      toast.error(m.questionnaire_options_required());
+      return;
+    }
+    // The options editor keeps a blank row ready to type; drop those before saving.
+    const items = pruneEmptyOptions(state.items);
 
     const input: QuestionnaireFormInput = {
       title: state.title,
       status: state.status,
       version: state.version,
       description: state.description,
-      item: state.items,
+      item: items,
     };
 
     setSaving(true);

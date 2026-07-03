@@ -6,8 +6,10 @@ import {
   emptyBuilderState,
   hasIncompleteConditions,
   hasInvalidScaleBounds,
+  hasOptionlessChoices,
   needsAdvancedAuthoring,
   precedingQuestions,
+  pruneEmptyOptions,
 } from "@/features/questionnaires/model/builder-reducer";
 import type { QuestionnaireItem } from "@/features/questionnaires/model/questionnaire-schemas";
 
@@ -50,6 +52,46 @@ describe("builderReducer removeItem", () => {
   });
 });
 
+describe("builderReducer duplicateItem", () => {
+  it("copies a subtree with fresh linkIds and remaps internal conditions", () => {
+    const items: QuestionnaireItem[] = [
+      {
+        linkId: "female",
+        type: "group",
+        item: [
+          { linkId: "period", type: "boolean" },
+          {
+            linkId: "period_start",
+            type: "date",
+            enableWhen: [{ question: "period", operator: "=", answerBoolean: true }],
+          },
+        ],
+      },
+    ];
+    const next = builderReducer(stateWith(items), { type: "duplicateItem", linkId: "female" });
+
+    expect(next.items).toHaveLength(2);
+    const copy = next.items[1];
+    expect(copy?.linkId).not.toBe("female");
+    expect(next.focusLinkId).toBe(copy?.linkId);
+
+    // The copied condition points at the copied boolean, not the original.
+    const copiedBoolean = copy?.item?.[0];
+    const copiedDate = copy?.item?.[1];
+    expect(copiedBoolean?.linkId).not.toBe("period");
+    expect(copiedDate?.enableWhen?.[0]?.question).toBe(copiedBoolean?.linkId);
+  });
+
+  it("keeps a condition on an outside question pointing at the original", () => {
+    const next = builderReducer(stateWith(conditionalItems), {
+      type: "duplicateItem",
+      linkId: "period_start",
+    });
+    expect(next.items).toHaveLength(3);
+    expect(next.items[2]?.enableWhen?.[0]?.question).toBe("period");
+  });
+});
+
 describe("builderReducer updateItem", () => {
   it("drops incompatible props when the type changes", () => {
     const items: QuestionnaireItem[] = [
@@ -67,6 +109,15 @@ describe("builderReducer updateItem", () => {
     });
     expect(next.items[0]?.answerOption).toBeUndefined();
     expect(next.items[0]?.required).toBe(true);
+  });
+
+  it("seeds one blank option when switching to Options", () => {
+    const next = builderReducer(stateWith([{ linkId: "q1", type: "text" }]), {
+      type: "updateItem",
+      linkId: "q1",
+      patch: { type: "coding" },
+    });
+    expect(next.items[0]?.answerOption).toEqual([{ valueString: "" }]);
   });
 
   it("keeps props when only the text changes", () => {
@@ -134,5 +185,18 @@ describe("pre-save authoring checks", () => {
     expect(
       hasInvalidScaleBounds([{ linkId: "a", type: "integer", minValue: 1, maxValue: 10 }]),
     ).toBe(false);
+  });
+
+  it("flags an Options question with no filled option and prunes blank rows", () => {
+    const items: QuestionnaireItem[] = [
+      { linkId: "a", type: "coding", answerOption: [{ valueString: "" }] },
+    ];
+    expect(hasOptionlessChoices(items)).toBe(true);
+
+    const filled: QuestionnaireItem[] = [
+      { linkId: "a", type: "coding", answerOption: [{ valueString: "Yes" }, { valueString: "" }] },
+    ];
+    expect(hasOptionlessChoices(filled)).toBe(false);
+    expect(pruneEmptyOptions(filled)[0]?.answerOption).toEqual([{ valueString: "Yes" }]);
   });
 });
