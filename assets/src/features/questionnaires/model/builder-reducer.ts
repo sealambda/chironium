@@ -20,6 +20,8 @@ export interface BuilderState {
   items: QuestionnaireItem[];
   /** Monotonic counter backing stable, unique linkIds. */
   counter: number;
+  /** linkId of the item that should grab keyboard focus (just added or duplicated). */
+  focusLinkId?: string | null;
 }
 
 export type BuilderAction =
@@ -31,6 +33,7 @@ export type BuilderAction =
   | { type: "addItem"; parentLinkId: string | null; itemType: ItemType }
   | { type: "updateItem"; linkId: string; patch: Partial<QuestionnaireItem> }
   | { type: "removeItem"; linkId: string }
+  | { type: "duplicateItem"; linkId: string }
   | { type: "moveItem"; linkId: string; direction: -1 | 1 };
 
 export function emptyBuilderState(): BuilderState {
@@ -135,6 +138,9 @@ function sanitizeForType(node: QuestionnaireItem): QuestionnaireItem {
   if (next.type !== "coding") {
     next.answerOption = undefined;
     next.answerConstraint = undefined;
+  } else if (!next.answerOption || next.answerOption.length === 0) {
+    // Google-Forms-style: switching to Options starts with one blank option ready to type.
+    next.answerOption = [emptyAnswerOption()];
   }
   if (next.type !== "quantity") {
     next.unit = undefined;
@@ -194,6 +200,54 @@ function moveNode(
   );
 }
 
+/**
+ * Insert a deep copy of the node right after the original, giving every copied node a
+ * fresh linkId and remapping `enableWhen` references *within* the copied subtree (a
+ * condition on an outside question stays pointed at the original).
+ */
+function duplicateNode(
+  items: QuestionnaireItem[],
+  linkId: string,
+  counter: number,
+): { items: QuestionnaireItem[]; counter: number; copiedLinkId: string | null } {
+  let runningCounter = counter;
+  let copiedLinkId: string | null = null;
+  const idMap = new Map<string, string>();
+
+  const copy = (node: QuestionnaireItem): QuestionnaireItem => {
+    const newId = `q${runningCounter}`;
+    runningCounter += 1;
+    idMap.set(node.linkId, newId);
+    return { ...node, linkId: newId, item: node.item?.map(copy) };
+  };
+
+  const remap = (node: QuestionnaireItem): QuestionnaireItem => ({
+    ...node,
+    enableWhen: node.enableWhen?.map((condition) =>
+      idMap.has(condition.question)
+        ? { ...condition, question: idMap.get(condition.question) ?? condition.question }
+        : condition,
+    ),
+    item: node.item?.map(remap),
+  });
+
+  const insert = (nodes: QuestionnaireItem[]): QuestionnaireItem[] => {
+    const index = nodes.findIndex((node) => node.linkId === linkId);
+    if (index !== -1) {
+      const original = nodes[index];
+      if (!original) {
+        return nodes;
+      }
+      const duplicated = remap(copy(original));
+      copiedLinkId = duplicated.linkId;
+      return [...nodes.slice(0, index + 1), duplicated, ...nodes.slice(index + 1)];
+    }
+    return nodes.map((node) => (node.item ? { ...node, item: insert(node.item) } : node));
+  };
+
+  return { items: insert(items), counter: runningCounter, copiedLinkId };
+}
+
 export function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
   switch (action.type) {
     case "init":
@@ -208,12 +262,14 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
         ...state,
         counter: state.counter + 1,
         items: insertChild(state.items, action.parentLinkId, newItem(linkId, action.itemType)),
+        focusLinkId: linkId,
       };
     }
 
     case "updateItem":
       return {
         ...state,
+        focusLinkId: null,
         items: mapNode(state.items, action.linkId, (node) => {
           const next = { ...node, ...action.patch };
           return action.patch.type && action.patch.type !== node.type
@@ -228,12 +284,26 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
       const removed = subtreeLinkIds(state.items, action.linkId);
       return {
         ...state,
+        focusLinkId: null,
         items: stripDanglingConditions(removeNode(state.items, action.linkId), removed),
       };
     }
 
+    case "duplicateItem": {
+      const { items, counter, copiedLinkId } = duplicateNode(
+        state.items,
+        action.linkId,
+        state.counter,
+      );
+      return { ...state, items, counter, focusLinkId: copiedLinkId };
+    }
+
     case "moveItem":
-      return { ...state, items: moveNode(state.items, action.linkId, action.direction) };
+      return {
+        ...state,
+        focusLinkId: null,
+        items: moveNode(state.items, action.linkId, action.direction),
+      };
 
     default:
       return state;
@@ -247,6 +317,35 @@ function someItem(
   predicate: (node: QuestionnaireItem) => boolean,
 ): boolean {
   return items.some((node) => predicate(node) || someItem(node.item ?? [], predicate));
+}
+
+function optionFilled(option: AnswerOption): boolean {
+  return Boolean(
+    option.valueCoding ||
+      option.valueInteger != null ||
+      option.valueDate ||
+      (option.valueString ?? "").trim() !== "",
+  );
+}
+
+/** Strip blank answer options before save — the editor keeps an empty row ready to type. */
+export function pruneEmptyOptions(items: QuestionnaireItem[]): QuestionnaireItem[] {
+  return items.map((node) => {
+    const options = node.answerOption?.filter(optionFilled);
+    return {
+      ...node,
+      answerOption: options && options.length > 0 ? options : undefined,
+      item: node.item ? pruneEmptyOptions(node.item) : node.item,
+    };
+  });
+}
+
+/** An Options question left with no (filled) choices — nothing to pick when filling. */
+export function hasOptionlessChoices(items: QuestionnaireItem[]): boolean {
+  return someItem(
+    items,
+    (node) => node.type === "coding" && !(node.answerOption ?? []).some(optionFilled),
+  );
 }
 
 /** A comparison condition whose value was never filled in (the server rejects these). */
