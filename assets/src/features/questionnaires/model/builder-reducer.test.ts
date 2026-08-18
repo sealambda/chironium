@@ -4,111 +4,73 @@ import {
   type BuilderState,
   builderReducer,
   emptyBuilderState,
-  hasIncompleteConditions,
-  hasInvalidScaleBounds,
   hasOptionlessChoices,
-  needsAdvancedAuthoring,
-  precedingQuestions,
   pruneEmptyOptions,
 } from "@/features/questionnaires/model/builder-reducer";
+import {
+  clearMeasurementPatch,
+  findMeasurement,
+  measurementOf,
+  measurementPatch,
+} from "@/features/questionnaires/model/measurements";
 import type { QuestionnaireItem } from "@/features/questionnaires/model/questionnaire-schemas";
 
 function stateWith(items: QuestionnaireItem[]): BuilderState {
   return { ...emptyBuilderState(), items };
 }
 
-const conditionalItems: QuestionnaireItem[] = [
-  {
-    linkId: "female",
-    type: "group",
-    text: "Female health",
-    item: [{ linkId: "period", type: "boolean", text: "Period started?" }],
-  },
-  {
-    linkId: "period_start",
-    type: "date",
-    text: "Start date",
-    enableWhen: [{ question: "period", operator: "=", answerBoolean: true }],
-  },
-];
-
-describe("builderReducer removeItem", () => {
-  it("strips conditions referencing the removed question", () => {
-    const next = builderReducer(stateWith(conditionalItems), {
-      type: "removeItem",
-      linkId: "period",
-    });
-    const dependent = next.items.find((node) => node.linkId === "period_start");
-    expect(dependent?.enableWhen).toBeUndefined();
+describe("builderReducer addItem / removeItem", () => {
+  it("appends a free-text question and focuses it", () => {
+    const next = builderReducer(emptyBuilderState(), { type: "addItem", itemType: "text" });
+    expect(next.items).toEqual([{ linkId: "q1", type: "text", text: "" }]);
+    expect(next.focusLinkId).toBe("q1");
+    expect(next.counter).toBe(2);
   });
 
-  it("strips conditions referencing questions inside a removed group", () => {
-    const next = builderReducer(stateWith(conditionalItems), {
-      type: "removeItem",
-      linkId: "female",
-    });
-    expect(next.items.map((node) => node.linkId)).toEqual(["period_start"]);
-    expect(next.items[0]?.enableWhen).toBeUndefined();
+  it("removes the question", () => {
+    const items: QuestionnaireItem[] = [
+      { linkId: "q1", type: "text" },
+      { linkId: "q2", type: "text" },
+    ];
+    const next = builderReducer(stateWith(items), { type: "removeItem", linkId: "q1" });
+    expect(next.items.map((node) => node.linkId)).toEqual(["q2"]);
   });
 });
 
 describe("builderReducer duplicateItem", () => {
-  it("copies a subtree with fresh linkIds and remaps internal conditions", () => {
+  it("copies the question with a fresh linkId, right after the original", () => {
     const items: QuestionnaireItem[] = [
-      {
-        linkId: "female",
-        type: "group",
-        item: [
-          { linkId: "period", type: "boolean" },
-          {
-            linkId: "period_start",
-            type: "date",
-            enableWhen: [{ question: "period", operator: "=", answerBoolean: true }],
-          },
-        ],
-      },
+      { linkId: "q1", type: "coding", text: "Pick", answerOption: [{ valueString: "A" }] },
+      { linkId: "q2", type: "text" },
     ];
-    const next = builderReducer(stateWith(items), { type: "duplicateItem", linkId: "female" });
+    const next = builderReducer(
+      { ...stateWith(items), counter: 3 },
+      {
+        type: "duplicateItem",
+        linkId: "q1",
+      },
+    );
 
-    expect(next.items).toHaveLength(2);
-    const copy = next.items[1];
-    expect(copy?.linkId).not.toBe("female");
-    expect(next.focusLinkId).toBe(copy?.linkId);
-
-    // The copied condition points at the copied boolean, not the original.
-    const copiedBoolean = copy?.item?.[0];
-    const copiedDate = copy?.item?.[1];
-    expect(copiedBoolean?.linkId).not.toBe("period");
-    expect(copiedDate?.enableWhen?.[0]?.question).toBe(copiedBoolean?.linkId);
-  });
-
-  it("keeps a condition on an outside question pointing at the original", () => {
-    const next = builderReducer(stateWith(conditionalItems), {
-      type: "duplicateItem",
-      linkId: "period_start",
-    });
     expect(next.items).toHaveLength(3);
-    expect(next.items[2]?.enableWhen?.[0]?.question).toBe("period");
+    expect(next.items[0]?.linkId).toBe("q1");
+    expect(next.items[2]?.linkId).toBe("q2");
+    expect(next.items[1]?.linkId).not.toBe("q1");
+    expect(next.items[1]?.text).toBe("Pick");
+    expect(next.focusLinkId).toBe(next.items[1]?.linkId);
   });
 });
 
 describe("builderReducer updateItem", () => {
   it("drops incompatible props when the type changes", () => {
     const items: QuestionnaireItem[] = [
-      {
-        linkId: "q1",
-        type: "coding",
-        answerOption: [{ valueString: "A" }],
-        required: true,
-      },
+      { linkId: "q1", type: "coding", answerOption: [{ valueString: "A" }] },
     ];
     const next = builderReducer(stateWith(items), {
       type: "updateItem",
       linkId: "q1",
-      patch: { type: "integer" },
+      patch: { type: "text" },
     });
     expect(next.items[0]?.answerOption).toBeUndefined();
-    expect(next.items[0]?.required).toBe(true);
   });
 
   it("seeds one blank option when switching to Options", () => {
@@ -122,71 +84,83 @@ describe("builderReducer updateItem", () => {
 
   it("keeps props when only the text changes", () => {
     const items: QuestionnaireItem[] = [
-      { linkId: "q1", type: "integer", minValue: 1, maxValue: 10 },
+      { linkId: "q1", type: "coding", answerOption: [{ valueString: "A" }] },
     ];
     const next = builderReducer(stateWith(items), {
       type: "updateItem",
       linkId: "q1",
       patch: { text: "Pain" },
     });
-    expect(next.items[0]?.minValue).toBe(1);
+    expect(next.items[0]?.answerOption).toEqual([{ valueString: "A" }]);
   });
 });
 
-describe("precedingQuestions", () => {
-  it("returns only answerable questions before the target", () => {
-    const sources = precedingQuestions(conditionalItems, "period_start");
-    expect(sources.map((node) => node.linkId)).toEqual(["period"]);
+describe("measurement questions", () => {
+  it("turning a question into a measurement sets type, code and unit together", () => {
+    const weight = findMeasurement("weight");
+    expect(weight).toBeDefined();
+    if (!weight) {
+      return;
+    }
+    const next = builderReducer(stateWith([{ linkId: "q1", type: "text", text: "Weight" }]), {
+      type: "updateItem",
+      linkId: "q1",
+      patch: measurementPatch(weight),
+    });
+    const item = next.items[0];
+    expect(item?.type).toBe("quantity");
+    expect(item?.code).toEqual([
+      { system: "http://loinc.org", code: "29463-7", display: "Body weight" },
+    ]);
+    expect(item?.unit?.code).toBe("kg");
+    expect(measurementOf(item as QuestionnaireItem)?.id).toBe("weight");
   });
 
-  it("does not offer questions that come after the target", () => {
-    const sources = precedingQuestions(conditionalItems, "period");
-    expect(sources).toEqual([]);
+  it("switching a measurement to another measurement replaces its code and unit", () => {
+    const height = findMeasurement("height");
+    const periodStart = findMeasurement("period_start");
+    if (!height || !periodStart) {
+      throw new Error("missing measurement fixtures");
+    }
+    const withHeight = builderReducer(stateWith([{ linkId: "q1", type: "text" }]), {
+      type: "updateItem",
+      linkId: "q1",
+      patch: measurementPatch(height),
+    });
+    const next = builderReducer(withHeight, {
+      type: "updateItem",
+      linkId: "q1",
+      patch: measurementPatch(periodStart),
+    });
+    const item = next.items[0];
+    expect(item?.type).toBe("date");
+    expect(item?.unit).toBeUndefined();
+    expect(measurementOf(item as QuestionnaireItem)?.id).toBe("period_start");
   });
-});
 
-describe("needsAdvancedAuthoring", () => {
-  it("stays simple for free-text and options questions", () => {
-    const items: QuestionnaireItem[] = [
-      { linkId: "a", type: "text" },
-      { linkId: "b", type: "coding", answerOption: [{ valueString: "Yes" }], repeats: true },
-    ];
-    expect(needsAdvancedAuthoring(items)).toBe(false);
-  });
-
-  it("turns on for sections, conditions, codes, scales, and other types", () => {
-    expect(needsAdvancedAuthoring([{ linkId: "a", type: "group" }])).toBe(true);
-    expect(needsAdvancedAuthoring(conditionalItems)).toBe(true);
-    expect(
-      needsAdvancedAuthoring([{ linkId: "a", type: "integer", minValue: 1, maxValue: 10 }]),
-    ).toBe(true);
-    expect(
-      needsAdvancedAuthoring([
-        { linkId: "a", type: "text", code: [{ system: "http://loinc.org", code: "1" }] },
-      ]),
-    ).toBe(true);
+  it("clearing a measurement returns the question to free text", () => {
+    const weight = findMeasurement("weight");
+    if (!weight) {
+      throw new Error("missing measurement fixtures");
+    }
+    const asMeasurement = builderReducer(stateWith([{ linkId: "q1", type: "text" }]), {
+      type: "updateItem",
+      linkId: "q1",
+      patch: measurementPatch(weight),
+    });
+    const next = builderReducer(asMeasurement, {
+      type: "updateItem",
+      linkId: "q1",
+      patch: clearMeasurementPatch(),
+    });
+    const item = next.items[0];
+    expect(item?.type).toBe("text");
+    expect(item?.code).toBeUndefined();
+    expect(item?.unit).toBeUndefined();
   });
 });
 
 describe("pre-save authoring checks", () => {
-  it("flags a comparison condition without a value", () => {
-    const items: QuestionnaireItem[] = [
-      { linkId: "a", type: "integer" },
-      { linkId: "b", type: "text", enableWhen: [{ question: "a", operator: ">" }] },
-    ];
-    expect(hasIncompleteConditions(items)).toBe(true);
-    expect(hasIncompleteConditions(conditionalItems)).toBe(false);
-  });
-
-  it("flags inverted scale bounds", () => {
-    expect(
-      hasInvalidScaleBounds([{ linkId: "a", type: "integer", minValue: 10, maxValue: 1 }]),
-    ).toBe(true);
-    expect(
-      hasInvalidScaleBounds([{ linkId: "a", type: "integer", minValue: 1, maxValue: 10 }]),
-    ).toBe(false);
-  });
-
   it("flags an Options question with no filled option and prunes blank rows", () => {
     const items: QuestionnaireItem[] = [
       { linkId: "a", type: "coding", answerOption: [{ valueString: "" }] },

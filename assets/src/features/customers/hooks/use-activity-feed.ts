@@ -18,9 +18,10 @@ import {
   buildActivityFeedEvents,
   groupFeedEventsByDate,
 } from "@/features/customers/utils/activity-feed-normalizers";
+import { fetchResponsesByPatient } from "@/features/questionnaires/api/questionnaire-responses-api";
 import { fetchTasksForPatient } from "@/features/tasks/api/tasks-api";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
-import { personQueryKeys } from "@/shared/utils/query-keys";
+import { patientResponsesQueryKey, personQueryKeys } from "@/shared/utils/query-keys";
 
 const INITIAL_COUNT = 15;
 
@@ -82,6 +83,14 @@ export function useActivityFeed({
     enabled: fetchEnabled,
   });
 
+  // Questionnaire responses are fetched here rather than passed in: the feed is their only
+  // reader now that the standalone responses card is gone.
+  const responsesQuery = useQuery({
+    queryKey: patientResponsesQueryKey(organizationId, patientId ?? ""),
+    queryFn: () => fetchResponsesByPatient(patientId ?? "", organizationId),
+    enabled: fetchEnabled,
+  });
+
   const allEvents = useMemo(
     () =>
       buildActivityFeedEvents({
@@ -97,6 +106,7 @@ export function useActivityFeed({
         foodPreferences,
         menstrualCycles,
         nutritionPlans,
+        questionnaireResponses: responsesQuery.data,
         activeFilter,
         personName,
       }),
@@ -113,6 +123,7 @@ export function useActivityFeed({
       foodPreferences,
       menstrualCycles,
       nutritionPlans,
+      responsesQuery.data,
       activeFilter,
       personName,
     ],
@@ -141,8 +152,8 @@ export function useActivityFeed({
 
   return {
     groups: visibleGroups,
-    isLoading: tasksQuery.isLoading,
-    isError: tasksQuery.isError,
+    isLoading: tasksQuery.isLoading || responsesQuery.isLoading,
+    isError: tasksQuery.isError || responsesQuery.isError,
     hasMore: shownEvents < totalEvents,
     showMore,
   };

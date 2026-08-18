@@ -48,6 +48,7 @@ import { MenstrualCycleEvent } from "./menstrual-cycle-event";
 import { NutritionEvent } from "./nutrition-event";
 import { ObservationEvent } from "./observation-event";
 import { PrescriptionEvent } from "./prescription-event";
+import { QuestionnaireEvent } from "./questionnaire-event";
 import { SubscriptionEvent } from "./subscription-event";
 import { TaskEvent } from "./task-event";
 
@@ -434,6 +435,8 @@ function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
       return <FoodPreferenceEvent preferences={event.payload} />;
     case "nutrition":
       return <NutritionEvent plans={event.payload} />;
+    case "questionnaire":
+      return <QuestionnaireEvent response={event.payload} />;
   }
 }
 

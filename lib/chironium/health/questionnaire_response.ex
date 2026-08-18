@@ -123,6 +123,10 @@ defmodule Chironium.Health.QuestionnaireResponse do
       description "The questionnaire that was answered."
       public? true
       allow_nil? false
+      # Deleting a questionnaire archives it while keeping its responses, so this must read
+      # archived rows too — otherwise the relationship resolves to nil and every reader of
+      # the kept response (the patient timeline) breaks on a non-nullable field.
+      read_action :read_including_archived
     end
 
     belongs_to :subject, Chironium.Health.Patient do

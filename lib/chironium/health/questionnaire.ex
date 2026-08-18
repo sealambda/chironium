@@ -28,6 +28,13 @@ defmodule Chironium.Health.Questionnaire do
     table "questionnaires"
   end
 
+  archive do
+    # Deleting a questionnaire archives it, but the responses already recorded against it
+    # are kept (and still shown on the patient's timeline). Their `questionnaire`
+    # relationship therefore has to keep resolving after the archival.
+    exclude_read_actions [:read_including_archived]
+  end
+
   graphql do
     type :questionnaire
 
@@ -60,6 +67,10 @@ defmodule Chironium.Health.Questionnaire do
 
   actions do
     defaults [:read, :destroy]
+
+    read :read_including_archived do
+      description "Reads archived (deleted) questionnaires too. Used to label kept responses."
+    end
 
     create :create do
       primary? true

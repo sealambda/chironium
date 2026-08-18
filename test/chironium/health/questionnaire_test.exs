@@ -322,6 +322,32 @@ defmodule Chironium.Health.QuestionnaireTest do
       refute Enum.any?(hidden, &(&1.id == response.id))
     end
 
+    test "keeps resolving the questionnaire after it is deleted", ctx do
+      # Deleting a questionnaire archives it and keeps the responses (the delete dialog says
+      # so). The patient timeline loads `questionnaire` on every response, and that field is
+      # non-nullable, so the relationship has to keep resolving past the archival.
+      questionnaire = create_questionnaire(ctx, weekly_checkin_items())
+      {actor, patient} = setup_practitioner_with_patient(ctx)
+      response = create_response(ctx, questionnaire, patient, weight_answers(72.5))
+
+      questionnaire
+      |> Ash.Changeset.for_destroy(:destroy, %{}, authorize?: false, tenant: ctx.tenant)
+      |> Ash.destroy!()
+
+      refute Questionnaire
+             |> Ash.read!(authorize?: false, tenant: ctx.tenant)
+             |> Enum.any?(&(&1.id == questionnaire.id))
+
+      loaded =
+        QuestionnaireResponse
+        |> Ash.Query.filter(id == ^response.id)
+        |> Ash.Query.load(:questionnaire)
+        |> Ash.read_one!(actor: actor, tenant: ctx.tenant)
+
+      assert loaded.questionnaire.id == questionnaire.id
+      assert loaded.questionnaire.title == "Weekly check-in"
+    end
+
     test "author defaults to the acting practitioner", ctx do
       questionnaire = create_questionnaire(ctx, weekly_checkin_items())
       {actor, patient} = setup_practitioner_with_patient(ctx)

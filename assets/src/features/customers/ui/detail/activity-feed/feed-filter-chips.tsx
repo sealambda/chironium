@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Droplet,
   LayoutList,
+  ListChecks,
   Pill,
   Salad,
   Scale,
@@ -99,6 +100,12 @@ const CHIPS: readonly ChipConfig[] = [
     value: "observation",
     label: m.activity_filter_observations,
     icon: ClipboardList,
+    activeClass: "border-muted-foreground/20 bg-muted text-muted-foreground",
+  },
+  {
+    value: "questionnaire",
+    label: m.activity_filter_questionnaires,
+    icon: ListChecks,
     activeClass: "border-muted-foreground/20 bg-muted text-muted-foreground",
   },
   {
