@@ -27,5 +27,5 @@
     "@biomejs/biome": "catalog:",
     "husky": "~9.1.7"
   },
-  "packageManager": "pnpm@11.7.0"
+  "packageManager": "pnpm@11.22.0"
 }
