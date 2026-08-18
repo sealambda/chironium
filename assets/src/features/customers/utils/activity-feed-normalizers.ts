@@ -29,6 +29,7 @@ import {
   formatDayLabelFromIso,
   toIsoDateString,
 } from "@/features/customers/utils/activity-feed-dates";
+import type { QuestionnaireResponseRecord } from "@/features/questionnaires/api/questionnaire-responses-api";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 
@@ -56,6 +57,7 @@ interface BuildActivityFeedEventsInput {
   foodPreferences: FoodPreferenceHistoryItem[] | undefined;
   menstrualCycles: MenstrualCycleEntry[] | undefined;
   nutritionPlans: NutritionPlanRecord[] | undefined;
+  questionnaireResponses: QuestionnaireResponseRecord[] | undefined;
   activeFilter: FeedEventKind | "all";
   personName?: string | null;
 }
@@ -259,6 +261,21 @@ function normalizeNutritionPlans(plans: NutritionPlanRecord[] | undefined): Feed
     actors: group.actors.length > 0 ? group.actors : undefined,
     payload: group.items,
   }));
+}
+
+function normalizeQuestionnaireResponses(
+  responses: QuestionnaireResponseRecord[] | undefined,
+): FeedEvent[] {
+  return (responses ?? []).map((response) => {
+    const authorName = response.author?.name?.[0]?.text?.trim();
+    return {
+      kind: "questionnaire",
+      id: response.id,
+      date: response.authored ?? nowIso(),
+      actors: authorName ? [{ name: authorName, id: response.author?.id }] : undefined,
+      payload: response,
+    };
+  });
 }
 
 function normalizeAllergyIntolerances(items: AllergyIntoleranceItem[]): FeedEvent[] {
@@ -502,6 +519,7 @@ export function buildActivityFeedEvents({
   foodPreferences,
   menstrualCycles,
   nutritionPlans,
+  questionnaireResponses,
   activeFilter,
   personName,
 }: BuildActivityFeedEventsInput): FeedEvent[] {
@@ -518,6 +536,7 @@ export function buildActivityFeedEvents({
     ...normalizeFoodPreferences(foodPreferences),
     ...normalizeMenstrualCycles(menstrualCycles),
     ...normalizeNutritionPlans(nutritionPlans),
+    ...normalizeQuestionnaireResponses(questionnaireResponses),
   ];
   const filtered =
     activeFilter === "all" ? events : events.filter((event) => event.kind === activeFilter);

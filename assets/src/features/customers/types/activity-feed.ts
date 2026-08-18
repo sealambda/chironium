@@ -5,6 +5,7 @@ import {
   CalendarClock,
   ClipboardList,
   Droplet,
+  ListChecks,
   Pill,
   Salad,
   Scale,
@@ -28,6 +29,7 @@ import type {
   MenstrualCycleEntry,
   ObservationItem,
 } from "@/features/customers/api/observations-api";
+import type { QuestionnaireResponseRecord } from "@/features/questionnaires/api/questionnaire-responses-api";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
@@ -248,6 +250,13 @@ export type FeedEvent =
       date: string;
       actors?: FeedActor[];
       payload: NutritionPlanRecord[];
+    }
+  | {
+      kind: "questionnaire";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      payload: QuestionnaireResponseRecord;
     };
 
 export type FeedEventKind = FeedEvent["kind"];
@@ -304,6 +313,8 @@ export function getEventAccent(event: FeedEvent): FeedEventAccent {
       return event.variant === "inclusion" ? "emerald" : "yellow";
     case "nutrition":
       return "emerald";
+    case "questionnaire":
+      return "slate";
   }
 }
 
@@ -333,6 +344,8 @@ export function getEventIcon(event: FeedEvent): LucideIcon {
       return Utensils;
     case "nutrition":
       return Salad;
+    case "questionnaire":
+      return ListChecks;
   }
 }
 
@@ -366,6 +379,8 @@ export function getEventLabel(event: FeedEvent): string {
         : m.activity_event_food_exclusion();
     case "nutrition":
       return m.activity_event_nutrition();
+    case "questionnaire":
+      return m.activity_event_questionnaire();
   }
 }
 
@@ -450,5 +465,7 @@ export function getEventVerb(event: FeedEvent, count = 1): string {
       return count > 1
         ? m.activity_verb_nutrition_plural({ count: word })
         : m.activity_verb_nutrition();
+    case "questionnaire":
+      return m.activity_verb_questionnaire();
   }
 }

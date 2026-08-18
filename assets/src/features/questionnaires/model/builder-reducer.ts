@@ -1,7 +1,6 @@
 import type { QuestionnaireStatus } from "@/features/questionnaires/api/questionnaires-api";
 import {
   type AnswerOption,
-  type EnableWhen,
   type ItemType,
   isAnswerable,
   type QuestionnaireItem,
@@ -30,7 +29,7 @@ export type BuilderAction =
       type: "setMeta";
       patch: Partial<Pick<BuilderState, "title" | "status" | "version" | "description">>;
     }
-  | { type: "addItem"; parentLinkId: string | null; itemType: ItemType }
+  | { type: "addItem"; itemType: ItemType }
   | { type: "updateItem"; linkId: string; patch: Partial<QuestionnaireItem> }
   | { type: "removeItem"; linkId: string }
   | { type: "duplicateItem"; linkId: string }
@@ -91,47 +90,6 @@ function removeNode(items: QuestionnaireItem[], linkId: string): QuestionnaireIt
     .map((node) => (node.item ? { ...node, item: removeNode(node.item, linkId) } : node));
 }
 
-/** All linkIds in the subtree rooted at `linkId` (the node itself plus descendants). */
-function subtreeLinkIds(items: QuestionnaireItem[], linkId: string): Set<string> {
-  const ids = new Set<string>();
-  const collect = (node: QuestionnaireItem) => {
-    ids.add(node.linkId);
-    for (const child of node.item ?? []) {
-      collect(child);
-    }
-  };
-  const find = (nodes: QuestionnaireItem[]) => {
-    for (const node of nodes) {
-      if (node.linkId === linkId) {
-        collect(node);
-        return;
-      }
-      if (node.item) {
-        find(node.item);
-      }
-    }
-  };
-  find(items);
-  return ids;
-}
-
-/** Drop `enableWhen` conditions that reference any of the removed linkIds. */
-function stripDanglingConditions(
-  items: QuestionnaireItem[],
-  removed: Set<string>,
-): QuestionnaireItem[] {
-  return items.map((node) => {
-    const conditions = (node.enableWhen ?? []).filter(
-      (condition) => !removed.has(condition.question),
-    );
-    return {
-      ...node,
-      enableWhen: conditions.length > 0 ? conditions : undefined,
-      item: node.item ? stripDanglingConditions(node.item, removed) : node.item,
-    };
-  });
-}
-
 /** Drop properties that no longer apply after an item's type changed. */
 function sanitizeForType(node: QuestionnaireItem): QuestionnaireItem {
   const next = { ...node };
@@ -158,20 +116,6 @@ function sanitizeForType(node: QuestionnaireItem): QuestionnaireItem {
     next.item = undefined;
   }
   return next;
-}
-
-function insertChild(
-  items: QuestionnaireItem[],
-  parentLinkId: string | null,
-  child: QuestionnaireItem,
-): QuestionnaireItem[] {
-  if (parentLinkId === null) {
-    return [...items, child];
-  }
-  return mapNode(items, parentLinkId, (node) => ({
-    ...node,
-    item: [...(node.item ?? []), child],
-  }));
 }
 
 // Reorder a node among its own siblings (the array that directly contains it).
@@ -261,7 +205,7 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
       return {
         ...state,
         counter: state.counter + 1,
-        items: insertChild(state.items, action.parentLinkId, newItem(linkId, action.itemType)),
+        items: [...state.items, newItem(linkId, action.itemType)],
         focusLinkId: linkId,
       };
     }
@@ -278,16 +222,8 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
         }),
       };
 
-    case "removeItem": {
-      // Deleting a question must also delete conditions that point at it (or at
-      // anything inside it), or the definition would no longer validate.
-      const removed = subtreeLinkIds(state.items, action.linkId);
-      return {
-        ...state,
-        focusLinkId: null,
-        items: stripDanglingConditions(removeNode(state.items, action.linkId), removed),
-      };
-    }
+    case "removeItem":
+      return { ...state, focusLinkId: null, items: removeNode(state.items, action.linkId) };
 
     case "duplicateItem": {
       const { items, counter, copiedLinkId } = duplicateNode(
@@ -348,87 +284,8 @@ export function hasOptionlessChoices(items: QuestionnaireItem[]): boolean {
   );
 }
 
-/** A comparison condition whose value was never filled in (the server rejects these). */
-export function hasIncompleteConditions(items: QuestionnaireItem[]): boolean {
-  return someItem(items, (node) =>
-    (node.enableWhen ?? []).some(
-      (condition) =>
-        condition.question === "" ||
-        (condition.operator !== "exists" &&
-          condition.answerBoolean == null &&
-          condition.answerString == null &&
-          condition.answerInteger == null &&
-          condition.answerDecimal == null &&
-          condition.answerDate == null &&
-          condition.answerCoding == null),
-    ),
-  );
-}
-
-/** Scale bounds that would be rejected by the server (min must be below max). */
-export function hasInvalidScaleBounds(items: QuestionnaireItem[]): boolean {
-  return someItem(
-    items,
-    (node) => node.minValue != null && node.maxValue != null && node.minValue >= node.maxValue,
-  );
-}
-
-/**
- * Whether the definition uses features beyond the simple authoring surface (free text /
- * options). The builder starts in advanced mode for these so no configuration is hidden.
- */
-export function needsAdvancedAuthoring(items: QuestionnaireItem[]): boolean {
-  const simpleTypes: string[] = ["text", "string", "coding"];
-  return someItem(
-    items,
-    (node) =>
-      !simpleTypes.includes(node.type) ||
-      (node.enableWhen ?? []).length > 0 ||
-      (node.code ?? []).length > 0 ||
-      node.required === true ||
-      node.minValue != null ||
-      node.maxValue != null ||
-      node.unit != null,
-  );
-}
-
 // ─── Small helpers for the item editor ───────────────────────────────
 
 export function emptyAnswerOption(): AnswerOption {
   return { valueString: "" };
-}
-
-export function emptyEnableWhen(question: string): EnableWhen {
-  return { question, operator: "exists", answerBoolean: true };
-}
-
-/**
- * The answerable questions that precede `linkId` in a depth-first walk — the valid
- * `enableWhen` sources. Groups and display items cannot be answered, so they are skipped.
- */
-export function precedingQuestions(
-  items: QuestionnaireItem[],
-  linkId: string,
-): QuestionnaireItem[] {
-  const result: QuestionnaireItem[] = [];
-  let found = false;
-  const visit = (nodes: QuestionnaireItem[]) => {
-    for (const node of nodes) {
-      if (node.linkId === linkId) {
-        found = true;
-        return;
-      }
-      if (isAnswerable(node.type)) {
-        result.push(node);
-      }
-      if (node.item) {
-        visit(node.item);
-        if (found) {
-          return;
-        }
-      }
-    }
-  };
-  visit(items);
-  return result;
 }

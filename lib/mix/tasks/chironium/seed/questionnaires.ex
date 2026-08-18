@@ -14,57 +14,36 @@ defmodule Mix.Tasks.Chironium.Seed.Questionnaires do
   @loinc "http://loinc.org"
   @ucum "http://unitsofmeasure.org"
 
+  # Flat list of free-text / options / measurement questions — exactly what the builder
+  # can author (see `assets/src/features/questionnaires/model/measurements.ts`).
   @items [
     %{
-      "linkId" => "anthro",
-      "type" => "group",
-      "text" => "Anthropometry",
-      "item" => [
-        %{
-          "linkId" => "weight",
-          "type" => "quantity",
-          "text" => "Body weight",
-          "code" => [%{"system" => @loinc, "code" => "29463-7", "display" => "Body weight"}],
-          "unit" => %{"system" => @ucum, "code" => "kg", "display" => "kg"}
-        },
-        %{
-          "linkId" => "waist",
-          "type" => "quantity",
-          "text" => "Waist circumference",
-          "code" => [
-            %{"system" => @loinc, "code" => "8280-0", "display" => "Waist circumference"}
-          ],
-          "unit" => %{"system" => @ucum, "code" => "cm", "display" => "cm"}
-        }
-      ]
+      "linkId" => "weight",
+      "type" => "quantity",
+      "text" => "Body weight",
+      "code" => [%{"system" => @loinc, "code" => "29463-7", "display" => "Body weight"}],
+      "unit" => %{"system" => @ucum, "code" => "kg", "display" => "kg"}
     },
     %{
-      "linkId" => "female",
-      "type" => "group",
-      "text" => "Female health",
-      "item" => [
-        %{
-          "linkId" => "period",
-          "type" => "boolean",
-          "text" => "Did your period start this week?"
-        },
-        %{
-          "linkId" => "period_start",
-          "type" => "date",
-          "text" => "Period start date",
-          "code" => [
-            %{"system" => @loinc, "code" => "8665-2", "display" => "Menstrual period start"}
-          ],
-          "enableWhen" => [%{"question" => "period", "operator" => "=", "answerBoolean" => true}]
-        }
-      ]
+      "linkId" => "waist",
+      "type" => "quantity",
+      "text" => "Waist circumference",
+      "code" => [%{"system" => @loinc, "code" => "8280-0", "display" => "Waist circumference"}],
+      "unit" => %{"system" => @ucum, "code" => "cm", "display" => "cm"}
     },
     %{
-      "linkId" => "general",
-      "type" => "group",
-      "text" => "General",
-      "item" => [%{"linkId" => "comments", "type" => "text", "text" => "How are you feeling?"}]
-    }
+      "linkId" => "period",
+      "type" => "coding",
+      "text" => "Did your period start this week?",
+      "answerOption" => [%{"valueString" => "Yes"}, %{"valueString" => "No"}]
+    },
+    %{
+      "linkId" => "period_start",
+      "type" => "date",
+      "text" => "Period start date",
+      "code" => [%{"system" => @loinc, "code" => "8665-2", "display" => "Menstrual period start"}]
+    },
+    %{"linkId" => "comments", "type" => "text", "text" => "How are you feeling?"}
   ]
 
   @comments [
@@ -96,8 +75,7 @@ defmodule Mix.Tasks.Chironium.Seed.Questionnaires do
         title: "Weekly nutrition check-in",
         status: :active,
         version: "1.0",
-        description:
-          "Weekly progress: weight, anthropometry, female health, and general comments.",
+        description: "Weekly progress: weight, waist, female health, and general comments.",
         item: @items
       },
       Keyword.put(Helpers.ash_opts(tenant), :actor, actor)
@@ -133,58 +111,48 @@ defmodule Mix.Tasks.Chironium.Seed.Questionnaires do
     waist = Float.round(70.0 + :rand.uniform() * 25.0, 1)
     period? = Enum.random([true, false])
 
-    female_children =
-      [%{"linkId" => "period", "answer" => [%{"valueBoolean" => period?}]}] ++
-        if period? do
-          [
-            %{
-              "linkId" => "period_start",
-              "answer" => [%{"valueDate" => Date.to_iso8601(DateTime.to_date(authored))}]
-            }
-          ]
-        else
-          []
-        end
-
     [
       %{
-        "linkId" => "anthro",
-        "item" => [
+        "linkId" => "weight",
+        "answer" => [
           %{
-            "linkId" => "weight",
-            "answer" => [
-              %{
-                "valueQuantity" => %{
-                  "value" => weight,
-                  "unit" => "kg",
-                  "system" => @ucum,
-                  "code" => "kg"
-                }
-              }
-            ]
-          },
-          %{
-            "linkId" => "waist",
-            "answer" => [
-              %{
-                "valueQuantity" => %{
-                  "value" => waist,
-                  "unit" => "cm",
-                  "system" => @ucum,
-                  "code" => "cm"
-                }
-              }
-            ]
+            "valueQuantity" => %{
+              "value" => weight,
+              "unit" => "kg",
+              "system" => @ucum,
+              "code" => "kg"
+            }
           }
         ]
       },
-      %{"linkId" => "female", "item" => female_children},
       %{
-        "linkId" => "general",
-        "item" => [
-          %{"linkId" => "comments", "answer" => [%{"valueString" => Enum.random(@comments)}]}
+        "linkId" => "waist",
+        "answer" => [
+          %{
+            "valueQuantity" => %{
+              "value" => waist,
+              "unit" => "cm",
+              "system" => @ucum,
+              "code" => "cm"
+            }
+          }
         ]
-      }
-    ]
+      },
+      %{
+        "linkId" => "period",
+        "answer" => [%{"valueString" => if(period?, do: "Yes", else: "No")}]
+      },
+      %{"linkId" => "comments", "answer" => [%{"valueString" => Enum.random(@comments)}]}
+    ] ++
+      if period? do
+        [
+          %{
+            "linkId" => "period_start",
+            "answer" => [%{"valueDate" => Date.to_iso8601(DateTime.to_date(authored))}]
+          }
+        ]
+      else
+        []
+      end
   end
 end

@@ -17,8 +17,6 @@ import {
   builderReducer,
   builderStateFrom,
   emptyBuilderState,
-  hasIncompleteConditions,
-  hasInvalidScaleBounds,
   hasOptionlessChoices,
   pruneEmptyOptions,
 } from "@/features/questionnaires/model/builder-reducer";
@@ -57,10 +55,7 @@ function initialBuilderState(isNew: boolean, templateId: string | undefined): Bu
   return builderStateFrom({ title, status: "DRAFT", version: "", description, items });
 }
 
-/**
- * Interactive preview: the exact form practitioners will fill, with `enableWhen` logic
- * live so conditionals can be tried out. Answers are throwaway.
- */
+/** Interactive preview: the exact form practitioners will fill. Answers are throwaway. */
 function BuilderPreview({ state }: Readonly<{ state: BuilderState }>) {
   const [answers, setAnswers] = useState<AnswerMap>({});
   return (
@@ -139,14 +134,6 @@ export function QuestionnaireBuilderPage() {
       toast.error(m.questionnaire_title_required());
       return;
     }
-    if (hasIncompleteConditions(state.items)) {
-      toast.error(m.questionnaire_condition_incomplete());
-      return;
-    }
-    if (hasInvalidScaleBounds(state.items)) {
-      toast.error(m.questionnaire_scale_invalid());
-      return;
-    }
     if (hasOptionlessChoices(state.items)) {
       toast.error(m.questionnaire_options_required());
       return;
@@ -208,8 +195,8 @@ export function QuestionnaireBuilderPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4 p-4 lg:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-col gap-4 pt-7">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <Button variant="ghost" size="sm" onClick={goBack}>
           <ArrowLeft className="size-4" />
           {m.questionnaire_back_to_library()}
@@ -244,10 +231,10 @@ export function QuestionnaireBuilderPage() {
             {saving ? m.common_saving() : m.common_save()}
           </Button>
         </div>
-      </div>
+      </header>
 
       {mode === "edit" ? (
-        <QuestionnaireBuilder state={state} dispatch={dispatch} organizationId={orgId ?? ""} />
+        <QuestionnaireBuilder state={state} dispatch={dispatch} />
       ) : (
         <BuilderPreview state={state} />
       )}
