@@ -186,20 +186,20 @@ function ItemEditor({
 
   return (
     <div className="rounded-lg border border-border/60 bg-card p-3">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Input
           value={item.text ?? ""}
           placeholder={m.questionnaire_question_placeholder()}
           autoFocus={item.linkId === focusLinkId}
           onChange={(e) => patch({ text: e.target.value })}
-          className="flex-1"
+          className="order-last w-full sm:order-0 sm:w-auto sm:flex-1"
         />
         <Select
           value={kind}
           onValueChange={(v) => patch(patchForKind((v ?? "text") as QuestionKind))}
           items={KIND_OPTIONS.map((o) => ({ value: o.value, label: o.label() }))}
         >
-          <SelectTrigger className="w-36 shrink-0">
+          <SelectTrigger className="w-32 shrink-0 sm:w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectPositioner>
@@ -212,42 +212,44 @@ function ItemEditor({
             </SelectContent>
           </SelectPositioner>
         </Select>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={m.questionnaire_move_up()}
-          onClick={() => dispatch({ type: "moveItem", linkId: item.linkId, direction: -1 })}
-        >
-          <ChevronUp className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={m.questionnaire_move_down()}
-          onClick={() => dispatch({ type: "moveItem", linkId: item.linkId, direction: 1 })}
-        >
-          <ChevronDown className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={m.questionnaire_duplicate()}
-          onClick={() => dispatch({ type: "duplicateItem", linkId: item.linkId })}
-        >
-          <Copy className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={m.common_delete()}
-          onClick={() => dispatch({ type: "removeItem", linkId: item.linkId })}
-        >
-          <Trash2 className="size-4" />
-        </Button>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={m.questionnaire_move_up()}
+            onClick={() => dispatch({ type: "moveItem", linkId: item.linkId, direction: -1 })}
+          >
+            <ChevronUp className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={m.questionnaire_move_down()}
+            onClick={() => dispatch({ type: "moveItem", linkId: item.linkId, direction: 1 })}
+          >
+            <ChevronDown className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={m.questionnaire_duplicate()}
+            onClick={() => dispatch({ type: "duplicateItem", linkId: item.linkId })}
+          >
+            <Copy className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={m.common_delete()}
+            onClick={() => dispatch({ type: "removeItem", linkId: item.linkId })}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
       </div>
 
       {kind === "coding" ? (

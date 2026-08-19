@@ -632,7 +632,7 @@
   "prescription_remove_title": "¿Eliminar {name}?",
   "questionnaire_add_option": "Añadir opción",
   "questionnaire_add_question": "Añadir pregunta",
-  "questionnaire_back_to_library": "Volver a cuestionarios",
+  "questionnaire_back_to_library": "Atrás",
   "questionnaire_builder_empty": "Aún no hay preguntas — añade la primera abajo.",
   "questionnaire_choose_placeholder": "Selecciona…",
   "questionnaire_delete_desc": "El cuestionario se elimina de la biblioteca. Las respuestas ya registradas se conservan.",

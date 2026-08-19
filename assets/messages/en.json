@@ -632,7 +632,7 @@
   "prescription_remove_title": "Remove {name}?",
   "questionnaire_add_option": "Add option",
   "questionnaire_add_question": "Add question",
-  "questionnaire_back_to_library": "Back to questionnaires",
+  "questionnaire_back_to_library": "Back",
   "questionnaire_builder_empty": "No questions yet — add your first question below.",
   "questionnaire_choose_placeholder": "Select…",
   "questionnaire_delete_desc": "The questionnaire is removed from the library. Responses already recorded are kept.",

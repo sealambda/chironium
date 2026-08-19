@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Eye, Pencil } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Save, Trash2 } from "lucide-react";
 import { useEffect, useReducer, useState } from "react";
 import { toast } from "sonner";
 
@@ -196,10 +196,15 @@ export function QuestionnaireBuilderPage() {
 
   return (
     <div className="flex flex-col gap-4 pt-7">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <Button variant="ghost" size="sm" onClick={goBack}>
+      <header className="flex items-center justify-between gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={goBack}
+          aria-label={m.questionnaire_back_to_library()}
+        >
           <ArrowLeft className="size-4" />
-          {m.questionnaire_back_to_library()}
+          <span className="hidden sm:inline">{m.questionnaire_back_to_library()}</span>
         </Button>
         <div className="flex items-center gap-2">
           <ToggleGroup
@@ -208,13 +213,17 @@ export function QuestionnaireBuilderPage() {
             value={mode}
             onValueChange={(v) => setMode(v as "edit" | "preview")}
           >
-            <ToggleGroupItem value="edit" className="px-3">
-              <Pencil className="mr-1.5 size-3.5" />
-              {m.questionnaire_mode_edit()}
+            <ToggleGroupItem value="edit" className="px-3" aria-label={m.questionnaire_mode_edit()}>
+              <Pencil className="size-3.5 sm:mr-1.5" />
+              <span className="hidden sm:inline">{m.questionnaire_mode_edit()}</span>
             </ToggleGroupItem>
-            <ToggleGroupItem value="preview" className="px-3">
-              <Eye className="mr-1.5 size-3.5" />
-              {m.questionnaire_mode_preview()}
+            <ToggleGroupItem
+              value="preview"
+              className="px-3"
+              aria-label={m.questionnaire_mode_preview()}
+            >
+              <Eye className="size-3.5 sm:mr-1.5" />
+              <span className="hidden sm:inline">{m.questionnaire_mode_preview()}</span>
             </ToggleGroupItem>
           </ToggleGroup>
           {!isNew ? (
@@ -223,12 +232,20 @@ export function QuestionnaireBuilderPage() {
               className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => setConfirmingDelete(true)}
               disabled={saving}
+              aria-label={m.common_delete()}
             >
-              {m.common_delete()}
+              <Trash2 className="size-4" />
+              <span className="hidden sm:inline">{m.common_delete()}</span>
             </Button>
           ) : null}
-          <Button onClick={handleSave} loading={saving} disabled={saving}>
-            {saving ? m.common_saving() : m.common_save()}
+          <Button
+            onClick={handleSave}
+            loading={saving}
+            disabled={saving}
+            aria-label={m.common_save()}
+          >
+            <Save className="size-4" />
+            <span className="hidden sm:inline">{saving ? m.common_saving() : m.common_save()}</span>
           </Button>
         </div>
       </header>
