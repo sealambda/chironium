@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -44,8 +47,18 @@ jobs:
           cache-to: type=gha,mode=max,scope=global
           build-args: |
             VITE_POSTHOG_KEY=${{ secrets.VITE_POSTHOG_KEY }}
-      - name: Remove old image on production server
-        if: github.event_name == 'push'
+
+  deploy:
+    needs: build-and-push-image
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    # Deployment secrets live in the `production` environment, not in repository secrets.
+    # Configure the environment with required reviewers so a merge alone never reaches the server.
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Roll out the new image on the production server
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}

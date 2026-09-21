@@ -4,6 +4,8 @@ defmodule Chironium.Generator do
   @ash_keys [:actor, :tenant, :authorize?, :context, :scope, :upsert?, :upsert_identity]
 
   # -- FHIR terminology constants --
+  # Small samples of SNOMED CT, RxNorm and LOINC codes for generated sample data.
+  # Each terminology has its own license; see NOTICE.md before adding more.
 
   @snomed_system "http://snomed.info/sct"
 

@@ -1,7 +1,7 @@
 {
   "name": "chironium",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "engines": {
     "node": "~>24.13"
