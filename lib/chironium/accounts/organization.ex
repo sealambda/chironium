@@ -35,7 +35,7 @@ defmodule Chironium.Accounts.Organization do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:organization]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:organization]}
   end
 
   actions do
@@ -58,7 +58,7 @@ defmodule Chironium.Accounts.Organization do
   policies do
     policy action(:create) do
       description "Authenticated users can create organisations."
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
 
     policy action(:invite_users) do
@@ -76,6 +76,11 @@ defmodule Chironium.Accounts.Organization do
     policy action_type(:read) do
       authorize_if relates_to_actor_via(:owner)
       authorize_if relates_to_actor_via(:users)
+    end
+
+    # Account records are staff-only; portal actors such as a Patient never pass.
+    policy always() do
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

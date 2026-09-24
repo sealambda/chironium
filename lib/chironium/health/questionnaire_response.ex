@@ -55,7 +55,8 @@ defmodule Chironium.Health.QuestionnaireResponse do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:questionnaire_response]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:questionnaire_response]}
   end
 
   actions do
@@ -94,7 +95,7 @@ defmodule Chironium.Health.QuestionnaireResponse do
     end
 
     policy action_type([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

@@ -10,7 +10,8 @@ defmodule Chironium.Accounts.UserIdentity do
     otp_app: :chironium,
     domain: Chironium.Accounts,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshAuthentication.UserIdentity]
+    extensions: [AshAuthentication.UserIdentity],
+    authorizers: [Ash.Policy.Authorizer]
 
   user_identity do
     user_resource Chironium.Accounts.User
@@ -19,5 +20,12 @@ defmodule Chironium.Accounts.UserIdentity do
   postgres do
     table "user_identities"
     repo Chironium.Repo
+  end
+
+  # Identities hold OAuth tokens, so only AshAuthentication may touch them.
+  policies do
+    bypass AshAuthentication.Checks.AshAuthenticationInteraction do
+      authorize_if always()
+    end
   end
 end

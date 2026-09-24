@@ -25,7 +25,8 @@ defmodule Chironium.Accounts.OrganizationUsers do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:organization_user]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:organization_user]}
   end
 
   actions do
@@ -48,6 +49,11 @@ defmodule Chironium.Accounts.OrganizationUsers do
 
     policy action(:update) do
       authorize_if Chironium.Accounts.Checks.PowerUser
+    end
+
+    # Account records are staff-only; portal actors such as a Patient never pass.
+    policy always() do
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

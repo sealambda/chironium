@@ -29,7 +29,8 @@ defmodule Chironium.Subscriptions.SubscriptionPause do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:subscription_pause]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:subscription_pause]}
   end
 
   actions do
@@ -63,6 +64,9 @@ defmodule Chironium.Subscriptions.SubscriptionPause do
     end
 
     policy action_type(:read) do
+      # The relationship check trusts any load path, so exclude non-staff actors first.
+      forbid_unless Chironium.Accounts.Checks.StaffActor
+
       # Relationship loads (e.g. subscription → pauses) use AccessedFromRelationship.
       # Direct access uses the same visibility chain as subscriptions.
       authorize_if Chironium.CRM.Checks.AccessedFromRelationship
@@ -71,7 +75,7 @@ defmodule Chironium.Subscriptions.SubscriptionPause do
 
     policy action_type([:create, :update, :destroy]) do
       # Match subscription mutation policy: tenant isolation is enforced by SetTenant.
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

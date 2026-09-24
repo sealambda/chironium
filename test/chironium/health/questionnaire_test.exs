@@ -372,7 +372,12 @@ defmodule Chironium.Health.QuestionnaireTest do
     care_team = create_care_team(ctx, patient, :active)
     add_participant(ctx, care_team, practitioner)
 
-    {Chironium.Accounts.ActorResolver.resolve(prac_user, ctx.tenant), patient}
+    actor =
+      Chironium.Accounts.ActorResolver.resolve(prac_user, ctx.tenant,
+        principal_types: [:practitioner]
+      )
+
+    {actor, patient}
   end
 
   defp create_membership(organization_id, user_id, role) do

@@ -33,7 +33,7 @@ defmodule Chironium.Subscriptions.Subscription do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:subscription]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:subscription]}
   end
 
   state_machine do
@@ -119,12 +119,14 @@ defmodule Chironium.Subscriptions.Subscription do
     end
 
     policy action_type(:read) do
+      # The relationship check trusts any load path, so exclude non-staff actors first.
+      forbid_unless Chironium.Accounts.Checks.StaffActor
       authorize_if Chironium.CRM.Checks.AccessedFromRelationship
       authorize_if Chironium.Subscriptions.Checks.SubscriptionVisibleToActor
     end
 
     policy action_type([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

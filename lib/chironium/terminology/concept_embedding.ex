@@ -19,8 +19,13 @@ defmodule Chironium.Terminology.ConceptEmbedding do
 
   # TODO: Add policies
   policies do
-    policy always() do
+    # Terminology is shared, non-clinical reference data.
+    policy action_type(:read) do
       authorize_if always()
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

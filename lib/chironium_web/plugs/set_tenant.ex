@@ -56,7 +56,7 @@ defmodule ChironiumWeb.SetTenant do
 
   # Regular members are resolved to their granted domain principal.
   defp resolve_actor(conn, user, tenant, :member) do
-    case Chironium.Accounts.ActorResolver.resolve(user, tenant) do
+    case Chironium.Accounts.ActorResolver.resolve(user, tenant, principal_types: [:practitioner]) do
       %Chironium.Accounts.User{} -> conn
       principal -> Ash.PlugHelpers.set_actor(conn, principal)
     end

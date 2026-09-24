@@ -31,7 +31,7 @@ defmodule Chironium.Health.Goal do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:goal]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:goal]}
   end
 
   actions do
@@ -48,7 +48,7 @@ defmodule Chironium.Health.Goal do
     end
 
     policy action([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 
