@@ -30,7 +30,8 @@ defmodule Chironium.Health.AllergyIntolerance do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:allergy_intolerance]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:allergy_intolerance]}
   end
 
   actions do
@@ -51,7 +52,7 @@ defmodule Chironium.Health.AllergyIntolerance do
     end
 
     policy action([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

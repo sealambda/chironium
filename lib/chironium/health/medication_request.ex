@@ -35,7 +35,8 @@ defmodule Chironium.Health.MedicationRequest do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:medication_request]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:medication_request]}
   end
 
   actions do
@@ -52,7 +53,7 @@ defmodule Chironium.Health.MedicationRequest do
     end
 
     policy action([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

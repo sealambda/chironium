@@ -274,6 +274,6 @@ defmodule Chironium.Health.PatientVisibilityTest do
 
   # Delegates to the same ActorResolver used by the SetTenant plug.
   defp enrich_actor(user, tenant) do
-    Chironium.Accounts.ActorResolver.resolve(user, tenant)
+    Chironium.Accounts.ActorResolver.resolve(user, tenant, principal_types: [:practitioner])
   end
 end

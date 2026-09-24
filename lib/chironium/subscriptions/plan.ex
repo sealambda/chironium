@@ -23,7 +23,8 @@ defmodule Chironium.Subscriptions.Plan do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:subscription_plan]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:subscription_plan]}
   end
 
   actions do
@@ -36,7 +37,7 @@ defmodule Chironium.Subscriptions.Plan do
     end
 
     policy action_type(:read) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
 
     policy action_type([:create, :update, :destroy]) do

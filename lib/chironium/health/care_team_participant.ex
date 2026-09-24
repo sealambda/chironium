@@ -27,7 +27,8 @@ defmodule Chironium.Health.CareTeamParticipant do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:care_team_participant]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:care_team_participant]}
   end
 
   actions do

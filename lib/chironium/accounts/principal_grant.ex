@@ -48,7 +48,8 @@ defmodule Chironium.Accounts.PrincipalGrant do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:principal_grant]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:principal_grant]}
   end
 
   actions do
@@ -95,6 +96,11 @@ defmodule Chironium.Accounts.PrincipalGrant do
     # No member may self-assign or modify grants; only power users (bypassed above) can.
     policy action([:create, :update, :destroy]) do
       forbid_if always()
+    end
+
+    # Account records are staff-only; portal actors such as a Patient never pass.
+    policy always() do
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

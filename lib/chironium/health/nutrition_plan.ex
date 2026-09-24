@@ -31,7 +31,8 @@ defmodule Chironium.Health.NutritionPlan do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:nutrition_plan]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:nutrition_plan]}
 
     attributes_as_attributes [:target_kcal, :protein_g, :carbs_g, :fat_g]
   end
@@ -66,7 +67,7 @@ defmodule Chironium.Health.NutritionPlan do
     end
 
     policy action([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

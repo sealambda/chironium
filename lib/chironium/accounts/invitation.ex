@@ -40,7 +40,7 @@ defmodule Chironium.Accounts.Invitation do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:invitation]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:invitation]}
   end
 
   state_machine do
@@ -280,11 +280,16 @@ defmodule Chironium.Accounts.Invitation do
              :current_email_invitation,
              :get_by_invite_code
            ]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
 
     policy action(:revoke) do
       authorize_if Chironium.Accounts.Checks.PowerUser
+    end
+
+    # Account records are staff-only; portal actors such as a Patient never pass.
+    policy always() do
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

@@ -58,7 +58,7 @@ defmodule Chironium.Accounts.User do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:user]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:user]}
   end
 
   graphql do
@@ -130,6 +130,11 @@ defmodule Chironium.Accounts.User do
 
     policy action(:update_preferred_locale) do
       authorize_if expr(id == ^actor(:id))
+    end
+
+    # Account records are staff-only; portal actors such as a Patient never pass.
+    policy always() do
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

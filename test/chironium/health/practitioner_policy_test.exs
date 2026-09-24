@@ -163,6 +163,8 @@ defmodule Chironium.Health.PractitionerPolicyTest do
     )
     |> Ash.create!()
 
-    Chironium.Accounts.ActorResolver.resolve(prac_user, ctx.tenant)
+    Chironium.Accounts.ActorResolver.resolve(prac_user, ctx.tenant,
+      principal_types: [:practitioner]
+    )
   end
 end

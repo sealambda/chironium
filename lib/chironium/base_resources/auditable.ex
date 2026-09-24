@@ -19,11 +19,11 @@ defmodule Chironium.BaseResources.Auditable do
         primary_key_type :uuid_v7
 
         # TODO I can't figure out a way to pass in :type
-        # mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, ["TODO".to_atom()]}
+        # mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, ["TODO".to_atom()]}
 
         relationship_opts public?: true
         public_timestamps? true
-        version_extensions extensions: [AshGraphql.Resource]
+        version_extensions extensions: [AshGraphql.Resource], authorizers: [Ash.Policy.Authorizer]
       end
     end
   end

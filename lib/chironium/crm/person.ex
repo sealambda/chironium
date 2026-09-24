@@ -38,7 +38,7 @@ defmodule Chironium.CRM.Person do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:person]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:person]}
   end
 
   actions do
@@ -79,12 +79,14 @@ defmodule Chironium.CRM.Person do
     end
 
     policy action_type(:read) do
+      # The relationship check trusts any load path, so exclude non-staff actors first.
+      forbid_unless Chironium.Accounts.Checks.StaffActor
       authorize_if Chironium.CRM.Checks.AccessedFromRelationship
       authorize_if Chironium.CRM.Checks.PersonVisibleToActor
     end
 
     policy action([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

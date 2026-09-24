@@ -150,6 +150,6 @@ defmodule Chironium.Health.ObservationVersionPolicyTest do
     )
     |> Ash.create!()
 
-    Chironium.Accounts.ActorResolver.resolve(user, ctx.tenant)
+    Chironium.Accounts.ActorResolver.resolve(user, ctx.tenant, principal_types: [:practitioner])
   end
 end

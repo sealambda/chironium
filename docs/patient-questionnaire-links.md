@@ -60,6 +60,10 @@ Planned 2026-09-24. Patients answer questionnaires through a single-use link. Th
   - Covers every resource and action in `:ash_domains`, including version resources, with scoped and unscoped patient actors.
   - Asserts the action is forbidden or its filter is statically false, except for an explicit allowlist.
 - Set `config :phoenix, :filter_parameters, ["password", "token", "secret"]`.
+- Found while building the matrix test:
+  - The Accounts resources (User, Organization, OrganizationUsers, Invitation and PrincipalGrant) get a `policy always()` staff gate. Their actor-relative filters, such as `id == ^actor(:id)` and `relates_to_actor_via`, aren't statically false for a Patient.
+  - Terminology reads stay open: it's non-clinical reference data, and the matrix allowlists it. Its writes, previously `authorize_if always()` for any actor, now require StaffActor. Imports use `Repo.insert_all` and `Ash.Seed`, so they're unaffected.
+  - `UserIdentity` stores OAuth tokens but had no authorizer. Now only AshAuthentication can reach it.
 
 ## Phase 2 — Data Model (FHIR SDC "complete-questionnaire" Task)
 

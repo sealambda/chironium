@@ -20,35 +20,41 @@ defmodule Chironium.Accounts.ActorResolver do
   @doc """
   Resolves a user to their domain actor for the given tenant.
 
-  Looks up active `PrincipalGrant` records, groups them by type, and
-  delegates to the first matching `PrincipalResolver`. Falls back to the
+  Looks up the user's active `PrincipalGrant` records of the requested types
+  and delegates to the matching `PrincipalResolver`. Falls back to the
   original `%User{}` when no resolver succeeds.
+
+  ## Options
+
+    * `:principal_types` (required) - the principal types to consider, in
+      order of preference. Each endpoint passes only the types it serves, so a
+      user who is both Patient and Practitioner never resolves to the wrong
+      role.
   """
-  def resolve(user, tenant) do
-    grants = active_grants(user.id, tenant)
+  def resolve(user, tenant, opts) do
+    principal_types = Keyword.fetch!(opts, :principal_types)
+    grants = active_grants(user.id, principal_types, tenant)
 
     case grants do
       [] ->
         user
 
       _ ->
-        resolve_from_grants(grants, user, tenant)
+        resolve_from_grants(grants, principal_types, user, tenant)
     end
   end
 
-  defp resolve_from_grants(grants, user, tenant) do
+  defp resolve_from_grants(grants, principal_types, user, tenant) do
     resolvers = principal_resolvers()
+    grants_by_type = Enum.group_by(grants, & &1.principal_type)
 
-    grants
-    |> Enum.group_by(& &1.principal_type)
-    |> Enum.find_value(fn {type, type_grants} ->
-      case Map.get(resolvers, type) do
-        nil ->
-          nil
-
-        resolver ->
-          ids = Enum.map(type_grants, & &1.principal_id)
-          try_resolve(resolver, ids, ids, user, tenant)
+    Enum.find_value(principal_types, fn type ->
+      with resolver when not is_nil(resolver) <- Map.get(resolvers, type),
+           [_ | _] = type_grants <- Map.get(grants_by_type, type, []) do
+        ids = Enum.map(type_grants, & &1.principal_id)
+        try_resolve(resolver, ids, ids, user, tenant)
+      else
+        _ -> nil
       end
     end) || user
   end
@@ -63,9 +69,11 @@ defmodule Chironium.Accounts.ActorResolver do
     end
   end
 
-  defp active_grants(user_id, tenant) do
+  defp active_grants(user_id, principal_types, tenant) do
     Chironium.Accounts.PrincipalGrant
-    |> Ash.Query.filter(user_id: user_id, active: true)
+    |> Ash.Query.filter(
+      user_id == ^user_id and active == true and principal_type in ^principal_types
+    )
     |> Ash.read!(authorize?: false, tenant: tenant)
   end
 

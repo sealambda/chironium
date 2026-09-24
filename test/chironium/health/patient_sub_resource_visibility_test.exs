@@ -489,6 +489,6 @@ defmodule Chironium.Health.PatientSubResourceVisibilityTest do
   end
 
   defp enrich_actor(user, tenant) do
-    Chironium.Accounts.ActorResolver.resolve(user, tenant)
+    Chironium.Accounts.ActorResolver.resolve(user, tenant, principal_types: [:practitioner])
   end
 end

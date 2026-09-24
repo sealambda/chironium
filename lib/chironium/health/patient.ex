@@ -48,7 +48,7 @@ defmodule Chironium.Health.Patient do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:patient]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:patient]}
   end
 
   actions do
@@ -103,7 +103,7 @@ defmodule Chironium.Health.Patient do
     end
 
     policy action([:create, :create_patient_with_person, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 

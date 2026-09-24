@@ -34,7 +34,7 @@ defmodule Chironium.Health.Practitioner do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:practitioner]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:practitioner]}
   end
 
   actions do
@@ -47,9 +47,9 @@ defmodule Chironium.Health.Practitioner do
       authorize_if always()
     end
 
-    # Any authenticated actor in the org can read the practitioner list.
+    # Any staff actor in the org can read the practitioner list.
     policy action_type(:read) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
 
     # Write actions are restricted to power users (bypassed above).

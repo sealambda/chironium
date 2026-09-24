@@ -50,7 +50,7 @@ defmodule Chironium.Health.Task do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :graphql, [:task]}
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:task]}
   end
 
   state_machine do
@@ -218,7 +218,7 @@ defmodule Chironium.Health.Task do
     end
 
     policy action_type([:create, :update, :destroy]) do
-      authorize_if actor_present()
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
   end
 
