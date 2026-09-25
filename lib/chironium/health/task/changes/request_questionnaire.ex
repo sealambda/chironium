@@ -14,9 +14,10 @@ defmodule Chironium.Health.Task.Changes.RequestQuestionnaire do
   @impl true
   def change(changeset, _opts, context) do
     due_date = Ash.Changeset.get_argument(changeset, :due_date)
-    today = Date.utc_today()
+    # The client picks dates in local time: west of UTC, "today" can still be yesterday in UTC.
+    earliest = Date.add(Date.utc_today(), -1)
 
-    if due_date && Date.compare(due_date, today) == :lt do
+    if due_date && Date.compare(due_date, earliest) == :lt do
       Ash.Changeset.add_error(changeset,
         field: :due_date,
         message: "The due date #{due_date} is in the past."

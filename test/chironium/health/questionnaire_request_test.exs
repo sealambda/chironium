@@ -75,7 +75,7 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
     test "rejects a due date in the past", ctx do
       assert {:error, %Ash.Error.Invalid{}} =
                request(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{
-                 due_date: Date.add(Date.utc_today(), -1)
+                 due_date: Date.add(Date.utc_today(), -2)
                })
     end
 
