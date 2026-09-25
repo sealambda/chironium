@@ -19,7 +19,6 @@ defmodule Chironium.Accounts.User do
     extensions: [
       AshAuthentication,
       AshPaperTrail.Resource,
-      AshRateLimiter,
       AshGraphql.Resource,
       AshAdmin.Resource
     ]

@@ -22,12 +22,13 @@ defmodule Chironium.Health.QuestionnaireResponse.Changes.ExtractObservations do
   alias Chironium.Health.QuestionnaireResponse.ObservationExtractionMap
 
   @impl Ash.Resource.Change
-  def change(changeset, _opts, _context) do
-    Ash.Changeset.after_action(changeset, &extract/2)
+  def change(changeset, _opts, context) do
+    Ash.Changeset.after_action(changeset, &extract(&1, &2, context.actor))
   end
 
-  defp extract(changeset, %{status: :completed} = response) do
-    opts = [tenant: changeset.tenant, authorize?: false]
+  # The actor is passed through so the audit trail attributes the observations.
+  defp extract(changeset, %{status: :completed} = response, actor) do
+    opts = [tenant: changeset.tenant, actor: actor, authorize?: false]
 
     case Ash.get(Questionnaire, response.questionnaire_id, opts) do
       {:ok, questionnaire} ->
@@ -44,7 +45,7 @@ defmodule Chironium.Health.QuestionnaireResponse.Changes.ExtractObservations do
     {:ok, response}
   end
 
-  defp extract(_changeset, response), do: {:ok, response}
+  defp extract(_changeset, response, _actor), do: {:ok, response}
 
   defp index_questions(items) do
     Enum.reduce(items, %{}, fn item, acc ->

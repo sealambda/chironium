@@ -97,8 +97,10 @@ defmodule Chironium.Health.Questionnaire do
     end
 
     # A definition has no patient subject; it is shared across the tenant's practitioners.
+    # Patients see only the questionnaires of their own open requests.
     policy action_type(:read) do
       authorize_if Chironium.Accounts.Checks.StaffActor
+      authorize_if Chironium.Health.Checks.QuestionnaireVisibleToPatient
     end
 
     policy action_type([:create, :update, :destroy]) do
@@ -153,6 +155,13 @@ defmodule Chironium.Health.Questionnaire do
     attribute :item, {:array, :map} do
       description "The FHIR item tree (groups and questions) as JSON. See moduledoc."
       public? true
+    end
+  end
+
+  relationships do
+    # Internal: lets patient visibility follow the tasks that request this questionnaire.
+    has_many :tasks, Chironium.Health.Task do
+      destination_attribute :focus_questionnaire_id
     end
   end
 end

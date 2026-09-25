@@ -7,13 +7,14 @@ defmodule Chironium.Secrets do
   """
   use AshAuthentication.Secret
 
-  # Token signing secret.
+  # Token signing secret, shared by staff users and guest links.
   def secret_for(
         [:authentication, :tokens, :signing_secret],
-        Chironium.Accounts.User,
+        resource,
         _opts,
         _context
-      ) do
+      )
+      when resource in [Chironium.Accounts.User, Chironium.Accounts.GuestAccess] do
     Application.fetch_env(:chironium, :token_signing_secret)
   end
 

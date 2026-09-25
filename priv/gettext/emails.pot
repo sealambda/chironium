@@ -66,12 +66,42 @@ msgstr ""
 msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
 msgstr ""
 
-#: lib/chironium/workers/notification_email_worker.ex:66
+#: lib/chironium/workers/notification_email_worker.ex:115
 #, elixir-autogen, elixir-format
 msgid "Task reminder: %{description}"
 msgstr ""
 
-#: lib/chironium/workers/notification_email_worker.ex:41
+#: lib/chironium/workers/notification_email_worker.ex:90
 #, elixir-autogen, elixir-format
 msgid "You've been invited to %{organization}"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:27
+#, elixir-autogen, elixir-format
+msgid "%{name} from %{organization} asked you to answer a questionnaire."
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:32
+#, elixir-autogen, elixir-format
+msgid "%{organization} asked you to answer a questionnaire."
+msgstr ""
+
+#: lib/chironium/workers/notification_email_worker.ex:62
+#, elixir-autogen, elixir-format
+msgid "%{organization} sent you a questionnaire"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:22
+#, elixir-autogen, elixir-format
+msgid "A questionnaire for you"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:41
+#, elixir-autogen, elixir-format
+msgid "Answer the questionnaire"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:46
+#, elixir-autogen, elixir-format
+msgid "The link can be opened once, on one device, and stays valid until %{date}. Please don't forward it: anyone with the link can answer in your name."
 msgstr ""

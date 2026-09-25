@@ -12,6 +12,11 @@ defmodule Chironium.BaseResources.Tenantable do
           domain Chironium.Health
           public? true
         end
+
+        belongs_to_actor :changed_by_patient, Chironium.Health.Patient do
+          domain Chironium.Health
+          public? true
+        end
       end
     end
   end

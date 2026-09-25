@@ -30,6 +30,18 @@ defmodule Chironium.Health.Task do
     end
   end
 
+  field_policies do
+    # Notes are internal to the care team.
+    field_policy :note do
+      forbid_if Chironium.Health.Checks.ActorIsPatient
+      authorize_if always()
+    end
+
+    field_policy :* do
+      authorize_if always()
+    end
+  end
+
   graphql do
     type :task
 
@@ -45,7 +57,11 @@ defmodule Chironium.Health.Task do
       update :start_task, :start
       update :complete_task, :complete
       update :fail_task, :fail
+      update :cancel_task, :cancel
       destroy :delete_task, :destroy
+
+      create :request_questionnaire, :request_questionnaire
+      update :reissue_questionnaire_link, :reissue_questionnaire_link
     end
   end
 
@@ -56,12 +72,22 @@ defmodule Chironium.Health.Task do
   state_machine do
     state_attribute :status
 
-    initial_states [:draft]
+    # Questionnaire requests start as `requested`: they are sent on creation.
+    initial_states [:draft, :requested]
     default_initial_state :draft
 
     transitions do
       transition :cancel,
-        from: [:draft, :ready, :requested, :received, :accepted, :rejected],
+        from: [
+          :draft,
+          :ready,
+          :requested,
+          :received,
+          :accepted,
+          :rejected,
+          :in_progress,
+          :on_hold
+        ],
         to: :cancelled
 
       transition :ready, from: :draft, to: :ready
@@ -71,11 +97,12 @@ defmodule Chironium.Health.Task do
       transition :accept, from: [:requested, :received], to: :accepted
       transition :reject, from: [:requested, :received], to: :rejected
 
-      transition :start, from: [:ready, :accepted], to: :in_progress
+      # A patient opening a questionnaire link starts a `requested` task.
+      transition :start, from: [:ready, :accepted, :requested], to: :in_progress
       transition :suspend, from: :in_progress, to: :on_hold
       transition :resume, from: :on_hold, to: :in_progress
 
-      transition :complete, from: :in_progress, to: :completed
+      transition :complete, from: [:in_progress, :requested], to: :completed
       transition :fail, from: :in_progress, to: :failed
 
       transition :mark_entered_in_error, from: :*, to: :entered_in_error
@@ -104,9 +131,11 @@ defmodule Chironium.Health.Task do
 
       pagination keyset?: true
 
+      # Questionnaire requests have their own link lifecycle, not reminders.
       filter expr(
                status in [:ready, :accepted] and
-                 not is_nil(requested_period)
+                 not is_nil(requested_period) and
+                 is_nil(focus_questionnaire_id)
              )
 
       prepare Chironium.Health.Preparations.FilterByRequestedPeriodWindow
@@ -180,7 +209,55 @@ defmodule Chironium.Health.Task do
     end
 
     update :cancel do
+      require_atomic? false
       change transition_state(:cancelled)
+      change Chironium.Health.Task.Changes.RevokeQuestionnaireLinks
+    end
+
+    create :request_questionnaire do
+      description "Sends a questionnaire to a patient as a single-use link."
+
+      argument :patient_id, :uuid, allow_nil?: false
+      argument :questionnaire_id, :uuid, allow_nil?: false
+
+      argument :due_date, :date do
+        description "When the answers are needed. A later date extends the link, up to 14 days."
+      end
+
+      argument :message, :string do
+        description "A note shown to the patient with the questionnaire."
+      end
+
+      change transition_state(:requested)
+      change manage_relationship(:patient_id, :for_patient, type: :append)
+      change Chironium.Health.Task.Changes.RequestQuestionnaire
+      change Chironium.Health.Task.Changes.IssueQuestionnaireLinks
+
+      metadata :link_url, :string do
+        description "The single-use link for the practitioner to copy or share."
+        allow_nil? false
+      end
+
+      metadata :email_sent, :boolean do
+        description "Whether the link was also emailed to the patient."
+        allow_nil? false
+      end
+    end
+
+    update :reissue_questionnaire_link do
+      description "Replaces an open request's links with new ones and a fresh expiry."
+      require_atomic? false
+
+      change Chironium.Health.Task.Changes.ReissueQuestionnaireLink
+      change Chironium.Health.Task.Changes.IssueQuestionnaireLinks
+
+      metadata :link_url, :string do
+        allow_nil? false
+      end
+
+      metadata :email_sent, :boolean do
+        allow_nil? false
+      end
     end
 
     update :suspend do
@@ -212,9 +289,15 @@ defmodule Chironium.Health.Task do
       authorize_if always()
     end
 
+    policy action(:tasks_needing_reminder) do
+      authorize_if Chironium.Accounts.Checks.StaffActor
+    end
+
     policy action_type(:read) do
       authorize_if {Chironium.Health.Checks.PatientSubjectVisibleToActor,
                     relationship: :for_patient}
+
+      authorize_if Chironium.Health.Checks.TaskVisibleToPatient
     end
 
     policy action_type([:create, :update, :destroy]) do
@@ -266,6 +349,18 @@ defmodule Chironium.Health.Task do
       description "Comments made about the task"
       public? true
     end
+
+    attribute :code, Chironium.Datatypes.CodeableConcept do
+      description "Task type; FHIR SDC `complete-questionnaire` for questionnaire requests"
+      public? true
+      writable? false
+    end
+
+    attribute :access_expires_at, :utc_datetime_usec do
+      description "When the patient's questionnaire link and session stop working"
+      public? true
+      writable? false
+    end
   end
 
   relationships do
@@ -274,9 +369,39 @@ defmodule Chironium.Health.Task do
       description "Beneficiary of the Task"
       public? true
     end
+
+    belongs_to :focus_questionnaire, Chironium.Health.Questionnaire do
+      description "The questionnaire the patient is asked to complete"
+      public? true
+      attribute_writable? false
+      # Archiving a questionnaire must not orphan the requests already sent for it.
+      read_action :read_including_archived
+    end
+
+    belongs_to :requester_practitioner, Chironium.Health.Practitioner do
+      description "The practitioner who asked for the task"
+      public? true
+      attribute_writable? false
+    end
+
+    has_one :output_questionnaire_response, Chironium.Health.QuestionnaireResponse do
+      description "The response that fulfilled a questionnaire request"
+      public? true
+      destination_attribute :task_id
+    end
   end
 
   calculations do
+    calculate :requester_name, :string, Chironium.Health.Task.Calculations.RequesterName do
+      description "Display name of the practitioner who asked for the task"
+      public? true
+    end
+
+    calculate :organization_name, :string, Chironium.Health.Task.Calculations.OrganizationName do
+      description "Name of the organization the task belongs to"
+      public? true
+    end
+
     calculate :requested_period_start_sort_key,
               :datetime,
               expr(fragment("(?->>'start')::timestamptz", requested_period)) do
