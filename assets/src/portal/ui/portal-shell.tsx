@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
+import * as m from "@/paraglide/messages";
 import { SignOutButton } from "@/portal/ui/sign-out-button";
+import { runtimeConfig } from "@/shared/utils/runtime-config";
 
 interface PortalShellProps {
   organizationName?: string | null;
@@ -23,6 +25,13 @@ export function PortalShell({
         {signedIn ? <SignOutButton /> : null}
       </header>
       <main className="mx-auto max-w-2xl px-4 pb-12">{children}</main>
+      {runtimeConfig.sourceCodeUrl ? (
+        <footer className="pb-6 text-center text-muted-foreground text-xs">
+          <a href={runtimeConfig.sourceCodeUrl} className="underline-offset-4 hover:underline">
+            {m.nav_source_code()}
+          </a>
+        </footer>
+      ) : null}
     </div>
   );
 }

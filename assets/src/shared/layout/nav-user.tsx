@@ -1,4 +1,4 @@
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, Code, LogOut } from "lucide-react";
 
 import { useCurrentUser } from "@/features/user/hooks/use-current-user";
 import * as m from "@/paraglide/messages";
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { getUserInitials } from "@/shared/utils/name-utils";
+import { runtimeConfig } from "@/shared/utils/runtime-config";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { cn } from "@/shared/utils/utils";
 
@@ -98,6 +99,16 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
         </div>
 
         <DropdownMenuSeparator />
+
+        {runtimeConfig.sourceCodeUrl ? (
+          <DropdownMenuItem
+            // biome-ignore lint/a11y/useAnchorContent: The menu item renders its children inside the anchor.
+            render={<a href={runtimeConfig.sourceCodeUrl} target="_blank" rel="noreferrer" />}
+          >
+            <Code aria-hidden />
+            {m.nav_source_code()}
+          </DropdownMenuItem>
+        ) : null}
 
         <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
           <LogOut aria-hidden />

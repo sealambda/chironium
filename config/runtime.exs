@@ -79,6 +79,16 @@ email_enabled? =
 
 config :chironium, Chironium.Notifications, email_enabled?: email_enabled?
 
+# The AGPL requires a modified version run as a network service to offer its
+# source to users; point this at your fork when you deploy changes.
+config :chironium,
+  source_code_url: System.get_env("SOURCE_CODE_URL", "https://github.com/sealambda/chironium")
+
+# The sign-in page links to these documents only when both are set.
+config :chironium, :legal_urls,
+  terms: System.get_env("TERMS_URL"),
+  privacy: System.get_env("PRIVACY_URL")
+
 if config_env() == :prod do
   # database_url =
   #   System.get_env("DATABASE_URL") ||
@@ -187,6 +197,16 @@ if config_env() == :prod do
       adapter: Swoosh.Adapters.Resend,
       api_key: api_key
   end
+
+  # PostHog product analytics and error tracking, off unless a project key is set.
+  posthog_api_key = System.get_env("POSTHOG_API_KEY")
+  posthog_enabled = posthog_api_key not in [nil, ""]
+
+  config :posthog,
+    enable: posthog_enabled,
+    enable_error_tracking: posthog_enabled,
+    api_host: System.get_env("POSTHOG_HOST", "https://eu.i.posthog.com"),
+    api_key: if(posthog_enabled, do: posthog_api_key, else: "disabled")
 
   # Sender address for transactional emails.
   config :chironium, :email_from,

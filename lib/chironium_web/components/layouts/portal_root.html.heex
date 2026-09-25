@@ -7,6 +7,7 @@
     <%!-- Portal URLs can carry sign-in tokens: never send them as a referrer. --%>
     <meta name="referrer" content="no-referrer" />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="chironium:source-code-url" content={source_code_url()} />
     <.live_title default="Chironium">{assigns[:page_title]}</.live_title>
     <%= if assigns[:spa?] do %>
       <PhoenixVite.Components.assets

@@ -1,11 +1,19 @@
 import type { CaptureResult } from "posthog-js";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("posthog-js", () => ({ default: { init: vi.fn() } }));
 
 describe("posthog client", () => {
+  // The client reads its project key from the root layout's meta tag.
+  beforeEach(() => {
+    const meta = document.createElement("meta");
+    meta.name = "chironium:posthog-key";
+    meta.content = "phc_test";
+    document.head.append(meta);
+  });
+
   afterEach(() => {
-    vi.unstubAllEnvs();
+    document.head.querySelector("meta[name='chironium:posthog-key']")?.remove();
     vi.unstubAllGlobals();
   });
 
@@ -45,7 +53,6 @@ describe("posthog client", () => {
   it("keeps invite codes out of the stored initial person info", async () => {
     vi.resetModules();
     vi.doUnmock("posthog-js");
-    vi.stubEnv("VITE_POSTHOG_KEY", "phc_test");
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("{}", { status: 200 })),

@@ -30,6 +30,13 @@
       <p class="text-sm text-auth-muted">
         {gettext("If you didn't expect this, you can close this page.")}
       </p>
+      <a
+        :if={ChironiumWeb.Layouts.source_code_url()}
+        href={ChironiumWeb.Layouts.source_code_url()}
+        class="text-center text-xs text-auth-muted underline-offset-4 hover:underline"
+      >
+        {gettext("Source code")}
+      </a>
     </div>
   </div>
 </main>
