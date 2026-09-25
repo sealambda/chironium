@@ -156,9 +156,11 @@ config :chironium, Chironium.Mailer, adapter: Swoosh.Adapters.Local
 # Default sender address for transactional emails.
 config :chironium, :email_from, name: "Chironium", address: "chironium@updates.appfor.it"
 
+# PostHog stays disabled unless config/runtime.exs finds POSTHOG_API_KEY in production.
 config :posthog,
   enable: false,
-  test_mode: config_env() == :test
+  test_mode: config_env() == :test,
+  in_app_otp_apps: [:chironium]
 
 # Configure Elixir's Logger
 config :logger, :default_formatter,

@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <meta name="chironium:email-enabled" content={to_string(email_enabled?())} />
+    <%!-- Deployment settings read by the SPA at runtime (see runtime-config.ts). --%>
+    <meta name="chironium:source-code-url" content={source_code_url()} />
+    <%= if posthog = posthog_config() do %>
+      <meta name="chironium:posthog-key" content={posthog.api_key} />
+      <meta name="chironium:posthog-host" content={posthog.api_host} />
+    <% end %>
     <%!-- Security: Prevent MIME type sniffing. --%>
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <%!-- Security: Referrer policy for privacy. --%>

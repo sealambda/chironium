@@ -14,6 +14,19 @@ defmodule ChironiumWeb.Layouts do
   @doc "Whether email is on, for the SPA's `chironium:email-enabled` meta tag."
   def email_enabled?, do: Chironium.Notifications.email_enabled?()
 
+  @doc "Returns the URL where users can obtain the source code of this deployment."
+  def source_code_url, do: Application.get_env(:chironium, :source_code_url)
+
+  @doc "Returns the PostHog key and host for the frontend, or `nil` when analytics are off."
+  def posthog_config do
+    if Application.get_env(:posthog, :enable) do
+      %{
+        api_key: Application.get_env(:posthog, :api_key),
+        api_host: Application.get_env(:posthog, :api_host)
+      }
+    end
+  end
+
   @doc """
   Renders your app layout.
 

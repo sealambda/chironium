@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import { fetchCurrentUser } from "@/features/user/api/user-api";
 import { USER_QUERY_KEY } from "@/shared/utils/query-keys";
+import { runtimeConfig } from "@/shared/utils/runtime-config";
 
 import { useUserStore } from "./user-store";
 
@@ -36,7 +37,7 @@ export function UserStoreSync() {
   }, [data, isLoading, error, setFromQuery]);
 
   useEffect(() => {
-    if (!data) {
+    if (!(data && runtimeConfig.posthogKey)) {
       return;
     }
     posthog?.identify(data.id, {
