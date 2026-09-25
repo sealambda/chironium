@@ -216,6 +216,20 @@ Planned 2026-09-24. Patients answer questionnaires through a single-use link. Th
 4. The dead `AshRateLimiter` reference on `User`.
 5. The Invitation `create` policy TODO.
 
+## Implementation Notes
+
+Where the build differs from the plan above:
+
+- **Expiry lives on the Task too.** `Task.access_expires_at` copies the accesses' `expires_at`, so the staff UI can show the expiry and "link expired" without reading `GuestAccess`, which stays closed to every actor.
+- **`submit_from_portal` takes a `task_id` argument.** It's checked against the session's scope, so the same action will serve unscoped persistent patients.
+- **Claiming starts the task.** `QuestionnaireRequests.claim/2` moves a `requested` task to `in_progress`, so staff can see that the link was opened. Cancel now also works from `in_progress` and `on_hold`.
+- **AshAuthentication's activity tuple is `{strategy, phase}`.** `AuthController` matches guests on `{:magic_link, _}` plus the `%GuestAccess{}` struct. Staff users have no magic link strategy.
+- **The confirm page verifies the token without consuming it.** An invalid or used link goes to `/portal/link-expired`. A used link opened in the browser that holds its session continues to `/portal`.
+- **`/portal/gql` is `post` only and needs a document `id`.** `RequirePersistedDocument` answers anything else with 400, and GET never reaches Absinthe. Portal pages are four explicit routes (`/portal`, `/done`, `/link-expired`, `/signed-out`), not a catch-all.
+- **Rate limits** are keyed by the first `x-forwarded-for` hop, falling back to `remote_ip`. They are configurable under `ChironiumWeb.Plugs.PortalRateLimit`.
+- **Persisted document IDs** are `sha256:` of `print(parse(document))`, matching gql.tada. A test re-hashes the manifest. `graphql.persisted` currently needs `@ts-expect-error`: graphql@16.13's `Kind` has `TYPE_COORDINATE`, which the `Kind` bundled with gql.tada lacks.
+- **Hammer is pinned to 7.4.** 7.5 requires igniter 0.8, and the lockfile has 0.7.
+
 ## Assumptions
 
 - An expired link shows "ask your practitioner for a new link". There is no self-service resend in v1.

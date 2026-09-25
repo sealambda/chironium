@@ -5,6 +5,7 @@ import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-pr
 import { FoodPreferenceDetailDialog } from "@/features/customers/ui/detail/food-preference-detail-dialog";
 import { FoodPreferencePill } from "@/features/customers/ui/detail/food-preference-pill";
 import { FoodPreferenceRemoveDialog } from "@/features/customers/ui/detail/food-preference-remove-dialog";
+import { SelfReportedBadge } from "@/features/customers/ui/detail/self-reported-badge";
 import { TagsCardColumn, TagsCardPillList } from "@/features/customers/ui/detail/tags-card-content";
 import { TagsCardShell } from "@/features/customers/ui/detail/tags-card-shell";
 import * as m from "@/paraglide/messages";
@@ -43,6 +44,9 @@ export function FoodPreferencesCard({
     .filter((item) => item.type === "exclusion")
     .map((item) => ({ item, label: labelOf(item) }))
     .filter((entry) => entry.label);
+  const selfReportedLabels = [...included, ...excluded]
+    .filter(({ item }) => item.selfReported)
+    .map(({ label }) => label);
 
   return (
     <>
@@ -54,6 +58,14 @@ export function FoodPreferencesCard({
         emptyDescription={m.food_preferences_empty_desc()}
         compact={compact}
         columns={2}
+        footer={
+          selfReportedLabels.length > 0 ? (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5 border-border border-t pt-3">
+              <SelfReportedBadge />
+              <span className="text-foreground/65 text-xs">{selfReportedLabels.join(", ")}</span>
+            </div>
+          ) : null
+        }
       >
         <TagsCardColumn
           title={m.food_preferences_includes_label()}

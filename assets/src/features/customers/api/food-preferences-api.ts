@@ -71,6 +71,8 @@ export interface FoodPreferenceHistoryItem {
     time?: string | null;
   }[];
   paperTrailVersions?: VersionActorSource[] | null;
+  /** The patient reported this preference themselves, through a questionnaire. */
+  selfReported?: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -128,6 +130,7 @@ export function selectFoodPreferencesHistory(
       items,
       notes: obs.note ?? [],
       paperTrailVersions: obs.paperTrailVersions ?? null,
+      selfReported: obs.selfReported === true,
     };
   };
 

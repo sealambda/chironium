@@ -16,6 +16,7 @@ import {
   getEventIcon,
   getEventLabel,
   getEventVerb,
+  isSelfReportedEvent,
 } from "@/features/customers/types/activity-feed";
 import { AddGoalDialog } from "@/features/customers/ui/detail/add-goal-dialog";
 import { AddMenstrualCycleDialog } from "@/features/customers/ui/detail/add-menstrual-cycle-dialog";
@@ -23,6 +24,7 @@ import { EditAnthropometryDialog } from "@/features/customers/ui/detail/edit-ant
 import { EditObservationDialog } from "@/features/customers/ui/detail/edit-observation-dialog";
 import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subscription-dialog";
 import { EditTaskReminderDialog } from "@/features/customers/ui/detail/edit-task-reminder-dialog";
+import { SelfReportedBadge } from "@/features/customers/ui/detail/self-reported-badge";
 import {
   CancelActionDialog,
   ResumeActionDialog,
@@ -30,6 +32,7 @@ import {
 } from "@/features/customers/ui/detail/subscription-management-dialogs";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
+import { isOpenQuestionnaireRequest } from "@/features/questionnaires/model/questionnaire-request-status";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import { completeTaskReminder } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
@@ -49,6 +52,11 @@ import { NutritionEvent } from "./nutrition-event";
 import { ObservationEvent } from "./observation-event";
 import { PrescriptionEvent } from "./prescription-event";
 import { QuestionnaireEvent } from "./questionnaire-event";
+import { QuestionnaireRequestActions } from "./questionnaire-request-actions";
+import {
+  QuestionnaireRequestEvent,
+  QuestionnaireRequestStatusBadge,
+} from "./questionnaire-request-event";
 import { SubscriptionEvent } from "./subscription-event";
 import { TaskEvent } from "./task-event";
 
@@ -437,7 +445,19 @@ function EventBody({ event }: Readonly<{ event: FeedEvent }>) {
       return <NutritionEvent plans={event.payload} />;
     case "questionnaire":
       return <QuestionnaireEvent response={event.payload} />;
+    case "questionnaire-request":
+      return <QuestionnaireRequestEvent task={event.payload} status={event.status} />;
   }
+}
+
+function EventBadge({ event }: Readonly<{ event: FeedEvent }>) {
+  if (event.kind === "task") {
+    return <TaskStatusBadge status={event.payload.status} />;
+  }
+  if (event.kind === "questionnaire-request") {
+    return <QuestionnaireRequestStatusBadge status={event.status} />;
+  }
+  return isSelfReportedEvent(event) ? <SelfReportedBadge /> : null;
 }
 
 function EventAction({
@@ -476,6 +496,16 @@ function EventAction({
   }
   if (event.kind === "task") {
     return <TaskReminderEditAction personId={personId} task={event.payload} />;
+  }
+  if (event.kind === "questionnaire-request" && isOpenQuestionnaireRequest(event.status)) {
+    return (
+      <QuestionnaireRequestActions
+        personId={personId}
+        organizationId={organizationId}
+        taskId={event.payload.id}
+        status={event.status}
+      />
+    );
   }
   if (event.kind === "menstrual") {
     return (
@@ -542,11 +572,7 @@ export function ActivityFeedTimeline({
               }
               actors={event.actors}
               date={event.date}
-              dateBadge={
-                event.kind === "task" ? (
-                  <TaskStatusBadge status={event.payload.status} />
-                ) : undefined
-              }
+              dateBadge={<EventBadge event={event} />}
               isFuture={group.isFuture}
             >
               <EventBody event={event} />

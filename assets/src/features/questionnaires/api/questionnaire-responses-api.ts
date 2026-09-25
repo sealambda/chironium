@@ -29,6 +29,10 @@ const ListResponsesByPatientQuery = graphql(`
             text
           }
         }
+        authorPatient {
+          id
+        }
+        selfReported
       }
     }
   }

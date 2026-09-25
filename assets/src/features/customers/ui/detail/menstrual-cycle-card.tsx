@@ -6,6 +6,7 @@ import type { MenstrualCycleSummary } from "@/features/customers/api/observation
 import { AddMenstrualCycleDialog } from "@/features/customers/ui/detail/add-menstrual-cycle-dialog";
 import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer-detail-empty-card";
 import { DetailEditButton } from "@/features/customers/ui/detail/detail-edit-button";
+import { SelfReportedBadge } from "@/features/customers/ui/detail/self-reported-badge";
 import { TagsCardTitle } from "@/features/customers/ui/detail/tags-card-content";
 import * as m from "@/paraglide/messages";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -145,6 +146,7 @@ export function MenstrualCycleCard({
             <DetailEditButton ariaLabel={m.history_edit_element_title()} />
           </AddMenstrualCycleDialog>
         ) : null}
+        {cycle.selfReported ? <SelfReportedBadge className="ml-auto" /> : null}
       </div>
 
       {/* Hero: Duration */}

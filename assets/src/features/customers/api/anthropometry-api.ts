@@ -147,12 +147,22 @@ export type CircumferenceKey = (typeof CIRCUMFERENCE_KEYS)[number];
 type WeightKey = "weight";
 type HeightKey = "height";
 type AnthropometryMeasureKey = WeightKey | HeightKey | CircumferenceKey;
-type AnthropometryObservationKey = AnthropometryMeasureKey | "bmi" | "whr";
+export type AnthropometryObservationKey = AnthropometryMeasureKey | "bmi" | "whr";
+
+const ANTHROPOMETRY_OBSERVATION_KEYS: readonly AnthropometryObservationKey[] = [
+  "weight",
+  "height",
+  "bmi",
+  "whr",
+  ...CIRCUMFERENCE_KEYS,
+];
 
 export interface AnthropometryObservationRef {
   id: string;
   note: AnthropometryAnnotation[];
   paperTrailVersions?: VersionActorSource[];
+  /** The patient reported this value themselves, through a questionnaire. */
+  selfReported?: boolean;
 }
 
 export interface AnthropometricSnapshot {
@@ -258,6 +268,7 @@ function getObservationRef(
     id: obs.id,
     note: extractNote(obs),
     paperTrailVersions: obs.paperTrailVersions ?? [],
+    selfReported: obs.selfReported === true,
   };
 }
 
@@ -322,6 +333,15 @@ export function selectAnthropometryHistory(
   return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
 }
 
+/** Keys of the snapshot's values that the patient reported themselves, in display order. */
+export function selfReportedAnthropometryKeys(
+  snapshot: AnthropometricSnapshot,
+): AnthropometryObservationKey[] {
+  return ANTHROPOMETRY_OBSERVATION_KEYS.filter(
+    (key) => snapshot[key] != null && snapshot.observations?.[key]?.selfReported === true,
+  );
+}
+
 /**
  * Build a combined "current state" snapshot by picking the most recent value for each
  * measurement field across the full history. The date reflects the most recent weight
@@ -335,25 +355,26 @@ export function selectCurrentStateSnapshot(
     return null;
   }
 
-  const initial: AnthropometricSnapshot = {
+  const merged: AnthropometricSnapshot = {
     date: (history.find((s) => s.weight != null) ?? firstSnapshot).date,
+    observations: {},
   };
 
-  return history.reduce(
-    (merged, snapshot) => ({
-      date: merged.date,
-      weight: merged.weight ?? snapshot.weight,
-      height: merged.height ?? snapshot.height,
-      bmi: merged.bmi ?? snapshot.bmi,
-      whr: merged.whr ?? snapshot.whr,
-      chest: merged.chest ?? snapshot.chest,
-      waist: merged.waist ?? snapshot.waist,
-      hip: merged.hip ?? snapshot.hip,
-      arm: merged.arm ?? snapshot.arm,
-      thigh: merged.thigh ?? snapshot.thigh,
-    }),
-    initial,
-  );
+  // Each field keeps the observation it came from, so provenance (e.g. self-reported)
+  // follows the value into the combined snapshot.
+  for (const key of ANTHROPOMETRY_OBSERVATION_KEYS) {
+    const source = history.find((snapshot) => snapshot[key] != null);
+    if (!source) {
+      continue;
+    }
+    merged[key] = source[key];
+    const ref = source.observations?.[key];
+    if (ref && merged.observations) {
+      merged.observations[key] = ref;
+    }
+  }
+
+  return merged;
 }
 
 /**
