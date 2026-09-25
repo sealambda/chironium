@@ -8,8 +8,7 @@ defmodule ChironiumWeb.Router do
 
   pipeline :graphql do
     plug :fetch_session
-    # TODO Re-enable in prod, just for testing with /gql/playground
-    # plug :protect_from_forgery
+    plug :protect_from_forgery
     plug :load_from_session
     plug ChironiumWeb.Plugs.SetPosthogContext
     plug :set_actor, :user
@@ -31,17 +30,30 @@ defmodule ChironiumWeb.Router do
     plug ChironiumWeb.Plugs.SetLocale
   end
 
+  # The playground cannot send CSRF tokens (https://github.com/absinthe-graphql/absinthe_plug/issues/303),
+  # so it gets its own pipeline and is only mounted in development.
+  pipeline :graphql_playground do
+    plug :fetch_session
+    plug :load_from_session
+    plug :set_actor, :user
+    plug ChironiumWeb.SetTenant
+    plug ChironiumWeb.Plugs.SetLocale
+    plug AshGraphql.Plug
+  end
+
+  if Application.compile_env(:chironium, :dev_routes) do
+    scope "/gql/playground" do
+      pipe_through [:graphql_playground]
+
+      forward "/", Absinthe.Plug.GraphiQL,
+        schema: ChironiumWeb.GraphqlSchema,
+        socket: ChironiumWeb.GraphqlSocket,
+        interface: :playground
+    end
+  end
+
   scope "/gql" do
     pipe_through [:graphql]
-
-    # TODO need to comment out plug :protect_from_forgery in pipeline :graphql to test it
-    forward "/playground", Absinthe.Plug.GraphiQL,
-      schema: ChironiumWeb.GraphqlSchema,
-      socket: ChironiumWeb.GraphqlSocket,
-      # we'd need :advanced to support CSRF tokens, but it's broken
-      # https://github.com/absinthe-graphql/absinthe_plug/issues/303
-      interface: :playground,
-      default_headers: {__MODULE__, :graphiql_headers}
 
     forward "/", Absinthe.Plug, schema: ChironiumWeb.GraphqlSchema
   end
@@ -86,12 +98,6 @@ defmodule ChironiumWeb.Router do
     get "/done", PortalController, :app
     get "/link-expired", PortalController, :app
     get "/signed-out", PortalController, :app
-  end
-
-  def graphiql_headers do
-    %{
-      "X-CSRF-Token" => Plug.CSRFProtection.get_csrf_token()
-    }
   end
 
   pipeline :require_authenticated_user do
