@@ -14,16 +14,22 @@ The bot records the signature in the `cla-signatures` branch and re-checks it on
 
 ## Development setup
 
-Toolchain versions are pinned in `mise.toml`. With [mise](https://mise.jdx.dev) and PostgreSQL installed:
+[mise](https://mise.jdx.dev) installs the toolchain versions pinned in `mise.toml`, and `compose.yaml` runs PostgreSQL 18 with pgvector, the same database CI uses.
 
 ```sh
 mise install
-cp envs/.env.example envs/.env   # fill in Google OAuth credentials
+docker compose up -d --wait
 mix setup
+mix chironium.seed      # demo organization; prints an invite code
 mix phx.server
 ```
 
-Use `pnpm` for all JavaScript tasks; never `npm` or `yarn`.
+Open [localhost:4000](http://localhost:4000) and choose **Sign in as developer**. The development sign-in creates the user on first use, so any email address works; then choose **Join with invitation** and paste the invite code from the seed output.
+
+- **Port conflicts.** If another PostgreSQL already uses port 5432, export `PGPORT` (for example `export PGPORT=5433`) in the shell where you run both `docker compose` and `mix`.
+- **Google sign-in.** To test the real OAuth flow, copy `envs/.env.example` to `envs/.env` and fill in a Google OAuth client.
+- **Package manager.** Use `pnpm` for all JavaScript tasks; never `npm` or `yarn`.
+- **Development tools.** The GraphQL playground, LiveDashboard, Oban dashboard, and Ash admin are mounted at `/gql/playground`, `/dev/dashboard`, `/oban`, and `/admin`.
 
 ## Before you open a pull request
 
@@ -33,6 +39,8 @@ Run the same checks CI runs:
 mix precommit          # compile with warnings as errors, format, test
 pnpm assets:check      # Biome lint and format for the frontend
 pnpm assets:typecheck
+pnpm assets:test       # Vitest unit tests
+pnpm assets:e2e        # Playwright end-to-end tests against the dev server
 ```
 
 Keep pull requests focused on one change and describe the why in the description. Changes to Ash resources must include the generated migrations and resource snapshots (`mix ash.codegen`).
@@ -43,4 +51,8 @@ Chironium references LOINC, SNOMED CT, RxNorm and UCUM codes. Each terminology h
 
 ## Security issues
 
-Do not open a public issue for a vulnerability. Email hello@sealambda.com with the details and we will respond as quickly as we can.
+Do not open a public issue for a vulnerability; follow the [security policy](SECURITY.md) instead.
+
+## Code of conduct
+
+Everyone taking part in the project follows the [Code of Conduct](CODE_OF_CONDUCT.md).

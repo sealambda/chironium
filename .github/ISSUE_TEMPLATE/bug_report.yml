@@ -1,0 +1,41 @@
+name: Bug report
+description: Report something that does not work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Never include real patient data, credentials, or screenshots that show personal information. Report security vulnerabilities privately, as described in [SECURITY.md](https://github.com/sealambda/chironium/blob/main/SECURITY.md).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a customer profile.
+        2. Choose "Add record".
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The commit or image tag you are running.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, operating system, and whether you run the Docker image or a development setup.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant server or browser console output, with personal data removed.
+      render: text

@@ -1,0 +1,16 @@
+# The pnpm workspace links packages from deps/, which only exist after `mix deps.get`,
+# so JavaScript updates stay manual.
+version: 2
+updates:
+  - package-ecosystem: mix
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      mix:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
