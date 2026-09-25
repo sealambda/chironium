@@ -153,6 +153,12 @@ defmodule ChironiumWeb.Router do
   # Enable LiveDashboard and Swoosh mailbox preview in development.
   # These routes MUST come before the catch-all app routes.
   if Application.compile_env(:chironium, :dev_routes) do
+    scope "/dev", ChironiumWeb do
+      pipe_through :browser
+
+      post "/sign-in", DevSignInController, :create
+    end
+
     scope "/dev/playwright", ChironiumWeb do
       pipe_through :playwright_e2e
 

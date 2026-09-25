@@ -61,12 +61,12 @@ msgstr "Te han invitado"
 msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
 msgstr "Como alternativa, abre Chironium, haz clic en el selector de organizacion, \"Unirse con invitacion\", e introduce el siguiente codigo"
 
-#: lib/chironium/workers/notification_email_worker.ex:115
+#: lib/chironium/workers/notification_email_worker.ex:125
 #, elixir-autogen, elixir-format
 msgid "Task reminder: %{description}"
 msgstr "Recordatorio de tarea: %{description}"
 
-#: lib/chironium/workers/notification_email_worker.ex:90
+#: lib/chironium/workers/notification_email_worker.ex:100
 #, elixir-autogen, elixir-format
 msgid "You've been invited to %{organization}"
 msgstr "Te han invitado a %{organization}"
@@ -81,7 +81,7 @@ msgstr "%{name}, de %{organization}, te pidió que respondas un cuestionario."
 msgid "%{organization} asked you to answer a questionnaire."
 msgstr "%{organization} te pidió que respondas un cuestionario."
 
-#: lib/chironium/workers/notification_email_worker.ex:62
+#: lib/chironium/workers/notification_email_worker.ex:72
 #, elixir-autogen, elixir-format
 msgid "%{organization} sent you a questionnaire"
 msgstr "%{organization} te envió un cuestionario"
