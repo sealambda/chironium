@@ -46,6 +46,48 @@ defmodule ChironiumWeb.Router do
     forward "/", Absinthe.Plug, schema: ChironiumWeb.GraphqlSchema
   end
 
+  # Patient portal. No PostHog, no staff tenant header, and no referrer: portal
+  # URLs can carry sign-in tokens.
+  pipeline :portal_browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers, %{"referrer-policy" => "no-referrer"}
+    plug :load_from_session
+    plug ChironiumWeb.Plugs.SetLocale
+  end
+
+  pipeline :portal_graphql do
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers, %{"referrer-policy" => "no-referrer"}
+    plug :load_from_session
+    plug ChironiumWeb.Plugs.SetPortalActor
+    plug ChironiumWeb.Plugs.RequirePersistedDocument
+    plug ChironiumWeb.Plugs.SetLocale
+    plug AshGraphql.Plug
+  end
+
+  scope "/portal" do
+    pipe_through [:portal_graphql]
+
+    # Persisted documents only: this endpoint never accepts ad hoc queries.
+    post "/gql", Absinthe.Plug,
+      schema: ChironiumWeb.GraphqlSchema,
+      document_providers: [ChironiumWeb.PortalDocuments]
+  end
+
+  scope "/portal", ChironiumWeb do
+    pipe_through [:portal_browser]
+
+    get "/sign-in", PortalController, :sign_in
+    post "/sign-out", PortalController, :sign_out
+    get "/", PortalController, :request
+    get "/done", PortalController, :app
+    get "/link-expired", PortalController, :app
+    get "/signed-out", PortalController, :app
+  end
+
   def graphiql_headers do
     %{
       "X-CSRF-Token" => Plug.CSRFProtection.get_csrf_token()
@@ -83,7 +125,9 @@ defmodule ChironiumWeb.Router do
   scope "/", ChironiumWeb do
     pipe_through :browser
 
-    auth_routes AuthController, Chironium.Accounts.User, path: "/auth"
+    auth_routes AuthController, [Chironium.Accounts.User, Chironium.Accounts.GuestAccess],
+      path: "/auth"
+
     sign_out_route AuthController
 
     # Custom sign-in LiveView with branded design.

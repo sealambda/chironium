@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang={assigns[:locale] || "en"} class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <%!-- Portal URLs can carry sign-in tokens: never send them as a referrer. --%>
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow" />
+    <.live_title default="Chironium">{assigns[:page_title]}</.live_title>
+    <%= if assigns[:spa?] do %>
+      <PhoenixVite.Components.assets
+        names={["src/portal.tsx"]}
+        manifest={{:chironium, "priv/static/.vite/manifest.json"}}
+        dev_server={PhoenixVite.Components.has_vite_watcher?(ChironiumWeb.Endpoint)}
+        to_url={fn p -> static_url(@conn, p) end}
+        is_react?={true}
+      />
+    <% else %>
+      <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <% end %>
+  </head>
+  <body class="h-full antialiased">
+    {@inner_content}
+  </body>
+</html>

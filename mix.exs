@@ -58,6 +58,7 @@ defmodule Chironium.MixProject do
       {:picosat_elixir, "~> 0.2"},
       {:sourceror, "~> 1.8", only: [:dev, :test]},
       {:oban, "~> 2.0"},
+      {:hammer, "~> 7.0"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:ash_paper_trail, "~> 0.5"},
       {:live_debugger, "~> 0.5", only: [:dev]},

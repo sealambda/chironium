@@ -2,7 +2,27 @@ defmodule ChironiumWeb.AuthController do
   use ChironiumWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
+  alias Chironium.Accounts.GuestAccess
+  alias Chironium.Accounts.Token
+  alias Chironium.Health.PatientPrincipalResolver
+  alias Chironium.Health.QuestionnaireRequests
   alias ChironiumWeb.Plugs.AuthReturnState
+
+  # Patient questionnaire link: claim it, which revokes its sibling links, then
+  # keep the session. The redirect carries no token.
+  def success(conn, {:magic_link, _phase}, %GuestAccess{} = guest_access, _token) do
+    with {:ok, patient} <- PatientPrincipalResolver.resolve_guest(guest_access),
+         {:ok, _claimed} <- QuestionnaireRequests.claim(guest_access, patient) do
+      conn
+      |> store_in_session(guest_access)
+      |> redirect(to: ~p"/portal")
+    else
+      _ ->
+        # Lost a race with another claim: the fresh session token must not survive.
+        AshAuthentication.TokenResource.Actions.revoke(Token, guest_access.__metadata__.token)
+        redirect(conn, to: ~p"/portal/link-expired")
+    end
+  end
 
   def success(conn, _activity, user, _token) do
     # Get the validated return URL from the signed state token.
@@ -15,6 +35,10 @@ defmodule ChironiumWeb.AuthController do
     |> assign(:current_user, user)
     |> redirect_to_app(return_to)
   end
+
+  # Only guest links use the magic link strategy.
+  def failure(conn, {:magic_link, _phase}, _reason),
+    do: redirect(conn, to: ~p"/portal/link-expired")
 
   def failure(conn, activity, reason) do
     message =

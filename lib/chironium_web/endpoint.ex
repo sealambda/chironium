@@ -2,7 +2,7 @@ defmodule ChironiumWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :chironium
   use Absinthe.Phoenix.Endpoint
   import PhoenixVite.Plug
-  plug PostHog.Integrations.Plug
+  plug ChironiumWeb.Plugs.PostHogContext
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
@@ -57,6 +57,7 @@ defmodule ChironiumWeb.Endpoint do
 
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+  plug ChironiumWeb.Plugs.PortalRateLimit
 
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json, Absinthe.Plug.Parser],
