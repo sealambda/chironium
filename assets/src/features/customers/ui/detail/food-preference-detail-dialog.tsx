@@ -1,4 +1,5 @@
 import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
+import { SelfReportedBadge } from "@/features/customers/ui/detail/self-reported-badge";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
@@ -44,6 +45,7 @@ export function FoodPreferenceDetailDialog({
       onDelete={onRemoveClick}
     >
       <FieldGroup>
+        {item.selfReported ? <SelfReportedBadge /> : null}
         <Field>
           <FieldLabel>{m.food_preferences_field_name()}</FieldLabel>
           <FieldDescription>{name}</FieldDescription>

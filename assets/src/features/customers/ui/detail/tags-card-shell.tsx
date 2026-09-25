@@ -13,6 +13,8 @@ interface TagsCardShellProps {
   readonly emptyDescription: ReactNode;
   readonly compact?: boolean;
   readonly columns?: 1 | 2;
+  /** Optional row below the columns (e.g. a provenance note). */
+  readonly footer?: ReactNode;
   readonly children: ReactNode;
 }
 
@@ -24,6 +26,7 @@ export function TagsCardShell({
   emptyDescription,
   compact,
   columns = 1,
+  footer,
   children,
 }: TagsCardShellProps) {
   if (isLoading) {
@@ -50,6 +53,7 @@ export function TagsCardShell({
       ) : (
         children
       )}
+      {footer}
     </div>
   );
 }

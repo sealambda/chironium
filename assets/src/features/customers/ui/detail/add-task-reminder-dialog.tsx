@@ -6,7 +6,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useOrg } from "@/features/org/hooks/use-org";
-import { createTask, fetchTasksForPatient } from "@/features/tasks/api/tasks-api";
+import {
+  createTask,
+  fetchTasksForPatient,
+  isQuestionnaireRequestTask,
+} from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { useControllableState } from "@/shared/hooks/use-controllable-state";
 import { Button } from "@/shared/ui/button";
@@ -72,7 +76,10 @@ export function AddTaskReminderDialog({
     queryKey: personQueryKeys.reviewTasks(personId, selectedOrg?.id ?? "", patientId ?? ""),
     queryFn: async () => {
       const tasks = await fetchTasksForPatient(patientId ?? "", selectedOrg?.id ?? "");
-      return tasks.filter((t) => t.status === "ACCEPTED" || t.status === "READY");
+      // Questionnaire requests can be ACCEPTED too, but they are not reminders.
+      return tasks.filter(
+        (t) => (t.status === "ACCEPTED" || t.status === "READY") && !isQuestionnaireRequestTask(t),
+      );
     },
     enabled: Boolean(selectedOrg?.id && patientId),
   });

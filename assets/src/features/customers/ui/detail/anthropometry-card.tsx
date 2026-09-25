@@ -3,13 +3,17 @@ import { ScaleIcon } from "lucide-react";
 
 import {
   type AnthropometricSnapshot,
+  type AnthropometryObservationKey,
   selectCurrentStateSnapshot,
+  selfReportedAnthropometryKeys,
 } from "@/features/customers/api/anthropometry-api";
 import {
   AnthropometryMeasurementDetails,
+  CIRCUMFERENCE_LABELS,
   DeltaPill,
 } from "@/features/customers/ui/detail/anthropometry-measurement-details";
 import { CustomerDetailEmptyCard } from "@/features/customers/ui/detail/customer-detail-empty-card";
+import { SelfReportedBadge } from "@/features/customers/ui/detail/self-reported-badge";
 import * as m from "@/paraglide/messages";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { computeDelta, formatAnthropometryValue } from "@/shared/utils/measurement-utils";
@@ -65,6 +69,31 @@ function HeroSection({
           ? m.anthropometry_recorded_today()
           : m.anthropometry_recorded_days_ago({ count: daysAgo })}
       </div>
+    </div>
+  );
+}
+
+// ─── Provenance ──────────────────────────────────────────────────────
+
+const FIELD_LABELS: Record<AnthropometryObservationKey, () => string> = {
+  weight: m.anthropometry_weight,
+  height: m.anthropometry_height,
+  bmi: m.anthropometry_bmi,
+  whr: m.anthropometry_whr,
+  ...CIRCUMFERENCE_LABELS,
+};
+
+/** Names the values the patient reported themselves, so staff can weigh them accordingly. */
+function SelfReportedFields({ snapshot }: Readonly<{ snapshot: AnthropometricSnapshot }>) {
+  const labels = selfReportedAnthropometryKeys(snapshot).map((key) => FIELD_LABELS[key]());
+  if (labels.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <SelfReportedBadge />
+      <span className="text-foreground/65 text-xs">{labels.join(", ")}</span>
     </div>
   );
 }
@@ -168,6 +197,7 @@ export function AnthropometryCard({
       )}
     >
       <HeroSection latest={currentState} weightDelta={weightDelta} />
+      <SelfReportedFields snapshot={currentState} />
 
       <div className="my-4 h-px bg-border" />
 

@@ -19,6 +19,13 @@ const ListTasksForPatientQuery = graphql(`
           start
           end
         }
+        accessExpiresAt
+        focusQuestionnaireId
+        focusQuestionnaire {
+          id
+          title
+        }
+        requesterName
         note {
           text
           time
@@ -39,6 +46,9 @@ const ListTasksForPatientQuery = graphql(`
               given
               family
             }
+          }
+          changedByPatient {
+            id
           }
         }
       }
@@ -98,6 +108,19 @@ const CompleteTaskMutation = graphql(`
   }
 `);
 
+const CancelTaskMutation = graphql(`
+  mutation CancelTask($id: ID!) {
+    cancelTask(id: $id) {
+      result {
+        id
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 const DeleteTaskMutation = graphql(`
   mutation DeleteTask($id: ID!) {
     deleteTask(id: $id) {
@@ -131,6 +154,14 @@ const UpdateTaskMutation = graphql(`
 export type PatientTask = NonNullable<
   NonNullable<ResultOf<typeof ListTasksForPatientQuery>["listTasks"]>["results"]
 >[number];
+
+/** Whether a task asks the patient to fill in a questionnaire, rather than being a reminder. */
+export function isQuestionnaireRequestTask(
+  task: Pick<PatientTask, "focusQuestionnaireId">,
+): boolean {
+  // The id survives even when the questionnaire itself is no longer readable.
+  return task.focusQuestionnaireId != null;
+}
 
 export interface CreateTaskParams {
   organizationId: string;
@@ -205,6 +236,17 @@ export async function completeTaskReminder(taskId: string, organizationId: strin
     organizationId,
   });
   unwrapMutationResult(completed.completeTask, "Failed to complete task.");
+}
+
+/** Cancel a task. For a questionnaire request, this also revokes its links. */
+export async function cancelTask(taskId: string, organizationId: string): Promise<void> {
+  const result = await requestGraphql({
+    document: CancelTaskMutation,
+    variables: { id: taskId },
+    organizationId,
+  });
+
+  unwrapMutationResult(result.cancelTask, `Failed to cancel task ${taskId}.`);
 }
 
 export async function deleteTaskReminder(taskId: string, organizationId: string): Promise<void> {

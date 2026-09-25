@@ -9,6 +9,7 @@ import {
   Pill,
   Salad,
   Scale,
+  Send,
   Stethoscope,
   Tablets,
   Target,
@@ -30,6 +31,7 @@ import type {
   ObservationItem,
 } from "@/features/customers/api/observations-api";
 import type { QuestionnaireResponseRecord } from "@/features/questionnaires/api/questionnaire-responses-api";
+import type { QuestionnaireRequestStatus } from "@/features/questionnaires/model/questionnaire-request-status";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
@@ -86,6 +88,7 @@ export interface VersionActorSource {
       family?: string | null;
     }> | null;
   } | null;
+  changedByPatient?: { id: string } | null;
 }
 
 function practitionerDisplayName(
@@ -112,8 +115,17 @@ function practitionerDisplayName(
   return composed || undefined;
 }
 
+/** The patient as a feed actor: their name when known, otherwise a generic label. */
+export function patientActor(
+  patientId: string | undefined,
+  patientName: string | null | undefined,
+): { name: string; id?: string } {
+  return { name: patientName?.trim() || m.activity_actor_patient(), id: patientId };
+}
+
 export function actorFromVersions(
   versions: readonly VersionActorSource[] | null | undefined,
+  patientName?: string | null,
 ): { name: string; id?: string } | undefined {
   const version = versions?.[0];
   if (!version) {
@@ -128,6 +140,11 @@ export function actorFromVersions(
   const userName = user?.name?.trim();
   if (user && userName) {
     return { name: userName, id: user.id };
+  }
+  // Patients change records only through the portal, which has no User or Practitioner.
+  const patient = version.changedByPatient;
+  if (patient) {
+    return patientActor(patient.id, patientName);
   }
   return undefined;
 }
@@ -257,9 +274,45 @@ export type FeedEvent =
       date: string;
       actors?: FeedActor[];
       payload: QuestionnaireResponseRecord;
+    }
+  | {
+      kind: "questionnaire-request";
+      id: string;
+      date: string;
+      actors?: FeedActor[];
+      status: QuestionnaireRequestStatus;
+      payload: PatientTask;
     };
 
 export type FeedEventKind = FeedEvent["kind"];
+
+/** A feed filter: one event kind, or every event. */
+export type FeedFilter = FeedEventKind | "all";
+
+/** Kinds shown under another kind's filter chip rather than their own. */
+const FILTER_KIND: Partial<Record<FeedEventKind, FeedEventKind>> = {
+  "questionnaire-request": "questionnaire",
+};
+
+export function matchesFeedFilter(kind: FeedEventKind, filter: FeedFilter): boolean {
+  return filter === "all" || (FILTER_KIND[kind] ?? kind) === filter;
+}
+
+/** Whether the patient reported the event's values themselves, through a questionnaire. */
+export function isSelfReportedEvent(event: FeedEvent): boolean {
+  switch (event.kind) {
+    case "observation":
+    case "questionnaire":
+    case "menstrual":
+      return event.payload.selfReported === true;
+    case "anthropometry":
+      return Object.values(event.payload.observations ?? {}).some((ref) => ref?.selfReported);
+    case "food-preference":
+      return event.payload.some((item) => item.selfReported);
+    default:
+      return false;
+  }
+}
 
 export interface FeedDateGroup {
   label: string;
@@ -315,6 +368,8 @@ export function getEventAccent(event: FeedEvent): FeedEventAccent {
       return "emerald";
     case "questionnaire":
       return "slate";
+    case "questionnaire-request":
+      return "violet";
   }
 }
 
@@ -346,6 +401,8 @@ export function getEventIcon(event: FeedEvent): LucideIcon {
       return Salad;
     case "questionnaire":
       return ListChecks;
+    case "questionnaire-request":
+      return Send;
   }
 }
 
@@ -380,6 +437,7 @@ export function getEventLabel(event: FeedEvent): string {
     case "nutrition":
       return m.activity_event_nutrition();
     case "questionnaire":
+    case "questionnaire-request":
       return m.activity_event_questionnaire();
   }
 }
@@ -467,5 +525,7 @@ export function getEventVerb(event: FeedEvent, count = 1): string {
         : m.activity_verb_nutrition();
     case "questionnaire":
       return m.activity_verb_questionnaire();
+    case "questionnaire-request":
+      return m.activity_verb_questionnaire_request();
   }
 }

@@ -70,6 +70,9 @@ const PatientWorkspaceProfileFragment = graphql(`
             family
           }
         }
+        changedByPatient {
+          id
+        }
       }
     }
     conditions(limit: 250) {
@@ -121,6 +124,9 @@ const PatientWorkspaceProfileFragment = graphql(`
             family
           }
         }
+        changedByPatient {
+          id
+        }
       }
     }
     medicationStatements(limit: 250) {
@@ -161,6 +167,9 @@ const PatientWorkspaceProfileFragment = graphql(`
             given
             family
           }
+        }
+        changedByPatient {
+          id
         }
       }
     }
@@ -254,6 +263,9 @@ const PatientWorkspaceCareFragment = graphql(`
             family
           }
         }
+        changedByPatient {
+          id
+        }
       }
     }
     goals(sort: [{ field: PRIORITY, order: ASC }], limit: 250) {
@@ -288,6 +300,9 @@ const PatientWorkspaceCareFragment = graphql(`
             family
           }
         }
+        changedByPatient {
+          id
+        }
       }
     }
     nutritionPlans(limit: 250) {
@@ -311,6 +326,9 @@ const PatientWorkspaceCareFragment = graphql(`
             family
           }
         }
+        changedByPatient {
+          id
+        }
       }
     }
     observations(sort: [{ field: EFFECTIVE_DATE_TIME, order: DESC }], limit: 250) {
@@ -327,6 +345,7 @@ const PatientWorkspaceCareFragment = graphql(`
         }
       }
       effectiveDateTime
+      selfReported
       valueString
       valueDateTime
       valueQuantity {
@@ -364,6 +383,9 @@ const PatientWorkspaceCareFragment = graphql(`
             given
             family
           }
+        }
+        changedByPatient {
+          id
         }
       }
     }

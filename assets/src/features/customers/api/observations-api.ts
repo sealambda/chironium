@@ -142,6 +142,8 @@ export interface MenstrualCycleSummary {
   durationObservationId?: string | null;
   sourceNotes?: ObservationItem["note"] | null;
   paperTrailVersions?: ObservationItem["paperTrailVersions"] | null;
+  /** The patient reported the cycle themselves, through a questionnaire. */
+  selfReported?: boolean;
 }
 
 /** A single menstrual cycle event identified by the period-start observation. */
@@ -491,6 +493,7 @@ function summarizeMenstrualCycleStart(
     durationObservationId: matchingDuration?.id ?? null,
     sourceNotes: firstNoteSource(startRecord, matchingDuration),
     paperTrailVersions: startRecord.paperTrailVersions ?? matchingDuration?.paperTrailVersions,
+    selfReported: startRecord.selfReported === true || matchingDuration?.selfReported === true,
   };
 }
 
@@ -518,6 +521,7 @@ export function selectLatestMenstrualCycle(
     durationObservationId: null,
     sourceNotes: latest.note,
     paperTrailVersions: latest.paperTrailVersions,
+    selfReported: latest.selfReported === true,
   };
 }
 
@@ -562,6 +566,7 @@ export function selectMenstrualCycleHistory(
       durationObservationId: null,
       sourceNotes: legacy.note,
       paperTrailVersions: legacy.paperTrailVersions,
+      selfReported: legacy.selfReported === true,
       id: legacy.id,
       effectiveDateTime,
     });

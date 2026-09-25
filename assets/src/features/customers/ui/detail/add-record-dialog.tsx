@@ -8,6 +8,7 @@ import {
   RefreshCcwDot,
   Salad,
   Scale,
+  Send,
   ShieldAlert,
   Stethoscope,
   Tablets,
@@ -30,6 +31,7 @@ import { EditSubscriptionDialog } from "@/features/customers/ui/detail/edit-subs
 import { NutritionPlanDetailDialog } from "@/features/customers/ui/detail/nutrition-plan-detail-dialog";
 import { PrescriptionDetailDialog } from "@/features/customers/ui/detail/prescription-detail-dialog";
 import { QuestionnaireFillDialog } from "@/features/questionnaires/ui/fill/questionnaire-fill-dialog";
+import { SendQuestionnaireDialog } from "@/features/questionnaires/ui/request/send-questionnaire-dialog";
 import * as m from "@/paraglide/messages";
 import type { AdministrativeGender } from "@/shared/types/schema-enums";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
@@ -55,6 +57,7 @@ export type RecordType =
   | "food_preferences"
   | "nutrition"
   | "questionnaire"
+  | "questionnaire_request"
   | "subscription";
 
 /** Paraglide message functions return the resolved string for the active locale. */
@@ -105,6 +108,14 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
         iconClassName: "text-muted-foreground",
         label: m.add_record_tile_questionnaire,
         desc: m.add_record_questionnaire_desc,
+      },
+      {
+        id: "questionnaire_request",
+        icon: Send,
+        bgClassName: "bg-muted",
+        iconClassName: "text-muted-foreground",
+        label: m.add_record_tile_questionnaire_request,
+        desc: m.add_record_questionnaire_request_desc,
       },
       {
         id: "reminder",
@@ -202,8 +213,8 @@ const RECORD_TYPE_GROUPS: readonly RecordTypeGroup[] = [
 
 function tileGridClassName(count: number): string {
   if (count >= 5) {
-    // 6-col ghost grid: first 3 items span 2 cols each (equal thirds),
-    // last 2 items span 3 cols each (equal halves) → clean 3+2 row split.
+    // 6-col ghost grid: primary tiles take halves, the rest thirds, and a short
+    // last row stretches to fill (see `tileItemClassName`).
     return "grid grid-cols-6 gap-3";
   }
   if (count === 4) {
@@ -218,9 +229,20 @@ function tileGridClassName(count: number): string {
   return "grid grid-cols-2 gap-3";
 }
 
-function tileItemClassName(type: RecordTypeConfig, total: number): string {
+function tileItemClassName(type: RecordTypeConfig, types: readonly RecordTypeConfig[]): string {
+  const total = types.length;
   if (total >= 5) {
-    return type.priority === "primary" ? "col-span-3" : "col-span-2";
+    if (type.priority === "primary") {
+      return "col-span-3";
+    }
+    // Secondary tiles fill rows of three; a shorter last row stretches to the full width.
+    const secondary = types.filter((t) => t.priority !== "primary");
+    const lastRowSize = secondary.length % 3;
+    const inLastRow = lastRowSize > 0 && secondary.indexOf(type) >= secondary.length - lastRowSize;
+    if (!inLastRow) {
+      return "col-span-2";
+    }
+    return lastRowSize === 2 ? "col-span-3" : "col-span-6";
   }
   if (total === 1) {
     return "w-full sm:w-1/2";
@@ -327,6 +349,12 @@ export function AddRecordDialog({
         open={activeType === "questionnaire"}
         onOpenChange={handleChildOpenChange}
       />
+      <SendQuestionnaireDialog
+        personId={personId}
+        patientId={patientId}
+        open={activeType === "questionnaire_request"}
+        onOpenChange={handleChildOpenChange}
+      />
       <AllergyDetailDialog
         mode="create"
         personId={personId}
@@ -404,7 +432,7 @@ export function AddRecordDialog({
                             disabled
                               ? "cursor-not-allowed opacity-50"
                               : "hover:border-primary/30 hover:bg-primary/5",
-                            tileItemClassName(type, types.length),
+                            tileItemClassName(type, types),
                           )}
                         >
                           <div

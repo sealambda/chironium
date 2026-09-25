@@ -16,13 +16,15 @@ import type {
   FeedActor,
   FeedDateGroup,
   FeedEvent,
-  FeedEventKind,
+  FeedFilter,
   VersionActorSource,
 } from "@/features/customers/types/activity-feed";
 import {
   actorFromNotes,
   actorFromVersions,
+  matchesFeedFilter,
   mergeFeedActor,
+  patientActor,
   uniqueActors,
 } from "@/features/customers/types/activity-feed";
 import {
@@ -30,13 +32,16 @@ import {
   toIsoDateString,
 } from "@/features/customers/utils/activity-feed-dates";
 import type { QuestionnaireResponseRecord } from "@/features/questionnaires/api/questionnaire-responses-api";
-import type { PatientTask } from "@/features/tasks/api/tasks-api";
+import { questionnaireRequestStatus } from "@/features/questionnaires/model/questionnaire-request-status";
+import { isQuestionnaireRequestTask, type PatientTask } from "@/features/tasks/api/tasks-api";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 
 const SUBSCRIPTION_ENDING_HORIZON_DAYS = 90;
 
 type SubscriptionPause = NonNullable<SubscriptionRecord["pauses"]>[number];
 type SubscriptionActor = FeedActor | undefined;
+/** The patient's display name, used when the patient made a change themselves. */
+type PatientName = string | null | undefined;
 
 type Trackable = {
   id: string;
@@ -58,22 +63,27 @@ interface BuildActivityFeedEventsInput {
   menstrualCycles: MenstrualCycleEntry[] | undefined;
   nutritionPlans: NutritionPlanRecord[] | undefined;
   questionnaireResponses: QuestionnaireResponseRecord[] | undefined;
-  activeFilter: FeedEventKind | "all";
+  activeFilter: FeedFilter;
   personName?: string | null;
+  /** Reference time for statuses that depend on it, such as an expired link. */
+  now?: Date;
 }
 
 function nowIso() {
   return new Date().toISOString();
 }
 
-function normalizeObservations(page: ObservationsPage | undefined): FeedEvent[] {
+function normalizeObservations(
+  page: ObservationsPage | undefined,
+  patientName: PatientName,
+): FeedEvent[] {
   return (page?.items ?? []).map((observation) => ({
     kind: "observation",
     id: observation.id,
     date: observation.effectiveDateTime ?? nowIso(),
     actors: uniqueActors([
       mergeFeedActor(
-        actorFromVersions(observation.paperTrailVersions),
+        actorFromVersions(observation.paperTrailVersions, patientName),
         actorFromNotes(observation.note),
       ),
     ]),
@@ -81,26 +91,69 @@ function normalizeObservations(page: ObservationsPage | undefined): FeedEvent[] 
   }));
 }
 
-function normalizeTasks(tasks: PatientTask[] | undefined): FeedEvent[] {
-  return (tasks ?? []).map((task) => ({
-    kind: "task",
-    id: task.id,
-    date: task.requestedPeriod?.start ?? nowIso(),
-    actors: uniqueActors([
-      mergeFeedActor(actorFromVersions(task.paperTrailVersions), actorFromNotes(task.note)),
-    ]),
-    payload: task,
-  }));
+/**
+ * The staff member who sent a request. Versions are unordered, so a version the patient
+ * made (opening or submitting) is skipped rather than shown as the sender.
+ */
+function requestSender(task: PatientTask): FeedActor | undefined {
+  const staffVersions = (task.paperTrailVersions ?? []).filter(
+    (version) => !version.changedByPatient,
+  );
+  const fromVersions = actorFromVersions(staffVersions);
+  if (fromVersions) {
+    return fromVersions;
+  }
+  const requesterName = task.requesterName?.trim();
+  return requesterName ? { name: requesterName } : undefined;
 }
 
-function normalizeMenstrualCycles(entries: MenstrualCycleEntry[] | undefined): FeedEvent[] {
+function normalizeTasks(
+  tasks: PatientTask[] | undefined,
+  patientName: PatientName,
+  now: Date,
+): FeedEvent[] {
+  return (tasks ?? []).map((task): FeedEvent => {
+    if (isQuestionnaireRequestTask(task)) {
+      return {
+        kind: "questionnaire-request",
+        id: task.id,
+        // The period starts when the request is sent.
+        date:
+          task.requestedPeriod?.start ??
+          task.paperTrailVersions?.[0]?.versionInsertedAt ??
+          nowIso(),
+        actors: uniqueActors([requestSender(task)]),
+        status: questionnaireRequestStatus(task, now),
+        payload: task,
+      };
+    }
+
+    return {
+      kind: "task",
+      id: task.id,
+      date: task.requestedPeriod?.start ?? nowIso(),
+      actors: uniqueActors([
+        mergeFeedActor(
+          actorFromVersions(task.paperTrailVersions, patientName),
+          actorFromNotes(task.note),
+        ),
+      ]),
+      payload: task,
+    };
+  });
+}
+
+function normalizeMenstrualCycles(
+  entries: MenstrualCycleEntry[] | undefined,
+  patientName: PatientName,
+): FeedEvent[] {
   return (entries ?? []).map((entry) => ({
     kind: "menstrual",
     id: entry.id,
     date: entry.effectiveDateTime,
     actors: uniqueActors([
       mergeFeedActor(
-        actorFromVersions(entry.paperTrailVersions),
+        actorFromVersions(entry.paperTrailVersions, patientName),
         actorFromNotes(entry.sourceNotes),
       ),
     ]),
@@ -108,13 +161,13 @@ function normalizeMenstrualCycles(entries: MenstrualCycleEntry[] | undefined): F
   }));
 }
 
-function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
+function normalizeGoals(goals: GoalRecord[], patientName: PatientName): FeedEvent[] {
   // Bucket "created" events by minute-precision timestamp so goals set simultaneously appear as one feed event.
   const createdBuckets = new Map<string, { goals: GoalRecord[]; actors: FeedActor[] }>();
 
   for (const goal of goals) {
     const actor = mergeFeedActor(
-      actorFromVersions(goal.paperTrailVersions),
+      actorFromVersions(goal.paperTrailVersions, patientName),
       actorFromNotes(goal.note),
     );
     const rawDate =
@@ -151,14 +204,17 @@ function normalizeGoals(goals: GoalRecord[]): FeedEvent[] {
   return createdEvents;
 }
 
-function anthropometryObservationActors(snapshot: AnthropometricSnapshot): FeedActor[] {
+function anthropometryObservationActors(
+  snapshot: AnthropometricSnapshot,
+  patientName: PatientName,
+): FeedActor[] {
   if (!snapshot.observations) {
     return [];
   }
 
   const actors: FeedActor[] = [];
   for (const observation of Object.values(snapshot.observations)) {
-    const fromVersions = actorFromVersions(observation?.paperTrailVersions);
+    const fromVersions = actorFromVersions(observation?.paperTrailVersions, patientName);
     if (fromVersions) {
       actors.push(fromVersions);
     }
@@ -174,13 +230,19 @@ function anthropometryObservationActors(snapshot: AnthropometricSnapshot): FeedA
   return actors;
 }
 
-function normalizeAnthropometry(snapshots: AnthropometricSnapshot[] | undefined): FeedEvent[] {
+function normalizeAnthropometry(
+  snapshots: AnthropometricSnapshot[] | undefined,
+  patientName: PatientName,
+): FeedEvent[] {
   return (snapshots ?? []).map((snapshot) => {
     const primaryActor = mergeFeedActor(
-      actorFromVersions(snapshot.paperTrailVersions),
+      actorFromVersions(snapshot.paperTrailVersions, patientName),
       actorFromNotes(snapshot.notes),
     );
-    const allActors = uniqueActors([primaryActor, ...anthropometryObservationActors(snapshot)]);
+    const allActors = uniqueActors([
+      primaryActor,
+      ...anthropometryObservationActors(snapshot, patientName),
+    ]);
 
     return {
       kind: "anthropometry",
@@ -195,6 +257,7 @@ function normalizeAnthropometry(snapshots: AnthropometricSnapshot[] | undefined)
 function bucketByMinute<RecordItem extends Trackable>(
   records: readonly RecordItem[],
   getDate: (record: RecordItem) => string,
+  patientName: PatientName,
 ): { date: string; actors: FeedActor[]; items: RecordItem[] }[] {
   const buckets = new Map<string, { date: string; actors: FeedActor[]; items: RecordItem[] }>();
 
@@ -202,7 +265,7 @@ function bucketByMinute<RecordItem extends Trackable>(
     const date = getDate(record);
     const key = date.slice(0, 16);
     const recordActor = mergeFeedActor(
-      actorFromVersions(record.paperTrailVersions),
+      actorFromVersions(record.paperTrailVersions, patientName),
       actorFromNotes(record.note),
     );
     const existingBucket = buckets.get(key);
@@ -230,7 +293,7 @@ function bucketByMinute<RecordItem extends Trackable>(
   return Array.from(buckets.values());
 }
 
-function normalizeConditions(conditions: ConditionItem[]): FeedEvent[] {
+function normalizeConditions(conditions: ConditionItem[], patientName: PatientName): FeedEvent[] {
   // The activity feed timestamps when the record was created, not when the
   // condition started. Onset can be years in the past (e.g. a chronic
   // diagnosis) and is surfaced inside the event body instead.
@@ -241,6 +304,7 @@ function normalizeConditions(conditions: ConditionItem[]): FeedEvent[] {
       condition.paperTrailVersions?.[0]?.versionInsertedAt ??
       condition.onsetDateTime ??
       nowIso(),
+    patientName,
   ).map((group) => ({
     kind: "condition",
     id: group.items.map((item) => item.id).join("-"),
@@ -250,10 +314,14 @@ function normalizeConditions(conditions: ConditionItem[]): FeedEvent[] {
   }));
 }
 
-function normalizeNutritionPlans(plans: NutritionPlanRecord[] | undefined): FeedEvent[] {
+function normalizeNutritionPlans(
+  plans: NutritionPlanRecord[] | undefined,
+  patientName: PatientName,
+): FeedEvent[] {
   return bucketByMinute(
     plans ?? [],
     (plan) => plan.paperTrailVersions?.[0]?.versionInsertedAt ?? nowIso(),
+    patientName,
   ).map((group) => ({
     kind: "nutrition",
     id: group.items.map((item) => item.id).join("-"),
@@ -263,22 +331,40 @@ function normalizeNutritionPlans(plans: NutritionPlanRecord[] | undefined): Feed
   }));
 }
 
+function questionnaireResponseAuthor(
+  response: QuestionnaireResponseRecord,
+  patientName: PatientName,
+): FeedActor | undefined {
+  const authorName = response.author?.name?.[0]?.text?.trim();
+  if (authorName) {
+    return { name: authorName, id: response.author?.id };
+  }
+  if (response.authorPatient) {
+    return patientActor(response.authorPatient.id, patientName);
+  }
+  return undefined;
+}
+
 function normalizeQuestionnaireResponses(
   responses: QuestionnaireResponseRecord[] | undefined,
+  patientName: PatientName,
 ): FeedEvent[] {
   return (responses ?? []).map((response) => {
-    const authorName = response.author?.name?.[0]?.text?.trim();
+    const author = questionnaireResponseAuthor(response, patientName);
     return {
       kind: "questionnaire",
       id: response.id,
       date: response.authored ?? nowIso(),
-      actors: authorName ? [{ name: authorName, id: response.author?.id }] : undefined,
+      actors: author ? [author] : undefined,
       payload: response,
     };
   });
 }
 
-function normalizeAllergyIntolerances(items: AllergyIntoleranceItem[]): FeedEvent[] {
+function normalizeAllergyIntolerances(
+  items: AllergyIntoleranceItem[],
+  patientName: PatientName,
+): FeedEvent[] {
   // Split allergies and intolerances into separate feed events so they render
   // with distinct labels and accent colors.
   const allergies: AllergyIntoleranceItem[] = [];
@@ -302,6 +388,7 @@ function normalizeAllergyIntolerances(items: AllergyIntoleranceItem[]): FeedEven
         item.recordedDate ??
         item.paperTrailVersions?.[0]?.versionInsertedAt ??
         nowIso(),
+      patientName,
     ).map((group) => ({
       kind: "allergy",
       id: group.items.map((item) => item.id).join("-"),
@@ -314,7 +401,7 @@ function normalizeAllergyIntolerances(items: AllergyIntoleranceItem[]): FeedEven
   return [...buildEvents(allergies, "ALLERGY"), ...buildEvents(intolerances, "INTOLERANCE")];
 }
 
-function normalizeMedications(items: MedicationItem[]): FeedEvent[] {
+function normalizeMedications(items: MedicationItem[], patientName: PatientName): FeedEvent[] {
   return bucketByMinute(
     items,
     (item) =>
@@ -322,6 +409,7 @@ function normalizeMedications(items: MedicationItem[]): FeedEvent[] {
       item.dateAsserted ??
       item.paperTrailVersions?.[0]?.versionInsertedAt ??
       nowIso(),
+    patientName,
   ).map((group) => ({
     kind: "medication",
     id: group.items.map((item) => item.id).join("-"),
@@ -331,11 +419,15 @@ function normalizeMedications(items: MedicationItem[]): FeedEvent[] {
   }));
 }
 
-function normalizePrescriptions(items: MedicationRequestItem[]): FeedEvent[] {
+function normalizePrescriptions(
+  items: MedicationRequestItem[],
+  patientName: PatientName,
+): FeedEvent[] {
   // Prescriptions are timestamped when authored; fall back to the audit trail.
   return bucketByMinute(
     items,
     (item) => item.authoredOn ?? item.paperTrailVersions?.[0]?.versionInsertedAt ?? nowIso(),
+    patientName,
   ).map((group) => ({
     kind: "prescription",
     id: group.items.map((item) => item.id).join("-"),
@@ -345,7 +437,10 @@ function normalizePrescriptions(items: MedicationRequestItem[]): FeedEvent[] {
   }));
 }
 
-function normalizeFoodPreferences(items: FoodPreferenceHistoryItem[] | undefined): FeedEvent[] {
+function normalizeFoodPreferences(
+  items: FoodPreferenceHistoryItem[] | undefined,
+  patientName: PatientName,
+): FeedEvent[] {
   const buckets = new Map<
     string,
     {
@@ -360,7 +455,7 @@ function normalizeFoodPreferences(items: FoodPreferenceHistoryItem[] | undefined
     const date = item.date ?? nowIso();
     const key = `${date.slice(0, 16)}-${item.type}`;
     const itemActor = mergeFeedActor(
-      actorFromVersions(item.paperTrailVersions),
+      actorFromVersions(item.paperTrailVersions, patientName),
       actorFromNotes(item.notes),
     );
     const existingBucket = buckets.get(key);
@@ -470,7 +565,7 @@ function normalizeSubscriptions(
   const events: FeedEvent[] = [];
 
   for (const subscription of subscriptions) {
-    const recorder = actorFromVersions(subscription.paperTrailVersions);
+    const recorder = actorFromVersions(subscription.paperTrailVersions, personName);
     // The subject of a subscription event is the patient: render the patient
     // as the actor and the practitioner who recorded it as the note author.
     const trimmedPerson = personName?.trim();
@@ -522,24 +617,24 @@ export function buildActivityFeedEvents({
   questionnaireResponses,
   activeFilter,
   personName,
+  now = new Date(),
 }: BuildActivityFeedEventsInput): FeedEvent[] {
   const events = [
-    ...normalizeObservations(observations),
-    ...normalizeTasks(tasks),
-    ...normalizeGoals(goals),
+    ...normalizeObservations(observations, personName),
+    ...normalizeTasks(tasks, personName, now),
+    ...normalizeGoals(goals, personName),
     ...normalizeSubscriptions(subscriptions, personName),
-    ...normalizeAnthropometry(anthropometry),
-    ...normalizeConditions(conditions),
-    ...normalizeAllergyIntolerances(allergyIntolerances),
-    ...normalizeMedications(medications),
-    ...normalizePrescriptions(prescriptions),
-    ...normalizeFoodPreferences(foodPreferences),
-    ...normalizeMenstrualCycles(menstrualCycles),
-    ...normalizeNutritionPlans(nutritionPlans),
-    ...normalizeQuestionnaireResponses(questionnaireResponses),
+    ...normalizeAnthropometry(anthropometry, personName),
+    ...normalizeConditions(conditions, personName),
+    ...normalizeAllergyIntolerances(allergyIntolerances, personName),
+    ...normalizeMedications(medications, personName),
+    ...normalizePrescriptions(prescriptions, personName),
+    ...normalizeFoodPreferences(foodPreferences, personName),
+    ...normalizeMenstrualCycles(menstrualCycles, personName),
+    ...normalizeNutritionPlans(nutritionPlans, personName),
+    ...normalizeQuestionnaireResponses(questionnaireResponses, personName),
   ];
-  const filtered =
-    activeFilter === "all" ? events : events.filter((event) => event.kind === activeFilter);
+  const filtered = events.filter((event) => matchesFeedFilter(event.kind, activeFilter));
 
   return filtered.sort((left, right) => right.date.localeCompare(left.date));
 }

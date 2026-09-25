@@ -75,7 +75,9 @@ export default defineConfig({
       // `priv/static/assets/app.css` and served by Phoenix's `Plug.Static`.
       // This isolates rolldown/Vite from daisyUI's plugin CSS resolution and
       // keeps the SPA bundle smaller. See `pnpm phoenix:css-build`.
-      input: ["js/app.js", "src/main.tsx"],
+      // `src/portal.tsx` is the patient portal: a separate entry so patients never
+      // load the staff app, its analytics or its stores.
+      input: ["js/app.js", "src/main.tsx", "src/portal.tsx"],
       output: {
         // Vendor chunk for better caching.
         manualChunks(id) {
