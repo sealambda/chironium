@@ -82,6 +82,12 @@ jobs:
       - name: Generate GraphQL types
         run: pnpm assets:codegen
 
+      # /portal/gql serves only the committed manifest, so it must match the portal's documents.
+      - name: Check persisted portal documents
+        run: |
+          pnpm --dir assets gql:persisted
+          git diff --exit-code priv/graphql/portal-documents.json
+
       - name: Build assets
         run: pnpm assets:build
 

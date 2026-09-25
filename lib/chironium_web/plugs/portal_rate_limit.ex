@@ -9,7 +9,13 @@ defmodule ChironiumWeb.Plugs.PortalRateLimit do
       config :chironium, ChironiumWeb.Plugs.PortalRateLimit,
         scale_ms: 60_000,
         sign_in_limit: 20,
-        api_limit: 120
+        api_limit: 120,
+        trusted_proxies: 1
+
+  `trusted_proxies` is how many reverse proxies sit in front of the app. Each
+  one appends the address it received the request from to `x-forwarded-for`,
+  so the client is the entry that many places from the right; entries further
+  left are client-supplied and ignored. With `0`, `remote_ip` is used.
   """
 
   @behaviour Plug
@@ -18,7 +24,7 @@ defmodule ChironiumWeb.Plugs.PortalRateLimit do
 
   @sign_in_prefixes [["auth", "guest"], ["portal", "sign-in"]]
 
-  @defaults [scale_ms: 60_000, sign_in_limit: 20, api_limit: 120]
+  @defaults [scale_ms: 60_000, sign_in_limit: 20, api_limit: 120, trusted_proxies: 1]
 
   @impl true
   def init(opts), do: opts
@@ -41,7 +47,9 @@ defmodule ChironiumWeb.Plugs.PortalRateLimit do
     config = Keyword.merge(@defaults, Application.get_env(:chironium, __MODULE__, []))
     limit = Keyword.fetch!(config, :"#{bucket}_limit")
 
-    case ChironiumWeb.RateLimit.hit({bucket, client_ip(conn)}, config[:scale_ms], limit) do
+    client = client_ip(conn, config[:trusted_proxies])
+
+    case ChironiumWeb.RateLimit.hit({bucket, client}, config[:scale_ms], limit) do
       {:allow, _count} ->
         conn
 
@@ -53,12 +61,19 @@ defmodule ChironiumWeb.Plugs.PortalRateLimit do
     end
   end
 
-  # Behind the load balancer every request shares `remote_ip`, so the first
-  # `x-forwarded-for` hop identifies the client, as in `PostHog.Integrations.Plug`.
-  defp client_ip(conn) do
-    case get_req_header(conn, "x-forwarded-for") do
-      [forwarded | _] -> forwarded |> String.split(",", parts: 2) |> hd() |> String.trim()
-      [] -> conn.remote_ip |> :inet.ntoa() |> to_string()
-    end
+  defp client_ip(conn, trusted_proxies) when trusted_proxies > 0 do
+    hops =
+      conn
+      |> get_req_header("x-forwarded-for")
+      |> Enum.flat_map(&String.split(&1, ","))
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
+
+    # Fewer hops than proxies means a proxy was bypassed: fall back to the oldest.
+    Enum.at(hops, -trusted_proxies) || List.first(hops) || remote_ip(conn)
   end
+
+  defp client_ip(conn, _trusted_proxies), do: remote_ip(conn)
+
+  defp remote_ip(conn), do: conn.remote_ip |> :inet.ntoa() |> to_string()
 end
