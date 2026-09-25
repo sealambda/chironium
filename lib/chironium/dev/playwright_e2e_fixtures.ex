@@ -1,6 +1,6 @@
 defmodule Chironium.Dev.PlaywrightE2EFixtures do
   @moduledoc false
-  # Dev-only helpers for Playwright. Called only from PlaywrightE2EController (secret-gated).
+  # Dev-only helpers, called from PlaywrightE2EController (secret-gated) and DevSignInController.
 
   require Ash.Query
 

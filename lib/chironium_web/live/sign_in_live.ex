@@ -8,6 +8,7 @@ defmodule ChironiumWeb.SignInLive do
   - Responsive mobile-first design.
   - Theme toggle (light/dark).
   - Language selector (en/es).
+  - Development-only sign-in without Google.
   """
   use ChironiumWeb, :live_view
 
@@ -15,6 +16,8 @@ defmodule ChironiumWeb.SignInLive do
     {"en", "English"},
     {"es", "Español"}
   ]
+
+  @dev_sign_in? Application.compile_env(:chironium, :dev_routes, false)
 
   @impl true
   def mount(_params, session, socket) do
@@ -27,7 +30,10 @@ defmodule ChironiumWeb.SignInLive do
      |> assign(:theme, theme)
      |> assign(:locale, locale)
      |> assign(:supported_locales, @supported_locales)
-     |> assign(:show_language_menu, false)}
+     |> assign(:show_language_menu, false)
+     |> assign(:dev_sign_in?, @dev_sign_in?)
+     |> assign(:legal_urls, Application.get_env(:chironium, :legal_urls, []))
+     |> assign(:source_code_url, Application.get_env(:chironium, :source_code_url))}
   end
 
   @impl true
@@ -102,10 +108,11 @@ defmodule ChironiumWeb.SignInLive do
           <.brand_badge />
           <.welcome_heading />
           <.oauth_buttons />
+          <.dev_sign_in :if={@dev_sign_in?} />
         </div>
       </main>
 
-      <.auth_footer />
+      <.auth_footer legal_urls={@legal_urls} source_code_url={@source_code_url} />
     </div>
     """
   end
@@ -262,23 +269,76 @@ defmodule ChironiumWeb.SignInLive do
     """
   end
 
+  defp dev_sign_in(assigns) do
+    ~H"""
+    <.form
+      for={%{}}
+      action="/dev/sign-in"
+      method="post"
+      class="space-y-2 border-t border-auth-border pt-6"
+      data-testid="dev-sign-in-form"
+    >
+      <p class="text-center text-auth-muted text-xs">
+        {gettext("Development only: sign in without Google.")}
+      </p>
+      <input
+        type="email"
+        name="email"
+        value="dev@example.com"
+        required
+        aria-label={gettext("Email")}
+        class={[
+          "w-full h-9 sm:h-10 rounded-md px-3",
+          "bg-auth-card text-auth-fg text-sm",
+          "border border-auth-border shadow-xs",
+          "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
+        ]}
+      />
+      <button
+        type="submit"
+        class={[
+          "w-full h-9 sm:h-10 rounded-md",
+          "bg-auth-surface hover:bg-auth-card",
+          "text-auth-fg font-medium text-sm",
+          "border border-dashed border-auth-border",
+          "transition-all",
+          "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
+        ]}
+      >
+        {gettext("Sign in as developer")}
+      </button>
+    </.form>
+    """
+  end
+
+  attr :legal_urls, :list, required: true
+  attr :source_code_url, :string, default: nil
+
   defp auth_footer(assigns) do
     ~H"""
-    <footer class="px-4 sm:px-6 py-3">
-      <p class="text-center text-auth-muted text-xs">
+    <footer class="px-4 sm:px-6 py-3 space-y-1 text-center text-auth-muted text-xs">
+      <p :if={@legal_urls[:terms] && @legal_urls[:privacy]}>
         {gettext("By continuing, you agree to our")}
         <a
-          href="#"
+          href={@legal_urls[:terms]}
           class="text-auth-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm"
         >
           {gettext("Terms of Service")}
         </a>
         {gettext("and")}
         <a
-          href="#"
+          href={@legal_urls[:privacy]}
           class="text-auth-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm"
         >
           {gettext("Privacy Policy")}
+        </a>
+      </p>
+      <p :if={@source_code_url}>
+        <a
+          href={@source_code_url}
+          class="underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm"
+        >
+          {gettext("Source code")}
         </a>
       </p>
     </footer>

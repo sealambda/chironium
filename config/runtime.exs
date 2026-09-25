@@ -60,15 +60,18 @@ default_redirect_uri =
     "#{default_scheme}://#{default_host}:#{port}/auth/user/google/callback"
   end
 
+# Google sign-in is required in production. Development and test can run
+# without it: use the development sign-in on the sign-in page instead.
+google_oauth_env = fn name ->
+  System.get_env(name) ||
+    if config_env() == :prod, do: raise("Missing environment variable `#{name}`!")
+end
+
 config :chironium, ChironiumWeb.Endpoint,
   http: [port: String.to_integer(port)],
   google_oauth: [
-    client_id:
-      System.get_env("GOOGLE_CLIENT_ID") ||
-        raise("Missing environment variable `GOOGLE_CLIENT_ID`!"),
-    client_secret:
-      System.get_env("GOOGLE_CLIENT_SECRET") ||
-        raise("Missing environment variable `GOOGLE_CLIENT_SECRET`!"),
+    client_id: google_oauth_env.("GOOGLE_CLIENT_ID"),
+    client_secret: google_oauth_env.("GOOGLE_CLIENT_SECRET"),
     redirect_uri: System.get_env("GOOGLE_REDIRECT_URI") || default_redirect_uri
   ]
 
