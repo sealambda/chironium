@@ -51,20 +51,34 @@ defmodule Chironium.PatientActorMatrixTest do
     violations =
       Enum.reject(results, fn {resource, action, _label, outcome} ->
         if allowed?(resource, action),
-          do: outcome == :authorized,
+          do: outcome == :authorized or match?({:filtered, _}, outcome),
           else: outcome in [:forbidden, :statically_false]
       end)
 
     assert violations == [], """
     Patient actors got an unexpected authorization outcome.
-    Allowlisted actions must be :authorized; all others :forbidden or :statically_false.
+    Allowlisted actions must be :authorized or filtered; all others :forbidden or :statically_false.
 
     #{Enum.map_join(violations, "\n", &format_violation/1)}
     """
   end
 
-  # Terminology is shared, non-clinical reference data.
+  # The v1 patient portal: the patient's own open requests, their questionnaires
+  # and submitting answers. Their filters are proven against the database in
+  # `Chironium.Health.QuestionnaireRequestTest`.
+  @portal_actions [
+    {Chironium.Health.Task, :read},
+    {Chironium.Health.Questionnaire, :read},
+    {Chironium.Health.Questionnaire, :read_including_archived},
+    {Chironium.Health.QuestionnaireResponse, :submit_from_portal}
+  ]
+
   defp allowed?(resource, action_name) do
+    {resource, action_name} in @portal_actions or terminology_read?(resource, action_name)
+  end
+
+  # Terminology is shared, non-clinical reference data.
+  defp terminology_read?(resource, action_name) do
     resource in @terminology_resources and
       Ash.Resource.Info.action(resource, action_name).type == :read
   end

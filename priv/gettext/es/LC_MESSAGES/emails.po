@@ -66,12 +66,42 @@ msgstr "Te han invitado"
 msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
 msgstr "Como alternativa, abre Chironium, haz clic en el selector de organizacion, \"Unirse con invitacion\", e introduce el siguiente codigo"
 
-#: lib/chironium/workers/notification_email_worker.ex:66
+#: lib/chironium/workers/notification_email_worker.ex:115
 #, elixir-autogen, elixir-format
 msgid "Task reminder: %{description}"
 msgstr "Recordatorio de tarea: %{description}"
 
-#: lib/chironium/workers/notification_email_worker.ex:41
+#: lib/chironium/workers/notification_email_worker.ex:90
 #, elixir-autogen, elixir-format
 msgid "You've been invited to %{organization}"
 msgstr "Te han invitado a %{organization}"
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:27
+#, elixir-autogen, elixir-format
+msgid "%{name} from %{organization} asked you to answer a questionnaire."
+msgstr "%{name}, de %{organization}, te pidió que respondas un cuestionario."
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:32
+#, elixir-autogen, elixir-format
+msgid "%{organization} asked you to answer a questionnaire."
+msgstr "%{organization} te pidió que respondas un cuestionario."
+
+#: lib/chironium/workers/notification_email_worker.ex:62
+#, elixir-autogen, elixir-format
+msgid "%{organization} sent you a questionnaire"
+msgstr "%{organization} te envió un cuestionario"
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:22
+#, elixir-autogen, elixir-format
+msgid "A questionnaire for you"
+msgstr "Un cuestionario para ti"
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:41
+#, elixir-autogen, elixir-format
+msgid "Answer the questionnaire"
+msgstr "Responder el cuestionario"
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:46
+#, elixir-autogen, elixir-format
+msgid "The link can be opened once, on one device, and stays valid until %{date}. Please don't forward it: anyone with the link can answer in your name."
+msgstr "El enlace se puede abrir una sola vez, en un solo dispositivo, y es válido hasta el %{date}. No lo reenvíes: cualquiera que tenga el enlace puede responder en tu nombre."

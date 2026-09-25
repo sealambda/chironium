@@ -922,6 +922,13 @@ defmodule Chironium.Health.Observation do
   end
 
   calculations do
+    calculate :self_reported,
+              :boolean,
+              expr(not is_nil(derived_from_response.author_patient_id)) do
+      description "Whether the patient reported the value themselves through a questionnaire."
+      public? true
+    end
+
     calculate :observation_type,
               Chironium.Health.Observation.ObservationType,
               expr(

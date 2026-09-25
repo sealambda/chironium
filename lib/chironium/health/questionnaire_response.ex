@@ -22,9 +22,11 @@ defmodule Chironium.Health.QuestionnaireResponse do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshGraphql.Resource, AshPaperTrail.Resource, AshArchival.Resource]
 
+  alias Chironium.Health.QuestionnaireResponse.Changes.CompleteRequest
   alias Chironium.Health.QuestionnaireResponse.Changes.ExtractObservations
   alias Chironium.Health.QuestionnaireResponse.Changes.NormalizeAnswerTree
   alias Chironium.Health.QuestionnaireResponse.Changes.RelateAuthorToActor
+  alias Chironium.Health.QuestionnaireResponse.Changes.SubmitFromPortal
 
   postgres do
     table "questionnaire_responses"
@@ -47,6 +49,8 @@ defmodule Chironium.Health.QuestionnaireResponse do
 
     mutations do
       create :create_questionnaire_response, :create
+
+      create :submit_questionnaire_response_from_portal, :submit_from_portal
 
       update :update_questionnaire_response, :update
 
@@ -73,6 +77,23 @@ defmodule Chironium.Health.QuestionnaireResponse do
       change ExtractObservations
     end
 
+    create :submit_from_portal do
+      description "Submits a patient's own answers to one of their questionnaire requests."
+      accept [:item]
+
+      argument :task_id, :uuid do
+        description "The questionnaire request being answered."
+        allow_nil? false
+      end
+
+      change {Chironium.Health.Changes.CamelizeJsonKeys, attribute: :item}
+      # Registered before NormalizeAnswerTree: it sets the questionnaire that change reads.
+      change SubmitFromPortal
+      change NormalizeAnswerTree
+      change ExtractObservations
+      change CompleteRequest
+    end
+
     update :update do
       primary? true
       # NormalizeAnswerTree loads the linked questionnaire, so the action is non-atomic.
@@ -86,6 +107,11 @@ defmodule Chironium.Health.QuestionnaireResponse do
   end
 
   policies do
+    # Before the power-user bypass: staff never submit on the patient's behalf here.
+    policy action(:submit_from_portal) do
+      authorize_if Chironium.Health.Checks.ActorIsPatient
+    end
+
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
     end
@@ -94,9 +120,14 @@ defmodule Chironium.Health.QuestionnaireResponse do
       authorize_if {Chironium.Health.Checks.PatientSubjectVisibleToActor, relationship: :subject}
     end
 
-    policy action_type([:create, :update, :destroy]) do
+    policy action([:create, :update, :destroy]) do
       authorize_if Chironium.Accounts.Checks.StaffActor
     end
+  end
+
+  validations do
+    validate present([:author_id, :author_patient_id], at_most: 1),
+      message: "A response has either a practitioner or a patient author, not both."
   end
 
   attributes do
@@ -140,5 +171,29 @@ defmodule Chironium.Health.QuestionnaireResponse do
       description "Who recorded the answers. Defaults to the acting Practitioner."
       public? true
     end
+
+    belongs_to :author_patient, Chironium.Health.Patient do
+      description "Set when the patient answered for themselves through the portal."
+      public? true
+      attribute_writable? false
+    end
+
+    belongs_to :task, Chironium.Health.Task do
+      description "The questionnaire request this response fulfils."
+      public? true
+      attribute_writable? false
+    end
+  end
+
+  calculations do
+    calculate :self_reported, :boolean, expr(not is_nil(author_patient_id)) do
+      description "Whether the patient answered for themselves."
+      public? true
+    end
+  end
+
+  identities do
+    # One response per request; a double submit fails here. NULLs stay distinct.
+    identity :unique_task, [:task_id]
   end
 end

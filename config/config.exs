@@ -128,7 +128,8 @@ config :chironium,
 # Principal resolution: maps PrincipalGrant types to domain resolvers.
 config :chironium, Chironium.Accounts.ActorResolver,
   principal_resolvers: %{
-    practitioner: Chironium.Health.PrincipalResolver
+    practitioner: Chironium.Health.PrincipalResolver,
+    patient: Chironium.Health.PatientPrincipalResolver
   }
 
 # Configure the endpoint

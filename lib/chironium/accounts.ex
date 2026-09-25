@@ -30,6 +30,7 @@ defmodule Chironium.Accounts do
       define :find_current_email_invitations, args: [], action: :current_email_invitation
     end
 
+    resource Chironium.Accounts.GuestAccess
     resource Chironium.Accounts.Organization
     resource Chironium.Accounts.OrganizationUsers
     resource Chironium.Accounts.PrincipalGrant
