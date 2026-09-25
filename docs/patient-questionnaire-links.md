@@ -46,6 +46,7 @@ Planned 2026-09-24. Patients answer questionnaires through a single-use link. Th
 - The endpoint chooses the role:
   - `/gql` resolves staff principals only.
   - `/portal/gql` resolves patient principals only.
+  - Rationale and alternatives, including a later move to a separate portal origin: see "One API endpoint per role" in `docs/design-decisions.md`.
 
 ## Phase 1 — Policy Hardening (No Feature; Ships Alone)
 

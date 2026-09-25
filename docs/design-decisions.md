@@ -1,6 +1,6 @@
 # Design Decisions
 
-A running log of non-trivial UI/UX decisions, for cross-session consistency.
+A running log of non-trivial UI/UX and architecture decisions, for cross-session consistency.
 
 ## 2026-06-15 — Nutrition plan redesign
 
@@ -21,3 +21,27 @@ A running log of non-trivial UI/UX decisions, for cross-session consistency.
 - **Alternatives considered:** Stacking the donut above the legend on mobile — unnecessary once the legend shrinks cleanly, and it wastes vertical space.
 - **Scope:** `nutrition-card.tsx`, `nutrition-donut.tsx`.
 - **Visual language:** frontend-design baseline.
+
+## 2026-09-25 — One API endpoint per role
+
+- **Context:** Patients now sign in through questionnaire links (`docs/patient-questionnaire-links.md`), and over time they'll be able to do much more on the platform. One person can be both a patient and a practitioner, and one browser can hold a staff session and a patient session at once.
+- **Decision:** The endpoint picks the role:
+  - `/gql` resolves staff principals only: a `User` or a `Practitioner`, with the tenant from the header after a membership check.
+  - `/portal/gql` resolves patient principals only: today the `GuestAccess` link session, later a patient grant. The tenant comes from the credential and the header is ignored.
+  - Both serve the same GraphQL schema, and the Ash policies behind them are identical. Policies stay the authorization boundary; the matrix test proves a `%Patient{}` actor can do only the allowlisted actions, whatever the endpoint.
+- **Rationale:**
+  - **The role is declared, never inferred.** A single endpoint would have to pick between sessions or grants by precedence, which is the trap the plan found in `ActorResolver`: map order silently turned dual-role users into patients. With one route per role there's nothing to guess, and `/gql` provably ignores guest sessions.
+  - **Each surface gets its own hardening as a plain Phoenix pipeline.** The patient pipeline is persisted-documents only, CSRF-protected, rate-limited, has no PostHog and sends `no-referrer`. None of that is an `if patient` branch inside a shared pipeline, where a forgotten branch would be the failure mode. The patient path never runs `SetTenant`, and the staff path never runs `SetPortalActor`.
+  - **It mirrors how clinical systems draw the line.** SMART on FHIR separates `patient/*` from `user/*` scopes and fixes the context at authorization time, and staff and patient portals usually ship as separate products.
+- **Alternatives considered:**
+  - **One endpoint that infers the role from the sessions present.** Rejected: it needs a precedence rule, and every hardening step becomes conditional.
+  - **One endpoint plus an explicit role header, validated on the server.** Just as secure, and the right design if one SPA ever offers a "view as patient" switch. It's the same split expressed as a header, though. The persisted-only rule would then need a custom Absinthe document provider that inspects the actor, because providers are configured per plug.
+  - **A separate patient GraphQL schema.** It would give the smallest surface, with even introspection hiding staff types. It isn't worth duplicating the AshGraphql config while the persisted allowlist plus policies already limit what patients can run.
+  - **REST controllers for the patient side.** Rejected: it would be simpler for v1's two operations, but patients will do a lot more over time. It would also lose generated types and split the API conventions.
+  - **A separate origin for the portal** (for example `portal.…`, possibly a second Phoenix endpoint in the same release). Not now, and likely later. It builds on this decision rather than replacing it: separate cookie jars, so staff sign-out no longer clears a guest session and an XSS on one side can't ride the other's session, plus a simpler CSP and referrer policy. The cost is DNS, TLS and deployment work.
+- **Consequences:**
+  - Two frontend clients: the staff SPA (`src/main.tsx`) and the portal (`src/portal.tsx`), each with its own GraphQL client.
+  - New patient features add persisted documents (`pnpm gql:persisted`; CI fails if the manifest is stale) and widen the patient allowlist in `patient_actor_matrix_test.exs`.
+  - A dual-role person uses the staff app for work and the portal for their own care.
+  - Staff and guest sessions share one cookie until the portal moves to its own origin.
+- **Scope:** `lib/chironium_web/router.ex` (the `:graphql`, `:portal_graphql` and `:portal_browser` pipelines), `ChironiumWeb.SetTenant`, `ChironiumWeb.Plugs.SetPortalActor`, `ChironiumWeb.PortalDocuments`.
