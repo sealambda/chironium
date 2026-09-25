@@ -2,3 +2,5 @@
 set -e
 
 pnpm assets:check
+# Same gate as CI: new advisories land without any change of ours, so catch them before pushing.
+pnpm deps:audit

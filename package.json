@@ -21,6 +21,7 @@
     "assets:test": "pnpm --filter chironium-assets test",
     "assets:e2e": "pnpm --filter chironium-assets e2e",
     "assets:e2e:ui": "pnpm --filter chironium-assets e2e:ui",
+    "deps:audit": "pnpm audit --prod --audit-level high",
     "prepare": "husky"
   },
   "devDependencies": {
