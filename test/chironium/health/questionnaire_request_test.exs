@@ -114,6 +114,24 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
                ~U[2026-10-08 10:00:00Z]
     end
 
+    test "link and session tokens outlive the access window", ctx do
+      task =
+        request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{
+          due_date: Date.add(Date.utc_today(), 60)
+        })
+
+      link_token = token_from_url(task.__metadata__.link_url)
+      {:ok, guest_access} = sign_in(link_token)
+
+      # The static token lifetimes are ceilings; `expires_at` is the real limit.
+      for token <- [link_token, guest_access.__metadata__.token] do
+        {:ok, %{"iat" => issued_at, "exp" => expires_at}} = AshAuthentication.Jwt.peek(token)
+
+        assert expires_at - issued_at == 14 * 24 * 60 * 60
+        assert expires_at >= DateTime.to_unix(task.access_expires_at)
+      end
+    end
+
     test "is stored on the task and its accesses", ctx do
       task =
         request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{

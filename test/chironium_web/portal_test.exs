@@ -36,6 +36,18 @@ defmodule ChironiumWeb.PortalTest do
       assert {:ok, _} = sign_in(ctx.token)
     end
 
+    test "speaks the organization's language", %{conn: conn} = ctx do
+      ctx.organization
+      |> Ash.Changeset.for_update(:update, %{preferred_locale: "es"}, authorize?: false)
+      |> Ash.update!()
+
+      html = conn |> get(~p"/portal/sign-in?#{[token: ctx.token]}") |> html_response(200)
+
+      assert html =~ ~s(<html lang="es")
+      assert html =~ "Tu cuestionario"
+      assert html =~ "Continuar"
+    end
+
     test "sends an invalid or used link to the expired page", %{conn: conn} do
       assert conn |> get(~p"/portal/sign-in?#{[token: "nope"]}") |> redirected_to() ==
                ~p"/portal/link-expired"
@@ -230,6 +242,14 @@ defmodule ChironiumWeb.PortalTest do
       assert attempt.().status == 302
       assert attempt.().status == 302
       assert attempt.().status == 429
+
+      # Entries left of the proxy's own are client-supplied and can't open a new bucket.
+      spoofed =
+        conn
+        |> put_req_header("x-forwarded-for", "198.51.100.7, #{ip}")
+        |> get(~p"/portal/sign-in")
+
+      assert spoofed.status == 429
     end
 
     test "the token never reaches the logs or PostHog", %{conn: conn} = ctx do
