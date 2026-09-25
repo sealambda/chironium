@@ -1,0 +1,26 @@
+<main class="flex min-h-full items-center justify-center bg-base-200 p-4">
+  <div class="card w-full max-w-md bg-base-100 shadow-sm">
+    <div class="card-body gap-4">
+      <h1 class="card-title text-xl">{gettext("Your questionnaire")}</h1>
+      <p :if={@organization_name}>
+        {gettext("%{organization} asked you to answer a questionnaire.",
+          organization: @organization_name
+        )}
+      </p>
+      <p>
+        {gettext(
+          "Continue to open it on this device. You can come back on this device until %{date}.",
+          date: format_date(@expires_at, @locale)
+        )}
+      </p>
+      <form method="post" action="/auth/guest/magic_link">
+        <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+        <input type="hidden" name="token" value={@token} />
+        <button type="submit" class="btn btn-primary w-full">{gettext("Continue")}</button>
+      </form>
+      <p class="text-sm opacity-70">
+        {gettext("If you didn't expect this, you can close this page.")}
+      </p>
+    </div>
+  </div>
+</main>

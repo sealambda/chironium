@@ -25,7 +25,8 @@
     "e2e": "pnpm e2e:install && PLAYWRIGHT_BROWSERS_PATH=0 playwright test",
     "e2e:ui": "pnpm e2e:install && PLAYWRIGHT_BROWSERS_PATH=0 playwright test --ui",
     "e2e:install": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
-    "phoenix:css-build": "tailwindcss --input css/app.css --output ../priv/static/assets/app.css --minify"
+    "phoenix:css-build": "tailwindcss --input css/app.css --output ../priv/static/assets/app.css --minify",
+    "gql:persisted": "gql.tada generate persisted --tsconfig tsconfig.app.json --fail-on-warn --output ../priv/graphql/portal-documents.json"
   },
   "dependencies": {
     "@base-ui/react": "~1.4.1",

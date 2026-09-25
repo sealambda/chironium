@@ -1,0 +1,4 @@
+{
+  "sha256:2b42c9d9a42722a87bb486a7b18f4962eb885ba7c27417bb29e1e4bdc607409f": "query PortalRequest {\n  listTasks {\n    results {\n      id\n      description\n      accessExpiresAt\n      requesterName\n      organizationName\n      requestedPeriod {\n        end\n      }\n      focusQuestionnaire {\n        id\n        title\n        description\n        item\n      }\n    }\n  }\n}",
+  "sha256:6341ec230840419c6f72011e235ac2c5562d8b9476564ea60316d2be6194a0f2": "mutation PortalSubmitResponse($input: SubmitQuestionnaireResponseFromPortalInput!) {\n  submitQuestionnaireResponseFromPortal(input: $input) {\n    result {\n      id\n    }\n    errors {\n      message\n    }\n  }\n}"
+}
