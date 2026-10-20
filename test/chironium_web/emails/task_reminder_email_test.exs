@@ -10,20 +10,20 @@ defmodule ChironiumWeb.Emails.TaskReminderEmailTest do
         task_description: "Follow-up blood work",
         task_priority: "urgent",
         patient_name: "Jane Doe",
-        task_url: "https://app.chironium.app/tasks/abc123"
+        task_url: "https://app.chironium.app/app/customers/abc123"
       })
 
     assert html =~ "Dr. Smith"
     assert html =~ "Follow-up blood work"
     assert html =~ "urgent"
     assert html =~ "Jane Doe"
-    assert html =~ "https://app.chironium.app/tasks/abc123"
-    assert html =~ "View task"
+    assert html =~ "https://app.chironium.app/app/customers/abc123"
+    assert html =~ "View patient"
     assert html =~ "style="
 
     assert text =~ "Dr. Smith"
     assert text =~ "Follow-up blood work"
-    assert text =~ "View task"
+    assert text =~ "View patient"
   end
 
   test "renders without optional fields" do
@@ -31,7 +31,7 @@ defmodule ChironiumWeb.Emails.TaskReminderEmailTest do
       Renderer.render(&ChironiumWeb.Emails.TaskReminderEmail.render/1, %{
         recipient_name: "Dr. Smith",
         task_description: "Check vitals",
-        task_url: "https://app.chironium.app/tasks/xyz"
+        task_url: "https://app.chironium.app/app/customers/xyz"
       })
 
     assert html =~ "Check vitals"

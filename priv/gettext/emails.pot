@@ -51,11 +51,6 @@ msgstr ""
 msgid "Task reminder"
 msgstr ""
 
-#: lib/chironium_web/emails/task_reminder_email.ex:45
-#, elixir-autogen, elixir-format
-msgid "View task"
-msgstr ""
-
 #: lib/chironium_web/emails/invitation_email.ex:20
 #, elixir-autogen, elixir-format
 msgid "You've been invited"
@@ -104,4 +99,9 @@ msgstr ""
 #: lib/chironium_web/emails/questionnaire_requested_email.ex:46
 #, elixir-autogen, elixir-format
 msgid "The link can be opened once, on one device, and stays valid until %{date}. Please don't forward it: anyone with the link can answer in your name."
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:45
+#, elixir-autogen, elixir-format
+msgid "View patient"
 msgstr ""

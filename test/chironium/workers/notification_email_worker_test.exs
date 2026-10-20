@@ -59,7 +59,7 @@ defmodule Chironium.Workers.NotificationEmailWorkerTest do
           "task_description" => "Follow-up blood work",
           "task_priority" => "urgent",
           "patient_name" => "Jane Doe",
-          "task_url" => "https://app.chironium.app/tasks/abc123",
+          "task_url" => "https://app.chironium.app/app/customers/abc123",
           "locale" => "en"
         }
       }
@@ -81,7 +81,7 @@ defmodule Chironium.Workers.NotificationEmailWorkerTest do
           "task_description" => "Follow-up blood work",
           "task_priority" => "urgent",
           "patient_name" => "Jane Doe",
-          "task_url" => "https://app.chironium.app/tasks/abc123"
+          "task_url" => "https://app.chironium.app/app/customers/abc123"
         }
       }
 

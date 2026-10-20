@@ -22,6 +22,9 @@ defmodule Chironium.Health.Task do
       AshOban
     ]
 
+  # Open reminders, before they are started or finished.
+  @reminder_statuses [:ready, :accepted]
+
   postgres do
     table "tasks"
 
@@ -67,6 +70,9 @@ defmodule Chironium.Health.Task do
 
   paper_trail do
     mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:task]}
+
+    # The reminder stamp has no actor and would show as the task's last change in the feed.
+    ignore_actions [:send_reminder]
   end
 
   state_machine do
@@ -102,7 +108,8 @@ defmodule Chironium.Health.Task do
       transition :suspend, from: :in_progress, to: :on_hold
       transition :resume, from: :on_hold, to: :in_progress
 
-      transition :complete, from: [:in_progress, :requested], to: :completed
+      # Reminders complete in one step, without being started first.
+      transition :complete, from: [:in_progress, :requested, :ready, :accepted], to: :completed
       transition :fail, from: :in_progress, to: :failed
 
       transition :mark_entered_in_error, from: :*, to: :entered_in_error
@@ -133,9 +140,10 @@ defmodule Chironium.Health.Task do
 
       # Questionnaire requests have their own link lifecycle, not reminders.
       filter expr(
-               status in [:ready, :accepted] and
+               status in ^@reminder_statuses and
                  not is_nil(requested_period) and
-                 is_nil(focus_questionnaire_id)
+                 is_nil(focus_questionnaire_id) and
+                 is_nil(reminder_sent_at)
              )
 
       prepare Chironium.Health.Preparations.FilterByRequestedPeriodWindow
@@ -276,6 +284,7 @@ defmodule Chironium.Health.Task do
       description "Send task reminder notifications to the patient's care team."
       require_atomic? false
 
+      change set_attribute(:reminder_sent_at, &DateTime.utc_now/0)
       change {Chironium.Health.Changes.SendTaskReminder, []}
     end
   end
@@ -303,6 +312,13 @@ defmodule Chironium.Health.Task do
     policy action_type([:create, :update, :destroy]) do
       authorize_if Chironium.Accounts.Checks.StaffActor
     end
+  end
+
+  changes do
+    # A new date gets its own reminder.
+    change set_attribute(:reminder_sent_at, nil),
+      on: [:update],
+      where: [changing(:requested_period)]
   end
 
   attributes do
@@ -352,6 +368,12 @@ defmodule Chironium.Health.Task do
 
     attribute :code, Chironium.Datatypes.CodeableConcept do
       description "Task type; FHIR SDC `complete-questionnaire` for questionnaire requests"
+      public? true
+      writable? false
+    end
+
+    attribute :reminder_sent_at, :utc_datetime_usec do
+      description "When the care team was reminded of the task; cleared when its date changes"
       public? true
       writable? false
     end

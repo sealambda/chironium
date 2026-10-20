@@ -11,6 +11,11 @@ defmodule Chironium.Health.TaskReminderTriggerTest do
 
   import Chironium.Generator
 
+  require Ash.Query
+
+  alias Chironium.QuestionnaireRequestFixtures, as: Fixtures
+  alias Chironium.Workers.NotificationEmailWorker
+
   setup do
     owner = generate(user())
     organization = generate(organization(actor: owner))
@@ -74,7 +79,112 @@ defmodule Chironium.Health.TaskReminderTriggerTest do
     end
   end
 
+  describe "send_reminder emails" do
+    setup do
+      ctx = Fixtures.organization_context()
+      patient = Fixtures.patient(ctx)
+      Fixtures.practitioner_actor(ctx, patient)
+      Map.put(ctx, :patient, patient)
+    end
+
+    test "sends one email per reminder, however often the trigger runs", ctx do
+      create_reminder(ctx, hours_from_now(6))
+
+      for _ <- 1..3, do: run_trigger()
+
+      assert [_job] = reminder_jobs()
+    end
+
+    test "rescheduling clears reminder_sent_at, and the next run sends again", ctx do
+      task = create_reminder(ctx, hours_from_now(6))
+      run_trigger()
+      assert reload(ctx, task).reminder_sent_at
+
+      rescheduled = update!(ctx, task, %{requested_period: %{start: hours_from_now(12)}})
+      assert rescheduled.reminder_sent_at == nil
+
+      run_trigger()
+      assert [_, _] = reminder_jobs()
+      assert reload(ctx, task).reminder_sent_at
+    end
+
+    test "editing only the description keeps reminder_sent_at", ctx do
+      task = create_reminder(ctx, hours_from_now(6))
+      run_trigger()
+      sent = reload(ctx, task)
+
+      # The reminder dialogs always resend the period, even when it is unchanged.
+      updated =
+        update!(ctx, sent, %{
+          description: "New description",
+          requested_period: %{start: DateTime.to_iso8601(sent.requested_period.start), end: nil}
+        })
+
+      assert updated.reminder_sent_at == sent.reminder_sent_at
+    end
+
+    test "links the email to the patient page", ctx do
+      create_reminder(ctx, hours_from_now(6))
+      run_trigger()
+
+      assert [%{args: %{"params" => %{"task_url" => url}}}] = reminder_jobs()
+      assert url == "#{ChironiumWeb.Endpoint.url()}/app/customers/#{ctx.patient.person_id}"
+    end
+
+    test "creates no paper trail version", ctx do
+      task = create_reminder(ctx, hours_from_now(6))
+      before = versions(ctx, task)
+
+      run_trigger()
+
+      assert reload(ctx, task).reminder_sent_at
+      assert versions(ctx, task) == before
+    end
+
+    test "with email off, stamps the task and enqueues nothing", ctx do
+      disable_email()
+      task = create_reminder(ctx, hours_from_now(6))
+
+      run_trigger()
+
+      assert reload(ctx, task).reminder_sent_at
+      assert reminder_jobs() == []
+    end
+  end
+
   # -- Helpers ---------------------------------------------------------------
+
+  defp create_reminder(ctx, start) do
+    Chironium.Health.Task
+    |> Ash.Changeset.for_create(
+      :create,
+      %{intent: :order, for_patient_id: ctx.patient.id, requested_period: %{start: start}},
+      authorize?: false,
+      tenant: ctx.tenant
+    )
+    |> Ash.create!()
+    |> transition_to(:ready, ctx.tenant)
+  end
+
+  defp run_trigger,
+    do: AshOban.Test.schedule_and_run_triggers({Chironium.Health.Task, :send_reminder})
+
+  defp reminder_jobs, do: all_enqueued(worker: NotificationEmailWorker)
+
+  defp update!(ctx, task, attrs) do
+    task
+    |> Ash.Changeset.for_update(:update, attrs, authorize?: false, tenant: ctx.tenant)
+    |> Ash.update!()
+  end
+
+  defp reload(ctx, task), do: Fixtures.reload(ctx, task)
+
+  defp versions(ctx, task) do
+    Chironium.Health.Task.Version
+    |> Ash.Query.filter(version_source_id == ^task.id)
+    |> Ash.read!(authorize?: false, tenant: ctx.tenant)
+    |> Enum.map(& &1.id)
+  end
 
   defp create_task(ctx, status, requested_period) do
     period_attrs =

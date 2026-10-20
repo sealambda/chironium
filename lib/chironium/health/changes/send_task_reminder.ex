@@ -6,6 +6,8 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
 
   use Ash.Resource.Change
 
+  alias Chironium.Health.QuestionnaireRequests
+
   @impl true
   def change(changeset, _opts, context) do
     Ash.Changeset.after_action(changeset, fn _changeset, task ->
@@ -35,7 +37,7 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
           task_description: task.description || "Untitled task",
           task_priority: task.priority && to_string(task.priority),
           patient_name: patient_name,
-          task_url: "#{ChironiumWeb.Endpoint.url()}/tasks/#{task.id}",
+          task_url: ChironiumWeb.AppUrl.url("/customers/#{patient.person_id}"),
           locale: locale
         })
       end
@@ -58,23 +60,20 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
 
     case patient.person do
       nil -> "Patient"
-      person -> format_human_name(person.name)
+      person -> QuestionnaireRequests.display_name(person.name)
     end
   end
 
   defp resolve_practitioner_name(practitioner) do
-    format_human_name(practitioner.name)
+    QuestionnaireRequests.display_name(practitioner.name)
   end
 
   defp resolve_practitioner_contact(practitioner, tenant) do
-    org_id = Chironium.Accounts.Authorization.organization_id_from_tenant(tenant)
-
     grant =
       Chironium.Accounts.PrincipalGrant
       |> Ash.Query.filter_input(%{
         principal_type: :practitioner,
         principal_id: practitioner.id,
-        organization_id: org_id,
         active: true
       })
       |> Ash.Query.load(:user)
@@ -88,15 +87,4 @@ defmodule Chironium.Health.Changes.SendTaskReminder do
         {nil, "en"}
     end
   end
-
-  defp format_human_name(nil), do: nil
-
-  defp format_human_name(names) when is_list(names) do
-    case List.first(names) do
-      nil -> nil
-      name -> "#{name[:given] |> List.wrap() |> Enum.join(" ")} #{name[:family]}" |> String.trim()
-    end
-  end
-
-  defp format_human_name(_), do: nil
 end
