@@ -52,7 +52,9 @@ defmodule Chironium.Accounts.Invitation do
   end
 
   paper_trail do
-    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource, [:invitation]}
+    # Versions written before `invite_code` became sensitive still hold codes.
+    mixin {Chironium.BaseResources.Auditable.PaperTrailMixin, :version_resource,
+           [:invitation, :organization_admins]}
   end
 
   state_machine do
@@ -327,6 +329,7 @@ defmodule Chironium.Accounts.Invitation do
     attribute :invite_code, :ci_string do
       description "The code that the user will use to accept the invitation"
       public? true
+      sensitive? true
       default fn -> generate_invite_code() end
     end
 

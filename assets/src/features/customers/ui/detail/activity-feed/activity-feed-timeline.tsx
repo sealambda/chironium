@@ -30,7 +30,10 @@ import {
   ResumeActionDialog,
   SuspendActionDialog,
 } from "@/features/customers/ui/detail/subscription-management-dialogs";
-import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
+import {
+  invalidatePatientTasks,
+  invalidatePersonDetail,
+} from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { isOpenQuestionnaireRequest } from "@/features/questionnaires/model/questionnaire-request-status";
 import { QuestionnaireRequestActions } from "@/features/questionnaires/ui/request/questionnaire-request-actions";
@@ -39,7 +42,7 @@ import { completeTaskReminder } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { customersQueryKeys, personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
+import { customersQueryKeys, personQueryKeys } from "@/shared/utils/query-keys";
 
 import { AllergyEvent } from "./allergy-event";
 import { AnthropometryEvent } from "./anthropometry-event";
@@ -381,15 +384,7 @@ function TaskReminderEditAction({
             setCompleting(true);
             completeTaskReminder(task.id, selectedOrg.id)
               .then(async () => {
-                await Promise.all([
-                  queryClient.invalidateQueries({
-                    queryKey: personQueryKeys.reviewTasksScope(personId),
-                  }),
-                  queryClient.invalidateQueries({
-                    queryKey: personQueryKeys.patientTasksScope(personId),
-                  }),
-                  queryClient.invalidateQueries({ queryKey: tasksListQueryKey(selectedOrg.id) }),
-                ]);
+                await invalidatePatientTasks(queryClient, personId, selectedOrg.id);
                 toast.success(m.review_task_completed());
               })
               .catch(() => {

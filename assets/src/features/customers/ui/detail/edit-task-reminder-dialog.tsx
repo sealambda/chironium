@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { DeleteHistoryEntryDialog } from "@/features/customers/ui/detail/delete-history-entry-dialog";
+import { invalidatePatientTasks } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
   deleteTaskReminder,
@@ -16,7 +17,6 @@ import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";
 import { isoToDateInput, toDateTimeEnd, toDateTimeStart } from "@/shared/utils/date-time-input";
-import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface EditTaskReminderDialogProps {
   personId: string;
@@ -63,10 +63,7 @@ export function EditTaskReminderDialog({
           endDate,
         });
 
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.reviewTasksScope(personId) }),
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.patientTasksScope(personId) }),
-        ]);
+        await invalidatePatientTasks(queryClient, personId, selectedOrg.id);
 
         toast.success(m.review_task_updated());
         onOpenChange(false);
@@ -146,14 +143,7 @@ export function EditTaskReminderDialog({
 
           try {
             await deleteTaskReminder(task.id, organizationId);
-            await Promise.all([
-              queryClient.invalidateQueries({
-                queryKey: personQueryKeys.reviewTasksScope(personId),
-              }),
-              queryClient.invalidateQueries({
-                queryKey: personQueryKeys.patientTasksScope(personId),
-              }),
-            ]);
+            await invalidatePatientTasks(queryClient, personId, organizationId);
 
             toast.success(m.review_task_deleted());
             setDeleteOpen(false);

@@ -1,5 +1,5 @@
 defmodule Chironium.Workers.NotificationEmailWorkerTest do
-  use Chironium.DataCase, async: true
+  use Chironium.DataCase, async: false
   use Oban.Testing, repo: Chironium.Repo
 
   import Swoosh.TestAssertions
@@ -91,6 +91,27 @@ defmodule Chironium.Workers.NotificationEmailWorkerTest do
         to: [{"", "dr.smith@example.com"}],
         subject: "Task reminder: Follow-up blood work"
       )
+    end
+  end
+
+  describe "with email off" do
+    test "a job queued before email was turned off is cancelled and sends nothing" do
+      args = %{
+        "type" => "task_reminder",
+        "params" => %{
+          "email" => "ana@example.com",
+          "recipient_name" => "Dr. Ana",
+          "task_description" => "Call back",
+          "patient_name" => "Luis",
+          "task_url" => "https://example.com/app/customers/1",
+          "locale" => "en"
+        }
+      }
+
+      disable_email()
+
+      assert {:cancel, _} = perform_job(NotificationEmailWorker, args)
+      assert_no_email_sent()
     end
   end
 end
