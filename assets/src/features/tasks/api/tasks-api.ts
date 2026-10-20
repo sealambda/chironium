@@ -57,6 +57,34 @@ const ListTasksForPatientQuery = graphql(`
   }
 `);
 
+const ListPendingTasksQuery = graphql(`
+  query ListPendingTasks {
+    listPendingTasks {
+      id
+      status
+      description
+      dueAt
+      accessExpiresAt
+      focusQuestionnaireId
+      focusQuestionnaire {
+        title
+      }
+      forPatient {
+        id
+        personId
+        person {
+          name {
+            text
+            given
+            family
+            prefix
+          }
+        }
+      }
+    }
+  }
+`);
+
 const CreateTaskMutation = graphql(`
   mutation CreateTask($input: CreateTaskInput!) {
     createTask(input: $input) {
@@ -150,6 +178,8 @@ export function isQuestionnaireRequestTask(
   // The id survives even when the questionnaire itself is no longer readable.
   return task.focusQuestionnaireId != null;
 }
+
+export type PendingTask = ResultOf<typeof ListPendingTasksQuery>["listPendingTasks"][number];
 
 export interface CreateTaskParams {
   organizationId: string;
@@ -287,4 +317,14 @@ export async function fetchTasksForPatient(
   });
 
   return result.listTasks?.results ?? [];
+}
+
+/** Overdue or link-expired questionnaire requests and due reminders, across the organization's visible patients. */
+export async function fetchPendingTasks(organizationId: string): Promise<PendingTask[]> {
+  const result = await requestGraphql({
+    document: ListPendingTasksQuery,
+    organizationId,
+  });
+
+  return result.listPendingTasks;
 }

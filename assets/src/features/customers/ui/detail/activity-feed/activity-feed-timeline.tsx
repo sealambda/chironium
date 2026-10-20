@@ -33,6 +33,7 @@ import {
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import { isOpenQuestionnaireRequest } from "@/features/questionnaires/model/questionnaire-request-status";
+import { QuestionnaireRequestActions } from "@/features/questionnaires/ui/request/questionnaire-request-actions";
 import type { PatientTask } from "@/features/tasks/api/tasks-api";
 import { completeTaskReminder } from "@/features/tasks/api/tasks-api";
 import * as m from "@/paraglide/messages";
@@ -52,7 +53,6 @@ import { NutritionEvent } from "./nutrition-event";
 import { ObservationEvent } from "./observation-event";
 import { PrescriptionEvent } from "./prescription-event";
 import { QuestionnaireEvent } from "./questionnaire-event";
-import { QuestionnaireRequestActions } from "./questionnaire-request-actions";
 import {
   QuestionnaireRequestEvent,
   QuestionnaireRequestStatusBadge,

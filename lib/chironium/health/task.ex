@@ -51,6 +51,10 @@ defmodule Chironium.Health.Task do
     queries do
       read_one :get_task, :read
       list :list_tasks, :read
+
+      # ponytail: unbounded list; add keyset pagination and a separate count if one
+      # organization ever has hundreds of pending items.
+      list :list_pending_tasks, :pending, paginate_with: nil
     end
 
     mutations do
@@ -147,6 +151,20 @@ defmodule Chironium.Health.Task do
              )
 
       prepare Chironium.Health.Preparations.FilterByRequestedPeriodWindow
+    end
+
+    read :pending do
+      description "Questionnaire requests that are overdue or whose link expired, and due reminders."
+
+      filter expr(
+               (not is_nil(focus_questionnaire_id) and
+                  status in ^Chironium.Health.Checks.TaskVisibleToPatient.open_statuses() and
+                  (due_at <= now() or access_expires_at <= now())) or
+                 (is_nil(focus_questionnaire_id) and status in ^@reminder_statuses and
+                    due_at <= now())
+             )
+
+      prepare build(sort: [requested_period_start_sort_key: :asc])
     end
 
     update :ready do
@@ -298,7 +316,7 @@ defmodule Chironium.Health.Task do
       authorize_if always()
     end
 
-    policy action(:tasks_needing_reminder) do
+    policy action([:tasks_needing_reminder, :pending]) do
       authorize_if Chironium.Accounts.Checks.StaffActor
     end
 

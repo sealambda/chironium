@@ -15,6 +15,7 @@ import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscription
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppQuestionnairesRouteImport } from './routes/_app/questionnaires'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppPendingRouteImport } from './routes/_app/pending'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppQuestionnairesQuestionnaireIdRouteImport } from './routes/_app/questionnaires_.$questionnaireId'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
@@ -48,6 +49,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPendingRoute = AppPendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCustomersRoute = AppCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
@@ -68,6 +74,7 @@ const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
+  '/pending': typeof AppPendingRoute
   '/profile': typeof AppProfileRoute
   '/questionnaires': typeof AppQuestionnairesRoute
   '/settings': typeof AppSettingsRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customers': typeof AppCustomersRoute
+  '/pending': typeof AppPendingRoute
   '/profile': typeof AppProfileRoute
   '/questionnaires': typeof AppQuestionnairesRoute
   '/settings': typeof AppSettingsRoute
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/_app/customers': typeof AppCustomersRoute
+  '/_app/pending': typeof AppPendingRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/questionnaires': typeof AppQuestionnairesRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/customers'
+    | '/pending'
     | '/profile'
     | '/questionnaires'
     | '/settings'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/customers'
+    | '/pending'
     | '/profile'
     | '/questionnaires'
     | '/settings'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/_app/customers'
+    | '/_app/pending'
     | '/_app/profile'
     | '/_app/questionnaires'
     | '/_app/settings'
@@ -180,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/pending': {
+      id: '/_app/pending'
+      path: '/pending'
+      fullPath: '/pending'
+      preLoaderRoute: typeof AppPendingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/customers': {
       id: '/_app/customers'
       path: '/customers'
@@ -206,6 +225,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
+  AppPendingRoute: typeof AppPendingRoute
   AppProfileRoute: typeof AppProfileRoute
   AppQuestionnairesRoute: typeof AppQuestionnairesRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -216,6 +236,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
+  AppPendingRoute: AppPendingRoute,
   AppProfileRoute: AppProfileRoute,
   AppQuestionnairesRoute: AppQuestionnairesRoute,
   AppSettingsRoute: AppSettingsRoute,

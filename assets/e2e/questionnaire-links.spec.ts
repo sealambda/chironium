@@ -1,70 +1,14 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { TIMEOUT_MS } from "./helpers";
 import {
-  devPlaywrightEnsureUser,
-  devPlaywrightSession,
-  getPlaywrightE2EEnv,
-} from "./playwright-session";
+  bootstrapSession,
+  createCustomer,
+  createOrg,
+  openCustomerDetail,
+  TIMEOUT_MS,
+} from "./helpers";
 
 const QUESTIONNAIRE_TITLE = "E2E check-in";
-
-async function bootstrapSession(page: Page, email: string) {
-  const { baseURL, secret } = getPlaywrightE2EEnv();
-
-  await devPlaywrightEnsureUser(page.request, { baseURL, secret, email });
-  await devPlaywrightSession(page.request, { baseURL, secret, email });
-}
-
-async function createOrg(page: Page, runId: string) {
-  await page.goto("/app/settings");
-
-  const createButton = page.getByTestId("no-org-create-organization-button");
-  await Promise.race([
-    expect(createButton).toBeVisible({ timeout: TIMEOUT_MS }),
-    expect(page.getByTestId("settings-heading")).toBeVisible({ timeout: TIMEOUT_MS }),
-  ]);
-
-  if (await createButton.isVisible()) {
-    await createButton.click();
-  } else {
-    await page.getByTestId("org-selector-trigger").click();
-    await page.getByTestId("org-selector-create-button").click();
-  }
-
-  const dialog = page.getByTestId("create-org-dialog");
-  await dialog.getByTestId("create-org-name-input").fill(`E2E Links Org ${runId}`);
-  await dialog.getByTestId("create-org-next-button").click();
-  await dialog.getByTestId("create-org-plan-name-input").fill("Monthly");
-  await dialog.getByTestId("create-org-plan-duration-value-input").fill("1");
-  await dialog.getByTestId("create-org-plan-duration-unit-trigger").click();
-  await page.getByRole("option").first().click();
-  await dialog.getByTestId("create-org-add-plan-button").click();
-  await dialog.getByTestId("create-org-finish-button").click();
-
-  await expect(page.getByTestId("toast-organization-created")).toBeVisible({
-    timeout: TIMEOUT_MS,
-  });
-}
-
-async function createCustomer(page: Page, fullName: string) {
-  const [givenName, familyName] = fullName.split(" ");
-
-  await page.goto("/app/customers");
-  await page.getByTestId("customers-new-button-header").click();
-  const dialog = page.getByTestId("customer-onboarding-dialog");
-  await dialog.getByTestId("onboarding-given-name-input").fill(givenName);
-  await dialog.getByTestId("onboarding-family-name-input").fill(familyName);
-  await dialog.getByTestId("onboarding-next-button").click();
-  for (let i = 0; i < 7; i += 1) {
-    await dialog.getByTestId("onboarding-next-button").click();
-  }
-  await dialog.getByTestId("onboarding-finish-button").click();
-
-  await expect(page.getByTestId("toast-customer-onboarding-complete")).toBeVisible({
-    timeout: TIMEOUT_MS,
-  });
-}
 
 /** The builder saves drafts; activating through its UI adds nothing this flow tests. */
 async function createActiveQuestionnaire(page: Page) {
@@ -106,13 +50,6 @@ async function createActiveQuestionnaire(page: Page) {
   expect(payload.data.createQuestionnaire.errors).toEqual([]);
 }
 
-async function openCustomerDetail(page: Page, fullName: string) {
-  await page.goto("/app/customers");
-  const rowName = page.getByRole("table").getByText(fullName, { exact: true }).first();
-  await expect(rowName).toBeVisible({ timeout: TIMEOUT_MS });
-  await rowName.click();
-}
-
 async function sendQuestionnaire(page: Page): Promise<string> {
   const addRecordButton = page.getByTestId("add-record-button").first();
   await expect(addRecordButton).toBeVisible({ timeout: TIMEOUT_MS });
@@ -141,7 +78,7 @@ test("a patient answers a questionnaire sent as a link", async ({ page, browser 
   const fullName = "Paula Portal";
 
   await bootstrapSession(page, `e2e-links-${runId}@local.test`);
-  await createOrg(page, runId);
+  await createOrg(page, `E2E Links Org ${runId}`);
   await createCustomer(page, fullName);
   await createActiveQuestionnaire(page);
   await openCustomerDetail(page, fullName);
