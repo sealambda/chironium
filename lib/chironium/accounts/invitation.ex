@@ -122,7 +122,7 @@ defmodule Chironium.Accounts.Invitation do
                  invited_by_name: invited_by.name || to_string(invited_by.email),
                  organization_name: result.organization.name,
                  code: result.invite_code,
-                 accept_url: invitation_accept_url(result.invite_code),
+                 accept_url: ChironiumWeb.AppUrl.url("", inviteCode: result.invite_code),
                  locale: locale
                })
 
@@ -373,26 +373,6 @@ defmodule Chironium.Accounts.Invitation do
       {:ok, nil} -> {:error, :invalid_invite_code}
       error -> error
     end
-  end
-
-  defp invitation_accept_url(invite_code) do
-    endpoint_uri = URI.parse(ChironiumWeb.Endpoint.url())
-    app_url = Application.get_env(:chironium, :app_url, "/app")
-    app_uri = URI.parse(app_url)
-
-    uri =
-      endpoint_uri
-      |> Map.put(:path, app_uri.path || "/app")
-      |> Map.put(:query, app_uri.query)
-
-    params = URI.decode_query(uri.query || "")
-
-    uri
-    |> Map.put(
-      :query,
-      Map.put(params, "inviteCode", to_string(invite_code)) |> URI.encode_query()
-    )
-    |> URI.to_string()
   end
 
   # Resolve the locale used for the invitation email. When the invitee is

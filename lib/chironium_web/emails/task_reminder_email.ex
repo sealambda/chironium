@@ -42,7 +42,7 @@ defmodule ChironiumWeb.Emails.TaskReminderEmail do
         </tr>
       </table>
       <.email_button href={@task_url}>
-        {dgettext("emails", "View task")}
+        {dgettext("emails", "View patient")}
       </.email_button>
     </.email_layout>
     """

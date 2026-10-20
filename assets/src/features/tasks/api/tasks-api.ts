@@ -82,19 +82,6 @@ const SetReadyTaskMutation = graphql(`
   }
 `);
 
-const StartTaskMutation = graphql(`
-  mutation StartTask($id: ID!) {
-    startTask(id: $id) {
-      result {
-        id
-      }
-      errors {
-        message
-      }
-    }
-  }
-`);
-
 const CompleteTaskMutation = graphql(`
   mutation CompleteTask($id: ID!) {
     completeTask(id: $id) {
@@ -222,13 +209,6 @@ export async function completeTaskReminder(taskId: string, organizationId: strin
   if (!taskId || !organizationId) {
     return;
   }
-
-  const started = await requestGraphql({
-    document: StartTaskMutation,
-    variables: { id: taskId },
-    organizationId,
-  });
-  unwrapMutationResult(started.startTask, "Failed to start task.");
 
   const completed = await requestGraphql({
     document: CompleteTaskMutation,

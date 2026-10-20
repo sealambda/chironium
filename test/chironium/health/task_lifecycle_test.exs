@@ -229,6 +229,28 @@ defmodule Chironium.Health.TaskLifecycleTest do
 
       assert DateTime.compare(completed.execution_period.start, started_at) == :eq
     end
+
+    test "completes a :ready reminder in one step and sets execution_period", ctx do
+      task = create_task(ctx) |> transition!(:ready, ctx)
+
+      assert {:ok, completed} = transition(task, :complete, ctx)
+      assert completed.status == :completed
+      assert completed.execution_period.start
+      assert completed.execution_period.end
+    end
+
+    test "completes an :accepted task in one step and sets execution_period", ctx do
+      task =
+        create_task(ctx)
+        |> transition!(:ready, ctx)
+        |> transition!(:request, ctx)
+        |> transition!(:accept, ctx)
+
+      assert {:ok, completed} = transition(task, :complete, ctx)
+      assert completed.status == :completed
+      assert completed.execution_period.start
+      assert completed.execution_period.end
+    end
   end
 
   describe ":fail transition" do
