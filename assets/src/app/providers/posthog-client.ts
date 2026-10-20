@@ -25,6 +25,12 @@ posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
   // Only create person profiles for identified users to minimize noise.
   // biome-ignore lint/style/useNamingConvention: PostHog API option names use snake_case.
   person_profiles: "identified_only",
+  // The initial person info (`$initial_current_url`) rides on /flags requests, which skip
+  // before_send, so PostHog must mask the code itself when it stores that URL.
+  // biome-ignore lint/style/useNamingConvention: PostHog API option names use snake_case.
+  mask_personal_data_properties: true,
+  // biome-ignore lint/style/useNamingConvention: PostHog API option names use snake_case.
+  custom_personal_data_properties: ["inviteCode"],
   // biome-ignore lint/style/useNamingConvention: PostHog API option names use snake_case.
   before_send: (event) => event && maskInviteCodes(event),
 });
