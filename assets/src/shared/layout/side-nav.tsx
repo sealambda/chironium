@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useOrg } from "@/features/org/hooks/use-org";
 import { OrgSelector } from "@/features/org/ui/org-selector";
+import { usePendingTasks } from "@/features/tasks/hooks/use-pending-tasks";
 import * as m from "@/paraglide/messages";
 import { Button } from "@/shared/ui/button";
 import { LanguageToggle } from "@/shared/ui/language-toggle";
@@ -34,6 +35,7 @@ export function SideNav({
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
+  const pendingCount = usePendingTasks().data?.length ?? 0;
 
   const visibleNavItems = getVisibleNavItems(Boolean(selectedOrg));
 
@@ -59,7 +61,13 @@ export function SideNav({
 
       <div className="flex flex-1 flex-col gap-1 px-2 pt-4 md:px-4">
         {visibleNavItems.map((item) => (
-          <NavItemLink key={item.to} item={item} currentPath={currentPath} variant="desktop" />
+          <NavItemLink
+            key={item.to}
+            item={item}
+            currentPath={currentPath}
+            pendingCount={pendingCount}
+            variant="desktop"
+          />
         ))}
       </div>
 
@@ -83,6 +91,7 @@ export function MobileSideNav({
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { selectedOrg, availableOrgs, selectOrg } = useOrg();
+  const pendingCount = usePendingTasks().data?.length ?? 0;
   const [isOpen, setIsOpen] = useState(false);
 
   const visibleNavItems = getVisibleNavItems(Boolean(selectedOrg));
@@ -149,6 +158,7 @@ export function MobileSideNav({
                   key={item.to}
                   item={item}
                   currentPath={currentPath}
+                  pendingCount={pendingCount}
                   onClick={closeMenu}
                   variant="mobile"
                 />
@@ -203,20 +213,23 @@ function SidebarPreferences({ variant }: Readonly<{ variant: NavVariant }>) {
   );
 }
 
-function NavItemLink({
+export function NavItemLink({
   item,
   currentPath,
+  pendingCount,
   onClick,
   variant,
 }: Readonly<{
   item: NavItem;
   currentPath: string;
+  pendingCount: number;
   onClick?: () => void;
   variant: NavVariant;
 }>) {
   const isActive = currentPath.startsWith(item.to);
   const Icon = item.icon;
   const isDesktop = variant === "desktop";
+  const count = item.showsPendingCount ? pendingCount : 0;
 
   return (
     <Link
@@ -231,8 +244,15 @@ function NavItemLink({
           : "text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
       aria-current={isActive ? "page" : undefined}
+      aria-label={count > 0 ? m.nav_pending_count({ count }) : undefined}
     >
-      <Icon className={cn("h-5 w-5 shrink-0", isActive && "text-primary")} />
+      <span className="relative shrink-0">
+        <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
+        {count > 0 && isDesktop ? (
+          // The collapsed sidebar has no room for the number.
+          <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary md:hidden" />
+        ) : null}
+      </span>
       <span
         className={cn(
           "text-sm",
@@ -242,6 +262,17 @@ function NavItemLink({
       >
         {item.label()}
       </span>
+      {count > 0 ? (
+        <span
+          className={cn(
+            "ml-auto rounded-full bg-primary px-2 py-0.5 font-semibold text-primary-foreground text-xs tabular-nums",
+            isDesktop ? "hidden md:inline" : "inline",
+          )}
+          data-testid="nav-pending-count"
+        >
+          {count}
+        </span>
+      ) : null}
     </Link>
   );
 }
