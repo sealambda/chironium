@@ -11,6 +11,9 @@ defmodule ChironiumWeb.Layouts do
   # and other static content.
   embed_templates "layouts/*"
 
+  @doc "Whether email is on, for the SPA's `chironium:email-enabled` meta tag."
+  def email_enabled?, do: Chironium.Notifications.email_enabled?()
+
   @doc """
   Renders your app layout.
 

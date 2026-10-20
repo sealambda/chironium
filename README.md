@@ -23,6 +23,10 @@ mix phx.server                   # or: iex -S mix phx.server
 
 Visit [`localhost:4000`](http://localhost:4000). See [CONTRIBUTING.md](CONTRIBUTING.md) for the quality checks that run in CI.
 
+## Email
+
+`RESEND_API_KEY` turns email on. In development any value works, and mail goes to the local mailbox at [`/dev/mailbox`](http://localhost:4000/dev/mailbox) instead of being sent. Without the key, nothing is emailed: practitioners share invitations and questionnaires as links.
+
 ## Terminology imports (LOINC and SNOMED CT)
 
 Chironium does not ship LOINC or SNOMED CT release content. Each deployment obtains the release files under its own license (see [NOTICE.md](NOTICE.md)) and imports them locally.

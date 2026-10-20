@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="csrf-token" content={get_csrf_token()} />
+    <meta name="chironium:email-enabled" content={to_string(email_enabled?())} />
     <%!-- Security: Prevent MIME type sniffing. --%>
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <%!-- Security: Referrer policy for privacy. --%>

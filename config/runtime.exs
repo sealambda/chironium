@@ -72,6 +72,13 @@ config :chironium, ChironiumWeb.Endpoint,
     redirect_uri: System.get_env("GOOGLE_REDIRECT_URI") || default_redirect_uri
   ]
 
+# Email needs a Resend key. Outside production the mailer stays on the local
+# mailbox, so any value turns email on without sending anything.
+email_enabled? =
+  config_env() == :test or System.get_env("RESEND_API_KEY") not in [nil, ""]
+
+config :chironium, Chironium.Notifications, email_enabled?: email_enabled?
+
 if config_env() == :prod do
   # database_url =
   #   System.get_env("DATABASE_URL") ||
