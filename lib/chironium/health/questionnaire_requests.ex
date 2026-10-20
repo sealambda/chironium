@@ -38,26 +38,23 @@ defmodule Chironium.Health.QuestionnaireRequests do
   @doc """
   When a request's links and session expire.
 
-  At least 7 days from now, or the end of the day after the due date when that
-  is later, and never more than 14 days from now: the session cookie's
-  `max_age`, so a session never outlives its cookie silently.
+  At least 7 days from now, or a day after the due instant when that is later,
+  and never more than 14 days from now: the session cookie's `max_age`, so a
+  session never outlives its cookie silently.
   """
-  def access_expires_at(due_date, now \\ DateTime.utc_now())
+  def access_expires_at(due_at, now \\ DateTime.utc_now())
 
   def access_expires_at(nil, now), do: DateTime.add(now, @min_lifetime_days, :day)
 
-  def access_expires_at(%Date{} = due_date, now) do
+  def access_expires_at(%DateTime{} = due_at, now) do
     floor = DateTime.add(now, @min_lifetime_days, :day)
     ceiling = DateTime.add(now, @max_lifetime_days, :day)
-    after_due = end_of_day(Date.add(due_date, 1))
 
-    after_due
+    due_at
+    |> DateTime.add(1, :day)
     |> latest(floor)
     |> earliest(ceiling)
   end
-
-  @doc "The last instant of a date, in UTC."
-  def end_of_day(%Date{} = date), do: DateTime.new!(date, ~T[23:59:59.999999], "Etc/UTC")
 
   @doc """
   Issues the link and, when email is on and the patient has an email address,

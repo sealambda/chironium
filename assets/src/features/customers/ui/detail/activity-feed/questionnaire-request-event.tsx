@@ -15,6 +15,7 @@ const STATUS_BADGE: Record<
 > = {
   sent: { variant: "secondary", label: m.questionnaire_request_status_sent },
   opened: { variant: "info", label: m.questionnaire_request_status_opened },
+  overdue: { variant: "warning", label: m.questionnaire_request_status_overdue },
   completed: { variant: "success", label: m.questionnaire_request_status_completed },
   cancelled: { variant: "secondary", label: m.questionnaire_request_status_cancelled },
   expired: { variant: "warning", label: m.questionnaire_request_status_expired },
@@ -48,13 +49,12 @@ export function QuestionnaireRequestEvent({
   status,
 }: Readonly<QuestionnaireRequestEventProps>) {
   const title = task.focusQuestionnaire?.title || m.questionnaire_untitled();
-  // The due date is stored as the end of that day in UTC, so its date part is the chosen day.
-  const dueDate = task.requestedPeriod?.end?.slice(0, 10);
+  const dueAt = task.requestedPeriod?.end;
   const expiresAt = isOpenQuestionnaireRequest(status) ? task.accessExpiresAt : null;
   const details = [
-    dueDate
+    dueAt
       ? m.questionnaire_request_due({
-          date: format(parseISO(dueDate), "PP", { locale: getDateLocale() }),
+          date: format(parseISO(dueAt), "PP", { locale: getDateLocale() }),
         })
       : null,
     expiresAt ? linkExpiryText(status, expiresAt) : null,

@@ -13,25 +13,23 @@ defmodule Chironium.Health.Task.Changes.RequestQuestionnaire do
 
   @impl true
   def change(changeset, _opts, context) do
-    due_date = Ash.Changeset.get_argument(changeset, :due_date)
-    # The client picks dates in local time: west of UTC, "today" can still be yesterday in UTC.
-    earliest = Date.add(Date.utc_today(), -1)
+    # The client sends the end of the due day in the practitioner's timezone.
+    due_at = Ash.Changeset.get_argument(changeset, :due_at)
+    now = DateTime.utc_now()
 
-    if due_date && Date.compare(due_date, earliest) == :lt do
+    if due_at && DateTime.compare(due_at, now) != :gt do
       Ash.Changeset.add_error(changeset,
-        field: :due_date,
-        message: "The due date #{due_date} is in the past."
+        field: :due_at,
+        message: "The due date #{DateTime.to_iso8601(due_at)} is in the past."
       )
     else
-      now = DateTime.utc_now()
-
       changeset
       |> Ash.Changeset.force_change_attributes(%{
         code: QuestionnaireRequests.task_code(),
         intent: :order,
         description: Ash.Changeset.get_argument(changeset, :message),
-        requested_period: requested_period(now, due_date),
-        access_expires_at: QuestionnaireRequests.access_expires_at(due_date, now),
+        requested_period: requested_period(now, due_at),
+        access_expires_at: QuestionnaireRequests.access_expires_at(due_at, now),
         requester_practitioner_id: requester_id(context.actor)
       })
       |> Ash.Changeset.before_action(&put_questionnaire(&1, context))
@@ -64,9 +62,7 @@ defmodule Chironium.Health.Task.Changes.RequestQuestionnaire do
   end
 
   defp requested_period(now, nil), do: %{start: now}
-
-  defp requested_period(now, due_date),
-    do: %{start: now, end: QuestionnaireRequests.end_of_day(due_date)}
+  defp requested_period(now, due_at), do: %{start: now, end: due_at}
 
   # Power users act as their User and have no practitioner to record.
   defp requester_id(%Chironium.Health.Practitioner{id: id}), do: id

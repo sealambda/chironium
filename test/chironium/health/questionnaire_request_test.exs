@@ -83,10 +83,30 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
     end
 
     test "rejects a due date in the past", ctx do
-      assert {:error, %Ash.Error.Invalid{}} =
+      assert {:error, %Ash.Error.Invalid{} = error} =
                request(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{
-                 due_date: Date.add(Date.utc_today(), -2)
+                 due_at: DateTime.add(DateTime.utc_now(), -1, :minute)
                })
+
+      assert Exception.message(error) =~ "is in the past"
+    end
+
+    # The browser sends the end of the picked day in the practitioner's timezone.
+    for {zone, offset_hours} <- [{"west", -10}, {"east", 14}] do
+      test "accepts today's local end of day #{zone} of UTC and rejects yesterday's", ctx do
+        today = local_end_of_day(unquote(offset_hours), 0)
+        yesterday = local_end_of_day(unquote(offset_hours), -1)
+
+        task =
+          request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{due_at: today})
+
+        assert DateTime.compare(task.requested_period.end, today) == :eq
+
+        assert {:error, %Ash.Error.Invalid{}} =
+                 request(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{
+                   due_at: yesterday
+                 })
+      end
     end
 
     test "practitioners cannot target patients outside their care team", ctx do
@@ -104,30 +124,61 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
     end
   end
 
+  describe "due_at" do
+    test "is a reminder's date", ctx do
+      start = ~U[2026-11-02 09:00:00.000000Z]
+
+      reminder =
+        Task
+        |> Ash.Changeset.for_create(
+          :create,
+          %{intent: :order, for_patient_id: ctx.patient.id, requested_period: %{start: start}},
+          authorize?: false,
+          tenant: ctx.tenant
+        )
+        |> Ash.create!()
+
+      assert DateTime.compare(due_at(ctx, reminder), start) == :eq
+    end
+
+    test "is a questionnaire's due date, and nil without one", ctx do
+      # `Period` keeps whole seconds.
+      due_at = DateTime.utc_now() |> DateTime.add(3, :day) |> DateTime.truncate(:second)
+
+      with_due_date =
+        request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{due_at: due_at})
+
+      without_due_date = request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire)
+
+      assert DateTime.compare(due_at(ctx, with_due_date), due_at) == :eq
+      assert is_nil(due_at(ctx, without_due_date))
+    end
+  end
+
   describe "access_expires_at/2" do
     @now ~U[2026-09-24 10:00:00Z]
 
     test "is never earlier than 7 days" do
       assert QuestionnaireRequests.access_expires_at(nil, @now) == ~U[2026-10-01 10:00:00Z]
 
-      assert QuestionnaireRequests.access_expires_at(~D[2026-09-25], @now) ==
+      assert QuestionnaireRequests.access_expires_at(~U[2026-09-25 21:59:59Z], @now) ==
                ~U[2026-10-01 10:00:00Z]
     end
 
-    test "extends to the end of the day after a later due date" do
-      assert QuestionnaireRequests.access_expires_at(~D[2026-10-03], @now) ==
-               ~U[2026-10-04 23:59:59.999999Z]
+    test "extends to a day after a later due date" do
+      assert QuestionnaireRequests.access_expires_at(~U[2026-10-03 21:59:59Z], @now) ==
+               ~U[2026-10-04 21:59:59Z]
     end
 
     test "is never later than 14 days" do
-      assert QuestionnaireRequests.access_expires_at(~D[2026-12-01], @now) ==
+      assert QuestionnaireRequests.access_expires_at(~U[2026-12-01 22:59:59Z], @now) ==
                ~U[2026-10-08 10:00:00Z]
     end
 
     test "link and session tokens outlive the access window", ctx do
       task =
         request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{
-          due_date: Date.add(Date.utc_today(), 60)
+          due_at: DateTime.add(DateTime.utc_now(), 60, :day)
         })
 
       link_token = token_from_url(task.__metadata__.link_url)
@@ -145,7 +196,7 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
     test "is stored on the task and its accesses", ctx do
       task =
         request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{
-          due_date: Date.add(Date.utc_today(), 60)
+          due_at: DateTime.add(DateTime.utc_now(), 60, :day)
         })
 
       days = DateTime.diff(task.access_expires_at, DateTime.utc_now(), :hour) / 24
@@ -241,6 +292,36 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
       assert {:ok, _} = reissued.__metadata__.link_url |> token_from_url() |> sign_in()
       assert length(accesses(task)) == 4
       assert length(Enum.reject(accesses(task), & &1.revoked_at)) == 2
+    end
+
+    test "a passed due date no longer extends the reissued link", ctx do
+      task =
+        request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire, %{
+          due_at: DateTime.add(DateTime.utc_now(), 10, :day)
+        })
+
+      Chironium.Repo.query!(
+        ~s(UPDATE "#{ctx.tenant}".tasks SET requested_period = $1 WHERE id = $2),
+        [
+          %{
+            "start" => DateTime.add(DateTime.utc_now(), -20, :day),
+            "end" => DateTime.add(DateTime.utc_now(), -1, :hour)
+          },
+          Ecto.UUID.dump!(task.id)
+        ]
+      )
+
+      reissued =
+        ctx
+        |> reload(task)
+        |> Ash.Changeset.for_update(:reissue_questionnaire_link, %{},
+          actor: ctx.practitioner,
+          tenant: ctx.tenant
+        )
+        |> Ash.update!()
+
+      days = DateTime.diff(reissued.access_expires_at, DateTime.utc_now(), :hour) / 24
+      assert days > 6.9 and days <= 7
     end
 
     test "only open questionnaire requests can be reissued", ctx do
@@ -458,6 +539,19 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
            |> Ash.Query.for_read(:tasks_needing_reminder)
            |> Ash.read!(authorize?: false, tenant: ctx.tenant, page: [limit: 10])
            |> Map.get(:results) == []
+  end
+
+  defp due_at(ctx, task), do: ctx |> reload(task) |> Ash.load!(:due_at) |> Map.get(:due_at)
+
+  # The end of a day, `days` from today, in a timezone `offset_hours` from UTC, as a UTC instant.
+  defp local_end_of_day(offset_hours, days) do
+    local_date =
+      DateTime.utc_now() |> DateTime.add(offset_hours, :hour) |> DateTime.to_date()
+
+    local_date
+    |> Date.add(days)
+    |> DateTime.new!(~T[23:59:59], "Etc/UTC")
+    |> DateTime.add(-offset_hours, :hour)
   end
 
   defp session(guest_access) do

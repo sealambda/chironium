@@ -20,6 +20,7 @@ const ListTasksForPatientQuery = graphql(`
           end
         }
         accessExpiresAt
+        dueAt
         focusQuestionnaireId
         focusQuestionnaire {
           id

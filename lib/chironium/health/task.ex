@@ -228,8 +228,8 @@ defmodule Chironium.Health.Task do
       argument :patient_id, :uuid, allow_nil?: false
       argument :questionnaire_id, :uuid, allow_nil?: false
 
-      argument :due_date, :date do
-        description "When the answers are needed. A later date extends the link, up to 14 days."
+      argument :due_at, :utc_datetime_usec do
+        description "When the answers are needed: the end of the due day in the practitioner's timezone. A later date extends the link, up to 14 days."
       end
 
       argument :message, :string do
@@ -428,6 +428,21 @@ defmodule Chironium.Health.Task do
               :datetime,
               expr(fragment("(?->>'start')::timestamptz", requested_period)) do
       description "Helper calculation to sort by requested_period.start"
+      public? true
+    end
+
+    # `AT TIME ZONE 'UTC'` keeps the database session's timezone out of the result,
+    # which is read back as a UTC timestamp without a zone.
+    calculate :due_at,
+              :utc_datetime_usec,
+              expr(
+                if is_nil(focus_questionnaire_id) do
+                  fragment("(?->>'start')::timestamptz AT TIME ZONE 'UTC'", requested_period)
+                else
+                  fragment("(?->>'end')::timestamptz AT TIME ZONE 'UTC'", requested_period)
+                end
+              ) do
+      description "When the task is due: a reminder's date, or a questionnaire's due date"
       public? true
     end
   end
