@@ -299,8 +299,8 @@ test("a signed-out invitee signs in and lands on the accept dialog", async ({ br
   const invitation = await inviteUser(page, inviteeEmail, "member");
   await devPlaywrightEnsureUser(page.request, { baseURL, secret, email: inviteeEmail });
 
-  // A fresh context has no session, so opening the link redirects to sign-in.
-  const context = await browser.newContext();
+  // Contexts inherit the owner's storage state; clear it so the link redirects to sign-in.
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
   const invitee = await context.newPage();
   await invitee.goto(invitation.url);
   await expect(invitee.getByTestId("sign-in-heading")).toBeVisible({ timeout: TIMEOUT_MS });

@@ -34,6 +34,8 @@ test("a reminder due today shows on the Pending page until it is done", async ({
   await dialog.getByPlaceholder("What should we remind you about?").fill(description);
   await dialog.getByRole("button", { name: "Add reminder" }).click();
   await expect(page.getByText("Reminder set.")).toBeVisible({ timeout: TIMEOUT_MS });
+  // The patient page hides the main navigation; going back shows it again.
+  await page.getByRole("button", { name: "Back" }).click();
 
   const navLink = page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", {
     name: /^Pending/,
