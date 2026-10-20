@@ -23,6 +23,17 @@ defmodule Chironium.Accounts.Invitation do
     base_filter_sql "archived_at IS NULL"
   end
 
+  # Invite codes are credentials: anyone holding one can join the organization.
+  field_policies do
+    field_policy [:invite_code, :accept_url] do
+      authorize_if expr(actor_is_organization_admin)
+    end
+
+    field_policy :* do
+      authorize_if always()
+    end
+  end
+
   graphql do
     type :invitation
 
@@ -36,6 +47,7 @@ defmodule Chironium.Accounts.Invitation do
         read_action: :get_by_invite_code
 
       update :revoke_invitation, :revoke
+      update :renew_invitation, :renew
     end
   end
 
@@ -51,6 +63,7 @@ defmodule Chironium.Accounts.Invitation do
       transition :accept, from: :pending, to: :accepted
       transition :reject, from: :pending, to: :rejected
       transition :revoke, from: :pending, to: :rejected
+      transition :renew, from: :pending, to: :pending
     end
   end
 
@@ -60,7 +73,7 @@ defmodule Chironium.Accounts.Invitation do
     read :current_email_invitation do
       description "Find invitation for the current email address"
 
-      filter expr(email == ^actor(:email) and state == :pending)
+      filter expr(email == ^actor(:email) and state == :pending and expires_at > now())
     end
 
     read :get_by_invite_code do
@@ -109,24 +122,8 @@ defmodule Chironium.Accounts.Invitation do
                end)
              end)
 
-      change after_action(fn _changeset, result, context ->
-               invited_by = context.actor
-               result = Ash.load!(result, :organization, authorize?: false)
-
-               # Prefer the invitee's own locale when the user already exists on
-               # the platform; otherwise fall back to the organization's locale.
-               locale = resolve_invitee_locale(result.email, result.organization)
-
-               Chironium.Notifications.send(:invitation_created, %{
-                 email: to_string(result.email),
-                 invited_by_name: invited_by.name || to_string(invited_by.email),
-                 organization_name: result.organization.name,
-                 code: result.invite_code,
-                 accept_url: ChironiumWeb.AppUrl.url("", inviteCode: result.invite_code),
-                 locale: locale
-               })
-
-               {:ok, result}
+      change after_action(fn changeset, result, context ->
+               send_invitation_email(changeset, result, context)
              end)
     end
 
@@ -135,6 +132,8 @@ defmodule Chironium.Accounts.Invitation do
 
       accept []
       require_atomic? false
+      validate Chironium.Accounts.Validations.InvitationNotExpired
+      validate Chironium.Accounts.Validations.ManagerInvitationEmailMatches
       change transition_state(:accepted)
       change set_attribute(:invite_code, nil)
 
@@ -205,6 +204,7 @@ defmodule Chironium.Accounts.Invitation do
 
       accept []
       require_atomic? false
+      validate Chironium.Accounts.Validations.ManagerInvitationEmailMatches
       change transition_state(:rejected)
       change set_attribute(:invite_code, nil)
 
@@ -227,6 +227,25 @@ defmodule Chironium.Accounts.Invitation do
       change after_action(fn _changeset, result, _context ->
                Ash.destroy!(result, authorize?: false)
                {:ok, result}
+             end)
+    end
+
+    update :renew do
+      description "Give a pending invitation a new code and a new 7-day expiry, and email it again"
+
+      accept []
+      require_atomic? false
+      change transition_state(:pending)
+
+      change fn changeset, _context ->
+        Ash.Changeset.force_change_attributes(changeset,
+          invite_code: generate_invite_code(),
+          expires_at: default_expires_at()
+        )
+      end
+
+      change after_action(fn changeset, result, context ->
+               send_invitation_email(changeset, result, context)
              end)
     end
 
@@ -287,6 +306,12 @@ defmodule Chironium.Accounts.Invitation do
       authorize_if Chironium.Accounts.Checks.PowerUser
     end
 
+    # Checked against the invitation's own organization, not the request's tenant: the
+    # renewed code is returned to the caller.
+    policy action(:renew) do
+      authorize_if expr(actor_is_organization_admin)
+    end
+
     # Account records are staff-only; portal actors such as a Patient never pass.
     policy always() do
       authorize_if Chironium.Accounts.Checks.StaffActor
@@ -302,12 +327,12 @@ defmodule Chironium.Accounts.Invitation do
     attribute :invite_code, :ci_string do
       description "The code that the user will use to accept the invitation"
       public? true
-      default fn -> Base.encode32(:crypto.strong_rand_bytes(5)) end
+      default fn -> generate_invite_code() end
     end
 
     attribute :expires_at, :utc_datetime do
       public? true
-      default fn -> DateTime.add(DateTime.utc_now(), 7, :day) end
+      default fn -> default_expires_at() end
     end
 
     attribute :role, Chironium.Accounts.OrganizationUser.Role do
@@ -336,9 +361,51 @@ defmodule Chironium.Accounts.Invitation do
     end
   end
 
+  calculations do
+    calculate :accept_url, :string, Chironium.Accounts.Invitation.Calculations.AcceptUrl do
+      description "The app link that opens the accept dialog with this invitation's code"
+      public? true
+    end
+
+    # Field policies can't reference relationships, so the admin check lives here.
+    calculate :actor_is_organization_admin,
+              :boolean,
+              expr(
+                organization.owner_id == ^actor(:id) or
+                  exists(
+                    organization.organization_users,
+                    user_id == ^actor(:id) and role == :power_user
+                  )
+              )
+  end
+
   identities do
     identity :unique_invitation, [:organization_id, :email]
     identity :unique_invite_code, [:invite_code]
+  end
+
+  defp generate_invite_code, do: Base.encode32(:crypto.strong_rand_bytes(5))
+
+  defp default_expires_at, do: DateTime.add(DateTime.utc_now(), 7, :day)
+
+  defp send_invitation_email(_changeset, result, context) do
+    invited_by = context.actor
+    result = Ash.load!(result, [:organization, :accept_url], authorize?: false)
+
+    # Prefer the invitee's own locale when the user already exists on
+    # the platform; otherwise fall back to the organization's locale.
+    locale = resolve_invitee_locale(result.email, result.organization)
+
+    Chironium.Notifications.send(:invitation_created, %{
+      email: to_string(result.email),
+      invited_by_name: invited_by.name || to_string(invited_by.email),
+      organization_name: result.organization.name,
+      code: result.invite_code,
+      accept_url: result.accept_url,
+      locale: locale
+    })
+
+    {:ok, result}
   end
 
   # Cascade-deletes an invitation-linked PrincipalGrant and its AshPaperTrail

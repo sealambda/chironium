@@ -7,6 +7,7 @@ import { queryClient } from "@/app/providers/query-client";
 import {
   fetchOrganizationSettings,
   type OrganizationSettingsData,
+  renewInvitation,
   revokeInvitation,
   updateOrganizationPreferredLocale,
 } from "@/features/org/api/org-api";
@@ -15,6 +16,10 @@ import {
   EditMemberRoleDialog,
   type EditMemberRoleTarget,
 } from "@/features/org/ui/edit-member-role-dialog";
+import {
+  InvitationLinkDialog,
+  type InvitationLinkTarget,
+} from "@/features/org/ui/invitation-link-dialog";
 import { InviteMemberDialog } from "@/features/org/ui/invite-member-dialog";
 import {
   MakeMemberPractitionerDialog,
@@ -135,6 +140,8 @@ export function SettingsPage() {
   const [editRoleTarget, setEditRoleTarget] = useState<EditMemberRoleTarget | null>(null);
   const [makePractitionerTarget, setMakePractitionerTarget] =
     useState<MakePractitionerTarget | null>(null);
+  const [linkTarget, setLinkTarget] = useState<InvitationLinkTarget | null>(null);
+  const [isLinkOpen, setIsLinkOpen] = useState(false);
 
   const {
     data: organization,
@@ -193,6 +200,56 @@ export function SettingsPage() {
     }
   };
 
+  const openInvitationLink = (target: InvitationLinkTarget) => {
+    setLinkTarget(target);
+    setIsLinkOpen(true);
+  };
+
+  const invitationLinkTarget = (row: SettingsMemberTableRow): InvitationLinkTarget | null =>
+    row.source.kind === "invitation"
+      ? { invitationId: row.source.invitationId, email: row.primary, role: row.orgRole ?? "MEMBER" }
+      : null;
+
+  const handleCopyInvitationLink = (row: SettingsMemberTableRow) => {
+    const target = invitationLinkTarget(row);
+    if (target) {
+      openInvitationLink(target);
+    }
+  };
+
+  const handleRenewInvitation = async (row: SettingsMemberTableRow) => {
+    const target = invitationLinkTarget(row);
+    if (!selectedOrg?.id || !target) {
+      return;
+    }
+
+    try {
+      const link = await renewInvitation({
+        organizationId: selectedOrg.id,
+        invitationId: target.invitationId,
+      });
+      openInvitationLink({ ...target, link });
+      await invalidateSettings();
+    } catch {
+      toast.error(m.settings_renew_invitation_error());
+    }
+  };
+
+  const memberActionsMenu = (row: SettingsMemberTableRow) => (
+    <SettingsMemberActionsMenu
+      row={row}
+      onEditRole={setEditRoleTarget}
+      onMakePractitioner={setMakePractitionerTarget}
+      onRevokeInvitation={(invitationId) => {
+        void handleRevokeInvitation(invitationId);
+      }}
+      onCopyInvitationLink={handleCopyInvitationLink}
+      onRenewInvitation={(target) => {
+        void handleRenewInvitation(target);
+      }}
+    />
+  );
+
   if (orgLoading || settingsLoading) {
     return <Loading />;
   }
@@ -249,16 +306,7 @@ export function SettingsPage() {
                       className="relative rounded-lg border border-border/60 bg-card px-4 py-3 shadow-sm"
                     >
                       {showActionSlot ? (
-                        <div className="absolute end-3 top-3">
-                          <SettingsMemberActionsMenu
-                            row={row}
-                            onEditRole={setEditRoleTarget}
-                            onMakePractitioner={setMakePractitionerTarget}
-                            onRevokeInvitation={(invitationId) => {
-                              void handleRevokeInvitation(invitationId);
-                            }}
-                          />
-                        </div>
+                        <div className="absolute end-3 top-3">{memberActionsMenu(row)}</div>
                       ) : null}
                       <div
                         className={cn(
@@ -305,16 +353,7 @@ export function SettingsPage() {
                         <TableCell>{row.roleDisplay}</TableCell>
                         <TableCell>{row.status}</TableCell>
                         {canManageMembers ? (
-                          <TableCell className="text-end">
-                            <SettingsMemberActionsMenu
-                              row={row}
-                              onEditRole={setEditRoleTarget}
-                              onMakePractitioner={setMakePractitionerTarget}
-                              onRevokeInvitation={(invitationId) => {
-                                void handleRevokeInvitation(invitationId);
-                              }}
-                            />
-                          </TableCell>
+                          <TableCell className="text-end">{memberActionsMenu(row)}</TableCell>
                         ) : null}
                       </TableRow>
                     ))}
@@ -339,7 +378,16 @@ export function SettingsPage() {
             open={isInviteOpen}
             onOpenChange={setIsInviteOpen}
             organizationId={selectedOrg.id}
+            organizationName={organization?.name ?? selectedOrg.name}
             onInvited={invalidateAfterPractitionerLinked}
+          />
+          <InvitationLinkDialog
+            organizationId={selectedOrg.id}
+            organizationName={organization?.name ?? selectedOrg.name}
+            target={linkTarget}
+            open={isLinkOpen}
+            onOpenChange={setIsLinkOpen}
+            onClosed={() => setLinkTarget(null)}
           />
           <EditMemberRoleDialog
             open={editRoleTarget !== null}

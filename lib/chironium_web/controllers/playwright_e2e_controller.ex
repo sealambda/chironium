@@ -4,6 +4,7 @@ defmodule ChironiumWeb.PlaywrightE2EController do
 
   Google OAuth is not automatable without third-party secrets; this endpoint
   creates a browser session for an existing user record when `PLAYWRIGHT_E2E_SECRET` matches.
+  The session response carries `returnTo`, the URL a signed-out visit was redirected from.
   """
 
   use ChironiumWeb, :controller
@@ -61,10 +62,14 @@ defmodule ChironiumWeb.PlaywrightE2EController do
                 meta = Map.put(user.__metadata__ || %{}, :token, token)
                 user_with_token = struct(user, %{__metadata__: meta})
 
+                # Like AuthController.success: hand back where a signed-out visit
+                # wanted to go, so tests can follow it as a real sign-in would.
+                return_to = return_url(conn)
+
                 conn
+                |> delete_session(:auth_return_state)
                 |> store_in_session(user_with_token)
-                |> put_status(:no_content)
-                |> send_resp(204, "")
+                |> json(%{returnTo: return_to})
 
               :error ->
                 conn
@@ -122,9 +127,20 @@ defmodule ChironiumWeb.PlaywrightE2EController do
     |> send_resp(204, "")
   end
 
+  defp return_url(conn) do
+    with token when is_binary(token) <- get_session(conn, :auth_return_state),
+         {:ok, url} <- ChironiumWeb.Plugs.AuthReturnState.validate_state_token(token) do
+      url
+    else
+      _ -> nil
+    end
+  end
+
   defp forbidden(conn), do: conn |> put_status(:forbidden) |> text("Forbidden")
 
-  defp normalize_email(email) when is_binary(email), do: email |> String.trim() |> String.downcase()
+  defp normalize_email(email) when is_binary(email),
+    do: email |> String.trim() |> String.downcase()
+
   defp normalize_email(_), do: ""
 
   defp fetch_user(email) do

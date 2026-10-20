@@ -83,7 +83,16 @@ async function createOrgAsOwner(page: Page, runId: string) {
   });
 }
 
-async function inviteUser(page: Page, email: string, role: "manager" | "member"): Promise<string> {
+interface SharedInvitation {
+  url: string;
+  code: string;
+}
+
+async function inviteUser(
+  page: Page,
+  email: string,
+  role: "manager" | "member",
+): Promise<SharedInvitation> {
   const { baseURL, secret } = getPlaywrightE2EEnv();
 
   await page.goto("/app/settings");
@@ -99,14 +108,26 @@ async function inviteUser(page: Page, email: string, role: "manager" | "member")
     await page.getByTestId("invite-member-role-option-power_user").click();
   }
   await dialog.getByTestId("invite-member-submit-button").click();
+
+  // The result step shows the link and code to share by hand.
+  const linkInput = dialog.getByTestId("invitation-link-input");
+  await expect(linkInput).toBeVisible({ timeout: TIMEOUT_MS });
+  const url = await linkInput.inputValue();
+  const code = await dialog.getByTestId("invitation-code-value").inputValue();
+  expect(code).toBe(await devPlaywrightInvitationCode(page.request, { baseURL, secret, email }));
+  expect(url).toContain(`/app?inviteCode=${code}`);
+
+  await dialog.getByTestId("invite-member-close-button").click();
+  await expect(dialog).toBeHidden({ timeout: TIMEOUT_MS });
   await expect(page.getByRole("row").filter({ hasText: email })).toBeVisible({
     timeout: TIMEOUT_MS,
   });
-  return devPlaywrightInvitationCode(page.request, { baseURL, secret, email });
+  return { url, code };
 }
 
-async function acceptInvitation(page: Page, inviteCode: string) {
-  await page.goto(`/app?inviteCode=${encodeURIComponent(inviteCode)}`);
+async function acceptInvitation(page: Page, invitation: SharedInvitation) {
+  await page.goto(invitation.url);
+  const inviteCode = invitation.code;
 
   const invitationCodeInput = page.getByTestId("invitation-code-input");
   const acceptButton = page.getByTestId("invitation-accept-button");
@@ -184,14 +205,14 @@ test("full invite and customer assignment lifecycle", async ({ browser, page }) 
   const memberOwnedCustomer = "Miriam Member";
 
   await createOrgAsOwner(page, runId);
-  const managerInviteCode = await inviteUser(page, managerEmail, "manager");
+  const managerInvitation = await inviteUser(page, managerEmail, "manager");
 
   const managerCtx = await createSessionContext(browser, page, managerEmail);
-  await acceptInvitation(managerCtx.page, managerInviteCode);
-  const memberInviteCode = await inviteUser(managerCtx.page, memberEmail, "member");
+  await acceptInvitation(managerCtx.page, managerInvitation);
+  const memberInvitation = await inviteUser(managerCtx.page, memberEmail, "member");
 
   const memberCtx = await createSessionContext(browser, page, memberEmail);
-  await acceptInvitation(memberCtx.page, memberInviteCode);
+  await acceptInvitation(memberCtx.page, memberInvitation);
 
   await page.goto("/app/settings");
   await dismissOrganizationInvitationIfPresent(page);
@@ -265,4 +286,35 @@ test("full invite and customer assignment lifecycle", async ({ browser, page }) 
 
   await managerCtx.context.close();
   await memberCtx.context.close();
+});
+
+test("a signed-out invitee signs in and lands on the accept dialog", async ({ browser, page }) => {
+  test.setTimeout(120_000);
+
+  const { baseURL, secret } = getPlaywrightE2EEnv();
+  const runId = Date.now().toString();
+  const inviteeEmail = `e2e-signed-out-${runId}@local.test`;
+
+  await createOrgAsOwner(page, runId);
+  const invitation = await inviteUser(page, inviteeEmail, "member");
+  await devPlaywrightEnsureUser(page.request, { baseURL, secret, email: inviteeEmail });
+
+  // A fresh context has no session, so opening the link redirects to sign-in.
+  const context = await browser.newContext();
+  const invitee = await context.newPage();
+  await invitee.goto(invitation.url);
+  await expect(invitee.getByTestId("sign-in-heading")).toBeVisible({ timeout: TIMEOUT_MS });
+
+  const returnTo = await devPlaywrightSession(invitee.request, {
+    baseURL,
+    secret,
+    email: inviteeEmail,
+  });
+  expect(returnTo).toContain(`inviteCode=${invitation.code}`);
+
+  await acceptInvitation(invitee, {
+    url: new URL(returnTo ?? "", baseURL).toString(),
+    code: invitation.code,
+  });
+  await context.close();
 });

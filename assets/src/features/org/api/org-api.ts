@@ -66,6 +66,7 @@ const GetOrganizationSettingsQuery = graphql(`
         email
         state
         role
+        expiresAt
         principalGrants {
           principalType
           principalId
@@ -130,11 +131,36 @@ const UpdateOrganizationMutation = graphql(`
   }
 `);
 
+// Run only by admins: other members read null for the code and link.
+const OrganizationInvitationLinksQuery = graphql(`
+  query OrganizationInvitationLinks($id: ID!, $invitationId: ID!) {
+    getOrganization(id: $id) {
+      id
+      invitations(filter: { id: { eq: $invitationId } }) {
+        id
+        inviteCode
+        acceptUrl
+        expiresAt
+      }
+    }
+  }
+`);
+
 const InviteUsersToOrganizationMutation = graphql(`
-  mutation InviteUsersToOrganization($id: ID!, $input: InviteUsersToOrganizationInput) {
+  mutation InviteUsersToOrganization(
+    $id: ID!
+    $input: InviteUsersToOrganizationInput
+    $email: String!
+  ) {
     inviteUsersToOrganization(id: $id, input: $input) {
       result {
         id
+        invitations(filter: { email: { eq: $email }, state: { eq: "pending" } }) {
+          id
+          inviteCode
+          acceptUrl
+          expiresAt
+        }
       }
       errors {
         message
@@ -179,6 +205,7 @@ const AcceptInvitationMutation = graphql(`
       }
       errors {
         message
+        fields
       }
     }
   }
@@ -210,12 +237,35 @@ const RevokeInvitationMutation = graphql(`
   }
 `);
 
+const RenewInvitationMutation = graphql(`
+  mutation RenewInvitation($id: ID!) {
+    renewInvitation(id: $id) {
+      result {
+        id
+        inviteCode
+        acceptUrl
+        expiresAt
+      }
+      errors {
+        message
+      }
+    }
+  }
+`);
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** An organization record with its ID, name, and URL slug. */
 export type OrganizationRecord = NonNullable<
   NonNullable<ResultOf<typeof ListOrganizationsQuery>["listOrganizations"]>["results"]
 >[number];
+
+/** A link that lets the invitee join, and the code they can type instead. */
+export interface InvitationLink {
+  url: string;
+  code: string;
+  expiresAt: string;
+}
 
 /** Form data for creating a new subscription plan. */
 export interface PlanFormData {
@@ -280,11 +330,28 @@ export interface OrganizationSettingsData {
     email: string | null;
     state: string;
     role: OrganizationUserRole;
+    expiresAt: string | null;
     principalGrants: PrincipalGrantRow[];
   }>;
 }
 
 // ─── Functions ───────────────────────────────────────────────────────
+
+function toInvitationLink(
+  invitation:
+    | { inviteCode?: string | null; acceptUrl?: string | null; expiresAt?: string | null }
+    | null
+    | undefined,
+): InvitationLink {
+  if (!invitation?.inviteCode || !invitation.acceptUrl || !invitation.expiresAt) {
+    throw new Error("The invitation has no link. Only organization managers can see it.");
+  }
+  return {
+    url: invitation.acceptUrl,
+    code: invitation.inviteCode,
+    expiresAt: invitation.expiresAt,
+  };
+}
 
 /** Fetch all organizations the current user has access to. */
 export async function fetchAccessibleOrganizations(): Promise<OrganizationRecord[]> {
@@ -339,6 +406,7 @@ export async function fetchOrganizationSettings(
       email: invitation.email ?? null,
       state: invitation.state,
       role: invitation.role,
+      expiresAt: invitation.expiresAt ?? null,
       principalGrants: invitation.principalGrants,
     })),
   };
@@ -403,12 +471,12 @@ export async function createSubscriptionPlan(
   };
 }
 
-/** Invite a user by email to the given organization. */
+/** Invite a user by email to the given organization. Returns the link to share. */
 export async function inviteUserToOrganization(params: {
   organizationId: string;
   email: string;
   role: OrganizationUserRole;
-}): Promise<void> {
+}): Promise<InvitationLink> {
   const result = await requestGraphql({
     document: InviteUsersToOrganizationMutation,
     variables: {
@@ -416,22 +484,28 @@ export async function inviteUserToOrganization(params: {
       input: {
         invitations: [{ email: params.email, role: params.role }],
       },
+      email: params.email,
     },
     organizationId: params.organizationId,
   });
 
-  unwrapMutationResult(result.inviteUsersToOrganization, "Failed to invite member.");
+  const organization = unwrapMutationResult(
+    result.inviteUsersToOrganization,
+    "Failed to invite member.",
+  );
+  return toInvitationLink(organization.invitations[0]);
 }
 
 /**
  * Invite a user and attach principal grants (e.g. link accepted account to a practitioner).
+ * Returns the link to share.
  */
 export async function inviteUserWithPrincipalGrants(params: {
   organizationId: string;
   email: string;
   principalGrants: Array<{ principalType: PrincipalType; principalId: string }>;
   role?: OrganizationUserRole;
-}): Promise<void> {
+}): Promise<InvitationLink> {
   const invitation =
     params.role === undefined
       ? { email: params.email, principalGrants: params.principalGrants }
@@ -448,11 +522,16 @@ export async function inviteUserWithPrincipalGrants(params: {
       input: {
         invitations: [invitation],
       },
+      email: params.email,
     },
     organizationId: params.organizationId,
   });
 
-  unwrapMutationResult(result.inviteUsersToOrganization, "Failed to send invitation.");
+  const organization = unwrapMutationResult(
+    result.inviteUsersToOrganization,
+    "Failed to send invitation.",
+  );
+  return toInvitationLink(organization.invitations[0]);
 }
 
 /** Link an existing org member or pending invitation to a principal (tenant-scoped; power users only). */
@@ -555,6 +634,36 @@ export async function revokeInvitation(params: {
   });
 
   unwrapMutationResult(result.revokeInvitation, "Failed to revoke invitation.");
+}
+
+/** Fetch the link of a pending invitation. Admins only. */
+export async function fetchInvitationLink(params: {
+  organizationId: string;
+  invitationId: string;
+}): Promise<InvitationLink> {
+  const data = await requestGraphql({
+    document: OrganizationInvitationLinksQuery,
+    variables: { id: params.organizationId, invitationId: params.invitationId },
+    organizationId: params.organizationId,
+  });
+
+  return toInvitationLink(data.getOrganization?.invitations[0]);
+}
+
+/** Give a pending invitation a new code and a new 7-day expiry. Returns the new link. */
+export async function renewInvitation(params: {
+  organizationId: string;
+  invitationId: string;
+}): Promise<InvitationLink> {
+  const result = await requestGraphql({
+    document: RenewInvitationMutation,
+    variables: { id: params.invitationId },
+    organizationId: params.organizationId,
+  });
+
+  return toInvitationLink(
+    unwrapMutationResult(result.renewInvitation, "Failed to renew invitation."),
+  );
 }
 
 /**

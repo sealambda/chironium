@@ -28,10 +28,11 @@ export async function devPlaywrightEnsureUser(
   }
 }
 
+/** Signs the user in. Returns the URL a signed-out visit was redirected from, if any. */
 export async function devPlaywrightSession(
   request: APIRequestContext,
   params: { baseURL: string; secret: string; email: string },
-): Promise<void> {
+): Promise<string | null> {
   const res = await request.post(`${params.baseURL}/dev/playwright/session`, {
     headers: {
       "content-type": "application/json",
@@ -44,6 +45,9 @@ export async function devPlaywrightSession(
       `session bootstrap failed for ${params.email}: ${res.status()} ${await res.text()}`,
     );
   }
+
+  const data = (await res.json()) as { returnTo?: string | null };
+  return data.returnTo ?? null;
 }
 
 export async function devPlaywrightInvitationCode(

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { acceptInvitation, rejectInvitation } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import * as m from "@/paraglide/messages";
+import { MutationError } from "@/shared/api/error-utils";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -18,6 +19,18 @@ import { Input } from "@/shared/ui/input";
 import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
 type InvitationSubmitAction = "accept" | "reject";
+
+function acceptErrorMessage(error: unknown): string {
+  if (error instanceof MutationError) {
+    if (error.fields.includes("expires_at")) {
+      return m.org_invitation_expired();
+    }
+    if (error.fields.includes("email")) {
+      return m.org_invitation_wrong_account();
+    }
+  }
+  return error instanceof Error ? error.message : m.org_invitation_accept_error();
+}
 
 interface PendingInvitationsDialogProps {
   open?: boolean;
@@ -97,8 +110,7 @@ export function PendingInvitationsDialog({
       onOpenChange?.(false);
       setInviteCodeInput("");
     } catch (error) {
-      const message = error instanceof Error ? error.message : m.org_invitation_accept_error();
-      toast.error(message);
+      toast.error(acceptErrorMessage(error));
     } finally {
       setSubmittingAction(null);
     }

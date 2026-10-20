@@ -33,11 +33,15 @@ export function SettingsMemberActionsMenu({
   onEditRole,
   onMakePractitioner,
   onRevokeInvitation,
+  onCopyInvitationLink,
+  onRenewInvitation,
 }: Readonly<{
   row: SettingsMemberTableRow;
   onEditRole: (target: EditMemberRoleTarget) => void;
   onMakePractitioner: (target: MakePractitionerTarget) => void;
   onRevokeInvitation: (invitationId: string) => void;
+  onCopyInvitationLink: (row: SettingsMemberTableRow) => void;
+  onRenewInvitation: (row: SettingsMemberTableRow) => void;
 }>) {
   if (!memberRowHasActions(row)) {
     return null;
@@ -86,6 +90,24 @@ export function SettingsMemberActionsMenu({
             {m.settings_member_make_practitioner()}
           </DropdownMenuItem>
         )}
+        {row.source.kind === "invitation" && !row.source.expired ? (
+          <DropdownMenuItem
+            className="cursor-pointer whitespace-nowrap"
+            onClick={() => onCopyInvitationLink(row)}
+            data-testid={`member-copy-invitation-link-${row.key}`}
+          >
+            {m.settings_member_copy_link()}
+          </DropdownMenuItem>
+        ) : null}
+        {row.source.kind === "invitation" && row.source.expired ? (
+          <DropdownMenuItem
+            className="cursor-pointer whitespace-nowrap"
+            onClick={() => onRenewInvitation(row)}
+            data-testid={`member-renew-invitation-${row.key}`}
+          >
+            {m.settings_member_renew_invitation()}
+          </DropdownMenuItem>
+        ) : null}
         {row.source.kind === "invitation" ? (
           <DropdownMenuItem
             className="cursor-pointer whitespace-nowrap"
