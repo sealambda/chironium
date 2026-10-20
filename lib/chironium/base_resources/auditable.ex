@@ -14,6 +14,9 @@ defmodule Chironium.BaseResources.Auditable do
         end
 
         ignore_attributes [:created_at, :updated_at]
+        # Versions are readable by any staff actor, so credentials such as invite
+        # codes (marked `sensitive?`) stay out of them.
+        sensitive_attributes :ignore
         store_action_name? true
         change_tracking_mode :changes_only
         primary_key_type :uuid_v7

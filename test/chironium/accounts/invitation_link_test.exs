@@ -166,6 +166,31 @@ defmodule Chironium.Accounts.InvitationLinkTest do
       assert invitation == %{"inviteCode" => nil, "acceptUrl" => nil}
     end
 
+    test "versions never store the code, and only admins read them", ctx do
+      invitation = invite(ctx, "versions@example.com")
+      {:ok, renewed} = renew(invitation, ctx.owner)
+      member = generate(user())
+      add_membership(ctx, member, :member)
+
+      query =
+        "query($id: ID!) { getOrganization(id: $id) { invitations { paperTrailVersions { changes } } } }"
+
+      owner_response = run_graphql(query, %{"id" => ctx.organization.id}, ctx.owner)
+      member_response = run_graphql(query, %{"id" => ctx.organization.id}, member)
+
+      assert %{"invitations" => [%{"paperTrailVersions" => [_ | _] = versions}]} =
+               owner_response["getOrganization"]
+
+      refute Enum.any?(versions, &Map.has_key?(Jason.decode!(&1["changes"]), "invite_code"))
+
+      assert %{"invitations" => [%{"paperTrailVersions" => []}]} =
+               member_response["getOrganization"]
+
+      for response <- [owner_response, member_response], code <- [invitation, renewed] do
+        refute Jason.encode!(response) =~ to_string(code.invite_code)
+      end
+    end
+
     test "accept_url is the app URL with the code", ctx do
       invite(ctx, "url@example.com")
       [loaded] = load_invitations(ctx, ctx.owner)

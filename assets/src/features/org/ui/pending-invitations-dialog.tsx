@@ -20,7 +20,8 @@ import { ORG_QUERY_KEY } from "@/shared/utils/query-keys";
 
 type InvitationSubmitAction = "accept" | "reject";
 
-function acceptErrorMessage(error: unknown): string {
+// Server error text is English, so only known fields get a specific message.
+function invitationErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof MutationError) {
     if (error.fields.includes("expires_at")) {
       return m.org_invitation_expired();
@@ -29,7 +30,7 @@ function acceptErrorMessage(error: unknown): string {
       return m.org_invitation_wrong_account();
     }
   }
-  return error instanceof Error ? error.message : m.org_invitation_accept_error();
+  return fallback;
 }
 
 interface PendingInvitationsDialogProps {
@@ -69,8 +70,7 @@ export function PendingInvitationsDialog({
       onOpenChange?.(false);
       setInviteCodeInput("");
     } catch (error) {
-      const message = error instanceof Error ? error.message : params.errorFallbackMessage;
-      toast.error(message);
+      toast.error(invitationErrorMessage(error, params.errorFallbackMessage));
     } finally {
       setSubmittingAction(null);
     }
@@ -110,7 +110,7 @@ export function PendingInvitationsDialog({
       onOpenChange?.(false);
       setInviteCodeInput("");
     } catch (error) {
-      toast.error(acceptErrorMessage(error));
+      toast.error(invitationErrorMessage(error, m.org_invitation_accept_error()));
     } finally {
       setSubmittingAction(null);
     }

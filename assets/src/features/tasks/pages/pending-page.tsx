@@ -8,7 +8,9 @@ import { toast } from "sonner";
 import { QuestionnaireRequestStatusBadge } from "@/features/customers/ui/detail/activity-feed/questionnaire-request-event";
 import { invalidatePatientTasks } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
+import type { QuestionnaireLink } from "@/features/questionnaires/api/questionnaire-requests-api";
 import { questionnaireRequestStatus } from "@/features/questionnaires/model/questionnaire-request-status";
+import { QuestionnaireLinkDialog } from "@/features/questionnaires/ui/request/questionnaire-link-dialog";
 import { QuestionnaireRequestActions } from "@/features/questionnaires/ui/request/questionnaire-request-actions";
 import {
   completeTaskReminder,
@@ -76,7 +78,12 @@ function MarkDoneButton({
 function PendingRow({
   task,
   organizationId,
-}: Readonly<{ task: PendingTask; organizationId: string }>) {
+  onLinkIssued,
+}: Readonly<{
+  task: PendingTask;
+  organizationId: string;
+  onLinkIssued: (link: QuestionnaireLink) => void;
+}>) {
   const personId = task.forPatient?.personId ?? "";
   const patientName = formatPersonName(task.forPatient?.person?.name);
   const isQuestionnaire = isQuestionnaireRequestTask(task);
@@ -117,6 +124,7 @@ function PendingRow({
               organizationId={organizationId}
               taskId={task.id}
               status={status}
+              onLinkIssued={onLinkIssued}
             />
           ) : (
             <MarkDoneButton task={task} personId={personId} organizationId={organizationId} />
@@ -131,6 +139,14 @@ function PendingRow({
 export function PendingPage() {
   const { selectedOrg } = useOrg();
   const { data: tasks, isLoading } = usePendingTasks();
+  // A resent request usually leaves the list, so the new link lives here, not in its row.
+  const [link, setLink] = useState<QuestionnaireLink | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
+
+  const showLink = (issued: QuestionnaireLink) => {
+    setLink(issued);
+    setLinkOpen(true);
+  };
 
   function renderContent() {
     if (isLoading) {
@@ -148,7 +164,12 @@ export function PendingPage() {
     return (
       <div className="space-y-3">
         {tasks.map((task) => (
-          <PendingRow key={task.id} task={task} organizationId={selectedOrg.id} />
+          <PendingRow
+            key={task.id}
+            task={task}
+            organizationId={selectedOrg.id}
+            onLinkIssued={showLink}
+          />
         ))}
       </div>
     );
@@ -164,6 +185,13 @@ export function PendingPage() {
       </header>
 
       {renderContent()}
+
+      <QuestionnaireLinkDialog
+        link={link}
+        open={linkOpen}
+        onOpenChange={setLinkOpen}
+        onClosed={() => setLink(null)}
+      />
     </div>
   );
 }

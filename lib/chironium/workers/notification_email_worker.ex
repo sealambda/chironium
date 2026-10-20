@@ -11,11 +11,20 @@ defmodule Chironium.Workers.NotificationEmailWorker do
   alias Chironium.Health.Task
   alias Chironium.Mailer
   alias Chironium.Mailer.Renderer
+  alias Chironium.Notifications
 
   @fallback_locale "en"
 
+  # Checked here as well as in `Notifications.send/2`: a job queued or retrying
+  # from before email was turned off must not send.
   @impl true
   def perform(%Oban.Job{args: %{"type" => type, "params" => params}}) do
+    if Notifications.email_enabled?(),
+      do: deliver(type, params),
+      else: {:cancel, "Email is off; skipped #{type}."}
+  end
+
+  defp deliver(type, params) do
     locale = params["locale"] || @fallback_locale
 
     email =

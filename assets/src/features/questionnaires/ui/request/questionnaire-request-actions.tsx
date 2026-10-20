@@ -29,6 +29,11 @@ interface QuestionnaireRequestActionsProps {
   organizationId: string;
   taskId: string;
   status: QuestionnaireRequestStatus;
+  /**
+   * Shows the new link instead of this component's own dialog. Needed where the
+   * resend can remove the row, as on the Pending page, since the dialog unmounts with it.
+   */
+  onLinkIssued?: (link: QuestionnaireLink) => void;
 }
 
 /** Resend and Cancel for an open questionnaire request, each behind a confirmation. */
@@ -37,6 +42,7 @@ export function QuestionnaireRequestActions({
   organizationId,
   taskId,
   status,
+  onLinkIssued,
 }: Readonly<QuestionnaireRequestActionsProps>) {
   const queryClient = useQueryClient();
   // The kind outlives `confirmOpen` so the dialog keeps its text while it animates out.
@@ -61,9 +67,13 @@ export function QuestionnaireRequestActions({
     setBusy(true);
     try {
       const issued = await reissueQuestionnaireLink(taskId, organizationId);
-      setLink(issued);
       setConfirmOpen(false);
-      setLinkOpen(true);
+      if (onLinkIssued) {
+        onLinkIssued(issued);
+      } else {
+        setLink(issued);
+        setLinkOpen(true);
+      }
       await invalidatePatientTasks(queryClient, personId, organizationId);
     } catch {
       toast.error(m.questionnaire_request_resend_error());

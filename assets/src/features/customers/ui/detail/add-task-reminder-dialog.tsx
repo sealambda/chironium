@@ -5,6 +5,7 @@ import { ClipboardClock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { invalidatePatientTasks } from "@/features/customers/utils/person-detail-cache";
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
   createTask,
@@ -27,7 +28,7 @@ import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { toDateTimeEnd, toDateTimeStart } from "@/shared/utils/date-time-input";
-import { personQueryKeys, tasksListQueryKey } from "@/shared/utils/query-keys";
+import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface AddTaskReminderDialogProps {
   readonly personId: string;
@@ -108,11 +109,7 @@ export function AddTaskReminderDialog({
           endDate: endIso,
         });
 
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.reviewTasksScope(personId) }),
-          queryClient.invalidateQueries({ queryKey: personQueryKeys.patientTasksScope(personId) }),
-          queryClient.invalidateQueries({ queryKey: tasksListQueryKey(selectedOrg.id) }),
-        ]);
+        await invalidatePatientTasks(queryClient, personId, selectedOrg.id);
 
         toast.success(m.review_task_created());
         setOpen(false);

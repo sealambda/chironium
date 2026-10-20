@@ -1,3 +1,4 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { addDays, addHours } from "date-fns";
@@ -8,8 +9,9 @@ import type { PendingTask } from "@/features/tasks/api/tasks-api";
 import { PendingPage } from "@/features/tasks/pages/pending-page";
 import { renderWithQueryClient } from "@/test/render-with-query-client";
 
-const { completeTaskReminder, pending, toast } = vi.hoisted(() => ({
+const { completeTaskReminder, reissueQuestionnaireLink, pending, toast } = vi.hoisted(() => ({
   completeTaskReminder: vi.fn(),
+  reissueQuestionnaireLink: vi.fn(),
   pending: { data: [] as PendingTask[], isLoading: false },
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -40,6 +42,13 @@ vi.mock("@/features/tasks/hooks/use-pending-tasks", () => ({
 vi.mock("@/features/tasks/api/tasks-api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/features/tasks/api/tasks-api")>()),
   completeTaskReminder,
+}));
+
+vi.mock("@/features/questionnaires/api/questionnaire-requests-api", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@/features/questionnaires/api/questionnaire-requests-api")
+  >()),
+  reissueQuestionnaireLink,
 }));
 
 vi.mock("@/features/customers/utils/person-detail-cache", () => ({
@@ -133,6 +142,42 @@ describe("PendingPage", () => {
 
     await waitFor(() => expect(completeTaskReminder).toHaveBeenCalledWith("task-r", "org-1"));
     expect(toast.success).toHaveBeenCalledWith("Reminder marked as done.");
+  });
+
+  it("keeps a resent link on screen after its request leaves the list", async () => {
+    const user = userEvent.setup();
+    const newLink = "https://chironium.test/portal/sign-in?token=new-token";
+    pending.data = [
+      {
+        ...overdueQuestionnaire,
+        dueAt: null,
+        accessExpiresAt: addDays(new Date(), -2).toISOString(),
+      },
+    ];
+    reissueQuestionnaireLink.mockResolvedValue({
+      taskId: "task-q",
+      url: newLink,
+      emailSent: false,
+      expiresAt: addDays(new Date(), 7).toISOString(),
+      questionnaireTitle: "Weekly check-in",
+    });
+
+    const { queryClient, rerender } = renderWithQueryClient(<PendingPage />);
+    await user.click(screen.getByRole("button", { name: "Send a new link" }));
+    const confirm = await screen.findByRole("alertdialog");
+    await user.click(within(confirm).getByRole("button", { name: "Create new link" }));
+    await screen.findByDisplayValue(newLink);
+
+    // With a fresh link and no due date, the request is no longer pending.
+    pending.data = [];
+    rerender(
+      <QueryClientProvider client={queryClient}>
+        <PendingPage />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.queryByTestId("pending-row")).toBeNull();
+    expect(screen.getByDisplayValue(newLink)).toBeVisible();
   });
 
   it("shows the empty state", () => {
