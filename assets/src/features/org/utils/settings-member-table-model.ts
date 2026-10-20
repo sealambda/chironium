@@ -14,7 +14,7 @@ function hasActivePractitionerGrant(
 export type MemberSource =
   | { kind: "owner"; userId: string }
   | { kind: "membership"; organizationUserId: string; userId: string }
-  | { kind: "invitation"; invitationId: string };
+  | { kind: "invitation"; invitationId: string; expired: boolean };
 
 type MemberRowDisplay = {
   key: string;
@@ -34,6 +34,11 @@ export type SettingsMemberTableRow = MemberRowDisplay & {
 
 function isPendingInvitationState(state: string): boolean {
   return state.toLowerCase() === "pending";
+}
+
+// A missing expiry counts as expired, as it does on the server.
+function isInvitationExpired(expiresAt: string | null, now: Date): boolean {
+  return expiresAt === null || new Date(expiresAt) <= now;
 }
 
 function formatMemberRoleCell(params: {
@@ -62,6 +67,7 @@ function formatMemberRoleCell(params: {
  */
 export function buildSettingsMemberRows(
   organization: OrganizationSettingsData,
+  now: Date = new Date(),
 ): SettingsMemberTableRow[] {
   const pendingByEmail = new Set<string>();
   for (const invitation of organization.invitations) {
@@ -197,6 +203,7 @@ export function buildSettingsMemberRows(
     }
 
     const grants = hasActivePractitionerGrant(invitation.principalGrants);
+    const expired = isInvitationExpired(invitation.expiresAt, now);
 
     return [
       {
@@ -208,8 +215,8 @@ export function buildSettingsMemberRows(
           isOwner: false,
           hasPractitionerRole: grants,
         }),
-        status: m.settings_member_status_pending(),
-        source: { kind: "invitation", invitationId: invitation.id } satisfies MemberSource,
+        status: expired ? m.settings_member_status_expired() : m.settings_member_status_pending(),
+        source: { kind: "invitation", invitationId: invitation.id, expired } satisfies MemberSource,
         orgRole: invitation.role,
         isOwner: false,
         hasPractitionerGrant: grants,

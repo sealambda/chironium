@@ -70,7 +70,7 @@ defmodule Chironium.AccountsTest do
       |> Ash.update!()
 
       {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: member)
+        Chironium.Accounts.find_current_email_invitations(actor: member, authorize?: false)
 
       {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: member)
 
@@ -127,7 +127,7 @@ defmodule Chironium.AccountsTest do
       |> Ash.update!()
 
       {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: member)
+        Chironium.Accounts.find_current_email_invitations(actor: member, authorize?: false)
 
       {:ok, _} = Chironium.Accounts.accept_invitation(invitation.invite_code, actor: member)
 
@@ -144,7 +144,7 @@ defmodule Chironium.AccountsTest do
       |> Ash.update!()
 
       {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: second_member)
+        Chironium.Accounts.find_current_email_invitations(actor: second_member, authorize?: false)
 
       {:ok, _} =
         Chironium.Accounts.accept_invitation(invitation.invite_code, actor: second_member)
@@ -194,7 +194,7 @@ defmodule Chironium.AccountsTest do
       |> Ash.update!()
 
       {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: other_user)
+        Chironium.Accounts.find_current_email_invitations(actor: other_user, authorize?: false)
 
       assert {:ok, _accepted_invitation} =
                Chironium.Accounts.accept_invitation(invitation.invite_code, actor: other_user)
@@ -238,7 +238,7 @@ defmodule Chironium.AccountsTest do
       |> Ash.update!()
 
       {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: other_user)
+        Chironium.Accounts.find_current_email_invitations(actor: other_user, authorize?: false)
 
       assert {:ok, rejected_invitation} =
                Chironium.Accounts.reject_invitation(invitation.invite_code, actor: other_user)
@@ -283,7 +283,7 @@ defmodule Chironium.AccountsTest do
       |> Ash.update!()
 
       {:ok, [invitation]} =
-        Chironium.Accounts.find_current_email_invitations(actor: other_user)
+        Chironium.Accounts.find_current_email_invitations(actor: other_user, authorize?: false)
 
       {:ok, _rejected} =
         Chironium.Accounts.reject_invitation(invitation.invite_code, actor: other_user)
@@ -393,7 +393,10 @@ defmodule Chironium.AccountsTest do
       |> Ash.update!()
 
       assert {:ok, [invitation]} =
-               Chironium.Accounts.find_current_email_invitations(actor: invitee)
+               Chironium.Accounts.find_current_email_invitations(
+                 actor: invitee,
+                 authorize?: false
+               )
 
       assert invitation.invite_code
       refute_enqueued(worker: Chironium.Workers.NotificationEmailWorker)
