@@ -62,10 +62,76 @@ describe("questionnaireRequestStatus", () => {
   });
 });
 
+describe("questionnaireRequestStatus with a due date", () => {
+  const DUE_YESTERDAY = "2026-09-24T21:59:59.000Z";
+  const DUE_TOMORROW = "2026-09-26T21:59:59.000Z";
+
+  it("reports overdue the day after the due date while the link still works", () => {
+    expect(
+      questionnaireRequestStatus(
+        { status: "REQUESTED", accessExpiresAt: FUTURE, dueAt: DUE_YESTERDAY },
+        NOW,
+      ),
+    ).toBe("overdue");
+    expect(
+      questionnaireRequestStatus(
+        { status: "IN_PROGRESS", accessExpiresAt: FUTURE, dueAt: DUE_YESTERDAY },
+        NOW,
+      ),
+    ).toBe("overdue");
+  });
+
+  it("is not overdue before the due date", () => {
+    expect(
+      questionnaireRequestStatus(
+        { status: "REQUESTED", accessExpiresAt: FUTURE, dueAt: DUE_TOMORROW },
+        NOW,
+      ),
+    ).toBe("sent");
+  });
+
+  it("reports expired over overdue once the link has expired", () => {
+    expect(
+      questionnaireRequestStatus(
+        { status: "REQUESTED", accessExpiresAt: PAST, dueAt: DUE_YESTERDAY },
+        NOW,
+      ),
+    ).toBe("expired");
+  });
+
+  it("never reports overdue without a due date: sent until the link expires, then expired", () => {
+    expect(
+      questionnaireRequestStatus(
+        { status: "REQUESTED", accessExpiresAt: FUTURE, dueAt: null },
+        NOW,
+      ),
+    ).toBe("sent");
+    expect(
+      questionnaireRequestStatus({ status: "REQUESTED", accessExpiresAt: PAST, dueAt: null }, NOW),
+    ).toBe("expired");
+  });
+
+  it("never reports completed or cancelled requests as overdue", () => {
+    expect(
+      questionnaireRequestStatus(
+        { status: "COMPLETED", accessExpiresAt: FUTURE, dueAt: DUE_YESTERDAY },
+        NOW,
+      ),
+    ).toBe("completed");
+    expect(
+      questionnaireRequestStatus(
+        { status: "CANCELLED", accessExpiresAt: FUTURE, dueAt: DUE_YESTERDAY },
+        NOW,
+      ),
+    ).toBe("cancelled");
+  });
+});
+
 describe("isOpenQuestionnaireRequest", () => {
-  it("allows resend and cancel for sent, opened and expired requests only", () => {
+  it("allows resend and cancel for sent, opened, overdue and expired requests only", () => {
     expect(isOpenQuestionnaireRequest("sent")).toBe(true);
     expect(isOpenQuestionnaireRequest("opened")).toBe(true);
+    expect(isOpenQuestionnaireRequest("overdue")).toBe(true);
     expect(isOpenQuestionnaireRequest("expired")).toBe(true);
     expect(isOpenQuestionnaireRequest("completed")).toBe(false);
     expect(isOpenQuestionnaireRequest("cancelled")).toBe(false);

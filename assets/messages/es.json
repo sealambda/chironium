@@ -729,6 +729,7 @@
   "questionnaire_request_status_completed": "Completado",
   "questionnaire_request_status_expired": "Enlace caducado",
   "questionnaire_request_status_opened": "Abierto",
+  "questionnaire_request_status_overdue": "Fuera de plazo",
   "questionnaire_request_status_sent": "Enviado",
   "questionnaire_request_submit": "Crear enlace",
   "questionnaire_request_subtitle": "El paciente recibe un enlace de un solo uso para completarlo por su cuenta.",

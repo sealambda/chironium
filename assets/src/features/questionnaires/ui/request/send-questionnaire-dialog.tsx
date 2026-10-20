@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
-import { todayDateInput } from "@/shared/utils/date-time-input";
+import { toDateTimeEnd, todayDateInput } from "@/shared/utils/date-time-input";
 import { questionnairesQueryKeys } from "@/shared/utils/query-keys";
 
 import { QuestionnaireLinkResult } from "./questionnaire-link-result";
@@ -95,7 +95,7 @@ export function SendQuestionnaireDialog({
         organizationId: orgId,
         patientId,
         questionnaireId,
-        dueDate: dueDate || undefined,
+        dueAt: toDateTimeEnd(dueDate),
         message,
       });
       setLink(issued);

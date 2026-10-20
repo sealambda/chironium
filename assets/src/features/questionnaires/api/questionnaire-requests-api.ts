@@ -64,8 +64,8 @@ export interface RequestQuestionnaireParams {
   organizationId: string;
   patientId: string;
   questionnaireId: string;
-  /** A `YYYY-MM-DD` date. */
-  dueDate?: string;
+  /** An ISO 8601 instant: the end of the due day in the practitioner's timezone. */
+  dueAt?: string;
   message?: string;
 }
 
@@ -99,7 +99,7 @@ export async function requestQuestionnaire({
   organizationId,
   patientId,
   questionnaireId,
-  dueDate,
+  dueAt,
   message,
 }: RequestQuestionnaireParams): Promise<QuestionnaireLink> {
   const trimmedMessage = message?.trim();
@@ -109,7 +109,7 @@ export async function requestQuestionnaire({
       input: {
         patientId,
         questionnaireId,
-        ...(dueDate ? { dueDate } : {}),
+        ...(dueAt ? { dueAt } : {}),
         ...(trimmedMessage ? { message: trimmedMessage } : {}),
       },
     },

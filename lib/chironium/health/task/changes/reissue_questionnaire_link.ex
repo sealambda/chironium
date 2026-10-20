@@ -25,21 +25,23 @@ defmodule Chironium.Health.Task.Changes.ReissueQuestionnaireLink do
         )
 
       true ->
-        due_date = due_date(task.requested_period)
+        now = DateTime.utc_now()
 
         Ash.Changeset.force_change_attribute(
           changeset,
           :access_expires_at,
-          QuestionnaireRequests.access_expires_at(due_date)
+          QuestionnaireRequests.access_expires_at(
+            upcoming_due_at(task.requested_period, now),
+            now
+          )
         )
     end
   end
 
   # A due date that has passed no longer extends the window.
-  defp due_date(%{end: %DateTime{} = due}) do
-    date = DateTime.to_date(due)
-    if Date.compare(date, Date.utc_today()) == :lt, do: nil, else: date
+  defp upcoming_due_at(%{end: %DateTime{} = due_at}, now) do
+    if DateTime.compare(due_at, now) == :gt, do: due_at
   end
 
-  defp due_date(_), do: nil
+  defp upcoming_due_at(_period, _now), do: nil
 end

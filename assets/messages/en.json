@@ -729,6 +729,7 @@
   "questionnaire_request_status_completed": "Completed",
   "questionnaire_request_status_expired": "Link expired",
   "questionnaire_request_status_opened": "Opened",
+  "questionnaire_request_status_overdue": "Overdue",
   "questionnaire_request_status_sent": "Sent",
   "questionnaire_request_submit": "Create link",
   "questionnaire_request_subtitle": "The patient gets a single-use link to fill it in on their own.",

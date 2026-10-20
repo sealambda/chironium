@@ -40,6 +40,7 @@ function buildTask(overrides: Partial<PatientTask>): PatientTask {
     description: null,
     requestedPeriod: { start: "2026-09-20T09:00:00.000Z", end: null },
     accessExpiresAt: "2026-09-27T09:00:00.000Z",
+    dueAt: null,
     focusQuestionnaireId: "questionnaire-1",
     focusQuestionnaire: { id: "questionnaire-1", title: "Intake" },
     requesterName: "Dana Requester",
