@@ -44,6 +44,19 @@ defmodule Chironium.DataCase do
   end
 
   @doc """
+  Turns email off for the rest of the test. The flag is global application
+  env, so callers must not run `async: true`.
+  """
+  def disable_email do
+    previous = Application.get_env(:chironium, Chironium.Notifications)
+    Application.put_env(:chironium, Chironium.Notifications, email_enabled?: false)
+
+    ExUnit.Callbacks.on_exit(fn ->
+      Application.put_env(:chironium, Chironium.Notifications, previous)
+    end)
+  end
+
+  @doc """
   A helper that transforms changeset errors into a map of messages.
 
       assert {:error, changeset} = Accounts.create_user(%{password: "short"})

@@ -25,7 +25,11 @@ defmodule Chironium.Health.QuestionnaireRequests do
   def task_code do
     %{
       coding: [
-        %{system: @sdc_task_codes, code: "complete-questionnaire", display: "Complete Questionnaire"}
+        %{
+          system: @sdc_task_codes,
+          code: "complete-questionnaire",
+          display: "Complete Questionnaire"
+        }
       ],
       text: "Complete questionnaire"
     }
@@ -56,8 +60,8 @@ defmodule Chironium.Health.QuestionnaireRequests do
   def end_of_day(%Date{} = date), do: DateTime.new!(date, ~T[23:59:59.999999], "Etc/UTC")
 
   @doc """
-  Issues the link and, when the patient has an email address, the email
-  access for a task. Enqueues the email in the current transaction.
+  Issues the link and, when email is on and the patient has an email address,
+  the email access for a task. Enqueues the email in the current transaction.
 
   Returns `{:ok, %{link_url: url, email_sent?: boolean}}`.
   """
@@ -79,20 +83,21 @@ defmodule Chironium.Health.QuestionnaireRequests do
     end
 
     with {:ok, link_url} <- GuestAccess.sign_in_url(issue.(:link)) do
+      # With email off, no email access is issued: an unused one is still a
+      # live credential.
       email_sent? =
-        case patient_email(task.for_patient_id, tenant) do
-          nil ->
-            false
+        if Chironium.Notifications.email_enabled?() &&
+             patient_email(task.for_patient_id, tenant) do
+          email_access = issue.(:email)
 
-          _email ->
-            email_access = issue.(:email)
+          Chironium.Notifications.send(:questionnaire_requested, %{
+            guest_access_id: email_access.id,
+            tenant: tenant
+          })
 
-            Chironium.Notifications.send(:questionnaire_requested, %{
-              guest_access_id: email_access.id,
-              tenant: tenant
-            })
-
-            true
+          true
+        else
+          false
         end
 
       {:ok, %{link_url: link_url, email_sent?: email_sent?}}

@@ -1,6 +1,7 @@
 defmodule Chironium.AccountsTest do
   require Ash.Query
   use Chironium.DataCase
+  use Oban.Testing, repo: Chironium.Repo
   import Chironium.Generator
 
   # -- Helpers -----------------------------------------------------------------
@@ -377,6 +378,25 @@ defmodule Chironium.AccountsTest do
                  actor: outsider,
                  tenant: "org_#{org.id}"
                )
+    end
+
+    test "inviting a member works when email is off" do
+      disable_email()
+      actor = generate(user())
+      org = generate(organization(actor: actor))
+      invitee = generate(user())
+
+      org
+      |> Ash.Changeset.for_update(:invite_users, %{invitations: [%{email: invitee.email}]},
+        actor: actor
+      )
+      |> Ash.update!()
+
+      assert {:ok, [invitation]} =
+               Chironium.Accounts.find_current_email_invitations(actor: invitee)
+
+      assert invitation.invite_code
+      refute_enqueued(worker: Chironium.Workers.NotificationEmailWorker)
     end
 
     test "can accept an invitation with a different email address" do

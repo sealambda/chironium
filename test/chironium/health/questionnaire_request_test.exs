@@ -63,6 +63,16 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
       refute_enqueued(worker: Chironium.Workers.NotificationEmailWorker)
     end
 
+    test "only issues the link when email is off", ctx do
+      disable_email()
+
+      task = request!(ctx, ctx.practitioner, ctx.patient, ctx.questionnaire)
+
+      assert task.__metadata__.email_sent == false
+      assert [%{channel: :link}] = accesses(task)
+      refute_enqueued(worker: Chironium.Workers.NotificationEmailWorker)
+    end
+
     test "rejects a questionnaire that is not active", ctx do
       draft = questionnaire(ctx, :draft)
 

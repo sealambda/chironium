@@ -397,3 +397,11 @@ This plan builds on #189 (patient questionnaire links, this branch), which adds 
 - Rate limiting `acceptInvitation`. Codes are 40 bits (`Base.encode32` of 5 random bytes) and accepting requires a signed-in user, so guessing isn't practical.
 - Per-user notification preferences. `Notifications.send/2` keeps its single email channel.
 - Overdue alerts by email. Pending work shows only in the web interface.
+
+## Implementation Notes
+
+Where the build differs from the plan above:
+
+- **Phase 1: tests turn email off with `Chironium.DataCase.disable_email/0`.** It sets the flag and restores it in `on_exit`. Every module that calls it runs `async: false`, so `notifications_test.exs` is no longer async.
+- **Phase 1: the meta tag test stubs the Vite manifest.** `PageControllerTest` renders `/app` through the root layout, which reads `priv/static/.vite/manifest.json`. CI runs `mix test` before the assets build, so the test seeds PhoenixVite's manifest cache when the file is missing.
+- **Phase 1: `isEmailEnabled()` has no importers yet.** It stays despite the dead code policy, because Phase 3 uses it.
