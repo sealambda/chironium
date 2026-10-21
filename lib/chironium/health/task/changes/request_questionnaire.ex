@@ -13,7 +13,7 @@ defmodule Chironium.Health.Task.Changes.RequestQuestionnaire do
 
   @impl true
   def change(changeset, _opts, context) do
-    # The client sends the end of the due day in the practitioner's timezone.
+    # The client sends the end of the due day in the organization's timezone.
     due_at = Ash.Changeset.get_argument(changeset, :due_at)
     now = DateTime.utc_now()
 

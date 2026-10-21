@@ -24,14 +24,15 @@ import { Card } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { inZone } from "@/shared/utils/date-time-input";
 import { formatPersonName } from "@/shared/utils/person-utils";
 
 /** "Due Oct 12 · 3 days late" once the due date has passed, else "Link expired 2 days ago". */
-function whenText(task: PendingTask): string | null {
+function whenText(task: PendingTask, timeZone: string | undefined): string | null {
   if (task.dueAt && parseISO(task.dueAt).getTime() <= Date.now()) {
     const due = parseISO(task.dueAt);
     return [
-      m.pending_due({ date: format(due, "PP", { locale: getDateLocale() }) }),
+      m.pending_due({ date: format(due, "PP", { locale: getDateLocale(), ...inZone(timeZone) }) }),
       m.pending_late({ time: formatDistanceToNowStrict(due, { locale: getDateLocale() }) }),
     ].join(" · ");
   }
@@ -88,7 +89,8 @@ function PendingRow({
   const patientName = formatPersonName(task.forPatient?.person?.name);
   const isQuestionnaire = isQuestionnaireRequestTask(task);
   const status = isQuestionnaire ? questionnaireRequestStatus(task) : null;
-  const when = whenText(task);
+  const { selectedOrg } = useOrg();
+  const when = whenText(task, selectedOrg?.timezone);
 
   return (
     <Card className="p-4" data-testid="pending-row">

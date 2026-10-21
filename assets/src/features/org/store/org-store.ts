@@ -30,8 +30,10 @@ function resolveSelectedOrg(
     return null;
   }
 
-  if (current && availableOrgs.some((org) => org.id === current.id)) {
-    return current;
+  // Take the refreshed record so settings changes, such as the timezone, reach the store.
+  const refreshed = current && availableOrgs.find((org) => org.id === current.id);
+  if (refreshed) {
+    return refreshed;
   }
 
   const preferredOrgId = getStoredPreference();

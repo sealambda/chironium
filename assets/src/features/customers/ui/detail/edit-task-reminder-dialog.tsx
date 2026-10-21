@@ -37,7 +37,7 @@ export function EditTaskReminderDialog({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const initialStartDate = isoToDateInput(task.requestedPeriod?.start);
+  const initialStartDate = isoToDateInput(task.requestedPeriod?.start, selectedOrg?.timezone);
 
   const form = useForm({
     defaultValues: {
@@ -46,8 +46,8 @@ export function EditTaskReminderDialog({
     },
     onSubmit: async ({ value }) => {
       const description = value.description.trim();
-      const startDate = toDateTimeStart(value.startDate);
-      const endDate = toDateTimeEnd(value.startDate);
+      const startDate = toDateTimeStart(value.startDate, selectedOrg?.timezone);
+      const endDate = toDateTimeEnd(value.startDate, selectedOrg?.timezone);
 
       if (!selectedOrg?.id || !description || !startDate || !endDate) {
         return;

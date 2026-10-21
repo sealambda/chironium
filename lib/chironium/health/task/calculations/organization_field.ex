@@ -1,6 +1,7 @@
-defmodule Chironium.Health.Task.Calculations.OrganizationName do
+defmodule Chironium.Health.Task.Calculations.OrganizationField do
   @moduledoc """
-  The name of the organization that owns the task's tenant.
+  A field of the organization that owns the task's tenant, named by the
+  `:field` option.
 
   Loaded without authorization so a patient can see who is asking, while the
   Organization resource itself stays closed to them.
@@ -12,15 +13,15 @@ defmodule Chironium.Health.Task.Calculations.OrganizationName do
   alias Chironium.Accounts.Organization
 
   @impl true
-  def calculate(tasks, _opts, context) do
-    name =
+  def calculate(tasks, opts, context) do
+    value =
       with {:ok, organization_id} <- Authorization.organization_id_from_tenant(context.tenant),
            {:ok, organization} <- Ash.get(Organization, organization_id, authorize?: false) do
-        organization.name
+        Map.fetch!(organization, opts[:field])
       else
         _ -> nil
       end
 
-    Enum.map(tasks, fn _task -> name end)
+    Enum.map(tasks, fn _task -> value end)
   end
 end

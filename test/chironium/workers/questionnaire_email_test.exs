@@ -33,7 +33,10 @@ defmodule Chironium.Workers.QuestionnaireEmailTest do
       assert email.text_body =~ "See you soon"
 
       [url] = Regex.run(~r{https?://\S+/portal/sign-in\?token=[^\s"<>)\]]+}, email.html_body)
-      assert {:ok, guest_access} = url |> String.replace("&amp;", "&") |> token_from_url() |> sign_in()
+
+      assert {:ok, guest_access} =
+               url |> String.replace("&amp;", "&") |> token_from_url() |> sign_in()
+
       assert guest_access.id == ctx.email_access.id
     end)
   end
@@ -46,6 +49,21 @@ defmodule Chironium.Workers.QuestionnaireEmailTest do
     assert :ok = perform_job(NotificationEmailWorker, job_args(ctx))
 
     assert_email_sent(subject: "#{ctx.organization.name} te envió un cuestionario")
+  end
+
+  test "dates the link's expiry in the organization's timezone", ctx do
+    ctx.organization
+    |> Ash.Changeset.for_update(:update, %{timezone: "Europe/Madrid"}, authorize?: false)
+    |> Ash.update!()
+
+    # 23:30 UTC is already the next day in Madrid.
+    expires_at = %{DateTime.add(DateTime.utc_now(), 10, :day) | hour: 23, minute: 30}
+    expire!(ctx.email_access, expires_at)
+    {:ok, madrid_day} = Chironium.Cldr.Date.to_string(Date.add(expires_at, 1), format: :long)
+
+    assert :ok = perform_job(NotificationEmailWorker, job_args(ctx))
+
+    assert_email_sent(fn email -> assert email.text_body =~ madrid_day end)
   end
 
   test "does not send once the link was used or revoked", ctx do

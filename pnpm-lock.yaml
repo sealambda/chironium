@@ -48,6 +48,9 @@ importers:
       '@base-ui/react':
         specifier: ~1.4.1
         version: 1.4.1(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@date-fns/tz':
+        specifier: ~1.4.1
+        version: 1.4.1
       '@fontsource-variable/inter':
         specifier: ~5.2.8
         version: 5.2.8

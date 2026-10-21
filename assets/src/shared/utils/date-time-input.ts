@@ -1,3 +1,4 @@
+import { tz } from "@date-fns/tz";
 import { endOfDay, format, formatISO, isValid, parse, startOfDay } from "date-fns";
 
 import { getLocale } from "@/paraglide/runtime";
@@ -26,7 +27,13 @@ export function toDateTimeInputParts(value: Date = new Date()): DateTimeInputPar
   };
 }
 
-export function isoToDateInput(value: string | null | undefined): string {
+/** A date-fns context for `timeZone`; without one, date-fns uses the browser's zone. */
+export function inZone(timeZone?: string) {
+  return timeZone ? { in: tz(timeZone) } : undefined;
+}
+
+/** Without `timeZone`, the browser's zone gives the calendar date. */
+export function isoToDateInput(value: string | null | undefined, timeZone?: string): string {
   if (!value) {
     return "";
   }
@@ -36,7 +43,7 @@ export function isoToDateInput(value: string | null | undefined): string {
   }
 
   const date = new Date(value);
-  return isValid(date) ? toDateInput(date) : "";
+  return isValid(date) ? format(date, DATE_INPUT_FORMAT, inZone(timeZone)) : "";
 }
 
 export function isoToDateTimeInputParts(value: string | null | undefined): DateTimeInputParts {
@@ -53,26 +60,28 @@ export function isoToDateTimeInputParts(value: string | null | undefined): DateT
   return toDateTimeInputParts(date);
 }
 
-export function todayDateInput(value: Date = new Date()): string {
-  return toDateInput(value);
+export function todayDateInput(timeZone?: string): string {
+  return format(new Date(), DATE_INPUT_FORMAT, inZone(timeZone));
 }
 
-export function toDateTimeStart(date: string): string | undefined {
+/** The first instant of `date` in `timeZone`, or in the browser's zone without one. */
+export function toDateTimeStart(date: string, timeZone?: string): string | undefined {
   if (!date) {
     return undefined;
   }
 
-  const parsed = parse(date, DATE_INPUT_FORMAT, new Date());
-  return isValid(parsed) ? formatISO(startOfDay(parsed)) : undefined;
+  const parsed = parse(date, DATE_INPUT_FORMAT, new Date(), inZone(timeZone));
+  return isValid(parsed) ? formatISO(startOfDay(parsed, inZone(timeZone))) : undefined;
 }
 
-export function toDateTimeEnd(date: string): string | undefined {
+/** The last instant of `date` in `timeZone`, or in the browser's zone without one. */
+export function toDateTimeEnd(date: string, timeZone?: string): string | undefined {
   if (!date) {
     return undefined;
   }
 
-  const parsed = parse(date, DATE_INPUT_FORMAT, new Date());
-  return isValid(parsed) ? formatISO(endOfDay(parsed)) : undefined;
+  const parsed = parse(date, DATE_INPUT_FORMAT, new Date(), inZone(timeZone));
+  return isValid(parsed) ? formatISO(endOfDay(parsed, inZone(timeZone))) : undefined;
 }
 
 export function toDateTimeInput(

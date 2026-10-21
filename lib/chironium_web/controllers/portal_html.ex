@@ -7,9 +7,9 @@ defmodule ChironiumWeb.PortalHTML do
 
   embed_templates "portal_html/*"
 
-  @doc "Formats a date for the confirm page in the current locale."
-  def format_date(%DateTime{} = datetime, locale) do
-    date = DateTime.to_date(datetime)
+  @doc "Formats a date for the confirm page in the current locale and the organization's timezone."
+  def format_date(%DateTime{} = datetime, locale, timezone) do
+    date = datetime |> DateTime.shift_zone!(timezone || "Etc/UTC") |> DateTime.to_date()
 
     case Chironium.Cldr.Date.to_string(date, format: :long, locale: locale || "en") do
       {:ok, formatted} -> formatted

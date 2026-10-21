@@ -23,6 +23,7 @@ config :phoenix_vite, PhoenixVite.Npm,
   ]
 
 config :ex_cldr, default_backend: Chironium.Cldr
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 config :ash_oban, pro?: false
 

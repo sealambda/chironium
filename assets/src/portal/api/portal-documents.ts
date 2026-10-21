@@ -20,6 +20,7 @@ const PortalRequestQuery = graphql(`
         accessExpiresAt
         requesterName
         organizationName
+        organizationTimezone
         requestedPeriod {
           end
         }
@@ -39,7 +40,7 @@ export const PortalRequestDocument = graphql.persisted<
   typeof PortalRequestQuery
 >(
   // biome-ignore lint/security/noSecrets: A document hash, not a secret.
-  "sha256:2b42c9d9a42722a87bb486a7b18f4962eb885ba7c27417bb29e1e4bdc607409f",
+  "sha256:d435d0678208b5d72aa1bf202a7937edce048b81e60ddaa172fc46b741baf5cf",
 );
 
 const PortalSubmitResponseMutation = graphql(`

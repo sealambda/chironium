@@ -52,7 +52,8 @@ defmodule Chironium.Workers.NotificationEmailWorker do
          email when is_binary(email) <-
            QuestionnaireRequests.patient_email(access.principal_id, tenant),
          {:ok, url} <- GuestAccess.sign_in_url(access) do
-      locale = organization_locale(access.organization_id)
+      organization = organization(access.organization_id)
+      locale = organization.preferred_locale
 
       Gettext.with_locale(ChironiumWeb.Gettext, locale, fn ->
         %{html: html, text: text} =
@@ -61,7 +62,7 @@ defmodule Chironium.Workers.NotificationEmailWorker do
             organization_name: task.organization_name,
             questionnaire_title: task.focus_questionnaire && task.focus_questionnaire.title,
             message: task.description,
-            expires_on: format_date(access.expires_at, locale),
+            expires_on: format_date(access.expires_at, locale, organization.timezone),
             url: url
           })
 
@@ -138,15 +139,15 @@ defmodule Chironium.Workers.NotificationEmailWorker do
        else: :inactive
   end
 
-  defp organization_locale(organization_id) do
+  defp organization(organization_id) do
     case Ash.get(Chironium.Accounts.Organization, organization_id, authorize?: false) do
-      {:ok, %{preferred_locale: locale}} when is_binary(locale) -> locale
-      _ -> @fallback_locale
+      {:ok, organization} -> organization
+      _ -> %{preferred_locale: @fallback_locale, timezone: "Etc/UTC"}
     end
   end
 
-  defp format_date(datetime, locale) do
-    date = DateTime.to_date(datetime)
+  defp format_date(datetime, locale, timezone) do
+    date = datetime |> DateTime.shift_zone!(timezone) |> DateTime.to_date()
 
     case Chironium.Cldr.Date.to_string(date, format: :long, locale: locale) do
       {:ok, formatted} -> formatted

@@ -45,3 +45,13 @@ A running log of non-trivial UI/UX and architecture decisions, for cross-session
   - A dual-role person uses the staff app for work and the portal for their own care.
   - Staff and guest sessions share one cookie until the portal moves to its own origin.
 - **Scope:** `lib/chironium_web/router.ex` (the `:graphql`, `:portal_graphql` and `:portal_browser` pipelines), `ChironiumWeb.SetTenant`, `ChironiumWeb.Plugs.SetPortalActor`, `ChironiumWeb.PortalDocuments`.
+
+## 2026-10-21 — Calendar dates follow the organization's timezone
+
+- **Context:** Questionnaire due dates and reminders are picked as calendar days and stored as instants. The browser turned each day into an instant in its own zone, so a practitioner abroad, or two staff in different zones, stored different instants for the same day. The app, the portal and emails each showed dates in another zone: the viewer's browser, the patient's browser, and UTC.
+- **Decision:** Each organization has an IANA `timezone`, prefilled from the creator's browser and editable in Settings. Existing organizations start at `Etc/UTC`.
+  - The client still sends instants, but converts picked days in the organization's zone (`toDateTimeStart`/`toDateTimeEnd` with a `timeZone`). The task and questionnaire APIs don't change.
+  - Due dates and reminder dates display in the organization's zone: on the Pending page, the activity feed's questionnaire requests, the reminder button and edit dialog, the portal (`Task.organization_timezone`), and emails. The activity feed still groups events by day in the browser's zone.
+  - Reminders created before this change were saved at the browser's local midnight. Read in `Etc/UTC`, those from east of UTC show a day early until the organization's timezone is set.
+- **Alternatives considered:** Sending a plain date and converting on the server. Reminders go through the generic `createTask`/`updateTask` with `requestedPeriod`, so it would need new date arguments there as well as undoing the `due_at` argument, for the same result.
+- **Scope:** Questionnaire requests and reminders. Clinical dates, such as condition onsets or medication periods, still use the browser's zone.

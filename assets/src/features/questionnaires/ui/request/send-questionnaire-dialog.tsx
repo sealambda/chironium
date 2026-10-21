@@ -81,7 +81,7 @@ export function SendQuestionnaireDialog({
   );
 
   // `YYYY-MM-DD` strings compare correctly as text.
-  const dueDateInPast = dueDate !== "" && dueDate < todayDateInput();
+  const dueDateInPast = dueDate !== "" && dueDate < todayDateInput(selectedOrg?.timezone);
   const canSubmit = Boolean(orgId && patientId && questionnaireId) && !dueDateInPast;
 
   const handleSubmit = async () => {
@@ -95,7 +95,7 @@ export function SendQuestionnaireDialog({
         organizationId: orgId,
         patientId,
         questionnaireId,
-        dueAt: toDateTimeEnd(dueDate),
+        dueAt: toDateTimeEnd(dueDate, selectedOrg?.timezone),
         message,
       });
       setLink(issued);

@@ -64,7 +64,7 @@ export interface RequestQuestionnaireParams {
   organizationId: string;
   patientId: string;
   questionnaireId: string;
-  /** An ISO 8601 instant: the end of the due day in the practitioner's timezone. */
+  /** An ISO 8601 instant: the end of the due day in the organization's timezone. */
   dueAt?: string;
   message?: string;
 }

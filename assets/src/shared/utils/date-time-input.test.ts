@@ -47,4 +47,13 @@ describe("date-time input parts", () => {
     expect(toDateTimeStart("")).toBeUndefined();
     expect(toDateTimeEnd("")).toBeUndefined();
   });
+
+  it("reads and builds days in a given timezone, whatever the browser's", () => {
+    // Madrid leaves summer time on 2026-10-25, so the day starts at +02:00 and ends at +01:00.
+    expect(toDateTimeStart("2026-10-25", "Europe/Madrid")).toBe("2026-10-25T00:00:00+02:00");
+    expect(toDateTimeEnd("2026-10-25", "Europe/Madrid")).toBe("2026-10-25T23:59:59+01:00");
+    expect(toDateTimeEnd("2026-10-25", "America/New_York")).toBe("2026-10-25T23:59:59-04:00");
+    expect(isoToDateInput("2026-10-20T23:30:00Z", "Europe/Madrid")).toBe("2026-10-21");
+    expect(isoToDateInput("2026-10-20T23:30:00Z", "America/New_York")).toBe("2026-10-20");
+  });
 });
