@@ -1,13 +1,13 @@
 [tools]
-elixir = "1.19.5-otp-28"
-erlang = "28.3.1"
-node = "24.13.0"
-pnpm = "11.22.0"
+elixir = "1.19.6-otp-28"
+erlang = "28.5"
+node = "24.22.1"
+pnpm = "11.28.7"
 
 # Frontend code-quality / security binaries — pinned so local == CI.
 # See docs/frontend-quality-stack-vs-offerdrive.md for the full rationale.
 gitleaks = "8.30.1"       # secret scanning (staged + full history)
-osv-scanner = "2.3.8"     # SCA — dependency CVEs (pnpm-lock.yaml)
-opengrep = "1.22.0"       # SAST — FOSS fork of Semgrep's OSS engine
+osv-scanner = "2.7.0"     # SCA — dependency CVEs (pnpm-lock.yaml)
+opengrep = "1.31.0"       # SAST — FOSS fork of Semgrep's OSS engine
 actionlint = "1.7.12"     # GitHub Actions workflow linter
-zizmor = "1.25.2"         # GitHub Actions security auditor
+zizmor = "1.31.1"         # GitHub Actions security auditor
