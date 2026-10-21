@@ -83,7 +83,7 @@ defmodule Chironium.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:phoenix_live_dashboard, "~> 0.9.1"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.2.0",
@@ -100,7 +100,7 @@ defmodule Chironium.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:tz, "~> 0.28"},
-      {:dns_cluster, "~> 0.2.0"},
+      {:dns_cluster, "~> 0.3.1"},
       {:bandit, "~> 1.5"},
       # Needed in prod for seeding
       {:faker, "~> 0.19-alpha.1"},
