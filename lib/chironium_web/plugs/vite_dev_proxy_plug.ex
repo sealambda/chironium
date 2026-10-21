@@ -184,9 +184,6 @@ defmodule ChironiumWeb.ViteDevProxyPlug do
 
       %URI{scheme: scheme, host: host} ->
         {:error, :invalid_dev_url, {:disallowed_host, scheme, host}}
-
-      _ ->
-        {:error, :invalid_dev_url, :malformed_url}
     end
   end
 
