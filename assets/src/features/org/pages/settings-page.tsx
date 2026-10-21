@@ -207,7 +207,11 @@ export function SettingsPage() {
 
   const invitationLinkTarget = (row: SettingsMemberTableRow): InvitationLinkTarget | null =>
     row.source.kind === "invitation"
-      ? { invitationId: row.source.invitationId, email: row.primary, role: row.orgRole ?? "MEMBER" }
+      ? {
+          invitationId: row.source.invitationId,
+          email: row.primary,
+          boundToEmail: row.orgRole === "POWER_USER" || row.hasPractitionerGrant,
+        }
       : null;
 
   const handleCopyInvitationLink = (row: SettingsMemberTableRow) => {
