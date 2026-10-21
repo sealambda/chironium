@@ -171,13 +171,13 @@ export function AddTaskReminderDialog({
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
 
-        <p className="text-muted-foreground text-sm">{m.review_task_hint_new()}</p>
+        <p className="text-sm text-muted-foreground">{m.review_task_hint_new()}</p>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
         >
           <FieldGroup>

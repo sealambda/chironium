@@ -2,7 +2,7 @@
   // This IS the single root config; `biome migrate` wrongly set this to false, which made
   // Biome ignore indentStyle and fall back to its tab default. Must stay true.
   "root": true,
-  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
   "files": {
     "ignoreUnknown": true,
     // Whitelist processed files — excludes css/ (Biome can't parse Tailwind 4 @custom-variant).
@@ -21,7 +21,9 @@
       "!**/node_modules",
       "!**/paraglide",
       "!**/routeTree.gen.ts",
-      "!**/graphql-env.d.ts"
+      "!**/graphql-env.d.ts",
+      // Rewritten by the claude-mem plugin; Biome 2.6 formats Markdown.
+      "!**/CLAUDE.md"
     ]
   },
   "vcs": {
@@ -262,16 +264,20 @@
 
         // Sort Tailwind utility classes for consistency.
         // https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
-        "useSortedClasses": {
+        "useTailwindSortedClasses": {
           "level": "warn",
-          "fix": "safe",
-          "options": {
-            "attributes": ["className"],
-            "functions": ["clsx", "cva", "twMerge", "cn"]
-          }
+          "fix": "safe"
         }
       }
     }
+  },
+
+  // Tailwind class sources for the class-sorting rule.
+  "tailwind": {
+    "stylesheet": "./assets/src/styles/index.css",
+    "attributes": ["className"],
+    "mergeFunctions": ["clsx", "twMerge", "cn"],
+    "variantFunctions": ["cva"]
   },
 
   // Import ordering: external packages > @/ aliases > relative paths, separated by blank lines.

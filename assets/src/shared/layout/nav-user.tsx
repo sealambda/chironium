@@ -47,7 +47,7 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
             className={cn(
               "group flex w-full items-center gap-2 rounded-lg px-2 py-2",
               !showLabelsOnMobile && "justify-center md:justify-start",
-              "text-left transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden",
               "cursor-pointer hover:bg-accent/50 focus-visible:bg-accent/50",
             )}
           />
@@ -59,7 +59,7 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
             alt={displayName}
             referrerPolicy="no-referrer"
           />
-          <AvatarFallback className="bg-primary/10 font-medium text-primary text-sm">
+          <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -70,7 +70,7 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
           )}
         >
           <span className="truncate font-semibold">{displayName}</span>
-          <span className="truncate text-muted-foreground text-xs">{displayEmail}</span>
+          <span className="truncate text-xs text-muted-foreground">{displayEmail}</span>
         </div>
         <ChevronsUpDown
           className={cn(
@@ -88,13 +88,13 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
               alt={displayName}
               referrerPolicy="no-referrer"
             />
-            <AvatarFallback className="bg-primary/10 font-medium text-primary text-sm">
+            <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">{displayName}</span>
-            <span className="truncate text-muted-foreground text-xs">{displayEmail}</span>
+            <span className="truncate text-xs text-muted-foreground">{displayEmail}</span>
           </div>
         </div>
 
@@ -102,7 +102,6 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
 
         {runtimeConfig.sourceCodeUrl ? (
           <DropdownMenuItem
-            // biome-ignore lint/a11y/useAnchorContent: The menu item renders its children inside the anchor.
             render={<a href={runtimeConfig.sourceCodeUrl} target="_blank" rel="noreferrer" />}
           >
             <Code aria-hidden />
