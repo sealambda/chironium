@@ -116,7 +116,7 @@ defmodule Chironium.Generator do
       data_opts[:slug] ||
         sequence(:slug, &"org-#{&1}")
 
-    [defaults: [name: name, slug: slug], overrides: data_opts]
+    [defaults: [name: name, slug: slug, timezone: "Etc/UTC"], overrides: data_opts]
     |> Keyword.merge(ash_opts)
     |> then(&changeset_generator(Chironium.Accounts.Organization, :create, &1))
   end

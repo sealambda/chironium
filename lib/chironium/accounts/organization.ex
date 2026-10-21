@@ -39,10 +39,10 @@ defmodule Chironium.Accounts.Organization do
   end
 
   actions do
-    defaults [:read, :destroy, update: [:name, :slug, :preferred_locale]]
+    defaults [:read, :destroy, update: [:name, :slug, :preferred_locale, :timezone]]
 
     create :create do
-      accept [:name, :slug]
+      accept [:name, :slug, :timezone]
       change relate_actor(:owner)
     end
 
@@ -84,6 +84,10 @@ defmodule Chironium.Accounts.Organization do
     end
   end
 
+  validations do
+    validate Chironium.Accounts.Validations.TimeZoneExists
+  end
+
   attributes do
     attribute :name, :string do
       allow_nil? false
@@ -107,6 +111,17 @@ defmodule Chironium.Accounts.Organization do
       The organization's preferred locale for notifications sent to non-members
       (e.g., invitation emails for recipients who haven't signed up yet).
       Defaults to "en".
+      """
+    end
+
+    attribute :timezone, :string do
+      public? true
+      allow_nil? false
+      default "Etc/UTC"
+
+      description """
+      The IANA timezone that turns the organization's calendar dates into
+      instants, for example the end of a questionnaire's due day.
       """
     end
   end

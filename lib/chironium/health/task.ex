@@ -247,7 +247,7 @@ defmodule Chironium.Health.Task do
       argument :questionnaire_id, :uuid, allow_nil?: false
 
       argument :due_at, :utc_datetime_usec do
-        description "When the answers are needed: the end of the due day in the practitioner's timezone. A later date extends the link, up to 14 days."
+        description "When the answers are needed: the end of the due day in the organization's timezone. A later date extends the link, up to 14 days."
       end
 
       argument :message, :string do
@@ -437,8 +437,17 @@ defmodule Chironium.Health.Task do
       public? true
     end
 
-    calculate :organization_name, :string, Chironium.Health.Task.Calculations.OrganizationName do
+    calculate :organization_name,
+              :string,
+              {Chironium.Health.Task.Calculations.OrganizationField, field: :name} do
       description "Name of the organization the task belongs to"
+      public? true
+    end
+
+    calculate :organization_timezone,
+              :string,
+              {Chironium.Health.Task.Calculations.OrganizationField, field: :timezone} do
+      description "Timezone of the organization the task belongs to"
       public? true
     end
 

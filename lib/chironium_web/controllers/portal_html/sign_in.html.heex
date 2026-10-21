@@ -14,7 +14,7 @@
       <p>
         {gettext(
           "Continue to open it on this device. You can come back on this device until %{date}.",
-          date: format_date(@expires_at, @locale)
+          date: format_date(@expires_at, @locale, @timezone)
         )}
       </p>
       <form method="post" action="/auth/guest/magic_link">

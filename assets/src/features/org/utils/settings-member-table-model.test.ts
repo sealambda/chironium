@@ -14,6 +14,7 @@ function organizationWithInvitations(
     name: "Org",
     slug: "org",
     preferredLocale: "en",
+    timezone: "Europe/Madrid",
     owner: {
       id: "owner-1",
       email: "owner@example.com",

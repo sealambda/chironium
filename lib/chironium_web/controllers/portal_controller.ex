@@ -32,6 +32,7 @@ defmodule ChironiumWeb.PortalController do
           token: token,
           organization_name: organization && organization.name,
           expires_at: guest_access.expires_at,
+          timezone: organization && organization.timezone,
           page_title: gettext("Your questionnaire")
         )
 

@@ -23,11 +23,15 @@ import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Loading } from "@/shared/ui/loading";
 import { getDateLocale } from "@/shared/utils/date-locale";
+import { inZone } from "@/shared/utils/date-time-input";
 
 type SubmitVariables = VariablesOf<typeof PortalSubmitResponseDocument>;
 
-function formatDate(iso: string | null | undefined): string | null {
-  return iso ? format(parseISO(iso), "PPP", { locale: getDateLocale() }) : null;
+/** Dates follow the organization's timezone, so the patient reads the day the practitioner picked. */
+function formatDate(iso: string | null | undefined, timeZone: string | null | undefined) {
+  return iso
+    ? format(parseISO(iso), "PPP", { locale: getDateLocale(), ...inZone(timeZone ?? undefined) })
+    : null;
 }
 
 interface RequestPageProps {
@@ -120,8 +124,8 @@ export function RequestPage({ navigate }: Readonly<RequestPageProps>) {
   }
 
   const organization = task.organizationName ?? "";
-  const dueDate = formatDate(task.requestedPeriod?.end);
-  const sessionEnds = formatDate(task.accessExpiresAt);
+  const dueDate = formatDate(task.requestedPeriod?.end, task.organizationTimezone);
+  const sessionEnds = formatDate(task.accessExpiresAt, task.organizationTimezone);
 
   return (
     <PortalShell organizationName={organization} signedIn>

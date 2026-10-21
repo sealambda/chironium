@@ -91,7 +91,7 @@ defmodule Chironium.Health.QuestionnaireRequestTest do
       assert Exception.message(error) =~ "is in the past"
     end
 
-    # The browser sends the end of the picked day in the practitioner's timezone.
+    # The browser sends the end of the picked day in the organization's timezone.
     for {zone, offset_hours} <- [{"west", -10}, {"east", 14}] do
       test "accepts today's local end of day #{zone} of UTC and rejects yesterday's", ctx do
         today = local_end_of_day(unquote(offset_hours), 0)

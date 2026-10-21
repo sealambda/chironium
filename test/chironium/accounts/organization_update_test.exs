@@ -32,9 +32,7 @@ defmodule Chironium.Accounts.OrganizationUpdateTest do
 
       assert {:ok, updated} =
                ctx.organization
-               |> Ash.Changeset.for_update(:update, %{preferred_locale: "es"},
-                 actor: power_user
-               )
+               |> Ash.Changeset.for_update(:update, %{preferred_locale: "es"}, actor: power_user)
                |> Ash.update()
 
       assert updated.preferred_locale == "es"
@@ -57,6 +55,26 @@ defmodule Chironium.Accounts.OrganizationUpdateTest do
                ctx.organization
                |> Ash.Changeset.for_update(:update, %{preferred_locale: "es"}, actor: outsider)
                |> Ash.update()
+    end
+  end
+
+  describe "timezone" do
+    test "accepts any zone the database knows, including legacy links", ctx do
+      for timezone <- ["Europe/Madrid", "Asia/Calcutta"] do
+        assert {:ok, %{timezone: ^timezone}} =
+                 ctx.organization
+                 |> Ash.Changeset.for_update(:update, %{timezone: timezone}, actor: ctx.owner)
+                 |> Ash.update()
+      end
+    end
+
+    test "rejects an unknown zone", ctx do
+      assert {:error, %Ash.Error.Invalid{} = error} =
+               ctx.organization
+               |> Ash.Changeset.for_update(:update, %{timezone: "Mars/Olympus"}, actor: ctx.owner)
+               |> Ash.update()
+
+      assert Exception.message(error) =~ ~s(Timezone "Mars/Olympus" is unknown)
     end
   end
 

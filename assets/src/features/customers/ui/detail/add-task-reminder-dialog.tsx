@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { addYears, format, isBefore, isToday, parseISO, startOfDay } from "date-fns";
+import { addYears, format, parseISO } from "date-fns";
 import { ClipboardClock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -27,7 +27,13 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { getDateLocale } from "@/shared/utils/date-locale";
-import { toDateTimeEnd, toDateTimeStart } from "@/shared/utils/date-time-input";
+import {
+  inZone,
+  isoToDateInput,
+  toDateTimeEnd,
+  toDateTimeStart,
+  todayDateInput,
+} from "@/shared/utils/date-time-input";
 import { personQueryKeys } from "@/shared/utils/query-keys";
 
 interface AddTaskReminderDialogProps {
@@ -39,19 +45,23 @@ interface AddTaskReminderDialogProps {
 
 type ButtonVariant = "default" | "destructive" | "outline" | "secondary";
 
-function getButtonVariant(taskDate: string | null | undefined): ButtonVariant {
+function getButtonVariant(
+  taskDate: string | null | undefined,
+  timeZone: string | undefined,
+): ButtonVariant {
   if (!taskDate) {
     return "outline";
   }
 
-  const reviewDate = startOfDay(parseISO(taskDate));
-  const today = startOfDay(new Date());
+  // `YYYY-MM-DD` strings compare correctly as text.
+  const reviewDay = isoToDateInput(taskDate, timeZone);
+  const today = todayDateInput(timeZone);
 
-  if (isBefore(reviewDate, today)) {
+  if (reviewDay < today) {
     return "destructive";
   }
 
-  if (isToday(reviewDate)) {
+  if (reviewDay === today) {
     return "default";
   }
 
@@ -92,8 +102,8 @@ export function AddTaskReminderDialog({
     },
     onSubmit: async ({ value }) => {
       const description = value.description.trim();
-      const startIso = toDateTimeStart(value.startDate);
-      const endIso = toDateTimeEnd(value.startDate);
+      const startIso = toDateTimeStart(value.startDate, selectedOrg?.timezone);
+      const endIso = toDateTimeEnd(value.startDate, selectedOrg?.timezone);
 
       if (!selectedOrg?.id || !description || !startIso || !endIso || !patientId) {
         return;
@@ -127,12 +137,16 @@ export function AddTaskReminderDialog({
   const Icon = ClipboardClock;
 
   const pendingTaskDateFormatted = currentReadyTask?.requestedPeriod?.start
-    ? format(startOfDay(parseISO(currentReadyTask.requestedPeriod.start)), "PP", {
+    ? format(parseISO(currentReadyTask.requestedPeriod.start), "PP", {
         locale: getDateLocale(),
+        ...inZone(selectedOrg?.timezone),
       })
     : null;
   const buttonLabel = pendingTaskDateFormatted || m.review_task_track();
-  const buttonVariant = getButtonVariant(currentReadyTask?.requestedPeriod?.start);
+  const buttonVariant = getButtonVariant(
+    currentReadyTask?.requestedPeriod?.start,
+    selectedOrg?.timezone,
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

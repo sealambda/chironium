@@ -116,6 +116,7 @@ defmodule ChironiumWeb.PortalTest do
       assert task["id"] == ctx.task.id
       assert task["requesterName"] == "Dr. Rivera"
       assert task["focusQuestionnaire"]["title"] == "Weekly check-in"
+      assert task["organizationTimezone"] == "Etc/UTC"
       refute Map.has_key?(task, "note")
 
       %{"data" => %{"submitQuestionnaireResponseFromPortal" => result}} =

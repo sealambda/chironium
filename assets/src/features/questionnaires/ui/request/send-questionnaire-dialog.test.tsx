@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { addDays, parseISO } from "date-fns";
+import { addDays } from "date-fns";
 import { describe, expect, it, vi } from "vitest";
 
 import { SendQuestionnaireDialog } from "@/features/questionnaires/ui/request/send-questionnaire-dialog";
@@ -24,7 +24,8 @@ vi.mock("@/features/customers/utils/person-detail-cache", () => ({
 }));
 
 vi.mock("@/features/org/hooks/use-org", () => ({
-  useOrg: () => ({ selectedOrg: { id: "org-1" } }),
+  // UTC+14 all year, so the result differs from the test machine's zone.
+  useOrg: () => ({ selectedOrg: { id: "org-1", timezone: "Pacific/Kiritimati" } }),
 }));
 
 // The calendar popover is not what this test is about; a plain input sets the same value.
@@ -40,7 +41,7 @@ vi.mock("@/shared/ui/date-picker", () => ({
 }));
 
 describe("SendQuestionnaireDialog", () => {
-  it("sends the due date as the end of the picked day in local time", async () => {
+  it("sends the due date as the end of the picked day in the organization's timezone", async () => {
     const user = userEvent.setup();
     requestQuestionnaire.mockResolvedValue({
       taskId: "task-1",
@@ -68,8 +69,6 @@ describe("SendQuestionnaireDialog", () => {
 
     await waitFor(() => expect(requestQuestionnaire).toHaveBeenCalledTimes(1));
     const [{ dueAt }] = requestQuestionnaire.mock.lastCall ?? [{}];
-    const due = parseISO(dueAt);
-    expect(toDateInput(due)).toBe(picked);
-    expect([due.getHours(), due.getMinutes(), due.getSeconds()]).toEqual([23, 59, 59]);
+    expect(dueAt).toBe(`${picked}T23:59:59+14:00`);
   });
 });

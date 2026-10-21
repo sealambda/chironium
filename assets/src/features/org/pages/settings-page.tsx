@@ -9,7 +9,7 @@ import {
   type OrganizationSettingsData,
   renewInvitation,
   revokeInvitation,
-  updateOrganizationPreferredLocale,
+  updateOrganizationSettings,
 } from "@/features/org/api/org-api";
 import { useOrg } from "@/features/org/hooks/use-org";
 import {
@@ -42,6 +42,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { LocaleFlagLabel, LocaleSelect } from "@/shared/ui/locale-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPositioner,
+  SelectTrigger,
+} from "@/shared/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { orgSettingsQueryKey, practitionersBulkReassignQueryKey } from "@/shared/utils/query-keys";
 import { cn } from "@/shared/utils/utils";
@@ -67,18 +74,53 @@ function OrgLanguageField({ value, editable, onChange }: Readonly<OrgLanguageFie
   );
 }
 
+interface OrgTimezoneFieldProps {
+  value: string;
+  editable: boolean;
+  onChange: (timezone: string | null) => void;
+}
+
+function OrgTimezoneField({ value, editable, onChange }: Readonly<OrgTimezoneFieldProps>) {
+  // The stored zone may be a legacy link, such as `Etc/UTC`, missing from the canonical list.
+  const timezones = useMemo(() => {
+    const supported = Intl.supportedValuesOf("timeZone");
+    return supported.includes(value) ? supported : [value, ...supported];
+  }, [value]);
+
+  if (!editable) {
+    return <span>{value}</span>;
+  }
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-64" data-testid="settings-org-timezone-select">
+        {value}
+      </SelectTrigger>
+      <SelectPositioner>
+        <SelectContent>
+          {timezones.map((timezone) => (
+            <SelectItem key={timezone} value={timezone}>
+              {timezone}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </SelectPositioner>
+    </Select>
+  );
+}
+
 interface OrganizationCardProps {
   organization: OrganizationSettingsData | null | undefined;
-  selectedOrg: { id: string; name: string; slug: string };
-  canEditLocale: boolean;
-  onPreferredLocaleChanged: () => Promise<void> | void;
+  selectedOrg: { id: string; name: string; slug: string; timezone: string };
+  canEdit: boolean;
+  onSettingsChanged: () => Promise<void> | void;
 }
 
 function OrganizationCard({
   organization,
   selectedOrg,
-  canEditLocale,
-  onPreferredLocaleChanged,
+  canEdit,
+  onSettingsChanged,
 }: Readonly<OrganizationCardProps>) {
   const orgLocaleValue: Locale = toLocaleOrDefault(organization?.preferredLocale);
 
@@ -88,15 +130,31 @@ function OrganizationCard({
     }
 
     try {
-      await updateOrganizationPreferredLocale({
+      await updateOrganizationSettings({
         organizationId: organization.id,
         preferredLocale: value,
       });
       toast.success(m.settings_org_language_update_success());
-      await onPreferredLocaleChanged();
+      await onSettingsChanged();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : m.settings_org_language_update_error();
+      toast.error(message);
+    }
+  };
+
+  const handleTimezoneChange = async (value: string | null) => {
+    if (!organization || value === organization.timezone || value === null) {
+      return;
+    }
+
+    try {
+      await updateOrganizationSettings({ organizationId: organization.id, timezone: value });
+      toast.success(m.settings_org_timezone_update_success());
+      await onSettingsChanged();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : m.settings_org_timezone_update_error();
       toast.error(message);
     }
   };
@@ -121,9 +179,20 @@ function OrganizationCard({
           <dd>
             <OrgLanguageField
               value={orgLocaleValue}
-              editable={canEditLocale}
+              editable={canEdit}
               onChange={(locale) => {
                 void handleLocaleChange(locale);
+              }}
+            />
+          </dd>
+
+          <dt className="text-muted-foreground">{m.settings_org_timezone_label()}</dt>
+          <dd>
+            <OrgTimezoneField
+              value={organization?.timezone ?? selectedOrg.timezone}
+              editable={canEdit}
+              onChange={(timezone) => {
+                void handleTimezoneChange(timezone);
               }}
             />
           </dd>
@@ -135,7 +204,7 @@ function OrganizationCard({
 
 export function SettingsPage() {
   const { user: currentUser } = useCurrentUser();
-  const { selectedOrg, loading: orgLoading } = useOrg();
+  const { selectedOrg, loading: orgLoading, refreshOrgs } = useOrg();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [editRoleTarget, setEditRoleTarget] = useState<EditMemberRoleTarget | null>(null);
   const [makePractitionerTarget, setMakePractitionerTarget] =
@@ -281,8 +350,11 @@ export function SettingsPage() {
       <OrganizationCard
         organization={organization}
         selectedOrg={selectedOrg}
-        canEditLocale={canManageMembers}
-        onPreferredLocaleChanged={invalidateSettings}
+        canEdit={canManageMembers}
+        onSettingsChanged={async () => {
+          await invalidateSettings();
+          await refreshOrgs();
+        }}
       />
 
       <Card>

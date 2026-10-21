@@ -16,6 +16,7 @@ const ListOrganizationsQuery = graphql(`
         id
         name
         slug
+        timezone
         ownerId
         organizationUsers {
           userId
@@ -33,6 +34,7 @@ const GetOrganizationSettingsQuery = graphql(`
       name
       slug
       preferredLocale
+      timezone
       owner {
         id
         email
@@ -86,6 +88,7 @@ const CreateOrganizationMutation = graphql(`
         id
         name
         slug
+        timezone
         ownerId
       }
       errors {
@@ -123,6 +126,7 @@ const UpdateOrganizationMutation = graphql(`
       result {
         id
         preferredLocale
+        timezone
       }
       errors {
         message
@@ -323,6 +327,7 @@ export interface OrganizationSettingsData {
   name: string;
   slug: string;
   preferredLocale: string;
+  timezone: string;
   owner: OrganizationMemberUser;
   organizationUsers: OrganizationMembershipRow[];
   invitations: Array<{
@@ -381,6 +386,7 @@ export async function fetchOrganizationSettings(
     name: data.getOrganization.name,
     slug: data.getOrganization.slug,
     preferredLocale: data.getOrganization.preferredLocale,
+    timezone: data.getOrganization.timezone,
     owner: {
       id: data.getOrganization.owner.id,
       email: data.getOrganization.owner.email,
@@ -412,14 +418,20 @@ export async function fetchOrganizationSettings(
   };
 }
 
-/** Create a new organization with the given name and slug. */
+/** Create a new organization with the given name and slug, in the creator's timezone. */
 export async function createOrganization(data: {
   name: string;
   slug: string;
 }): Promise<OrganizationRecord> {
   const result = await requestGraphql({
     document: CreateOrganizationMutation,
-    variables: { input: { name: data.name, slug: data.slug } },
+    variables: {
+      input: {
+        name: data.name,
+        slug: data.slug,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    },
   });
 
   const organization = unwrapMutationResult(
@@ -605,16 +617,17 @@ export async function rejectInvitation(inviteCode: string): Promise<void> {
   unwrapMutationResult(result.rejectInvitation, "Failed to reject invitation.");
 }
 
-/** Update the organization's preferred locale for invitation emails. */
-export async function updateOrganizationPreferredLocale(params: {
+/** Update the organization's preferred locale for invitation emails, or its timezone. */
+export async function updateOrganizationSettings(params: {
   organizationId: string;
-  preferredLocale: string;
+  preferredLocale?: string;
+  timezone?: string;
 }): Promise<void> {
   const result = await requestGraphql({
     document: UpdateOrganizationMutation,
     variables: {
       id: params.organizationId,
-      input: { preferredLocale: params.preferredLocale },
+      input: { preferredLocale: params.preferredLocale, timezone: params.timezone },
     },
     organizationId: params.organizationId,
   });
