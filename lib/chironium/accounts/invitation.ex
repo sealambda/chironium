@@ -135,7 +135,7 @@ defmodule Chironium.Accounts.Invitation do
       accept []
       require_atomic? false
       validate Chironium.Accounts.Validations.InvitationNotExpired
-      validate Chironium.Accounts.Validations.ManagerInvitationEmailMatches
+      validate Chironium.Accounts.Validations.InvitationEmailMatches
       change transition_state(:accepted)
       change set_attribute(:invite_code, nil)
 
@@ -206,7 +206,7 @@ defmodule Chironium.Accounts.Invitation do
 
       accept []
       require_atomic? false
-      validate Chironium.Accounts.Validations.ManagerInvitationEmailMatches
+      validate Chironium.Accounts.Validations.InvitationEmailMatches
       change transition_state(:rejected)
       change set_attribute(:invite_code, nil)
 

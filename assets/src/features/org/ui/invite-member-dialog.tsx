@@ -42,7 +42,7 @@ interface InviteMemberDialogProps {
 
 interface SentInvitation {
   email: string;
-  role: OrganizationUserRole;
+  boundToEmail: boolean;
   link: InvitationLink;
 }
 
@@ -119,7 +119,11 @@ export function InviteMemberDialog({
           role: inviteRole,
         });
       }
-      setSent({ email: normalizedEmail, role: inviteRole, link });
+      setSent({
+        email: normalizedEmail,
+        boundToEmail: inviteRole === "POWER_USER" || inviteAsPractitioner,
+        link,
+      });
       setIsInviting(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : m.settings_invite_error();
@@ -151,7 +155,7 @@ export function InviteMemberDialog({
             <InvitationLinkResult
               link={sent.link}
               email={sent.email}
-              role={sent.role}
+              boundToEmail={sent.boundToEmail}
               organizationName={organizationName}
             />
 

@@ -84,11 +84,11 @@ describe("InviteMemberDialog", () => {
       screen.queryByText(m.settings_invite_link_emailed({ email: "new@example.com" })),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText(m.settings_invite_link_manager_note({ email: "new@example.com" })),
+      screen.queryByText(m.settings_invite_link_bound_note({ email: "new@example.com" })),
     ).not.toBeInTheDocument();
   });
 
-  it("shows the emailed note only when email is enabled, and the manager note for managers", async () => {
+  it("shows the emailed note only when email is enabled, and the email-bound note for managers", async () => {
     const user = userEvent.setup();
     isEmailEnabled.mockReturnValue(true);
     inviteUserToOrganization.mockResolvedValue(LINK);
@@ -105,7 +105,7 @@ describe("InviteMemberDialog", () => {
       await screen.findByText(m.settings_invite_link_emailed({ email: "boss@example.com" })),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(m.settings_invite_link_manager_note({ email: "boss@example.com" })),
+      screen.getByText(m.settings_invite_link_bound_note({ email: "boss@example.com" })),
     ).toBeInTheDocument();
   });
 
@@ -208,6 +208,10 @@ describe("InviteMemberDialog", () => {
       });
     });
     expect(inviteUserToOrganization).not.toHaveBeenCalled();
+    // A practitioner invitation grants patient access, so only the invited address can accept it.
+    expect(
+      await screen.findByText(m.settings_invite_link_bound_note({ email: "clinical@example.com" })),
+    ).toBeInTheDocument();
   });
 
   it("allows inviting a manager as a practitioner", async () => {

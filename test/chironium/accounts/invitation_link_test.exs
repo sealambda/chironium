@@ -1,6 +1,6 @@
 defmodule Chironium.Accounts.InvitationLinkTest do
   @moduledoc """
-  Invitations shared as links: expiry, manager invitations bound to their email,
+  Invitations shared as links: expiry, manager and practitioner invitations bound to their email,
   who can read the code, and renewing an expired invitation.
   """
   use Chironium.DataCase, async: false
@@ -120,6 +120,51 @@ defmodule Chironium.Accounts.InvitationLinkTest do
                )["acceptInvitation"]
 
       assert error["fields"] == ["email"]
+    end
+  end
+
+  describe "member invitations with a practitioner grant" do
+    test "can't be accepted or rejected by a different email, and grant nothing", ctx do
+      practitioner = practitioner(ctx, "Dr. Bound")
+
+      invitation =
+        invite(ctx, "doctor@example.com", :member, [
+          %{principal_type: :practitioner, principal_id: practitioner.id}
+        ])
+
+      intruder = generate(user())
+
+      assert {:error, %Ash.Error.Invalid{errors: [%{field: :email} = error]}} =
+               Accounts.accept_invitation(invitation.invite_code, actor: intruder)
+
+      refute error.message =~ "doctor@example.com"
+
+      assert {:error, %Ash.Error.Invalid{errors: [%{field: :email}]}} =
+               Accounts.reject_invitation(invitation.invite_code, actor: intruder)
+
+      refute member?(ctx, intruder)
+
+      refute PrincipalGrant
+             |> Ash.Query.filter(user_id == ^intruder.id)
+             |> Ash.exists?(authorize?: false, tenant: ctx.tenant)
+
+      assert Ash.get!(Invitation, invitation.id, authorize?: false).state == :pending
+    end
+
+    test "accept for the invited email and convert the grant", ctx do
+      practitioner = practitioner(ctx, "Dr. Invited")
+      invitee = generate(user(email: "Doctor.Case@Example.com"))
+
+      invitation =
+        invite(ctx, "doctor.case@example.com", :member, [
+          %{principal_type: :practitioner, principal_id: practitioner.id}
+        ])
+
+      assert {:ok, _} = Accounts.accept_invitation(invitation.invite_code, actor: invitee)
+
+      assert PrincipalGrant
+             |> Ash.Query.filter(user_id == ^invitee.id and principal_id == ^practitioner.id)
+             |> Ash.exists?(authorize?: false, tenant: ctx.tenant)
     end
   end
 
@@ -285,6 +330,15 @@ defmodule Chironium.Accounts.InvitationLinkTest do
     Invitation
     |> Ash.Query.filter(email == ^email)
     |> Ash.read_one!(authorize?: false)
+  end
+
+  defp practitioner(ctx, name) do
+    Chironium.Health.Practitioner
+    |> Ash.Changeset.for_create(:create, %{name: [%{text: name}]},
+      authorize?: false,
+      tenant: ctx.tenant
+    )
+    |> Ash.create!()
   end
 
   defp expire(invitation) do

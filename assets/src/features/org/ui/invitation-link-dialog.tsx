@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchInvitationLink, type InvitationLink } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
-import type { OrganizationUserRole } from "@/shared/types/schema-enums";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -19,7 +18,8 @@ import { InvitationLinkResult } from "./invitation-link-result";
 export interface InvitationLinkTarget {
   invitationId: string;
   email: string;
-  role: OrganizationUserRole;
+  /** Only the invited address can accept it: a manager or practitioner invitation. */
+  boundToEmail: boolean;
   /** Set after renewing; otherwise the dialog fetches the current link. */
   link?: InvitationLink;
 }
@@ -83,7 +83,7 @@ export function InvitationLinkDialog({
           <InvitationLinkResult
             link={link}
             email={target.email}
-            role={target.role}
+            boundToEmail={target.boundToEmail}
             organizationName={organizationName}
           />
         ) : null}

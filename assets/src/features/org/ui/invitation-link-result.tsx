@@ -3,7 +3,6 @@ import { Clock, MailCheck, ShieldAlert } from "lucide-react";
 
 import type { InvitationLink } from "@/features/org/api/org-api";
 import * as m from "@/paraglide/messages";
-import type { OrganizationUserRole } from "@/shared/types/schema-enums";
 import { CopyField, ShareLinkResult } from "@/shared/ui/share-link-result";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { isEmailEnabled } from "@/shared/utils/email-enabled";
@@ -11,7 +10,8 @@ import { isEmailEnabled } from "@/shared/utils/email-enabled";
 interface InvitationLinkResultProps {
   link: InvitationLink;
   email: string;
-  role: OrganizationUserRole;
+  /** Only the invited address can accept it: a manager or practitioner invitation. */
+  boundToEmail: boolean;
   organizationName: string;
 }
 
@@ -19,7 +19,7 @@ interface InvitationLinkResultProps {
 export function InvitationLinkResult({
   link,
   email,
-  role,
+  boundToEmail,
   organizationName,
 }: Readonly<InvitationLinkResultProps>) {
   const shareText = m.settings_invite_link_share_text({ organization: organizationName });
@@ -47,10 +47,10 @@ export function InvitationLinkResult({
             <span>{m.settings_invite_link_emailed({ email })}</span>
           </li>
         ) : null}
-        {role === "POWER_USER" ? (
+        {boundToEmail ? (
           <li className="flex items-start gap-2">
             <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>{m.settings_invite_link_manager_note({ email })}</span>
+            <span>{m.settings_invite_link_bound_note({ email })}</span>
           </li>
         ) : null}
       </ShareLinkResult>
