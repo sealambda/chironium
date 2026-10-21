@@ -12,10 +12,11 @@ defmodule Chironium.Accounts.Checks.StaffActor do
   @impl true
   def describe(_opts), do: "actor is a staff user or practitioner"
 
+  # Match by struct name, not `%Resource{}`: Ash evaluates policy checks at compile time,
+  # so a struct pattern on a resource that uses this check is a compile-time cycle.
   @impl true
-  def match?(%Chironium.Accounts.User{}, _context, _opts), do: true
+  def match?(%{__struct__: Chironium.Accounts.User}, _context, _opts), do: true
 
-  # Matched by struct name so Accounts takes no compile-time dependency on Health.
   def match?(%{__struct__: Chironium.Health.Practitioner}, _context, _opts), do: true
 
   def match?(_actor, _context, _opts), do: false

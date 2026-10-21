@@ -15,7 +15,7 @@ defmodule Chironium.Health.Checks.CareTeamVisibleToActor do
   def describe(_opts), do: "actor is an active participant in the care team"
 
   @impl true
-  def filter(%Chironium.Health.Practitioner{} = practitioner, _authorizer, _opts) do
+  def filter(%{__struct__: Chironium.Health.Practitioner} = practitioner, _authorizer, _opts) do
     practitioner_ids = practitioner.__metadata__[:practitioner_ids] || [practitioner.id]
 
     expr(
