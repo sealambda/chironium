@@ -1,6 +1,10 @@
 # TODO
 
-Follow-ups found while building, browser-testing and red-teaming the email-optional and pending work ([plan](email-optional-and-pending-work.md)). Each entry has its tier, from P0 (worst) to P2, what the user sees, how to reproduce it, and where in the code.
+Follow-ups found while building, browser-testing and red-teaming each task, grouped under the title of its plan. Each entry has its tier, from P0 (worst) to P2, what the user sees, how to reproduce it, and where in the code.
+
+## Email-Optional Workflows and Pending Work — Implementation Plan
+
+[Plan](email-optional-and-pending-work.md).
 
 - **P2, out of scope: creating an organization once stopped on step 2 with a "GraphQL error" banner.** During one 375px run, the Create organization dialog stayed on step 2 of 2 (Subscription plans) after the plan form was filled in, and the organization-created toast never appeared. Two re-runs created the organization without trouble, so it is probably a transient or timing issue. Repro: run a spec that calls `createOrg` at 375px width; it failed once in three runs. Location: `assets/e2e/helpers.ts:56` (`createOrg`, create-organization dialog).
 - **P2: the invitation email job stores the live invite code and accept URL in `oban_jobs.args`.** Oban has no Pruner plugin (`config/config.exs:34`), so the code stays there for good, and a retrying job can email a code that was revoked or renewed meanwhile. Questionnaire emails store IDs only and build the link when the job runs. Repro: invite `probe@example.com` with email on; the `NotificationEmailWorker` row has `args.params.code` equal to the invite code. Fix: enqueue only the invitation id and load the code in `build_email`, skipping invitations that are no longer pending. Location: `lib/chironium/accounts/invitation.ex:399`.
