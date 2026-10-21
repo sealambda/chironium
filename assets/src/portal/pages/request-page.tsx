@@ -17,7 +17,7 @@ import type { VariablesOf } from "@/graphql";
 import * as m from "@/paraglide/messages";
 import { PortalSessionError, requestPortal } from "@/portal/api/portal-client";
 import { PortalRequestDocument, PortalSubmitResponseDocument } from "@/portal/api/portal-documents";
-import type { PortalPath } from "@/portal/portal-app";
+import type { PortalPath } from "@/portal/portal-path";
 import { PortalShell } from "@/portal/ui/portal-shell";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";

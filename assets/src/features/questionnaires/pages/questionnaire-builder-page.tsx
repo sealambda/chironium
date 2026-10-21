@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Eye, Pencil, Save, Trash2 } from "lucide-react";
 import { useEffect, useReducer, useState } from "react";
 import { toast } from "sonner";
@@ -24,7 +24,6 @@ import { findTemplate } from "@/features/questionnaires/model/templates";
 import { QuestionnaireBuilder } from "@/features/questionnaires/ui/builder/questionnaire-builder";
 import { FillItems } from "@/features/questionnaires/ui/fill/fill-items";
 import * as m from "@/paraglide/messages";
-import { Route } from "@/routes/_app/questionnaires_.$questionnaireId";
 import { useOrg } from "@/shared/session/use-org";
 import {
   AlertDialog,
@@ -41,6 +40,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Loading } from "@/shared/ui/loading";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { questionnairesQueryKeys } from "@/shared/utils/query-keys";
+
+// getRouteApi avoids importing the Route object from the route module, which would form a
+// route<->page dependency cycle (the route lazy-loads this page).
+const route = getRouteApi("/_app/questionnaires_/$questionnaireId");
 
 /** Seed a new builder from the picked template, or start blank. */
 function initialBuilderState(isNew: boolean, templateId: string | undefined): BuilderState {
@@ -82,8 +85,8 @@ function BuilderPreview({ state }: Readonly<{ state: BuilderState }>) {
 }
 
 export function QuestionnaireBuilderPage() {
-  const { questionnaireId } = Route.useParams();
-  const { template } = Route.useSearch();
+  const { questionnaireId } = route.useParams();
+  const { template } = route.useSearch();
   const isNew = questionnaireId === "new";
   const navigate = useNavigate();
   const queryClient = useQueryClient();

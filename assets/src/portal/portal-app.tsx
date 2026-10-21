@@ -4,8 +4,7 @@ import { DonePage } from "@/portal/pages/done-page";
 import { LinkExpiredPage } from "@/portal/pages/link-expired-page";
 import { RequestPage } from "@/portal/pages/request-page";
 import { SignedOutPage } from "@/portal/pages/signed-out-page";
-
-export type PortalPath = "/portal" | "/portal/done" | "/portal/link-expired" | "/portal/signed-out";
+import type { PortalPath } from "@/portal/portal-path";
 
 /** A four-page app doesn't need a router; the server serves each path. */
 export function PortalApp() {

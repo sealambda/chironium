@@ -63,6 +63,14 @@ module.exports = {
           "^src/features/tasks/api/tasks-api\\.ts$", // public: task events in activity feed
           "^src/features/practitioners/api/practitioners-api\\.ts$", // public: practitioner lookups
           "^src/features/customers/api/subscriptions-api\\.ts$", // public: org subscriptions page
+          "^src/features/customers/utils/person-detail-cache\\.ts$", // public: refresh a person after mutations
+          "^src/features/customers/ui/detail/activity-feed/questionnaire-request-event\\.tsx$", // public: request summary on the pending page
+          // Public: questionnaire requests and responses in the activity feed and pending page.
+          "^src/features/questionnaires/api/questionnaire-(requests|responses)-api\\.ts$",
+          "^src/features/questionnaires/model/questionnaire-request-status\\.ts$",
+          "^src/features/questionnaires/ui/request/(questionnaire-request-actions|questionnaire-link-dialog|send-questionnaire-dialog)\\.tsx$",
+          "^src/features/questionnaires/ui/fill/questionnaire-fill-dialog\\.tsx$",
+          "^src/features/questionnaires/ui/detail/response-answers\\.tsx$",
         ],
       },
     },
