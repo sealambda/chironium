@@ -69,16 +69,17 @@ const RELEASE_BAR =
   `scope whatever its tier: record it as a follow-up and don't fix it.`;
 
 // Everything found and not fixed lands here, so nothing a review finds is lost.
+const TODO = "docs/TODO.md";
 const FOLLOW_UPS =
-  `"## Follow-ups" at the end of ${PLAN} (create the section): one entry per finding with its ` +
-  `tier, what the user sees, repro and file:line`;
+  `${TODO} (append to the list): one entry per finding with its tier, what the user sees, ` +
+  `repro and file:line`;
 
 // The red team attacks from the requirements alone. Dev, reviewer and tester checking the same
 // plan is one opinion wearing several hats.
 const RED_TEAM_SOURCES =
   `You may read only the part of ${PLAN} above the "## Phase 1" heading (Goals, Decisions, ` +
   `Codebase Findings), plus product code and tests. You may not read the Phase sections, ` +
-  `"Implementation Notes" or "Follow-ups" of ${PLAN}, and you may not run git log, git ` +
+  `"Implementation Notes" of ${PLAN} or ${TODO}, and you may not run git log, git ` +
   `diff or git show. `;
 
 const PROBE_RULES = (prefix) =>
@@ -591,9 +592,9 @@ phase("Close");
 const close = await agent(
   `Close the run. 1. ${CHECKS} Fix nothing; report the counts. 2. In ${PLAN}, make sure ` +
     `"## Implementation Notes" lists every difference from the plan that \`git log ${BASE}..HEAD\` ` +
-    `shows, and that "## Follow-ups" and "## Decisions Needed" exist when anything was ` +
+    `shows, and that "## Decisions Needed" exists when anything was ` +
     `recorded. Add each of these browser tests, still failing after their one rerun, to ` +
-    `${FOLLOW_UPS}: ${JSON.stringify(report.stillFailing)}. 3. If ${PLAN} changed, commit it alone as "docs: record implementation notes" plus ` +
+    `${FOLLOW_UPS}: ${JSON.stringify(report.stillFailing)}. 3. If ${PLAN} or ${TODO} changed, commit them alone as "docs: record implementation notes" plus ` +
     `the Co-Authored-By line. Never push. 4. Return \`git log --oneline ${BASE}..HEAD\` and the ` +
     `check counts, verbatim.`,
   { label: "close", phase: "Close", model: "sonnet", effort: "low" },
