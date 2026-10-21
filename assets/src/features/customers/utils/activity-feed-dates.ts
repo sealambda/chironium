@@ -1,10 +1,10 @@
-import { formatDistanceStrict, isToday, parseISO, startOfDay } from "date-fns";
+import { format, formatDistanceStrict, isToday, parseISO, startOfDay } from "date-fns";
 
 import * as m from "@/paraglide/messages";
 import { getDateLocale } from "@/shared/utils/date-locale";
 
 export function toIsoDateString(isoTimestamp: string) {
-  return isoTimestamp.slice(0, 10);
+  return format(parseISO(isoTimestamp), "yyyy-MM-dd");
 }
 
 function formatRelativeDayFromIso(isoTimestamp: string) {

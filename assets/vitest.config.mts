@@ -2,6 +2,9 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
+// A timezone east of UTC, so tests catch dates read in UTC instead of local time.
+process.env.TZ = "Europe/Madrid";
+
 /**
  * Vitest uses the React plugin and the same `@/` alias as Vite so imports resolve
  * consistently. Paraglide output under `src/paraglide` is plain TypeScript and does
