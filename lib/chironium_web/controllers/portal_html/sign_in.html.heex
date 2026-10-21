@@ -1,7 +1,11 @@
-<main class="flex min-h-full items-center justify-center bg-base-200 p-4">
-  <div class="card w-full max-w-md bg-base-100 shadow-sm">
-    <div class="card-body gap-4">
-      <h1 class="card-title text-xl">{gettext("Your questionnaire")}</h1>
+<%!-- The auth colors default to dark; follow the device like the portal app after Continue. --%>
+<script>
+  if (matchMedia("(prefers-color-scheme: light)").matches) document.documentElement.dataset.authTheme = "light";
+</script>
+<main class="flex min-h-full items-center justify-center bg-auth-bg p-4 text-auth-fg antialiased">
+  <div class="w-full max-w-md rounded-auth-lg border border-auth-border bg-auth-card shadow-sm">
+    <div class="flex flex-col gap-4 p-6">
+      <h1 class="text-xl font-semibold">{gettext("Your questionnaire")}</h1>
       <p :if={@organization_name}>
         {gettext("%{organization} asked you to answer a questionnaire.",
           organization: @organization_name
@@ -16,9 +20,14 @@
       <form method="post" action="/auth/guest/magic_link">
         <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
         <input type="hidden" name="token" value={@token} />
-        <button type="submit" class="btn btn-primary w-full">{gettext("Continue")}</button>
+        <button
+          type="submit"
+          class="h-10 w-full rounded-md bg-auth-primary text-sm font-medium text-auth-primary-fg transition-colors hover:bg-auth-primary-hover focus:outline-none focus-visible:ring-3 focus-visible:ring-auth-ring/50"
+        >
+          {gettext("Continue")}
+        </button>
       </form>
-      <p class="text-sm opacity-70">
+      <p class="text-sm text-auth-muted">
         {gettext("If you didn't expect this, you can close this page.")}
       </p>
     </div>
