@@ -4,6 +4,10 @@ defmodule Chironium.Accounts.Checks.PowerUser do
 
   Org owners and members with `power_user` role pass this check. Intended for
   use as a `bypass` so that power users skip finer-grained visibility filters.
+
+  A record that carries its own organization (an organization, membership or
+  invitation) is checked against that organization, never the request's tenant:
+  anyone can own a tenant, so the tenant alone proves nothing about the record.
   """
 
   use Ash.Policy.SimpleCheck
@@ -15,6 +19,15 @@ defmodule Chironium.Accounts.Checks.PowerUser do
 
   @impl true
   def match?(%Chironium.Accounts.User{id: user_id}, %{resource: resource} = context, _opts) do
+    case organization_id_from_data(context) do
+      {:ok, organization_id} -> Authorization.power_user?(user_id, organization_id)
+      :error -> tenant_power_user?(user_id, context, resource)
+    end
+  end
+
+  def match?(_, _, _), do: false
+
+  defp tenant_power_user?(user_id, context, resource) do
     # Fast path: use the access level resolved once by SetTenant and stored in Ash context.
     case access_level_from_context(context) do
       :power_user ->
@@ -22,26 +35,10 @@ defmodule Chironium.Accounts.Checks.PowerUser do
 
       _ ->
         # Fallback for direct Ash calls (tests, background jobs) that bypass the plug.
-        case resolve_organization_id(context, resource) do
+        case Authorization.organization_id_from_tenant(tenant_from(context, resource)) do
           {:ok, organization_id} -> Authorization.power_user?(user_id, organization_id)
           _ -> false
         end
-    end
-  end
-
-  def match?(_, _, _), do: false
-
-  defp resolve_organization_id(context, resource) do
-    tenant = tenant_from(context, resource)
-
-    case Authorization.organization_id_from_tenant(tenant) do
-      {:ok, _} = ok ->
-        ok
-
-      _ ->
-        # When acting directly on an Organization resource (e.g., invite_users in tests),
-        # extract the org ID from the record being modified instead of the tenant.
-        organization_id_from_data(context)
     end
   end
 
@@ -51,9 +48,7 @@ defmodule Chironium.Accounts.Checks.PowerUser do
        when not is_nil(id),
        do: {:ok, id}
 
-  defp organization_id_from_data(%{
-         changeset: %{data: %Chironium.Accounts.OrganizationUsers{organization_id: id}}
-       })
+  defp organization_id_from_data(%{changeset: %{data: %{organization_id: id}}})
        when not is_nil(id),
        do: {:ok, id}
 
