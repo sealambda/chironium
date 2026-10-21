@@ -10,14 +10,15 @@ import type {
   MenstrualCycleEntry,
   ObservationsPage,
 } from "@/features/customers/api/observations-api";
-import type { FeedActor, FeedEvent } from "@/features/customers/types/activity-feed";
+import type { FeedEvent } from "@/features/customers/types/activity-feed";
+import type { FeedActor } from "@/features/customers/types/feed-actor";
 import {
   actorFromNotes,
   actorFromVersions,
   mergeFeedActor,
   patientActor,
   uniqueActors,
-} from "@/features/customers/types/activity-feed";
+} from "@/features/customers/types/feed-actor";
 import {
   bucketByMinute,
   nowIso,

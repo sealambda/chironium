@@ -1,12 +1,14 @@
 import { differenceInDays } from "date-fns";
 import { ScaleIcon } from "lucide-react";
 
+import type {
+  AnthropometricSnapshot,
+  AnthropometryObservationKey,
+} from "@/features/customers/api/anthropometry-api";
 import {
-  type AnthropometricSnapshot,
-  type AnthropometryObservationKey,
   selectCurrentStateSnapshot,
   selfReportedAnthropometryKeys,
-} from "@/features/customers/api/anthropometry-api";
+} from "@/features/customers/api/anthropometry-api.selectors";
 import {
   AnthropometryMeasurementDetails,
   CIRCUMFERENCE_LABELS,

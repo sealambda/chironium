@@ -1,7 +1,7 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { selectAnthropometryHistory } from "@/features/customers/api/anthropometry-api";
+import { selectAnthropometryHistory } from "@/features/customers/api/anthropometry-api.selectors";
 import {
   type FoodPreferencesData,
   selectFoodPreferenceLabels,

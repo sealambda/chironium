@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, UserPlus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
-import { selectCurrentStateSnapshot } from "@/features/customers/api/anthropometry-api";
+import { selectCurrentStateSnapshot } from "@/features/customers/api/anthropometry-api.selectors";
 import type { GoalRecord } from "@/features/customers/api/goals-api";
 import { createPatientForPerson } from "@/features/customers/api/patients-api";
 import type { usePersonDetail } from "@/features/customers/hooks/use-person-detail";
