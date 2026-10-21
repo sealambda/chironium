@@ -52,31 +52,31 @@ export function MenstrualCycleEvent({ cycle }: Readonly<MenstrualCycleEventProps
     <div className="max-w-md rounded-lg border bg-card p-3">
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
-          <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <CalendarDays className="size-3.5" aria-hidden />
             {m.field_cycle_start_date()}
           </p>
-          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">{start}</p>
+          <p className="mt-1 text-sm font-medium text-foreground tabular-nums">{start}</p>
         </div>
         <div>
-          <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <CalendarDays className="size-3.5" aria-hidden />
             {m.field_cycle_end_date()}
           </p>
-          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">{end}</p>
+          <p className="mt-1 text-sm font-medium text-foreground tabular-nums">{end}</p>
         </div>
         <div>
-          <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Clock3 className="size-3.5" aria-hidden />
             {m.field_cycle_duration_days()}
           </p>
-          <p className="mt-1 font-medium text-foreground text-sm tabular-nums">
+          <p className="mt-1 text-sm font-medium text-foreground tabular-nums">
             {duration ?? m.common_unknown()}
           </p>
         </div>
       </div>
       {note ? (
-        <p className="mt-3 flex gap-2 rounded-md bg-muted/30 p-2 text-foreground/75 text-sm">
+        <p className="mt-3 flex gap-2 rounded-md bg-muted/30 p-2 text-sm text-foreground/75">
           <NotebookText className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           <span>{note}</span>
         </p>

@@ -88,7 +88,7 @@ export function SubscriptionProgress({
           x
         </div>
         <div className="absolute inset-0 flex items-center">
-          <span className="text-muted-foreground text-sm">{m.customer_no_subscription()}</span>
+          <span className="text-sm text-muted-foreground">{m.customer_no_subscription()}</span>
         </div>
       </div>
     );
@@ -134,7 +134,7 @@ export function SubscriptionProgress({
           return <div key={i} className={cls} aria-hidden="true" />;
         })}
       </div>
-      <div className="mt-1.5 flex justify-between text-foreground/65 text-xs">
+      <div className="mt-1.5 flex justify-between text-xs text-foreground/65">
         <span>{startFormatted}</span>
         <span>{endFormatted}</span>
       </div>

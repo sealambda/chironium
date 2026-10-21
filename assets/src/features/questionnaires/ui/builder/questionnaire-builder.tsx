@@ -115,7 +115,7 @@ function AnswerOptionsEditor({
         onClick={() => insertAt(options.length)}
       >
         <Glyph className="size-4 shrink-0 text-muted-foreground/30" />
-        <span className="text-muted-foreground text-sm">{m.questionnaire_add_option()}</span>
+        <span className="text-sm text-muted-foreground">{m.questionnaire_add_option()}</span>
       </button>
     </div>
   );
@@ -165,7 +165,7 @@ function MeasurementPicker({
           </SelectContent>
         </SelectPositioner>
       </Select>
-      <p className="text-muted-foreground text-xs">{m.questionnaire_measurement_hint()}</p>
+      <p className="text-xs text-muted-foreground">{m.questionnaire_measurement_hint()}</p>
     </Field>
   );
 }
@@ -330,14 +330,14 @@ export function QuestionnaireBuilder({
             />
             {m.questionnaire_ready()}
           </label>
-          <p className="text-muted-foreground text-xs">{m.questionnaire_ready_hint()}</p>
+          <p className="text-xs text-muted-foreground">{m.questionnaire_ready_hint()}</p>
         </div>
       </div>
 
       <div className="space-y-2">
-        <h2 className="font-medium text-sm">{m.questionnaire_items_heading()}</h2>
+        <h2 className="text-sm font-medium">{m.questionnaire_items_heading()}</h2>
         {state.items.length === 0 ? (
-          <div className="rounded-lg border border-border/60 border-dashed p-6 text-center text-muted-foreground text-sm">
+          <div className="rounded-lg border border-dashed border-border/60 p-6 text-center text-sm text-muted-foreground">
             {m.questionnaire_builder_empty()}
           </div>
         ) : null}

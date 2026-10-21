@@ -103,7 +103,7 @@ export function RemoveRecordDialog<TReason extends string>({
               ))}
             </ToggleGroup>
             {activeReason ? (
-              <p className="text-muted-foreground text-sm">{activeReason.description}</p>
+              <p className="text-sm text-muted-foreground">{activeReason.description}</p>
             ) : null}
           </div>
         ) : null}

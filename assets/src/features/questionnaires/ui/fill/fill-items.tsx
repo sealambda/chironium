@@ -144,7 +144,7 @@ function NumberField({ item, answer, onChange }: Readonly<FieldProps>) {
         onChange={(e) => onChange(numberAnswer(item, e.target.value))}
       />
       {item.unit?.display ? (
-        <span className="text-muted-foreground text-sm">{item.unit.display}</span>
+        <span className="text-sm text-muted-foreground">{item.unit.display}</span>
       ) : null}
     </div>
   );
@@ -330,8 +330,8 @@ export function FillItems({ items, answers, onChange, missing }: Readonly<FillIt
         if (item.type === "group") {
           return (
             <div key={item.linkId} className="space-y-3">
-              {item.text ? <p className="font-medium text-sm">{item.text}</p> : null}
-              <div className="space-y-3 border-border/60 border-l-2 pl-3">
+              {item.text ? <p className="text-sm font-medium">{item.text}</p> : null}
+              <div className="space-y-3 border-l-2 border-border/60 pl-3">
                 <FillItems
                   items={item.item ?? []}
                   answers={answers}
@@ -344,7 +344,7 @@ export function FillItems({ items, answers, onChange, missing }: Readonly<FillIt
         }
         if (item.type === "display") {
           return (
-            <p key={item.linkId} className="text-muted-foreground text-sm">
+            <p key={item.linkId} className="text-sm text-muted-foreground">
               {item.text}
             </p>
           );

@@ -45,26 +45,26 @@ function HeroSection({
     <div className="space-y-0.5">
       <div className="flex items-baseline gap-2">
         {isWeightMissing ? (
-          <span className="font-medium text-muted-foreground text-sm">{m.common_unknown()}</span>
+          <span className="text-sm font-medium text-muted-foreground">{m.common_unknown()}</span>
         ) : (
           <>
-            <span className="font-bold text-3xl text-foreground tabular-nums">
+            <span className="text-3xl font-bold text-foreground tabular-nums">
               {formatAnthropometryValue(weight)}
             </span>
-            <span className="text-foreground/65 text-sm">{m.common_unit_kg()}</span>
+            <span className="text-sm text-foreground/65">{m.common_unit_kg()}</span>
           </>
         )}
         {weight == null || weightDelta == null ? null : <DeltaPill value={weightDelta} unit="kg" />}
       </div>
       {height == null ? null : (
         <div className="flex items-baseline gap-1.5">
-          <span className="font-medium text-foreground text-sm tabular-nums">
+          <span className="text-sm font-medium text-foreground tabular-nums">
             {formatAnthropometryValue(height)}
           </span>
-          <span className="text-foreground/65 text-xs">{m.common_unit_cm()}</span>
+          <span className="text-xs text-foreground/65">{m.common_unit_cm()}</span>
         </div>
       )}
-      <div className="text-foreground/65 text-xs">
+      <div className="text-xs text-foreground/65">
         {daysAgo === 0
           ? m.anthropometry_recorded_today()
           : m.anthropometry_recorded_days_ago({ count: daysAgo })}
@@ -93,7 +93,7 @@ function SelfReportedFields({ snapshot }: Readonly<{ snapshot: AnthropometricSna
   return (
     <div className="mt-2 flex flex-wrap items-center gap-1.5">
       <SelfReportedBadge />
-      <span className="text-foreground/65 text-xs">{labels.join(", ")}</span>
+      <span className="text-xs text-foreground/65">{labels.join(", ")}</span>
     </div>
   );
 }
@@ -154,7 +154,7 @@ function AnthropometryCardSkeleton({ compact }: Readonly<{ compact?: boolean }>)
       </div>
 
       {!compact && (
-        <div className="mt-4 border-border border-t pt-3">
+        <div className="mt-4 border-t border-border pt-3">
           <Skeleton className="h-4 w-52" />
         </div>
       )}

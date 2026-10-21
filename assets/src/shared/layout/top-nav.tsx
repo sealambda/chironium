@@ -20,7 +20,7 @@ export function TopNav({ onCreateOrgClick, onJoinOrgClick }: TopNavProps) {
   const headerClasses = cn(
     "fixed top-0 right-0 left-0 z-50",
     !isDetailMode && "sm:left-18 md:left-64",
-    "border-border/40 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
+    "border-b border-border/40 bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80",
     "pt-safe",
   );
 

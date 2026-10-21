@@ -85,7 +85,7 @@ function PlanSelector({
   }
 
   if (plans.length === 0) {
-    return <p className="text-muted-foreground text-sm">{m.plan_no_plans()}</p>;
+    return <p className="text-sm text-muted-foreground">{m.plan_no_plans()}</p>;
   }
 
   return (

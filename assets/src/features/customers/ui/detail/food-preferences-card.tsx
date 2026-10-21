@@ -60,9 +60,9 @@ export function FoodPreferencesCard({
         columns={2}
         footer={
           selfReportedLabels.length > 0 ? (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5 border-border border-t pt-3">
+            <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
               <SelfReportedBadge />
-              <span className="text-foreground/65 text-xs">{selfReportedLabels.join(", ")}</span>
+              <span className="text-xs text-foreground/65">{selfReportedLabels.join(", ")}</span>
             </div>
           ) : null
         }

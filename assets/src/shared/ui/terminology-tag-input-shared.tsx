@@ -68,7 +68,7 @@ export function TerminologySuggestionsMenu({
       }}
     >
       {isSearching ? (
-        <div className="px-2 py-1.5 text-muted-foreground text-sm">{m.common_loading()}</div>
+        <div className="px-2 py-1.5 text-sm text-muted-foreground">{m.common_loading()}</div>
       ) : (
         suggestions.map((suggestion) => (
           <button

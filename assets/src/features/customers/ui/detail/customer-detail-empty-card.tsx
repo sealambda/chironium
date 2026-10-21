@@ -15,11 +15,11 @@ export function CustomerDetailEmptyCard({
   description,
 }: Readonly<CustomerDetailEmptyCardProps>) {
   return (
-    <div className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-border/50 border-dashed bg-card p-4 text-center lg:p-5">
+    <div className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border/50 bg-card p-4 text-center lg:p-5">
       <Icon className="size-6 shrink-0 text-muted-foreground/60" aria-hidden />
-      <p className="font-medium text-foreground/80 text-sm">{title}</p>
+      <p className="text-sm font-medium text-foreground/80">{title}</p>
       {description ? (
-        <p className="line-clamp-2 max-w-xs text-muted-foreground text-xs">{description}</p>
+        <p className="line-clamp-2 max-w-xs text-xs text-muted-foreground">{description}</p>
       ) : null}
     </div>
   );

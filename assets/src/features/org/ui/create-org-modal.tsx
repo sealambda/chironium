@@ -107,14 +107,14 @@ export function CreateOrgModal({ open, onOpenChange }: CreateOrgModalProps) {
         <ResponsiveStepIndicator steps={stepLabels} currentStep={currentStep} />
 
         <div className="space-y-1">
-          <h3 className="font-medium text-base" data-testid="create-org-step-title">
+          <h3 className="text-base font-medium" data-testid="create-org-step-title">
             {currentStepMeta.title()}
           </h3>
-          <p className="text-muted-foreground text-sm">{currentStepMeta.description()}</p>
+          <p className="text-sm text-muted-foreground">{currentStepMeta.description()}</p>
         </div>
 
         {error ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
           </div>
         ) : null}

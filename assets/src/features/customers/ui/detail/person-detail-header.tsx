@@ -54,7 +54,7 @@ function HeaderDemographics({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-foreground/65 text-xs">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-foreground/65">
       {genderLabel === null ? null : (
         <span className="inline-flex items-center gap-1">
           {Icon ? <Icon className={cn("size-3.5", iconClass)} aria-hidden /> : null}

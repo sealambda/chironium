@@ -41,8 +41,8 @@ function ActivityFeedEmptyCardContent({
     <div className="flex flex-col items-center justify-center gap-3 py-8">
       <Icon className="size-10 shrink-0 text-muted-foreground/60" aria-hidden />
       <div className="text-center">
-        <p className="font-medium text-foreground text-sm">{title}</p>
-        <p className="mt-0.5 text-foreground/65 text-xs">{description}</p>
+        <p className="text-sm font-medium text-foreground">{title}</p>
+        <p className="mt-0.5 text-xs text-foreground/65">{description}</p>
       </div>
       {onAdd == null ? null : <AddRecordButton onClick={onAdd} />}
     </div>
@@ -116,7 +116,7 @@ export function ActivityFeedCard({
     feedBody = (
       <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
         <AlertCircle className="size-4 shrink-0 text-destructive" aria-hidden />
-        <p className="text-destructive text-sm">{m.activity_error()}</p>
+        <p className="text-sm text-destructive">{m.activity_error()}</p>
       </div>
     );
   } else if (isEmpty) {

@@ -15,7 +15,7 @@ export function QuestionnaireEvent({ response }: Readonly<QuestionnaireEventProp
 
   return (
     <div className="flex flex-col gap-1 rounded-xl border bg-card px-3 py-2">
-      <p className="font-medium text-foreground text-sm">
+      <p className="text-sm font-medium text-foreground">
         {response.questionnaire?.title || m.questionnaire_untitled()}
       </p>
       {answers.length > 0 ? <ResponseAnswers items={answers} /> : null}

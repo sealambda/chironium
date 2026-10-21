@@ -65,12 +65,12 @@ function QuestionnaireRow({
             {questionnaire.title || m.questionnaire_untitled()}
           </p>
           {questionnaire.description ? (
-            <p className="mt-0.5 line-clamp-2 text-muted-foreground text-sm">
+            <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
               {questionnaire.description}
             </p>
           ) : null}
           {questionnaire.date ? (
-            <p className="mt-1 text-muted-foreground text-xs">
+            <p className="mt-1 text-xs text-muted-foreground">
               {m.questionnaire_updated_prefix()}{" "}
               {formatDistanceToNowStrict(new Date(questionnaire.date), {
                 addSuffix: true,
@@ -112,8 +112,8 @@ function TemplatePickerDialog({
             <div className="flex items-center gap-3">
               <FilePlus2 className="size-5 shrink-0 text-muted-foreground" />
               <div>
-                <p className="font-medium text-sm">{m.questionnaire_template_blank()}</p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-sm font-medium">{m.questionnaire_template_blank()}</p>
+                <p className="text-sm text-muted-foreground">
                   {m.questionnaire_template_blank_desc()}
                 </p>
               </div>
@@ -128,8 +128,8 @@ function TemplatePickerDialog({
               <div className="flex items-center gap-3">
                 <ClipboardList className="size-5 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="font-medium text-sm">{template.name()}</p>
-                  <p className="text-muted-foreground text-sm">{template.description()}</p>
+                  <p className="text-sm font-medium">{template.name()}</p>
+                  <p className="text-sm text-muted-foreground">{template.description()}</p>
                 </div>
               </div>
             </Card>
@@ -190,10 +190,10 @@ export function QuestionnairesPage() {
     <div className="flex flex-col gap-4 pt-7">
       <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-0.5">
-          <h1 className="font-bold text-foreground text-xl uppercase tracking-wide">
+          <h1 className="text-xl font-bold tracking-wide text-foreground uppercase">
             {m.questionnaire_library_title()}
           </h1>
-          <p className="text-muted-foreground text-sm">{m.questionnaire_library_hint()}</p>
+          <p className="text-sm text-muted-foreground">{m.questionnaire_library_hint()}</p>
         </div>
         <Button onClick={() => setPickerOpen(true)}>
           <Plus className="size-4" />

@@ -119,7 +119,7 @@ export function CustomerFiltersDialog({
           />
           <label
             htmlFor="filter-practitioner-unassigned"
-            className="min-w-0 flex-1 cursor-pointer text-foreground text-sm leading-snug"
+            className="min-w-0 flex-1 cursor-pointer text-sm leading-snug text-foreground"
           >
             {m.customers_filter_unassigned()}
           </label>
@@ -185,7 +185,7 @@ export function CustomerFiltersDialog({
             ) : null}
             <div className="max-h-52 overflow-y-auto rounded-md border border-border/80 bg-background">
               {showPractitionerEmptyState ? (
-                <p className="p-3 text-muted-foreground text-sm">
+                <p className="p-3 text-sm text-muted-foreground">
                   {m.customers_filter_by_practitioner_empty()}
                 </p>
               ) : (
@@ -208,7 +208,7 @@ export function CustomerFiltersDialog({
                           <label
                             htmlFor={rowId}
                             data-testid={`filter-practitioner-label-${item.value}`}
-                            className="min-w-0 flex-1 cursor-pointer text-foreground text-sm leading-snug"
+                            className="min-w-0 flex-1 cursor-pointer text-sm leading-snug text-foreground"
                           >
                             {item.label}
                           </label>
@@ -220,7 +220,7 @@ export function CustomerFiltersDialog({
               )}
             </div>
             {showNoPractitionerNotice ? (
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-muted-foreground">
                 {m.customers_filter_by_practitioner_no_practitioners()}
               </p>
             ) : null}
@@ -239,7 +239,7 @@ export function CustomerFiltersDialog({
               <div className="min-w-0 flex-1">
                 <label
                   htmlFor="filter-hide-finished-plans"
-                  className="cursor-pointer text-foreground text-sm leading-snug"
+                  className="cursor-pointer text-sm leading-snug text-foreground"
                 >
                   {m.customers_filters_hide_finished()}
                 </label>

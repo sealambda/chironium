@@ -53,13 +53,13 @@ export function ProfilePage() {
           alt={user?.name || user?.email || m.nav_profile()}
           referrerPolicy="no-referrer"
         />
-        <AvatarFallback className="bg-primary/10 font-semibold text-2xl text-primary">
+        <AvatarFallback className="bg-primary/10 text-2xl font-semibold text-primary">
           {getUserInitials(user?.name, user?.email)}
         </AvatarFallback>
       </Avatar>
       <div className="mt-4 text-center">
-        <h1 className="font-bold text-2xl text-foreground">{user?.name || m.nav_profile()}</h1>
-        <p className="mt-1 text-muted-foreground text-sm">{user?.email ?? "-"}</p>
+        <h1 className="text-2xl font-bold text-foreground">{user?.name || m.nav_profile()}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{user?.email ?? "-"}</p>
         <div className="mt-3 flex justify-center">
           <LanguageToggle />
         </div>

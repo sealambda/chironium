@@ -142,7 +142,7 @@ export function RequestPage({ navigate }: Readonly<RequestPageProps>) {
         </CardHeader>
         <CardContent className="space-y-6">
           {task.description ? (
-            <p className="whitespace-pre-line rounded-lg bg-muted p-3">{task.description}</p>
+            <p className="rounded-lg bg-muted p-3 whitespace-pre-line">{task.description}</p>
           ) : null}
           {task.focusQuestionnaire?.description ? (
             <p className="text-muted-foreground">{task.focusQuestionnaire.description}</p>
@@ -161,7 +161,7 @@ export function RequestPage({ navigate }: Readonly<RequestPageProps>) {
             {m.portal_submit()}
           </Button>
 
-          <div className="space-y-1 text-muted-foreground text-xs">
+          <div className="space-y-1 text-xs text-muted-foreground">
             <p>{m.portal_privacy_note({ organization })}</p>
             {sessionEnds ? <p>{m.portal_session_note({ date: sessionEnds })}</p> : null}
           </div>

@@ -24,7 +24,7 @@ export function ResponsiveStepIndicator({ steps, currentStep }: ResponsiveStepIn
             style={{ width: `${progressPercent}%` }}
           />
         </div>
-        <p className="mt-1 text-center text-muted-foreground text-xs">
+        <p className="mt-1 text-center text-xs text-muted-foreground">
           {currentStep + 1} / {steps.length}
         </p>
       </div>

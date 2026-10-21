@@ -37,7 +37,7 @@ export function DeltaPill({ value, unit }: Readonly<{ value: number; unit: strin
 
   if (value === 0) {
     return (
-      <Badge className="h-5 border-border bg-muted/50 px-1.5 font-semibold text-foreground/65 text-xs">
+      <Badge className="h-5 border-border bg-muted/50 px-1.5 text-xs font-semibold text-foreground/65">
         &mdash; {display} {unitLabel}
       </Badge>
     );
@@ -48,7 +48,7 @@ export function DeltaPill({ value, unit }: Readonly<{ value: number; unit: strin
   const arrow = isLoss ? "\u2193" : "\u2191";
 
   return (
-    <Badge variant={colorClass} className="h-5 px-1.5 font-semibold text-xs">
+    <Badge variant={colorClass} className="h-5 px-1.5 text-xs font-semibold">
       {arrow} {display} {unitLabel}
     </Badge>
   );
@@ -69,8 +69,8 @@ function MetabolicIndicatorsRow({
     <div className={cn("grid text-center", cols)}>
       {hasBmi && bmiClass !== null ? (
         <div>
-          <p className="text-foreground/65 text-xs">{m.anthropometry_bmi()}</p>
-          <p className="inline-flex items-center gap-1.5 font-semibold text-foreground text-lg tabular-nums">
+          <p className="text-xs text-foreground/65">{m.anthropometry_bmi()}</p>
+          <p className="inline-flex items-center gap-1.5 text-lg font-semibold text-foreground tabular-nums">
             {formatAnthropometryValue(bmi)}
             <StatusDot classification={bmiClass} />
           </p>
@@ -79,8 +79,8 @@ function MetabolicIndicatorsRow({
 
       {hasWhr && whrClass !== null ? (
         <div>
-          <p className="text-foreground/65 text-xs">{m.anthropometry_whr()}</p>
-          <p className="inline-flex items-center gap-1.5 font-semibold text-foreground text-lg tabular-nums">
+          <p className="text-xs text-foreground/65">{m.anthropometry_whr()}</p>
+          <p className="inline-flex items-center gap-1.5 text-lg font-semibold text-foreground tabular-nums">
             {whr.toFixed(2)}
             <StatusDot classification={whrClass} />
           </p>
@@ -131,9 +131,9 @@ function buildCircumferenceCells(
 
     return (
       <div key={key} className="py-2 text-center">
-        <p className="text-foreground/65 text-xs">{CIRCUMFERENCE_LABELS[key]()}</p>
+        <p className="text-xs text-foreground/65">{CIRCUMFERENCE_LABELS[key]()}</p>
         <div className="inline-flex flex-col items-center gap-1">
-          <span className="font-medium text-foreground tabular-nums leading-none">
+          <span className="leading-none font-medium text-foreground tabular-nums">
             {formatAnthropometryValue(value)} {m.common_unit_cm()}
           </span>
           {delta === null ? null : <DeltaPill value={delta} unit="cm" />}
@@ -173,7 +173,7 @@ function GroupedCircumferences({
           <div key={groupId}>
             <div className="flex items-center justify-center gap-1.5 pb-1 text-foreground/65">
               <Icon className="size-3.5" />
-              <span className="font-medium text-xs">{group.labelKey()}</span>
+              <span className="text-xs font-medium">{group.labelKey()}</span>
             </div>
             <div className="h-px bg-border/60" />
             <div className={cn("grid gap-x-2", colsClass(visibleKeys.length))}>
@@ -204,7 +204,7 @@ export function AnthropometryMeasurementDetails({
 
   if (!canShowMetabolicIndicators && !canShowCircumferences) {
     return (
-      <div className="px-3 py-5 text-center text-foreground/65 text-sm">
+      <div className="px-3 py-5 text-center text-sm text-foreground/65">
         {m.anthropometry_calculation_unavailable()}
       </div>
     );

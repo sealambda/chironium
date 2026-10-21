@@ -242,7 +242,7 @@ export function CustomersPage() {
       <div className="flex min-h-96 items-center justify-center">
         <div className="text-center">
           <div className="mb-2 font-medium text-destructive">{m.customers_error()}</div>
-          <div className="text-muted-foreground text-sm">{message}</div>
+          <div className="text-sm text-muted-foreground">{message}</div>
         </div>
       </div>
     );
@@ -254,15 +254,15 @@ export function CustomersPage() {
         <div className="flex flex-col gap-0.5">
           <div className="flex items-baseline gap-2">
             <h1
-              className="font-bold text-foreground text-xl uppercase tracking-wide"
+              className="text-xl font-bold tracking-wide text-foreground uppercase"
               data-testid="customers-heading"
             >
               {m.customers_title()}
             </h1>
-            <span className="text-muted-foreground text-sm">({filtered.length})</span>
+            <span className="text-sm text-muted-foreground">({filtered.length})</span>
           </div>
           {hiddenByFiltersCount > 0 && !hasSearchQuery ? (
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               {m.customers_filters_hidden_count({ count: hiddenByFiltersCount })}
             </p>
           ) : null}

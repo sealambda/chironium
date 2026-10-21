@@ -439,7 +439,7 @@ export function AddMenstrualCycleDialog({
                         return (
                           <p
                             role="alert"
-                            className="flex items-center gap-1.5 text-destructive text-xs"
+                            className="flex items-center gap-1.5 text-xs text-destructive"
                           >
                             <span aria-hidden>&#9888;</span>
                             {endBeforeStartErr}

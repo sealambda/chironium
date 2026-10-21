@@ -127,7 +127,7 @@ export function MarkdownEditor({
 
   return (
     <div className={cn(className)}>
-      <div className="flex gap-0.5 rounded-t-md border border-input border-b-0 bg-muted/30 px-1.5 py-1">
+      <div className="flex gap-0.5 rounded-t-md border border-b-0 border-input bg-muted/30 px-1.5 py-1">
         {ACTIONS.map(({ action, icon: Icon, label }) => (
           <Button
             key={action}
@@ -145,7 +145,7 @@ export function MarkdownEditor({
       </div>
       <div
         className={cn(
-          "relative rounded-b-md border border-input border-t-0 bg-background px-3 py-2 text-sm",
+          "relative rounded-b-md border border-t-0 border-input bg-background px-3 py-2 text-sm",
           disabled ? "cursor-not-allowed opacity-60" : "",
         )}
       >
@@ -156,7 +156,7 @@ export function MarkdownEditor({
         ) : null}
         <EditorContent
           editor={editor}
-          className="min-h-0 [&_.ProseMirror]:outline-none [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h2]:text-base [&_.ProseMirror_li]:my-0.5 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_p]:leading-relaxed [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5"
+          className="min-h-0 [&_.ProseMirror]:outline-none [&_.ProseMirror_h2]:text-base [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_li]:my-0.5 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_p]:leading-relaxed [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5"
           style={{ minHeight: `${rows * 1.5}rem` }}
         />
       </div>

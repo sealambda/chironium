@@ -20,7 +20,7 @@ function EmptyState({ icon: Icon, title, description, actions = [], className }:
     <div
       data-slot="empty-state"
       className={cn(
-        "flex min-h-48 items-center justify-center rounded-2xl border border-border/50 border-dashed bg-card/50",
+        "flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-border/50 bg-card/50",
         className,
       )}
     >
@@ -28,7 +28,7 @@ function EmptyState({ icon: Icon, title, description, actions = [], className }:
         <Icon className="size-10 text-muted-foreground sm:size-12" />
         <div>
           <div className="font-medium text-muted-foreground">{title}</div>
-          {description ? <div className="text-muted-foreground text-sm">{description}</div> : null}
+          {description ? <div className="text-sm text-muted-foreground">{description}</div> : null}
         </div>
         {actions.length > 0 ? (
           <div className="mt-1 flex w-full flex-col gap-2">

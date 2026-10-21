@@ -60,8 +60,8 @@ function formatCycleDuration(cycle: MenstrualCycleSummary): string {
 function CycleMetric({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="rounded-lg border border-border/50 bg-muted/20 p-2.5">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className="mt-0.5 font-medium text-foreground text-sm tabular-nums">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-sm font-medium text-foreground tabular-nums">{value}</p>
     </div>
   );
 }
@@ -153,11 +153,11 @@ export function MenstrualCycleCard({
       <div className="mt-3 space-y-0.5">
         {hasDuration ? (
           <div className="flex items-baseline gap-2">
-            <span className="font-bold text-3xl text-foreground tabular-nums">{duration}</span>
-            <span className="text-foreground/65 text-sm">days</span>
+            <span className="text-3xl font-bold text-foreground tabular-nums">{duration}</span>
+            <span className="text-sm text-foreground/65">days</span>
           </div>
         ) : (
-          <p className="font-medium text-muted-foreground text-sm">{m.common_unknown()}</p>
+          <p className="text-sm font-medium text-muted-foreground">{m.common_unknown()}</p>
         )}
       </div>
 
@@ -169,11 +169,11 @@ export function MenstrualCycleCard({
 
       {/* Notes */}
       <div className="mt-4 rounded-lg bg-muted/30 p-3">
-        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <NotebookText className="size-3.5" aria-hidden />
           <span>{m.field_cycle_notes()}</span>
         </div>
-        <p className="mt-1 text-foreground/75 text-sm leading-relaxed">
+        <p className="mt-1 text-sm leading-relaxed text-foreground/75">
           {note ?? m.menstrual_cycle_note_empty()}
         </p>
       </div>

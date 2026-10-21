@@ -203,7 +203,7 @@ export function PlansStep({ initialData, isSubmitting, onFinish, onBack }: Plans
         </Button>
 
         <PlanList plans={plans} onRemove={handleRemovePlan} />
-        {pendingError ? <p className="text-destructive text-sm">{pendingError}</p> : null}
+        {pendingError ? <p className="text-sm text-destructive">{pendingError}</p> : null}
       </div>
 
       <DialogFooter>
@@ -225,20 +225,20 @@ interface PlanListProps {
 
 function PlanList({ plans, onRemove }: PlanListProps) {
   if (plans.length === 0) {
-    return <p className="py-2 text-center text-muted-foreground text-sm">{m.plan_empty_hint()}</p>;
+    return <p className="py-2 text-center text-sm text-muted-foreground">{m.plan_empty_hint()}</p>;
   }
 
   return (
     <div className="space-y-2">
-      <p className="text-muted-foreground text-xs">{m.plan_added({ count: plans.length })}</p>
+      <p className="text-xs text-muted-foreground">{m.plan_added({ count: plans.length })}</p>
       {plans.map((plan) => (
         <div
           key={plan.localId}
           className="flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2"
         >
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium text-sm">{plan.name}</p>
-            <p className="text-muted-foreground text-xs">
+            <p className="truncate text-sm font-medium">{plan.name}</p>
+            <p className="text-xs text-muted-foreground">
               {formatDurationWithUnit(plan.durationValue, plan.durationUnit)}
             </p>
           </div>

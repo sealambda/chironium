@@ -21,9 +21,9 @@ export function SubscriptionEvent({ variant, planName, pause }: Readonly<Subscri
 
   return (
     <div className="space-y-2">
-      <p className="text-foreground/80 text-sm">{resolvedPlanName}</p>
+      <p className="text-sm text-foreground/80">{resolvedPlanName}</p>
       {shouldShowPauseReason ? (
-        <p className="border-muted-foreground/20 border-l-2 pl-2.5 text-muted-foreground text-xs italic">
+        <p className="border-l-2 border-muted-foreground/20 pl-2.5 text-xs text-muted-foreground italic">
           {reason}
         </p>
       ) : null}

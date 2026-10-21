@@ -195,7 +195,7 @@ export function MenstrualCycleStep({
 
         {/* ── Period End — linked End Date + Duration ── */}
         <div className="rounded-lg border border-border/50 bg-muted/10 p-3">
-          <p className="mb-3 font-medium text-foreground text-xs uppercase tracking-wide">
+          <p className="mb-3 text-xs font-medium tracking-wide text-foreground uppercase">
             {m.field_cycle_end_date()}
           </p>
 

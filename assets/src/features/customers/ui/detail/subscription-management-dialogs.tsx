@@ -71,7 +71,7 @@ export function PausesSection({ pauses, organizationId, onMutated }: Readonly<Pa
 
   return (
     <section className="space-y-2 border-t pt-4">
-      <h3 className="font-medium text-sm">{m.subscription_pauses_title()}</h3>
+      <h3 className="text-sm font-medium">{m.subscription_pauses_title()}</h3>
       <ul className="space-y-2">
         {sorted.map((pause) => (
           <PauseRow
@@ -104,7 +104,7 @@ function PauseRow({
     <li className="flex items-start justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
       <div className="min-w-0 flex-1">
         <p className="font-medium tabular-nums">{dateRange}</p>
-        {pause.reason ? <p className="text-muted-foreground text-xs">{pause.reason}</p> : null}
+        {pause.reason ? <p className="text-xs text-muted-foreground">{pause.reason}</p> : null}
         {isActivePause ? (
           <Badge variant="warning" className="mt-1">
             {m.subscription_pause_active()}
@@ -549,7 +549,7 @@ export function SubscriptionActions({
 export function SubscriptionActionsSection(props: Readonly<SubscriptionActionsProps>) {
   return (
     <section className="space-y-2 border-t pt-4">
-      <h3 className="font-medium text-sm">{m.subscription_actions_title()}</h3>
+      <h3 className="text-sm font-medium">{m.subscription_actions_title()}</h3>
       <SubscriptionActions {...props} />
     </section>
   );

@@ -141,13 +141,13 @@ function previewObservation(body: string): string {
 function ObservationList({ notes, onRemove }: ObservationListProps) {
   if (notes.length === 0) {
     return (
-      <p className="py-2 text-center text-muted-foreground text-sm">{m.observation_empty_hint()}</p>
+      <p className="py-2 text-center text-sm text-muted-foreground">{m.observation_empty_hint()}</p>
     );
   }
 
   return (
     <div className="space-y-2">
-      <p className="text-muted-foreground text-xs">
+      <p className="text-xs text-muted-foreground">
         {m.observation_added({ count: notes.length })}
       </p>
       {notes.map((note) => (
@@ -156,7 +156,7 @@ function ObservationList({ notes, onRemove }: ObservationListProps) {
           className="flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2"
         >
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium text-sm">{note.body}</p>
+            <p className="truncate text-sm font-medium">{note.body}</p>
           </div>
           <Button
             variant="ghost"

@@ -101,10 +101,10 @@ export function SubscriptionsPage() {
     <div className="space-y-4 pt-7">
       <header className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h1 className="font-bold text-2xl text-foreground uppercase tracking-wide">
+          <h1 className="text-2xl font-bold tracking-wide text-foreground uppercase">
             {m.subscriptions_title()}
           </h1>
-          <span className="text-muted-foreground text-sm">({plans.length})</span>
+          <span className="text-sm text-muted-foreground">({plans.length})</span>
         </div>
       </header>
 
@@ -160,10 +160,10 @@ function PlanList({
             className="rounded-lg border border-border/60 bg-card px-4 py-3 shadow-sm"
           >
             <p className="font-medium">{plan.name ?? "—"}</p>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               {formatSubscriptionPlanDurationText(plan)}
             </p>
-            <p className="text-muted-foreground text-sm">{formatSubscriptionPlanPriceText(plan)}</p>
+            <p className="text-sm text-muted-foreground">{formatSubscriptionPlanPriceText(plan)}</p>
           </div>
         ))}
       </div>

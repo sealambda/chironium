@@ -51,7 +51,7 @@ function Section({
             className="flex cursor-pointer items-center gap-1.5"
             aria-expanded={isExpanded}
           >
-            <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wider">
+            <h2 className="text-sm font-medium tracking-wider text-muted-foreground uppercase">
               {title}
             </h2>
             {isExpanded ? (
@@ -61,7 +61,7 @@ function Section({
             )}
           </button>
         ) : (
-          <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wider">
+          <h2 className="text-sm font-medium tracking-wider text-muted-foreground uppercase">
             {title}
           </h2>
         )}
@@ -283,11 +283,11 @@ export function PersonDetailContent({
           openAddRecord={openAddRecord}
         />
       ) : (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border border-dashed p-8 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-8 text-center">
           <UserPlus className="size-8 text-muted-foreground" />
           <div>
             <p className="font-medium text-foreground">{m.customer_create_patient()}</p>
-            <p className="mt-1 text-muted-foreground text-sm">{m.customer_create_patient_desc()}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{m.customer_create_patient_desc()}</p>
           </div>
           <Button onClick={() => createPatient()} disabled={isPending}>
             {isPending ? m.common_saving() : m.customer_create_patient()}

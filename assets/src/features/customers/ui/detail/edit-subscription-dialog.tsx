@@ -250,13 +250,13 @@ export function EditSubscriptionDialog({
           {isEditing ? (
             <div className="flex flex-col items-start gap-2 pt-1">
               <div className="flex flex-col items-start gap-1">
-                <p className="font-medium text-sm">{m.subscription_status_label()}</p>
+                <p className="text-sm font-medium">{m.subscription_status_label()}</p>
                 <Badge variant={stateBadgeVariant(state)}>{stateLabel(state)}</Badge>
               </div>
               {effectiveEndDateLabel ? (
                 <div className="flex flex-col items-start gap-1">
-                  <p className="font-medium text-sm">{m.subscription_field_end_date()}</p>
-                  <p className="text-muted-foreground text-sm tabular-nums">
+                  <p className="text-sm font-medium">{m.subscription_field_end_date()}</p>
+                  <p className="text-sm text-muted-foreground tabular-nums">
                     {effectiveEndDateLabel}
                   </p>
                 </div>
