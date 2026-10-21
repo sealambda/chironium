@@ -68,7 +68,7 @@ export function OrgSelector({
           />
         }
       >
-        <span className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground text-sm">
+        <span className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
           {orgMark}
         </span>
         <span
@@ -89,7 +89,7 @@ export function OrgSelector({
       <DropdownMenuContent align="start" side="bottom" sideOffset={4} className="w-64 rounded-lg">
         {!isEmpty && (
           <>
-            <DropdownMenuLabel className="text-muted-foreground text-xs">
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
               {m.nav_organization()}
             </DropdownMenuLabel>
             <div className="max-h-80 overflow-y-auto pr-1">
@@ -100,7 +100,7 @@ export function OrgSelector({
                   className="cursor-pointer gap-2 p-2"
                   data-testid={`org-selector-item-${org.id}`}
                 >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border font-bold text-xs">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border text-xs font-bold">
                     {getOrgMark(org.name)}
                   </span>
                   {org.name}

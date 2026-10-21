@@ -48,8 +48,8 @@ function SingleGoal({ goal }: Readonly<{ goal: GoalRecord }>) {
           <Badge variant="outline">{categoryLabel()}</Badge>
         </div>
       ) : null}
-      {dateRange ? <p className="text-muted-foreground text-xs">{dateRange}</p> : null}
-      {description ? <p className="text-foreground/80 text-sm">{description}</p> : null}
+      {dateRange ? <p className="text-xs text-muted-foreground">{dateRange}</p> : null}
+      {description ? <p className="text-sm text-foreground/80">{description}</p> : null}
     </div>
   );
 }

@@ -16,7 +16,7 @@ export function TagsCardTitle({ children, className }: Readonly<TagsCardTitlePro
   return (
     <p
       className={cn(
-        "font-semibold text-foreground/70 text-sm uppercase tracking-widest",
+        "text-sm font-semibold tracking-widest text-foreground/70 uppercase",
         className,
       )}
     >
@@ -138,7 +138,7 @@ export function TagsCardColumn({
   children,
 }: Readonly<TagsCardColumnProps>) {
   const content = isEmpty ? (
-    <p className="text-muted-foreground text-sm italic">{emptyText}</p>
+    <p className="text-sm text-muted-foreground italic">{emptyText}</p>
   ) : (
     children || null
   );

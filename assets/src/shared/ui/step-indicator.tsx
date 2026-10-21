@@ -56,7 +56,7 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
             <div className="flex items-center gap-1.5 sm:gap-2">
               <div
                 className={cn(
-                  "flex shrink-0 items-center justify-center rounded-full font-medium text-xs transition-colors",
+                  "flex shrink-0 items-center justify-center rounded-full text-xs font-medium transition-colors",
                   compact ? "size-6" : "size-7",
                   circleClass(isCompleted, isActive),
                 )}

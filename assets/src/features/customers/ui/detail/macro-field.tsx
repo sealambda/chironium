@@ -99,7 +99,7 @@ export function MacroField({
         decrementLabel={m.common_decrease()}
         incrementLabel={m.common_increase()}
       />
-      <p className="flex items-center gap-1.5 text-muted-foreground text-xs tabular-nums">
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
         <span className="font-medium text-foreground">{pct > 0 ? `${pct}%` : "—"}</span>
         {m.common_unit_kcal()}
         <span aria-hidden>·</span>

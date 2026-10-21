@@ -169,7 +169,7 @@ export function TerminologyTagInput({
           onPick={addSuggestion}
         />
       ) : null}
-      {error ? <p className="text-destructive text-sm">{error}</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <TerminologyTagChips tags={tags} disabled={disabled} onRemove={onRemove} />
     </Field>
   );

@@ -9,5 +9,5 @@ export function TaskEvent({ task }: Readonly<TaskEventProps>) {
     return null;
   }
 
-  return <p className="text-foreground/80 text-sm">{task.description}</p>;
+  return <p className="text-sm text-foreground/80">{task.description}</p>;
 }

@@ -41,7 +41,7 @@ function RowBody({ item }: Readonly<{ item: ResponseItem }>) {
     );
   }
   if (item.text) {
-    return <p className="pt-2 font-medium text-sm">{item.text}</p>;
+    return <p className="pt-2 text-sm font-medium">{item.text}</p>;
   }
   return null;
 }

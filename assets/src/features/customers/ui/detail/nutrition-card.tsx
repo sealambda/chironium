@@ -32,7 +32,7 @@ interface NutritionCardProps {
 function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
   const macroTotal = totalKcalFromMacroGrams(gramsByMacro(plan));
   return (
-    <ul className="grid w-fit @max-[22rem]/nutrition:grid-cols-[auto_auto_auto] grid-cols-[auto_max-content_auto_auto] gap-x-2 gap-y-2 lg:w-full lg:min-w-0 lg:flex-1 lg:grid-cols-[auto_1fr_auto_auto]">
+    <ul className="grid w-fit grid-cols-[auto_max-content_auto_auto] gap-x-2 gap-y-2 lg:w-full lg:min-w-0 lg:flex-1 lg:grid-cols-[auto_1fr_auto_auto] @max-[22rem]/nutrition:grid-cols-[auto_auto_auto]">
       {MACRO_IDS.map((id) => {
         const meta = MACRO_META[id];
         const Icon = meta.icon;
@@ -48,16 +48,16 @@ function MacroLegend({ plan }: Readonly<{ plan: NutritionPlanRecord }>) {
             >
               <Icon className={cn("size-3.5", meta.iconClass)} aria-hidden />
             </span>
-            <span className="@max-[22rem]/nutrition:sr-only truncate pr-5 text-foreground text-sm">
+            <span className="truncate pr-5 text-sm text-foreground @max-[22rem]/nutrition:sr-only">
               {meta.label()}
             </span>
-            <span className="text-right font-semibold text-foreground text-sm tabular-nums">
+            <span className="text-right text-sm font-semibold text-foreground tabular-nums">
               {grams}
-              <span className="ml-0.5 font-normal text-muted-foreground text-xs">
+              <span className="ml-0.5 text-xs font-normal text-muted-foreground">
                 {m.common_unit_g()}
               </span>
             </span>
-            <span className="text-right text-muted-foreground text-xs tabular-nums">{pct}%</span>
+            <span className="text-right text-xs text-muted-foreground tabular-nums">{pct}%</span>
           </li>
         );
       })}

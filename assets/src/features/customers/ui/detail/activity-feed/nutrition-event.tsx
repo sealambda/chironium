@@ -18,7 +18,7 @@ export function NutritionEvent({ plans }: Readonly<NutritionEventProps>) {
     <div className="flex flex-col gap-2">
       {plans.map((plan) => (
         <div key={plan.id} className="flex flex-wrap items-center gap-2">
-          <span className="rounded-xl border bg-card px-3 py-1.5 font-semibold text-foreground text-sm tabular-nums">
+          <span className="rounded-xl border bg-card px-3 py-1.5 text-sm font-semibold text-foreground tabular-nums">
             {plan.targetKcal.toLocaleString()} {m.common_unit_kcal()}
           </span>
           {MACRO_IDS.map((id) => {
@@ -27,7 +27,7 @@ export function NutritionEvent({ plans }: Readonly<NutritionEventProps>) {
             return (
               <span
                 key={id}
-                className="inline-flex items-center gap-1.5 rounded-xl border bg-card px-3 py-1.5 text-foreground text-sm tabular-nums"
+                className="inline-flex items-center gap-1.5 rounded-xl border bg-card px-3 py-1.5 text-sm text-foreground tabular-nums"
               >
                 <Icon className={cn("size-3.5 shrink-0", meta.iconClass)} aria-hidden />
                 {plan[meta.fieldKey]} {m.common_unit_g()}

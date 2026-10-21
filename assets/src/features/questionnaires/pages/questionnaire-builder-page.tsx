@@ -63,7 +63,7 @@ function BuilderPreview({ state }: Readonly<{ state: BuilderState }>) {
       <CardHeader>
         <CardTitle className="text-base">{state.title || m.questionnaire_untitled()}</CardTitle>
         {state.description ? (
-          <p className="text-muted-foreground text-sm">{state.description}</p>
+          <p className="text-sm text-muted-foreground">{state.description}</p>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-4">
@@ -74,7 +74,7 @@ function BuilderPreview({ state }: Readonly<{ state: BuilderState }>) {
             onChange={(linkId, next) => setAnswers((current) => ({ ...current, [linkId]: next }))}
           />
         ) : (
-          <p className="text-muted-foreground text-sm">{m.questionnaire_preview_empty()}</p>
+          <p className="text-sm text-muted-foreground">{m.questionnaire_preview_empty()}</p>
         )}
       </CardContent>
     </Card>

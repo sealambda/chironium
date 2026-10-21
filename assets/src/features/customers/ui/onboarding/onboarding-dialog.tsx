@@ -195,7 +195,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
           <ResponsiveStepIndicator steps={stepLabels} currentStep={wizard.currentStep} />
 
           {wizard.error ? (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {wizard.error}
             </div>
           ) : null}

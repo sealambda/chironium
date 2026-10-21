@@ -42,8 +42,8 @@ export function StepLayout({
   return (
     <>
       <div className="space-y-1">
-        <h3 className="font-medium text-base">{title}</h3>
-        <p className="text-muted-foreground text-sm">{description}</p>
+        <h3 className="text-base font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
       {children}

@@ -289,7 +289,7 @@ export function NutritionPlanDetailDialog({
                 {showMeter ? (
                   <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-sm text-muted-foreground">
                         {m.nutrition_balance_summary({
                           kcal: macroTotal,
                           target: targetKcal,
@@ -310,7 +310,7 @@ export function NutritionPlanDetailDialog({
                     </div>
                     <p
                       className={cn(
-                        "mt-1 font-medium text-sm",
+                        "mt-1 text-sm font-medium",
                         balanced
                           ? "text-emerald-600 dark:text-emerald-400"
                           : "text-amber-600 dark:text-amber-400",

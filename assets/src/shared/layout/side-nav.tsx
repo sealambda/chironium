@@ -42,7 +42,7 @@ export function SideNav({
   return (
     <nav
       className={cn(
-        "fixed inset-y-0 left-0 z-40 hidden w-18 shrink-0 flex-col border-border/40 border-r bg-card sm:flex md:w-64",
+        "fixed inset-y-0 left-0 z-40 hidden w-18 shrink-0 flex-col border-r border-border/40 bg-card sm:flex md:w-64",
         "pt-safe pb-safe pl-safe",
       )}
       aria-label={m.nav_main_navigation()}
@@ -71,9 +71,9 @@ export function SideNav({
         ))}
       </div>
 
-      <div className="mt-auto border-border/40 border-t p-2 md:p-4">
+      <div className="mt-auto border-t border-border/40 p-2 md:p-4">
         <SidebarPreferences variant="desktop" />
-        <div className="mt-3 border-border/40 border-t pt-2 md:pt-3">
+        <div className="mt-3 border-t border-border/40 pt-2 md:pt-3">
           <NavUser />
         </div>
       </div>
@@ -129,9 +129,9 @@ export function MobileSideNav({
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="left" className="w-[calc(100vw-3rem)] max-w-xs p-0 sm:hidden">
-          <div className="flex h-full min-h-svh flex-col pt-safe pb-safe">
+          <div className="pt-safe pb-safe flex h-full min-h-svh flex-col">
             <div className="px-4 pt-4 pb-3">
-              <p className="px-1 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+              <p className="px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 {m.nav_organization()}
               </p>
               <div className="pt-2">
@@ -146,8 +146,8 @@ export function MobileSideNav({
               </div>
             </div>
 
-            <div className="border-border/40 border-t px-4 pt-5 pb-2">
-              <p className="px-1 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+            <div className="border-t border-border/40 px-4 pt-5 pb-2">
+              <p className="px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 {m.nav_menu()}
               </p>
             </div>
@@ -165,9 +165,9 @@ export function MobileSideNav({
               ))}
             </div>
 
-            <div className="mt-auto border-border/40 border-t p-3">
+            <div className="mt-auto border-t border-border/40 p-3">
               <SidebarPreferences variant="mobile" />
-              <div className="mt-4 border-border/40 border-t pt-3">
+              <div className="mt-4 border-t border-border/40 pt-3">
                 <NavUser showLabelsOnMobile onAction={closeMenu} />
               </div>
             </div>
@@ -185,7 +185,7 @@ function SidebarPreferences({ variant }: Readonly<{ variant: NavVariant }>) {
     <div className="flex flex-col gap-2">
       <p
         className={cn(
-          "px-1 font-semibold text-muted-foreground text-xs uppercase tracking-wide",
+          "px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase",
           isDesktop && "hidden md:block",
         )}
       >
@@ -237,7 +237,7 @@ export function NavItemLink({
       onClick={onClick}
       className={cn(
         "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 transition-colors",
-        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden",
         isDesktop && "justify-center md:justify-start",
         isActive
           ? "bg-primary/10 text-foreground"
@@ -265,7 +265,7 @@ export function NavItemLink({
       {count > 0 ? (
         <span
           className={cn(
-            "ml-auto rounded-full bg-primary px-2 py-0.5 font-semibold text-primary-foreground text-xs tabular-nums",
+            "ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground tabular-nums",
             isDesktop ? "hidden md:inline" : "inline",
           )}
           data-testid="nav-pending-count"

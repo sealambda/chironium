@@ -16,7 +16,7 @@ export function PortalMessage({ icon: Icon, title, body }: Readonly<PortalMessag
       <Card className="mt-8">
         <CardContent className="flex flex-col items-center gap-3 text-center">
           <Icon className="size-10 text-muted-foreground" aria-hidden />
-          <h1 className="font-semibold text-xl">{title}</h1>
+          <h1 className="text-xl font-semibold">{title}</h1>
           <p className="text-muted-foreground">{body}</p>
         </CardContent>
       </Card>

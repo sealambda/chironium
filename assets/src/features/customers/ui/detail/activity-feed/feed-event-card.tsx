@@ -96,12 +96,12 @@ export function FeedEventCard({
       <div className="min-w-0 flex-1 pb-1">
         <div className="flex min-h-8 flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-snug">
           {primaryActor != null && (
-            <span className="font-semibold text-foreground text-sm">{primaryActor.name}</span>
+            <span className="text-sm font-semibold text-foreground">{primaryActor.name}</span>
           )}
-          <span className="text-muted-foreground text-sm">{verb}</span>
+          <span className="text-sm text-muted-foreground">{verb}</span>
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-xs",
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
               accentDotBgClass[accent],
               accentIconClass[accent],
             )}
@@ -112,7 +112,7 @@ export function FeedEventCard({
           {action ? <span className="shrink-0">{action}</span> : null}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <time dateTime={date} className="block text-muted-foreground text-xs">
+          <time dateTime={date} className="block text-xs text-muted-foreground">
             {relative} · {absolute}
             {primaryActor?.noteAuthorName ? (
               <>

@@ -108,7 +108,7 @@ function PendingRow({
             <p className="truncate font-medium text-foreground">{patientName}</p>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-foreground/80 text-sm">
+            <p className="text-sm text-foreground/80">
               {isQuestionnaire
                 ? m.pending_questionnaire({
                     title: task.focusQuestionnaire?.title || m.questionnaire_untitled(),
@@ -117,7 +117,7 @@ function PendingRow({
             </p>
             {status ? <QuestionnaireRequestStatusBadge status={status} /> : null}
           </div>
-          {when ? <p className="text-muted-foreground text-xs">{when}</p> : null}
+          {when ? <p className="text-xs text-muted-foreground">{when}</p> : null}
         </div>
         <div className="flex shrink-0 justify-end">
           {status ? (
@@ -180,10 +180,10 @@ export function PendingPage() {
   return (
     <div className="flex flex-col gap-4 pt-7">
       <header className="flex flex-col gap-0.5">
-        <h1 className="font-bold text-foreground text-xl uppercase tracking-wide">
+        <h1 className="text-xl font-bold tracking-wide text-foreground uppercase">
           {m.pending_title()}
         </h1>
-        <p className="text-muted-foreground text-sm">{m.pending_subtitle()}</p>
+        <p className="text-sm text-muted-foreground">{m.pending_subtitle()}</p>
       </header>
 
       {renderContent()}

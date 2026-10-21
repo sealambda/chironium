@@ -89,7 +89,7 @@ export function InvitationLinkDialog({
         ) : null}
         {isLoading ? <Loading className="min-h-24" /> : null}
         {isError ? (
-          <p className="text-destructive text-sm">{m.settings_invite_link_load_error()}</p>
+          <p className="text-sm text-destructive">{m.settings_invite_link_load_error()}</p>
         ) : null}
 
         <DialogFooter>

@@ -186,7 +186,7 @@ function NumericInputField({ field, fieldName, withSteppers }: Readonly<NumericI
       )}
       {hasErrors ? <FieldError errors={toFieldErrors(field.state.meta.errors)} /> : null}
       {softWarning ? (
-        <p className="text-warning-muted-foreground text-xs">{m.validation_unusual_value()}</p>
+        <p className="text-xs text-warning-muted-foreground">{m.validation_unusual_value()}</p>
       ) : null}
     </Field>
   );

@@ -38,7 +38,7 @@ function AppShellInner({ children, onCreateOrgClick, onJoinOrgClick }: AppShellP
         {/* Main content area with safe padding for fixed nav and safe areas. */}
         <main
           className={cn(
-            "min-w-0 flex-1 overflow-y-auto overflow-x-hidden",
+            "min-w-0 flex-1 overflow-x-hidden overflow-y-auto",
             // Top padding for fixed header: 64px (h-16) per M3 small app bar.
             "pt-16",
             "pb-6 sm:pb-8",

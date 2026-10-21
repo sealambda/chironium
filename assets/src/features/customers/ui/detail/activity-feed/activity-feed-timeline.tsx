@@ -74,7 +74,7 @@ export function ActivityFeedTimeline({
           <time
             id={`feed-${group.isoDate}`}
             dateTime={group.isoDate}
-            className="mb-3 block font-semibold text-muted-foreground text-xs uppercase tracking-wider"
+            className="mb-3 block text-xs font-semibold tracking-wider text-muted-foreground uppercase"
           >
             {group.label}
           </time>

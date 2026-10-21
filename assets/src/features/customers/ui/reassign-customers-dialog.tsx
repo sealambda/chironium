@@ -151,7 +151,7 @@ export function ReassignCustomersDialog({
           <Field className="gap-2">
             <FieldLabel>{m.customers_reassign_practitioners_label()}</FieldLabel>
             {comboItems.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-muted-foreground">
                 {m.customers_reassign_no_practitioners()}
               </p>
             ) : (
@@ -166,7 +166,7 @@ export function ReassignCustomersDialog({
                     {selectedPractitioners.map((p) => (
                       <span
                         key={p.value}
-                        className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-foreground text-xs"
+                        className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs text-foreground"
                       >
                         <span className="min-w-0 truncate">{p.label}</span>
                         <Button
@@ -188,7 +188,7 @@ export function ReassignCustomersDialog({
                 ) : null}
                 <div className="max-h-52 overflow-y-auto rounded-md border border-border/80 bg-background">
                   {filteredPractitioners.length === 0 ? (
-                    <p className="p-3 text-muted-foreground text-sm">
+                    <p className="p-3 text-sm text-muted-foreground">
                       {m.customers_reassign_practitioners_empty()}
                     </p>
                   ) : (
@@ -209,7 +209,7 @@ export function ReassignCustomersDialog({
                               <label
                                 htmlFor={rowId}
                                 data-testid={`reassign-practitioner-label-${item.value}`}
-                                className="min-w-0 flex-1 cursor-pointer text-foreground text-sm leading-snug"
+                                className="min-w-0 flex-1 cursor-pointer text-sm leading-snug text-foreground"
                               >
                                 {item.label}
                               </label>
@@ -240,7 +240,7 @@ export function ReassignCustomersDialog({
                 >
                   {m.customers_reassign_replace_assignments_label()}
                 </FieldLabel>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-sm text-muted-foreground">
                   {m.customers_reassign_replace_assignments_desc()}
                 </p>
               </div>

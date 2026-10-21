@@ -72,10 +72,10 @@ export function NutritionDonut({ macros, targetKcal, className }: Readonly<Nutri
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-bold text-foreground text-xl tabular-nums leading-none">
+        <span className="text-xl leading-none font-bold text-foreground tabular-nums">
           {targetKcal.toLocaleString()}
         </span>
-        <span className="mt-0.5 text-muted-foreground text-xs">{m.common_unit_kcal()}</span>
+        <span className="mt-0.5 text-xs text-muted-foreground">{m.common_unit_kcal()}</span>
       </div>
     </div>
   );

@@ -111,7 +111,7 @@ export function ShareLinkResult({
       ) : null}
 
       {children ? (
-        <ul className="flex flex-col gap-2 text-muted-foreground text-sm">{children}</ul>
+        <ul className="flex flex-col gap-2 text-sm text-muted-foreground">{children}</ul>
       ) : null}
     </div>
   );

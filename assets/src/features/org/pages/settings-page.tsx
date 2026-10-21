@@ -340,7 +340,7 @@ export function SettingsPage() {
     <div className="space-y-4 pt-7">
       <header>
         <h1
-          className="font-bold text-2xl text-foreground uppercase tracking-wide"
+          className="text-2xl font-bold tracking-wide text-foreground uppercase"
           data-testid="settings-heading"
         >
           {m.settings_title()}
@@ -392,7 +392,7 @@ export function SettingsPage() {
                       >
                         <span className="font-medium">{row.primary}</span>
                         {row.secondary ? (
-                          <span className="text-muted-foreground text-sm">{row.secondary}</span>
+                          <span className="text-sm text-muted-foreground">{row.secondary}</span>
                         ) : null}
                         <SettingsMemberRoleStatusFields row={row} />
                       </div>
@@ -422,7 +422,7 @@ export function SettingsPage() {
                           <div className="flex flex-col gap-0.5">
                             <span className="font-medium">{row.primary}</span>
                             {row.secondary ? (
-                              <span className="text-muted-foreground text-sm">{row.secondary}</span>
+                              <span className="text-sm text-muted-foreground">{row.secondary}</span>
                             ) : null}
                           </div>
                         </TableCell>
