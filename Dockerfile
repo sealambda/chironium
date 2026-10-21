@@ -64,8 +64,9 @@ RUN mix ash.codegen
 # install node deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY assets assets
-# Use --frozen-lockfile for reproducible builds.
-RUN pnpm install --frozen-lockfile
+# Use --frozen-lockfile for reproducible builds. Skip lifecycle scripts: the only one is
+# the root `lefthook install`, which fails without a .git directory.
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Regenerate gql.tada introspection types from schema
 RUN pnpm --dir assets gql:generate
