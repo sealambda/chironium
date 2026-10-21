@@ -1,17 +1,24 @@
 import {
   type Column,
   type ColumnDef,
+  createExpandedRowModel,
+  createSortedRowModel,
   type ExpandedState,
   flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getSortedRowModel,
   type OnChangeFn,
   type Row,
+  type RowData,
   type RowSelectionState,
+  rowExpandingFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
   type SortingState,
-  type TableOptions,
-  useReactTable,
+  sortFn_alphanumeric,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
@@ -30,15 +37,32 @@ import { cn } from "@/shared/utils/utils";
 
 // ============= Types =============
 
-export interface DataTableProps<TData> {
+const dataTableFeatures = tableFeatures({
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  // `sortFn: "auto"` only resolves registered functions; these are the ones it can pick.
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    basic: sortFn_basic,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
+  rowExpandingFeature,
+  expandedRowModel: createExpandedRowModel(),
+  rowSelectionFeature,
+});
+
+export type DataTableFeatures = typeof dataTableFeatures;
+
+export interface DataTableProps<TData extends RowData> {
   /** Column definitions for the table */
-  columns: ColumnDef<TData, unknown>[];
+  columns: ColumnDef<DataTableFeatures, TData, unknown>[];
   /** Data array to render */
   data: TData[];
   /** Optional className for the table container */
   className?: string;
   /** Optional: Render function for expanded row content */
-  renderExpandedRow?: (row: Row<TData>) => React.ReactNode;
+  renderExpandedRow?: (row: Row<DataTableFeatures, TData>) => React.ReactNode;
   /** Optional: Initial sorting state for uncontrolled mode */
   initialSorting?: SortingState;
   /** Optional: Controlled sorting state */
@@ -65,8 +89,8 @@ export interface DataTableProps<TData> {
   enableRowSelection?: boolean;
 }
 
-interface SortableHeaderProps<TData, TValue> {
-  column: Column<TData, TValue>;
+interface SortableHeaderProps<TData extends RowData, TValue> {
+  column: Column<DataTableFeatures, TData, TValue>;
   children: React.ReactNode;
 }
 
@@ -91,7 +115,7 @@ function shouldIgnoreRowClick(event: React.MouseEvent<HTMLTableRowElement>): boo
 
 // ============= Helper Components =============
 
-function SortableHeader<TData, TValue>({
+function SortableHeader<TData extends RowData, TValue>({
   column,
   children,
 }: Readonly<SortableHeaderProps<TData, TValue>>) {
@@ -129,46 +153,15 @@ function DefaultEmptyState() {
     <div data-slot="data-table-empty" className="flex min-h-[200px] items-center justify-center">
       <div className="text-center">
         <div className="font-medium text-muted-foreground">{m.data_table_empty()}</div>
-        <div className="mt-1 text-muted-foreground text-sm">{m.data_table_empty_desc()}</div>
+        <div className="mt-1 text-sm text-muted-foreground">{m.data_table_empty_desc()}</div>
       </div>
     </div>
   );
 }
 
-function selectionTableOptions<TData>(
-  enabled: boolean,
-  setRowSelection: OnChangeFn<RowSelectionState>,
-): Pick<
-  TableOptions<TData>,
-  "onRowSelectionChange" | "enableRowSelection" | "enableMultiRowSelection"
-> {
-  if (!enabled) {
-    return {};
-  }
-  return {
-    onRowSelectionChange: setRowSelection,
-    enableRowSelection: true,
-    enableMultiRowSelection: true,
-  };
-}
-
-function expandableTableOptions<TData>(
-  enabled: boolean,
-  setExpanded: OnChangeFn<ExpandedState>,
-): Pick<TableOptions<TData>, "onExpandedChange" | "getExpandedRowModel" | "getRowCanExpand"> {
-  if (!enabled) {
-    return {};
-  }
-  return {
-    onExpandedChange: setExpanded,
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-  };
-}
-
 // ============= Main Component =============
 
-function DataTable<TData>({
+function DataTable<TData extends RowData>({
   columns,
   data,
   className,
@@ -201,21 +194,16 @@ function DataTable<TData>({
   // Determine if expandable features are enabled
   const isExpandable = Boolean(renderExpandedRow);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data,
     columns,
-    state: {
-      sorting,
-      ...(isExpandable && { expanded }),
-      ...(enableRowSelection && { rowSelection }),
-    },
-    onSortingChange: (updater) => {
-      setSorting(updater);
-    },
-    ...selectionTableOptions<TData>(enableRowSelection, setRowSelection),
-    ...expandableTableOptions<TData>(isExpandable, setExpanded),
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    state: { sorting, expanded, rowSelection },
+    onSortingChange: setSorting,
+    onExpandedChange: setExpanded,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection,
+    getRowCanExpand: () => isExpandable,
     ...(getRowId && { getRowId }),
   });
 
@@ -228,12 +216,12 @@ function DataTable<TData>({
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {isExpandable && <TableHead className="w-10" />}
-              {headerGroup.headers.map((header) => (
+              {headerGroup.headers.map((header, index) => (
                 <TableHead
                   key={header.id}
                   className={cn(
                     pinFirstColumn &&
-                      header.column.getIndex() === 0 &&
+                      index === 0 &&
                       "sticky left-0 z-10 bg-background after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-border",
                   )}
                 >
@@ -291,12 +279,12 @@ function DataTable<TData>({
                       </Button>
                     </TableCell>
                   )}
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getAllCells().map((cell, index) => (
                     <TableCell
                       key={cell.id}
                       className={cn(
                         pinFirstColumn &&
-                          cell.column.getIndex() === 0 &&
+                          index === 0 &&
                           "sticky left-0 z-10 bg-background after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-border",
                       )}
                     >

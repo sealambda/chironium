@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import * as m from "@/paraglide/messages";
 import type { SubscriptionPlan } from "@/shared/types/subscriptions";
+import type { DataTableFeatures } from "@/shared/ui/data-table";
 
 function formatDurationCode(code: string | null | undefined): string {
   if (!code) {
@@ -38,7 +39,7 @@ export function formatSubscriptionPlanPriceText(plan: SubscriptionPlan): string 
   return `${money.amount} ${money.currency}`;
 }
 
-export const subscriptionPlanColumns: ColumnDef<SubscriptionPlan, unknown>[] = [
+export const subscriptionPlanColumns: ColumnDef<DataTableFeatures, SubscriptionPlan, unknown>[] = [
   {
     id: "name",
     enableSorting: false,

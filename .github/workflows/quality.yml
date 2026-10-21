@@ -30,7 +30,7 @@ jobs:
           node-version-file: package.json
       # Keep the version in sync with the @biomejs/biome catalog pin in pnpm-workspace.yaml.
       - name: Biome check
-        run: pnpm dlx @biomejs/biome@2.5.0 check .
+        run: pnpm dlx @biomejs/biome@2.6.2 check .
 
   duplication:
     name: jscpd (copy-paste detection)

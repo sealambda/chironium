@@ -4,12 +4,13 @@ import type { CustomerListItem } from "@/features/customers/api/persons-api";
 import * as m from "@/paraglide/messages";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { ContactButtonGroup } from "@/shared/ui/contact-button-group";
+import type { DataTableFeatures } from "@/shared/ui/data-table";
 import { SubscriptionProgress } from "@/shared/ui/subscription-progress";
 import { extractContactInfo } from "@/shared/utils/contact-utils";
 import { formatPersonName } from "@/shared/utils/person-utils";
 import { durationToMonths, formatDurationWithUnit } from "@/shared/utils/subscriptions-utils";
 
-export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
+export const customerColumns: ColumnDef<DataTableFeatures, CustomerListItem, unknown>[] = [
   {
     id: "select",
     enableSorting: false,
@@ -41,7 +42,6 @@ export const customerColumns: ColumnDef<CustomerListItem, unknown>[] = [
         />
       </span>
     ),
-    size: 40,
   },
   {
     id: "name",

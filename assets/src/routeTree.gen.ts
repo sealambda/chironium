@@ -9,44 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions'
-import { Route as AppSettingsRouteImport } from './routes/_app/settings'
-import { Route as AppQuestionnairesRouteImport } from './routes/_app/questionnaires'
-import { Route as AppProfileRouteImport } from './routes/_app/profile'
-import { Route as AppPendingRouteImport } from './routes/_app/pending'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
-import { Route as AppQuestionnairesQuestionnaireIdRouteImport } from './routes/_app/questionnaires_.$questionnaireId'
+import { Route as AppPendingRouteImport } from './routes/_app/pending'
+import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppQuestionnairesRouteImport } from './routes/_app/questionnaires'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers_.$customerId'
+import { Route as AppQuestionnairesQuestionnaireIdRouteImport } from './routes/_app/questionnaires_.$questionnaireId'
 
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppSubscriptionsRoute = AppSubscriptionsRouteImport.update({
-  id: '/subscriptions',
-  path: '/subscriptions',
-  getParentRoute: () => AppRoute,
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppQuestionnairesRoute = AppQuestionnairesRouteImport.update({
-  id: '/questionnaires',
-  path: '/questionnaires',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProfileRoute = AppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPendingRoute = AppPendingRouteImport.update({
@@ -54,9 +39,29 @@ const AppPendingRoute = AppPendingRouteImport.update({
   path: '/pending',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCustomersRoute = AppCustomersRouteImport.update({
-  id: '/customers',
-  path: '/customers',
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQuestionnairesRoute = AppQuestionnairesRouteImport.update({
+  id: '/questionnaires',
+  path: '/questionnaires',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubscriptionsRoute = AppSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
+  id: '/customers_/$customerId',
+  path: '/customers/$customerId',
   getParentRoute: () => AppRoute,
 } as any)
 const AppQuestionnairesQuestionnaireIdRoute =
@@ -65,11 +70,6 @@ const AppQuestionnairesQuestionnaireIdRoute =
     path: '/questionnaires/$questionnaireId',
     getParentRoute: () => AppRoute,
   } as any)
-const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
-  id: '/customers_/$customerId',
-  path: '/customers/$customerId',
-  getParentRoute: () => AppRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,13 +150,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_app': {
-      id: '/_app'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -164,32 +157,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/subscriptions': {
-      id: '/_app/subscriptions'
-      path: '/subscriptions'
-      fullPath: '/subscriptions'
-      preLoaderRoute: typeof AppSubscriptionsRouteImport
-      parentRoute: typeof AppRoute
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/questionnaires': {
-      id: '/_app/questionnaires'
-      path: '/questionnaires'
-      fullPath: '/questionnaires'
-      preLoaderRoute: typeof AppQuestionnairesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/profile': {
-      id: '/_app/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AppProfileRouteImport
+    '/_app/customers': {
+      id: '/_app/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/pending': {
@@ -199,18 +178,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPendingRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/customers': {
-      id: '/_app/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof AppCustomersRouteImport
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/questionnaires_/$questionnaireId': {
-      id: '/_app/questionnaires_/$questionnaireId'
-      path: '/questionnaires/$questionnaireId'
-      fullPath: '/questionnaires/$questionnaireId'
-      preLoaderRoute: typeof AppQuestionnairesQuestionnaireIdRouteImport
+    '/_app/questionnaires': {
+      id: '/_app/questionnaires'
+      path: '/questionnaires'
+      fullPath: '/questionnaires'
+      preLoaderRoute: typeof AppQuestionnairesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/subscriptions': {
+      id: '/_app/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof AppSubscriptionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/customers_/$customerId': {
@@ -218,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/customers/$customerId'
       fullPath: '/customers/$customerId'
       preLoaderRoute: typeof AppCustomersCustomerIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/questionnaires_/$questionnaireId': {
+      id: '/_app/questionnaires_/$questionnaireId'
+      path: '/questionnaires/$questionnaireId'
+      fullPath: '/questionnaires/$questionnaireId'
+      preLoaderRoute: typeof AppQuestionnairesQuestionnaireIdRouteImport
       parentRoute: typeof AppRoute
     }
   }
