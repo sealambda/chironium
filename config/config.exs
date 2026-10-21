@@ -47,6 +47,7 @@ config :ash,
   read_action_after_action_hooks_in_order?: true,
   bulk_actions_default_to_errors?: true,
   transaction_rollback_on_error?: true,
+  default_string_length_count: :codepoints,
   known_types: [AshPostgres.Timestamptz, AshPostgres.TimestamptzUsec, AshMoney.Types.Money],
   custom_types: [money: AshMoney.Types.Money]
 

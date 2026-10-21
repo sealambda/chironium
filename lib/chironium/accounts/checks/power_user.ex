@@ -18,7 +18,11 @@ defmodule Chironium.Accounts.Checks.PowerUser do
   def describe(_opts), do: "actor is a power user in the current organization"
 
   @impl true
-  def match?(%Chironium.Accounts.User{id: user_id}, %{resource: resource} = context, _opts) do
+  def match?(
+        %{__struct__: Chironium.Accounts.User, id: user_id},
+        %{resource: resource} = context,
+        _opts
+      ) do
     case organization_id_from_data(context) do
       {:ok, organization_id} -> Authorization.power_user?(user_id, organization_id)
       :error -> tenant_power_user?(user_id, context, resource)
@@ -43,7 +47,7 @@ defmodule Chironium.Accounts.Checks.PowerUser do
   end
 
   defp organization_id_from_data(%{
-         changeset: %{data: %Chironium.Accounts.Organization{id: id}}
+         changeset: %{data: %{__struct__: Chironium.Accounts.Organization, id: id}}
        })
        when not is_nil(id),
        do: {:ok, id}

@@ -13,7 +13,7 @@ defmodule Chironium.Subscriptions.Checks.SubscriptionPauseVisibleToActor do
   def describe(_opts), do: "pause subscription is visible to the actor"
 
   @impl true
-  def filter(%Chironium.Health.Practitioner{} = practitioner, _authorizer, _opts) do
+  def filter(%{__struct__: Chironium.Health.Practitioner} = practitioner, _authorizer, _opts) do
     practitioner_ids = practitioner.__metadata__[:practitioner_ids] || [practitioner.id]
 
     expr(

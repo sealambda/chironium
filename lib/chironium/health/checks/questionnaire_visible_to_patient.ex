@@ -12,7 +12,7 @@ defmodule Chironium.Health.Checks.QuestionnaireVisibleToPatient do
   def describe(_opts), do: "questionnaire belongs to one of the patient's open requests"
 
   @impl true
-  def filter(%Chironium.Health.Patient{} = patient, _authorizer, _opts) do
+  def filter(%{__struct__: Chironium.Health.Patient} = patient, _authorizer, _opts) do
     open_statuses = TaskVisibleToPatient.open_statuses()
 
     case TaskVisibleToPatient.scope_task_ids(patient) do

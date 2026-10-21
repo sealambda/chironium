@@ -16,7 +16,7 @@ defmodule Chironium.Subscriptions.Subscription do
   end
 
   graphql do
-    type :subscription
+    type :plan_subscription
 
     queries do
       list :list_subscriptions, :read

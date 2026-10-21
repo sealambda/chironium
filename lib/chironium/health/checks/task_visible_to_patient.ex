@@ -15,7 +15,7 @@ defmodule Chironium.Health.Checks.TaskVisibleToPatient do
   def describe(_opts), do: "task is the patient's own open questionnaire request"
 
   @impl true
-  def filter(%Chironium.Health.Patient{} = patient, _authorizer, _opts) do
+  def filter(%{__struct__: Chironium.Health.Patient} = patient, _authorizer, _opts) do
     base =
       expr(
         for_patient_id == ^patient.id and not is_nil(focus_questionnaire_id) and
