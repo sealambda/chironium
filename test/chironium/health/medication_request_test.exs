@@ -123,7 +123,10 @@ defmodule Chironium.Health.MedicationRequestTest do
         create(tenant, patient, %{
           course_of_therapy_type: :continuous,
           dosage_instruction: [%{text: "1 tab daily", frequency: 1, period: 1, period_unit: :d}],
-          dispense_request: %{number_of_repeats_allowed: 2, quantity: %{value: 30, unit: "tablet"}},
+          dispense_request: %{
+            number_of_repeats_allowed: 2,
+            quantity: %{value: 30, unit: "tablet"}
+          },
           substitution: %{
             allowed_codeable_concept: %{coding: [%{system: @substitution_system, code: "G"}]}
           }
@@ -131,13 +134,17 @@ defmodule Chironium.Health.MedicationRequestTest do
 
       {:ok, updated} =
         mr
-        |> Ash.Changeset.for_update(:update, %{status: :completed}, authorize?: false, tenant: tenant)
+        |> Ash.Changeset.for_update(:update, %{status: :completed},
+          authorize?: false,
+          tenant: tenant
+        )
         |> Ash.update()
 
       assert updated.status == :completed
       assert updated.course_of_therapy_type == :continuous
       assert [%{frequency: 1, period_unit: :d}] = updated.dosage_instruction
       assert updated.dispense_request.quantity.value == Decimal.new(30)
+
       assert [%{system: @substitution_system, code: "G"}] =
                updated.substitution.allowed_codeable_concept.coding
     end

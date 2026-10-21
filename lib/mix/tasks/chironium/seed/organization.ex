@@ -11,7 +11,9 @@ defmodule Mix.Tasks.Chironium.Seed.Organization do
   @impl true
   def run(args) do
     {opts, _, _} =
-      OptionParser.parse(args, strict: [name: :string, slug: :string, invite: :string, role: :string])
+      OptionParser.parse(args,
+        strict: [name: :string, slug: :string, invite: :string, role: :string]
+      )
 
     Helpers.ensure_started!()
     {user, org, tenant} = seed(opts)

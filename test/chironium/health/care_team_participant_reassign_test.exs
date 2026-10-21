@@ -36,7 +36,11 @@ defmodule Chironium.Health.CareTeamParticipantReassignTest do
 
   defp create_patient(ctx) do
     Chironium.Health.Patient
-    |> Ash.Changeset.for_create(:create, %{}, actor: ctx.owner, tenant: ctx.tenant, authorize?: false)
+    |> Ash.Changeset.for_create(:create, %{},
+      actor: ctx.owner,
+      tenant: ctx.tenant,
+      authorize?: false
+    )
     |> Ash.create!()
   end
 
@@ -66,7 +70,11 @@ defmodule Chironium.Health.CareTeamParticipantReassignTest do
 
   defp destroy_participant(ctx, participant) do
     participant
-    |> Ash.Changeset.for_destroy(:destroy, %{}, actor: ctx.owner, tenant: ctx.tenant, authorize?: false)
+    |> Ash.Changeset.for_destroy(:destroy, %{},
+      actor: ctx.owner,
+      tenant: ctx.tenant,
+      authorize?: false
+    )
     |> Ash.destroy!()
   end
 

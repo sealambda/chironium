@@ -24,7 +24,8 @@ defmodule Chironium.Health.MedicationRequest.Intent do
       ],
       original_order: [
         label: "Original Order",
-        description: "The request represents the original authorization for the medication request."
+        description:
+          "The request represents the original authorization for the medication request."
       ],
       reflex_order: [
         label: "Reflex Order",

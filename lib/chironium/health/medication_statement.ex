@@ -39,10 +39,6 @@ defmodule Chironium.Health.MedicationStatement do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
-  validations do
-    validate attributes_present([:effective_date_time, :effective_period], at_most: 1)
-  end
-
   policies do
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
@@ -55,6 +51,10 @@ defmodule Chironium.Health.MedicationStatement do
     policy action([:create, :update, :destroy]) do
       authorize_if Chironium.Accounts.Checks.StaffActor
     end
+  end
+
+  validations do
+    validate attributes_present([:effective_date_time, :effective_period], at_most: 1)
   end
 
   attributes do

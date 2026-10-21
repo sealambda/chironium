@@ -56,4 +56,3 @@ defmodule Mix.Tasks.Chironium.Seed.ClinicalNotes do
     end)
   end
 end
-

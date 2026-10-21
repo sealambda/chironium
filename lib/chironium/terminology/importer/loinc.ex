@@ -161,11 +161,15 @@ defmodule Chironium.Terminology.Importer.Loinc do
           else: []
       end)
 
-    Importer.batch_insert_stream(Importer.Schema.Designation, stream, label: "LOINC Part Designations")
+    Importer.batch_insert_stream(Importer.Schema.Designation, stream,
+      label: "LOINC Part Designations"
+    )
   end
 
   defp maybe_add(desigs, _concept_id, _use, ""), do: desigs
-  defp maybe_add(desigs, concept_id, use, value), do: [designation(concept_id, use, value) | desigs]
+
+  defp maybe_add(desigs, concept_id, use, value),
+    do: [designation(concept_id, use, value) | desigs]
 
   defp designation(concept_id, use, value) do
     %{id: Importer.generate_id(), language: "en", value: value, use: use, concept_id: concept_id}
@@ -174,7 +178,9 @@ defmodule Chironium.Terminology.Importer.Loinc do
   # ── Step 3: Hierarchy (direct parent-child edges) ────────────────────
 
   defp import_hierarchy(path, code_map) do
-    file = Path.join(path, "AccessoryFiles/ComponentHierarchyBySystem/ComponentHierarchyBySystem.csv")
+    file =
+      Path.join(path, "AccessoryFiles/ComponentHierarchyBySystem/ComponentHierarchyBySystem.csv")
+
     Logger.info("[LOINC] Importing hierarchy from #{file}...")
 
     stream =

@@ -22,7 +22,8 @@ defmodule Chironium.Health.MedicationRequest.Status do
       ],
       stopped: [
         label: "Stopped",
-        description: "Actions implied by the prescription are to be permanently halted, before all of them occurred."
+        description:
+          "Actions implied by the prescription are to be permanently halted, before all of them occurred."
       ],
       completed: [
         label: "Completed",

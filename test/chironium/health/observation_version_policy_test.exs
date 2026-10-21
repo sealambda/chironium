@@ -28,7 +28,11 @@ defmodule Chironium.Health.ObservationVersionPolicyTest do
         |> Ash.Query.load([:changed_by, :changed_by_practitioner])
         |> Ash.read!(actor: ctx.owner, tenant: ctx.tenant)
 
-      assert Enum.any?(versions, &(&1.changed_by_practitioner && &1.changed_by_practitioner.id == practitioner.id))
+      assert Enum.any?(
+               versions,
+               &(&1.changed_by_practitioner && &1.changed_by_practitioner.id == practitioner.id)
+             )
+
       assert Enum.any?(versions, &(&1.changed_by && &1.changed_by.id == ctx.owner.id))
     end
 

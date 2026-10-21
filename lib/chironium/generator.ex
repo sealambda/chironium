@@ -276,7 +276,10 @@ defmodule Chironium.Generator do
       defaults: [
         weight_kg: StreamData.repeatedly(fn -> random_float(60.0, 90.0) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -292,7 +295,10 @@ defmodule Chironium.Generator do
       defaults: [
         height_cm: StreamData.repeatedly(fn -> random_float(155.0, 190.0) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -308,7 +314,10 @@ defmodule Chironium.Generator do
       defaults: [
         chest_circumference_cm: StreamData.repeatedly(fn -> random_float(82.0, 110.0) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -324,7 +333,10 @@ defmodule Chironium.Generator do
       defaults: [
         waist_circumference_cm: StreamData.repeatedly(fn -> random_float(65.0, 100.0) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -340,7 +352,10 @@ defmodule Chironium.Generator do
       defaults: [
         hip_circumference_cm: StreamData.repeatedly(fn -> random_float(85.0, 115.0) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -356,7 +371,10 @@ defmodule Chironium.Generator do
       defaults: [
         arm_circumference_cm: StreamData.repeatedly(fn -> random_float(25.0, 38.0) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -372,7 +390,10 @@ defmodule Chironium.Generator do
       defaults: [
         thigh_circumference_cm: StreamData.repeatedly(fn -> random_float(45.0, 68.0) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -436,7 +457,8 @@ defmodule Chironium.Generator do
           StreamData.repeatedly(fn ->
             Enum.random([:high_priority, :medium_priority, :low_priority])
           end),
-        description: StreamData.repeatedly(fn -> %{text: Enum.random(@seed_goal_descriptions)} end),
+        description:
+          StreamData.repeatedly(fn -> %{text: Enum.random(@seed_goal_descriptions)} end),
         start_date: Date.utc_today(),
         due_date:
           StreamData.repeatedly(fn -> Date.add(Date.utc_today(), Enum.random(30..180)) end),
@@ -554,7 +576,11 @@ defmodule Chironium.Generator do
       intolerance_labels = seed_intolerance_labels()
 
       type = Enum.random([:allergy, :intolerance])
-      label = if type == :allergy, do: Enum.random(allergy_labels), else: Enum.random(intolerance_labels)
+
+      label =
+        if type == :allergy,
+          do: Enum.random(allergy_labels),
+          else: Enum.random(intolerance_labels)
 
       params =
         [
@@ -620,7 +646,10 @@ defmodule Chironium.Generator do
         value_string: StreamData.repeatedly(fn -> Enum.random(@seed_food_preferences) end),
         value_codeable_concept: nil,
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -637,7 +666,10 @@ defmodule Chironium.Generator do
         value_string: StreamData.repeatedly(fn -> Enum.random(@seed_food_aversions) end),
         value_codeable_concept: nil,
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(1..365) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -652,7 +684,10 @@ defmodule Chironium.Generator do
     [
       defaults: [
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(7..120) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
@@ -668,12 +703,17 @@ defmodule Chironium.Generator do
       defaults: [
         duration_days: StreamData.repeatedly(fn -> Enum.random(3..8) end),
         effective_date_time: StreamData.repeatedly(fn -> random_past_datetime(7..120) end),
-        note: StreamData.repeatedly(fn -> [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)] end)
+        note:
+          StreamData.repeatedly(fn ->
+            [Map.merge(%{text: Faker.Lorem.sentence(), time: DateTime.utc_now()}, author_fields)]
+          end)
       ],
       overrides: data_opts
     ]
     |> Keyword.merge(ash_opts)
-    |> then(&changeset_generator(Chironium.Health.Observation, :log_menstrual_period_duration, &1))
+    |> then(
+      &changeset_generator(Chironium.Health.Observation, :log_menstrual_period_duration, &1)
+    )
   end
 
   # -- Helpers --

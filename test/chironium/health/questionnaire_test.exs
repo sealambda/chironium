@@ -79,7 +79,14 @@ defmodule Chironium.Health.QuestionnaireTest do
           %{
             "linkId" => "weight",
             "answer" => [
-              %{"valueQuantity" => %{"value" => value, "unit" => "kg", "system" => @ucum, "code" => "kg"}}
+              %{
+                "valueQuantity" => %{
+                  "value" => value,
+                  "unit" => "kg",
+                  "system" => @ucum,
+                  "code" => "kg"
+                }
+              }
             ]
           },
           %{"linkId" => "comments", "answer" => [%{"valueString" => "Feeling good"}]}
@@ -123,7 +130,9 @@ defmodule Chironium.Health.QuestionnaireTest do
           "linkId" => "q1",
           "type" => "string",
           "text" => "A",
-          "enableWhen" => [%{"question" => "ghost", "operator" => "exists", "answerBoolean" => true}]
+          "enableWhen" => [
+            %{"question" => "ghost", "operator" => "exists", "answerBoolean" => true}
+          ]
         }
       ]
 
@@ -144,7 +153,9 @@ defmodule Chironium.Health.QuestionnaireTest do
         %{
           "linkId" => "q2",
           "type" => "string",
-          "enableWhen" => [%{"question" => "q1", "operator" => "matches", "answerBoolean" => true}]
+          "enableWhen" => [
+            %{"question" => "q1", "operator" => "matches", "answerBoolean" => true}
+          ]
         }
       ]
 
@@ -170,7 +181,13 @@ defmodule Chironium.Health.QuestionnaireTest do
 
     test "accepts a comparison enableWhen and a bounded scale question", ctx do
       items = [
-        %{"linkId" => "pain", "type" => "integer", "text" => "Pain", "minValue" => 1, "maxValue" => 10},
+        %{
+          "linkId" => "pain",
+          "type" => "integer",
+          "text" => "Pain",
+          "minValue" => 1,
+          "maxValue" => 10
+        },
         %{
           "linkId" => "advice",
           "type" => "text",
@@ -185,7 +202,13 @@ defmodule Chironium.Health.QuestionnaireTest do
 
     test "rejects inverted minValue/maxValue bounds", ctx do
       items = [
-        %{"linkId" => "pain", "type" => "integer", "text" => "Pain", "minValue" => 10, "maxValue" => 1}
+        %{
+          "linkId" => "pain",
+          "type" => "integer",
+          "text" => "Pain",
+          "minValue" => 10,
+          "maxValue" => 1
+        }
       ]
 
       assert {:error, _} =
@@ -209,7 +232,11 @@ defmodule Chironium.Health.QuestionnaireTest do
           "linkId" => "anthro",
           "text" => "WRONG",
           "item" => [
-            %{"linkId" => "weight", "text" => "tampered", "answer" => [%{"valueQuantity" => %{"value" => 70}}]}
+            %{
+              "linkId" => "weight",
+              "text" => "tampered",
+              "answer" => [%{"valueQuantity" => %{"value" => 70}}]
+            }
           ]
         }
       ]
@@ -245,7 +272,10 @@ defmodule Chironium.Health.QuestionnaireTest do
 
       # `weight` is a quantity question; a boolean answer is invalid.
       answers = [
-        %{"linkId" => "anthro", "item" => [%{"linkId" => "weight", "answer" => [%{"valueBoolean" => true}]}]}
+        %{
+          "linkId" => "anthro",
+          "item" => [%{"linkId" => "weight", "answer" => [%{"valueBoolean" => true}]}]
+        }
       ]
 
       assert {:error, _} =
@@ -352,7 +382,9 @@ defmodule Chironium.Health.QuestionnaireTest do
       questionnaire = create_questionnaire(ctx, weekly_checkin_items())
       {actor, patient} = setup_practitioner_with_patient(ctx)
 
-      response = create_response(ctx, questionnaire, patient, weight_answers(72.5), :completed, actor)
+      response =
+        create_response(ctx, questionnaire, patient, weight_answers(72.5), :completed, actor)
+
       assert response.author_id == actor.id
     end
   end
@@ -431,7 +463,12 @@ defmodule Chironium.Health.QuestionnaireTest do
     Chironium.Accounts.PrincipalGrant
     |> Ash.Changeset.for_create(
       :create,
-      %{user_id: user_id, principal_type: :practitioner, principal_id: practitioner_id, active: true},
+      %{
+        user_id: user_id,
+        principal_type: :practitioner,
+        principal_id: practitioner_id,
+        active: true
+      },
       authorize?: false,
       tenant: ctx.tenant
     )
