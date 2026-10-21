@@ -14,7 +14,9 @@ defmodule Chironium.Accounts.GuestAccess.Changes.RevokeSiblings do
   def change(changeset, _opts, context) do
     Ash.Changeset.after_action(changeset, fn _changeset, claimed ->
       GuestAccess
-      |> Ash.Query.filter(task_id == ^claimed.task_id and id != ^claimed.id and is_nil(revoked_at))
+      |> Ash.Query.filter(
+        task_id == ^claimed.task_id and id != ^claimed.id and is_nil(revoked_at)
+      )
       |> Ash.read!(authorize?: false)
       |> Enum.each(&GuestAccess.revoke!(&1, authorize?: false, actor: context.actor))
 

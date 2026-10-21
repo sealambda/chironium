@@ -174,11 +174,16 @@ defmodule Chironium.Subscriptions.SubscriptionVisibilityTest do
 
       updated =
         pause
-        |> Ash.Changeset.for_update(:update, %{
-          reason: "Updated reason",
-          start_date: pause.start_date,
-          end_date: Date.add(pause.start_date, 3)
-        }, actor: actor, tenant: ctx.tenant)
+        |> Ash.Changeset.for_update(
+          :update,
+          %{
+            reason: "Updated reason",
+            start_date: pause.start_date,
+            end_date: Date.add(pause.start_date, 3)
+          },
+          actor: actor,
+          tenant: ctx.tenant
+        )
         |> Ash.update!()
 
       assert updated.reason == "Updated reason"
@@ -217,7 +222,11 @@ defmodule Chironium.Subscriptions.SubscriptionVisibilityTest do
       %{
         person: %{
           name: [
-            %{use: :official, family: Faker.Person.last_name(), given: [Faker.Person.first_name()]}
+            %{
+              use: :official,
+              family: Faker.Person.last_name(),
+              given: [Faker.Person.first_name()]
+            }
           ],
           gender: :other
         }

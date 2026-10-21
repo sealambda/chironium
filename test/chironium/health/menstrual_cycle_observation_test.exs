@@ -144,7 +144,9 @@ defmodule Chironium.Health.MenstrualCycleObservationTest do
                obs
                |> Ash.Changeset.for_update(
                  :update,
-                 %{note: [%{text: note_text, author_string: "Dr. Test", time: DateTime.utc_now()}]},
+                 %{
+                   note: [%{text: note_text, author_string: "Dr. Test", time: DateTime.utc_now()}]
+                 },
                  actor: ctx.owner,
                  tenant: ctx.tenant
                )

@@ -37,11 +37,6 @@ defmodule Chironium.Health.Condition do
     defaults [:read, :destroy, create: :*, update: :*]
   end
 
-  validations do
-    validate attributes_present([:onset_date_time, :onset_age, :onset_period], at_most: 1)
-    validate attributes_present([:abatement_date_time, :abatement_period], at_most: 1)
-  end
-
   policies do
     bypass Chironium.Accounts.Checks.PowerUser do
       authorize_if always()
@@ -54,6 +49,11 @@ defmodule Chironium.Health.Condition do
     policy action([:create, :update, :destroy]) do
       authorize_if Chironium.Accounts.Checks.StaffActor
     end
+  end
+
+  validations do
+    validate attributes_present([:onset_date_time, :onset_age, :onset_period], at_most: 1)
+    validate attributes_present([:abatement_date_time, :abatement_period], at_most: 1)
   end
 
   attributes do

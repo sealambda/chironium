@@ -63,7 +63,10 @@ defmodule Chironium.Terminology.Importer.Snomed do
   """
   def run_spanish_extension(path, opts \\ []) do
     base_version = Keyword.get(opts, :base_version, @default_version)
-    Logger.info("[SNOMED-ES] Starting Spanish extension import from #{path} (base #{base_version})")
+
+    Logger.info(
+      "[SNOMED-ES] Starting Spanish extension import from #{path} (base #{base_version})"
+    )
 
     cs_id = Importer.find_code_system_id!(@url, base_version)
     import_extension_concepts(path, cs_id)
@@ -165,7 +168,12 @@ defmodule Chironium.Terminology.Importer.Snomed do
   # ── Spanish extension ────────────────────────────────────────────────
 
   defp import_extension_concepts(path, cs_id) do
-    file = Importer.find_file!(path, "Snapshot/Terminology/sct2_Concept_SpanishExtensionSnapshot_INT_*.txt")
+    file =
+      Importer.find_file!(
+        path,
+        "Snapshot/Terminology/sct2_Concept_SpanishExtensionSnapshot_INT_*.txt"
+      )
+
     Logger.info("[SNOMED-ES] Importing extension concepts from #{file}...")
 
     stream =
@@ -185,7 +193,10 @@ defmodule Chironium.Terminology.Importer.Snomed do
 
   defp import_spanish_descriptions(path, code_map) do
     file =
-      Importer.find_file!(path, "Snapshot/Terminology/sct2_Description_SpanishExtensionSnapshot-es_INT_*.txt")
+      Importer.find_file!(
+        path,
+        "Snapshot/Terminology/sct2_Description_SpanishExtensionSnapshot-es_INT_*.txt"
+      )
 
     Logger.info("[SNOMED-ES] Importing Spanish descriptions from #{file}...")
 

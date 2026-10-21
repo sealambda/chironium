@@ -39,7 +39,13 @@ defmodule Chironium.Subscriptions.SubscriptionPauseTest do
       :create_patient_with_person,
       %{
         person: %{
-          name: [%{use: :official, family: Faker.Person.last_name(), given: [Faker.Person.first_name()]}],
+          name: [
+            %{
+              use: :official,
+              family: Faker.Person.last_name(),
+              given: [Faker.Person.first_name()]
+            }
+          ],
           gender: :other
         }
       },
@@ -292,7 +298,8 @@ defmodule Chironium.Subscriptions.SubscriptionPauseTest do
     test "shifts forward by the number of paused days after resume", ctx do
       sub = create_subscription(ctx, start_date: ~D[2026-01-15])
       sub = suspend(sub, ctx, suspended_at: ~D[2026-01-15])
-      sub = resume(sub, ctx, end_date: ~D[2026-01-18])   # 3 days
+      # 3 days
+      sub = resume(sub, ctx, end_date: ~D[2026-01-18])
       sub = load_with_pauses(sub, ctx)
 
       assert sub.effective_end_date == ~D[2026-02-18]
@@ -314,9 +321,11 @@ defmodule Chironium.Subscriptions.SubscriptionPauseTest do
     test "multiple pause cycles shift end date by total paused days", ctx do
       sub = create_subscription(ctx, start_date: ~D[2026-01-15])
       sub = suspend(sub, ctx, suspended_at: ~D[2026-01-15])
-      sub = resume(sub, ctx, end_date: ~D[2026-01-17])      # 2 days
+      # 2 days
+      sub = resume(sub, ctx, end_date: ~D[2026-01-17])
       sub = suspend(sub, ctx, suspended_at: ~D[2026-01-20])
-      sub = resume(sub, ctx, end_date: ~D[2026-01-23])      # 3 days
+      # 3 days
+      sub = resume(sub, ctx, end_date: ~D[2026-01-23])
       sub = load_with_pauses(sub, ctx)
 
       # 2 + 3 = 5 extra days
@@ -538,4 +547,3 @@ defmodule Chironium.Subscriptions.SubscriptionPauseTest do
     end
   end
 end
-

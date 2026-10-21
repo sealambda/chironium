@@ -304,7 +304,8 @@ defmodule Chironium.Health.ObservationPolicyTest do
   # ---------------------------------------------------------------------------
 
   describe "BMI auto-computation" do
-    test "logging weight then height auto-creates a BMI observation readable by power user", ctx do
+    test "logging weight then height auto-creates a BMI observation readable by power user",
+         ctx do
       patient = create_patient(ctx)
       {:ok, _} = log_body_weight(ctx, ctx.owner, patient.id, 75.0)
       {:ok, _} = log_body_height(ctx, ctx.owner, patient.id, 175.0)

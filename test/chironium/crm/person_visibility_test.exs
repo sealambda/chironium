@@ -16,7 +16,8 @@ defmodule Chironium.CRM.PersonVisibilityTest do
       _patient_a = create_patient_with_person(ctx)
       _patient_b = create_patient_with_person(ctx)
 
-      visible = Ash.read!(Chironium.CRM.Person, actor: ctx.owner, tenant: ctx.tenant, page: [limit: 100])
+      visible =
+        Ash.read!(Chironium.CRM.Person, actor: ctx.owner, tenant: ctx.tenant, page: [limit: 100])
 
       assert length(visible.results) == 2
     end
@@ -28,7 +29,8 @@ defmodule Chironium.CRM.PersonVisibilityTest do
       _patient_a = create_patient_with_person(ctx)
       _patient_b = create_patient_with_person(ctx)
 
-      visible = Ash.read!(Chironium.CRM.Person, actor: power_user, tenant: ctx.tenant, page: [limit: 100])
+      visible =
+        Ash.read!(Chironium.CRM.Person, actor: power_user, tenant: ctx.tenant, page: [limit: 100])
 
       assert length(visible.results) == 2
     end
@@ -98,7 +100,8 @@ defmodule Chironium.CRM.PersonVisibilityTest do
 
       actor = enrich_actor(practitioner_user, ctx.tenant)
 
-      visible = Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
+      visible =
+        Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
 
       assert visible.results == []
     end
@@ -116,7 +119,8 @@ defmodule Chironium.CRM.PersonVisibilityTest do
 
       actor = enrich_actor(practitioner_user, ctx.tenant)
 
-      visible = Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
+      visible =
+        Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
 
       assert visible.results == []
     end
@@ -149,7 +153,8 @@ defmodule Chironium.CRM.PersonVisibilityTest do
 
       actor = enrich_actor(member, ctx.tenant)
 
-      visible = Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
+      visible =
+        Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
 
       assert visible.results == []
     end
@@ -193,7 +198,8 @@ defmodule Chironium.CRM.PersonVisibilityTest do
 
       actor = enrich_actor(practitioner_user, ctx.tenant)
 
-      visible = Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
+      visible =
+        Ash.read!(Chironium.CRM.Person, actor: actor, tenant: ctx.tenant, page: [limit: 100])
 
       assert visible.results == []
     end
@@ -255,7 +261,13 @@ defmodule Chironium.CRM.PersonVisibilityTest do
       :create_patient_with_person,
       %{
         person: %{
-          name: [%{use: :official, family: Faker.Person.last_name(), given: [Faker.Person.first_name()]}],
+          name: [
+            %{
+              use: :official,
+              family: Faker.Person.last_name(),
+              given: [Faker.Person.first_name()]
+            }
+          ],
           gender: :other
         }
       },
@@ -271,7 +283,9 @@ defmodule Chironium.CRM.PersonVisibilityTest do
     |> Ash.Changeset.for_create(
       :create,
       %{
-        name: [%{use: :official, family: Faker.Person.last_name(), given: [Faker.Person.first_name()]}],
+        name: [
+          %{use: :official, family: Faker.Person.last_name(), given: [Faker.Person.first_name()]}
+        ],
         gender: :other
       },
       actor: ctx.owner,
