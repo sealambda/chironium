@@ -77,7 +77,6 @@ function AnswerOptionsEditor({
     <div className="space-y-1">
       <FieldLabel>{m.questionnaire_options_label()}</FieldLabel>
       {options.map((option, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: editable option list with no stable id
         <div key={`${item.linkId}-opt-${index}`} className="flex items-center gap-2">
           <Glyph className="size-4 shrink-0 text-muted-foreground/60" />
           <Input

@@ -8,7 +8,7 @@ import { z } from "zod";
  */
 
 /** Item types the builder/fill UI supports (a subset of the R5 value set). */
-export const ITEM_TYPES = [
+const ITEM_TYPES = [
   "group",
   "display",
   "boolean",
@@ -29,13 +29,13 @@ export function isAnswerable(type: ItemType): boolean {
   return type !== "group" && type !== "display";
 }
 
-export const codingSchema = z.object({
+const codingSchema = z.object({
   system: z.string(),
   code: z.string(),
   display: z.string().nullish(),
 });
 
-export type Coding = z.infer<typeof codingSchema>;
+type Coding = z.infer<typeof codingSchema>;
 
 const quantityValueSchema = z.object({
   value: z.number().nullish(),
@@ -45,7 +45,7 @@ const quantityValueSchema = z.object({
 });
 
 /** A single inline answer option for `coding` questions. */
-export const answerOptionSchema = z.object({
+const answerOptionSchema = z.object({
   valueCoding: codingSchema.nullish(),
   valueString: z.string().nullish(),
   valueInteger: z.number().int().nullish(),
@@ -54,11 +54,9 @@ export const answerOptionSchema = z.object({
 
 export type AnswerOption = z.infer<typeof answerOptionSchema>;
 
-export const enableOperators = ["exists", "=", "!=", ">", "<", ">=", "<="] as const;
-export type EnableOperator = (typeof enableOperators)[number];
-
+const enableOperators = ["exists", "=", "!=", ">", "<", ">=", "<="] as const;
 /** A condition that shows an item only when a prior answer matches. */
-export const enableWhenSchema = z.object({
+const enableWhenSchema = z.object({
   question: z.string(),
   operator: z.enum(enableOperators),
   answerBoolean: z.boolean().nullish(),
@@ -92,7 +90,7 @@ export interface QuestionnaireItem {
   item?: QuestionnaireItem[] | null;
 }
 
-export const questionnaireItemSchema: z.ZodType<QuestionnaireItem> = z.lazy(() =>
+const questionnaireItemSchema: z.ZodType<QuestionnaireItem> = z.lazy(() =>
   z.object({
     linkId: z.string().min(1),
     type: z.enum(ITEM_TYPES),
@@ -117,7 +115,7 @@ export const questionnaireItemSchema: z.ZodType<QuestionnaireItem> = z.lazy(() =
 export const questionnaireItemsSchema = z.array(questionnaireItemSchema);
 
 /** A single answer value — exactly one `value[x]` is set. */
-export const answerSchema = z.object({
+const answerSchema = z.object({
   valueBoolean: z.boolean().nullish(),
   valueDecimal: z.number().nullish(),
   valueInteger: z.number().int().nullish(),
@@ -137,7 +135,7 @@ export interface ResponseItem {
   item?: ResponseItem[] | null;
 }
 
-export const responseItemSchema: z.ZodType<ResponseItem> = z.lazy(() =>
+const responseItemSchema: z.ZodType<ResponseItem> = z.lazy(() =>
   z.object({
     linkId: z.string().min(1),
     text: z.string().nullish(),

@@ -10,7 +10,7 @@ interface StoredUnassignedFilter {
   kind: "unassigned";
 }
 
-export type StoredAssignmentFilter = StoredPractitionerFilter | StoredUnassignedFilter | null;
+type StoredAssignmentFilter = StoredPractitionerFilter | StoredUnassignedFilter | null;
 
 export interface CustomerListFilters {
   assignment: StoredAssignmentFilter;

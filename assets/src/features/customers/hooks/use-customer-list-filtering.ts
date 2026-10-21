@@ -9,7 +9,7 @@ export function hasCustomerListFilters(filters: CustomerListFilters): boolean {
   return filters.assignment !== null || filters.hideFinishedPlans;
 }
 
-export function filterCustomers(
+function filterCustomers(
   customers: CustomerListItem[],
   practitionerPersonIdSet: Set<string> | null,
   search: string,

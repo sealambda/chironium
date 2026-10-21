@@ -111,7 +111,7 @@ type CreateInput = VariablesOf<typeof CreateQuestionnaireMutation>["input"];
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 /** Parse the stored JSON item tree, tolerating an empty/invalid blob. */
-export function parseItems(item: unknown): QuestionnaireItem[] {
+function parseItems(item: unknown): QuestionnaireItem[] {
   const parsed = questionnaireItemsSchema.safeParse(item ?? []);
   return parsed.success ? parsed.data : [];
 }

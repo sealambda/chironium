@@ -46,7 +46,7 @@ function taskStatusBadgeConfig(
   }
 }
 
-export function TaskStatusBadge({ status }: Readonly<{ status: PatientTask["status"] }>) {
+function TaskStatusBadge({ status }: Readonly<{ status: PatientTask["status"] }>) {
   const config = taskStatusBadgeConfig(status);
   if (!config) {
     return null;

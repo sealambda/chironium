@@ -58,8 +58,6 @@ export type QuestionnaireResponseRecord = NonNullable<
   NonNullable<ResultOf<typeof ListResponsesByPatientQuery>["listQuestionnaireResponses"]>["results"]
 >[number];
 
-export type QuestionnaireResponseStatus = QuestionnaireResponseRecord["status"];
-
 type CreateInput = VariablesOf<typeof CreateQuestionnaireResponseMutation>["input"];
 
 // ─── Helpers ─────────────────────────────────────────────────────────
