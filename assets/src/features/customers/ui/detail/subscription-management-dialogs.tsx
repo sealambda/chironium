@@ -488,7 +488,7 @@ interface SubscriptionActionsProps {
   readonly compact?: boolean;
 }
 
-export function SubscriptionActions({
+function SubscriptionActions({
   subscriptionId,
   subscriptionState,
   organizationId,

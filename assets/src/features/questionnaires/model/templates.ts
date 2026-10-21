@@ -12,7 +12,7 @@ import * as m from "@/paraglide/messages";
  * editable afterwards.
  */
 
-export type TemplateId = "measurements" | "nutrition" | "cycle";
+type TemplateId = "measurements" | "nutrition" | "cycle";
 
 export interface QuestionnaireTemplate {
   id: TemplateId;

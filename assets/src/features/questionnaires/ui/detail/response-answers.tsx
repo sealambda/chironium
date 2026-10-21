@@ -57,7 +57,6 @@ export function ResponseAnswers({
         const children = item.item ?? [];
         const className = depth > 0 ? "border-border/60 border-l-2 pl-3" : undefined;
         return (
-          // biome-ignore lint/suspicious/noArrayIndexKey: read-only list, linkId may repeat
           <div key={`${item.linkId}-${index}`} className={className}>
             <RowBody item={item} />
             {children.length > 0 ? <ResponseAnswers items={children} depth={depth + 1} /> : null}

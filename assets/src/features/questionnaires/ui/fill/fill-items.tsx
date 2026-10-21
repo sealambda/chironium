@@ -26,7 +26,7 @@ const BOOLEAN_YES = "yes";
 const BOOLEAN_NO = "no";
 
 /** Whether an integer question renders as a tappable rating scale (e.g. pain 1–10). */
-export function isScale(item: QuestionnaireItem): boolean {
+function isScale(item: QuestionnaireItem): boolean {
   return (
     item.type === "integer" &&
     item.minValue != null &&

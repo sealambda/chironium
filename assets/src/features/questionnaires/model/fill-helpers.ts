@@ -23,7 +23,7 @@ function hasValue(answer: Answer | undefined): boolean {
 }
 
 /** Whether the question has at least one non-empty answer. */
-export function isAnswered(answers: Answer[] | undefined): boolean {
+function isAnswered(answers: Answer[] | undefined): boolean {
   return (answers ?? []).some(hasValue);
 }
 
