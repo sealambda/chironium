@@ -1,10 +1,10 @@
-import type { FeedActor } from "@/features/customers/types/activity-feed";
+import type { FeedActor } from "@/features/customers/types/feed-actor";
 import {
   actorFromNotes,
   actorFromVersions,
   mergeFeedActor,
   uniqueActors,
-} from "@/features/customers/types/activity-feed";
+} from "@/features/customers/types/feed-actor";
 import type { VersionActorSource } from "@/features/customers/types/version-actor-source";
 
 /** The patient's display name, used when the patient made a change themselves. */

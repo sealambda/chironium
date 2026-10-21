@@ -1,7 +1,8 @@
 import { addDays, parseISO } from "date-fns";
 
-import type { FeedActor, FeedEvent } from "@/features/customers/types/activity-feed";
-import { actorFromVersions, uniqueActors } from "@/features/customers/types/activity-feed";
+import type { FeedEvent } from "@/features/customers/types/activity-feed";
+import type { FeedActor } from "@/features/customers/types/feed-actor";
+import { actorFromVersions, uniqueActors } from "@/features/customers/types/feed-actor";
 import type { SubscriptionRecord } from "@/shared/types/subscriptions";
 
 const SUBSCRIPTION_ENDING_HORIZON_DAYS = 90;

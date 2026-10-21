@@ -2,12 +2,12 @@ import { format, parseISO } from "date-fns";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { FeedActor } from "@/features/customers/types/activity-feed";
 import type { FeedEventAccent } from "@/features/customers/types/activity-feed-accents";
 import {
   accentDotBgClass,
   accentIconClass,
 } from "@/features/customers/types/activity-feed-accents";
+import type { FeedActor } from "@/features/customers/types/feed-actor";
 import { formatDayLabelFromIso } from "@/features/customers/utils/activity-feed-dates";
 import * as m from "@/paraglide/messages";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/shared/ui/avatar";

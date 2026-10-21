@@ -4,7 +4,7 @@ import {
   selectAnthropometryHistory,
   selectCurrentStateSnapshot,
   selfReportedAnthropometryKeys,
-} from "@/features/customers/api/anthropometry-api";
+} from "@/features/customers/api/anthropometry-api.selectors";
 import type { PatientObservation } from "@/features/customers/api/patients-api";
 
 function buildObservation(overrides: Partial<PatientObservation>): PatientObservation {
