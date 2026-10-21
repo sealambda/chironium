@@ -61,7 +61,7 @@ defmodule Chironium.MixProject do
       {:hammer, "~> 7.0"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:ash_paper_trail, "~> 0.5"},
-      {:live_debugger, "~> 0.5", only: [:dev]},
+      {:live_debugger, "~> 1.0", only: [:dev]},
       {:ash_state_machine, "~> 0.2"},
       {:oban_web, "~> 2.0"},
       {:ash_oban, "~> 0.7"},
