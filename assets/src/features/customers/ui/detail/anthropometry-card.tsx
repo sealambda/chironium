@@ -193,6 +193,7 @@ export function AnthropometryCard({
 
   return (
     <div
+      data-testid="anthropometry-card"
       className={cn(
         "flex flex-col rounded-2xl border border-border/50 bg-card shadow-sm",
         compact ? "p-3 lg:p-4" : "p-4 lg:p-5",
