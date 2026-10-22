@@ -28,9 +28,12 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: package.json
-      # Keep the version in sync with the @biomejs/biome catalog pin in pnpm-workspace.yaml.
+      # Biome resolves the Tailwind stylesheet's @imports (tw-animate-css, shadcn) from
+      # node_modules; without them it misorders and fails to parse those utility classes.
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
       - name: Biome check
-        run: pnpm dlx @biomejs/biome@2.6.2 check .
+        run: pnpm exec biome check .
 
   duplication:
     name: jscpd (copy-paste detection)
