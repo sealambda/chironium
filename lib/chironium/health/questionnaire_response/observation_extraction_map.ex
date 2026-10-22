@@ -60,4 +60,7 @@ defmodule Chironium.Health.QuestionnaireResponse.ObservationExtractionMap do
 
   @doc "The typed-action descriptor for a `{system, code}`, or `nil` for the generic fallback."
   def lookup(system, code), do: Map.get(@map, {system, code})
+
+  @doc "Every mapped `{system, code}`; the builder's measurement picker must offer exactly these."
+  def codes, do: Map.keys(@map)
 end

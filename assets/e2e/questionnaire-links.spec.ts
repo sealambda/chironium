@@ -10,44 +10,24 @@ import {
 
 const QUESTIONNAIRE_TITLE = "E2E check-in";
 
-/** The builder saves drafts; activating through its UI adds nothing this flow tests. */
+/** Builds the questionnaire the way a practitioner does: one question recorded as body weight. */
 async function createActiveQuestionnaire(page: Page) {
-  const payload = await page.evaluate(async (title) => {
-    const organizationId = localStorage.getItem("chironium_preferred_org_id");
-    const csrf = document.querySelector("meta[name='csrf-token']")?.getAttribute("content") ?? "";
-    const response = await fetch("/gql", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "content-type": "application/json",
-        "x-csrf-token": csrf,
-        "x-chironium-organizationid": `org_${organizationId}`,
-      },
-      body: JSON.stringify({
-        query:
-          "mutation ($input: CreateQuestionnaireInput!) { createQuestionnaire(input: $input) { result { id } errors { message } } }",
-        variables: {
-          input: {
-            title,
-            status: "ACTIVE",
-            item: [
-              {
-                linkId: "weight",
-                type: "quantity",
-                text: "Body weight",
-                required: true,
-                code: [{ system: "http://loinc.org", code: "29463-7", display: "Body weight" }],
-                unit: { system: "http://unitsofmeasure.org", code: "kg", display: "kg" },
-              },
-            ],
-          },
-        },
-      }),
-    });
-    return response.json();
-  }, QUESTIONNAIRE_TITLE);
+  await page.goto("/app/questionnaires");
+  await page.getByRole("button", { name: "New questionnaire" }).first().click();
+  await page.getByText("Blank questionnaire").click();
 
-  expect(payload.data.createQuestionnaire.errors).toEqual([]);
+  await page.getByPlaceholder("e.g. Weekly nutrition check-in").fill(QUESTIONNAIRE_TITLE);
+  await page.getByRole("checkbox", { name: "Ready to use" }).click();
+  await page.getByRole("button", { name: "Add question" }).click();
+  await page.getByPlaceholder("Question text").fill("How much do you weigh?");
+
+  await page.getByRole("combobox").filter({ hasText: "Free text" }).click();
+  await page.getByRole("option", { name: "Measurement" }).click();
+  await page.getByRole("combobox").filter({ hasText: "Body weight" }).click();
+  await page.getByRole("option", { name: "Body weight" }).click();
+
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Questionnaire saved.")).toBeVisible({ timeout: TIMEOUT_MS });
 }
 
 async function sendQuestionnaire(page: Page): Promise<string> {
@@ -112,4 +92,11 @@ test("a patient answers a questionnaire sent as a link", async ({ page, browser 
   await page.reload();
   await expect(page.getByText("Completed").first()).toBeVisible({ timeout: TIMEOUT_MS });
   await expect(page.getByText("Self-reported").first()).toBeVisible({ timeout: TIMEOUT_MS });
+
+  // The coded weight answer lands in the anthropometry card, flagged as self-reported.
+  const anthropometry = page.getByTestId("anthropometry-card");
+  await expect(anthropometry.getByText("68.5", { exact: true })).toBeVisible({
+    timeout: TIMEOUT_MS,
+  });
+  await expect(anthropometry.getByText("Self-reported")).toBeVisible();
 });

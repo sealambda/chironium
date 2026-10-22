@@ -334,7 +334,97 @@ defmodule Chironium.Health.QuestionnaireTest do
 
       assert observations_from(ctx, response) == []
     end
+
+    # One row per `ObservationExtractionMap` entry:
+    # {system, code, question type, answer, expected observation type, expected value}.
+    @snomed "http://snomed.info/sct"
+    @mapped_codes [
+      {@loinc, "29463-7", "quantity", %{"valueQuantity" => %{"value" => 72.5}}, :body_weight,
+       72.5},
+      {@loinc, "8302-2", "quantity", %{"valueQuantity" => %{"value" => 171}}, :body_height, 171},
+      {@loinc, "8279-2", "quantity", %{"valueQuantity" => %{"value" => 95}}, :chest_circumference,
+       95},
+      {@loinc, "56063-1", "quantity", %{"valueQuantity" => %{"value" => 101}}, :hip_circumference,
+       101},
+      {@loinc, "8280-0", "quantity", %{"valueQuantity" => %{"value" => 80}}, :waist_circumference,
+       80},
+      {@loinc, "56072-2", "quantity", %{"valueQuantity" => %{"value" => 31}}, :arm_circumference,
+       31},
+      {@loinc, "8286-7", "quantity", %{"valueQuantity" => %{"value" => 55}}, :thigh_circumference,
+       55},
+      {@loinc, "3144-3", "integer", %{"valueInteger" => 5}, :menstrual_period_duration, 5},
+      {@loinc, "63888-2", "integer", %{"valueInteger" => 12}, :menarche_age, 12},
+      {@loinc, "8665-2", "date", %{"valueDate" => "2026-10-01"}, :menstrual_period_start,
+       ~D[2026-10-01]},
+      {@snomed, "1163282001", "string", %{"valueString" => "Fish"}, :food_preference, "Fish"},
+      {@snomed, "248135001", "string", %{"valueString" => "Cilantro"}, :food_aversion, "Cilantro"}
+    ]
+
+    for {system, code, type, answer, observation_type, expected} <- @mapped_codes do
+      @tag system: system,
+           code: code,
+           type: type,
+           answer: answer,
+           observation_type: observation_type,
+           expected: expected
+      test "routes #{code} to #{observation_type}", ctx do
+        items = [
+          %{
+            "linkId" => "q",
+            "type" => ctx.type,
+            "text" => "Question",
+            "code" => [%{"system" => ctx.system, "code" => ctx.code}]
+          }
+        ]
+
+        questionnaire = create_questionnaire(ctx, items)
+        patient = create_patient(ctx)
+
+        response =
+          create_response(ctx, questionnaire, patient, [
+            %{"linkId" => "q", "answer" => [ctx.answer]}
+          ])
+
+        observation =
+          Enum.find(
+            observations_from(ctx, response),
+            &(&1.observation_type == ctx.observation_type)
+          )
+
+        assert observation, "expected a #{ctx.observation_type} observation"
+        assert_extracted_value(observation, ctx.expected)
+      end
+    end
   end
+
+  describe "builder measurement list" do
+    # The builder hardcodes its measurement picker in `measurements.ts`. A code missing
+    # there is never offered; a code missing here is saved as a generic observation no
+    # card reads.
+    test "matches the extraction map" do
+      source = File.read!("assets/src/features/questionnaires/model/measurements.ts")
+
+      builder_codes =
+        ~r/system: (LOINC|SNOMED),\s+code: "([^"]+)"/
+        |> Regex.scan(source, capture: :all_but_first)
+        |> Enum.map(fn
+          ["LOINC", code] -> {@loinc, code}
+          ["SNOMED", code] -> {@snomed, code}
+        end)
+
+      assert Enum.sort(builder_codes) ==
+               Enum.sort(Chironium.Health.QuestionnaireResponse.ObservationExtractionMap.codes())
+    end
+  end
+
+  defp assert_extracted_value(observation, %Date{} = expected),
+    do: assert(DateTime.to_date(observation.value_date_time) == expected)
+
+  defp assert_extracted_value(observation, expected) when is_binary(expected),
+    do: assert(observation.value_string == expected)
+
+  defp assert_extracted_value(observation, expected),
+    do: assert(Decimal.equal?(Decimal.new(to_string(expected)), observation.value_quantity.value))
 
   describe "response visibility" do
     test "a care-team practitioner sees the response; an outsider does not", ctx do
