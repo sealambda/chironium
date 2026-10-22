@@ -1,3 +1,12 @@
 {
-   "signedContributors": []
+  "signedContributors": [
+    {
+      "name": "borgoat",
+      "id": 7715855,
+      "comment_id": 6336008663,
+      "created_at": "2026-10-22T08:11:35Z",
+      "repoId": 1136421124,
+      "pullRequestNo": 205
+    }
+  ]
 }
