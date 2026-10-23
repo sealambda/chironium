@@ -49,6 +49,7 @@ node_modules/
 /envs/.dev.overrides.env
 /envs/.test.overrides.env
 /envs/.prod.overrides.env
+/deploy/.env
 
 # Dialyzer PLT caches.
 /priv/plts/
