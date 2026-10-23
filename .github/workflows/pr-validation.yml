@@ -72,11 +72,29 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    env:
+      MIX_ENV: dev
     steps:
       - name: Checkout repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           persist-credentials: false
+
+      - name: Set up BEAM
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1
+        with:
+          version-file: "mise.toml"
+          version-type: "strict"
+
+      - name: Cache Elixir deps and build
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-dev-${{ hashFiles('mix.lock', 'mix.exs') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-dev-
 
       - name: Set up pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
@@ -89,6 +107,12 @@ jobs:
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
+
+      # Compiling writes priv/schema.graphql, which GraphQL codegen reads.
+      - name: Generate GraphQL schema
+        run: |
+          mix deps.get
+          mix compile
 
       - name: Audit production JS dependencies
         run: pnpm deps:audit
