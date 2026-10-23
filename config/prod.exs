@@ -1,8 +1,8 @@
 import Config
 
-# Configure the Vite manifest path for compile-time static asset resolution.
-# PhoenixVite uses this manifest to resolve hashed asset filenames in production.
-config :chironium, ChironiumWeb.Endpoint, cache_static_manifest: "priv/static/.vite/manifest.json"
+# Hashed asset filenames come from Vite's manifest through `cache_static_manifest_latest` in
+# runtime.exs. Do not set `cache_static_manifest`: Phoenix would read Vite's manifest as its
+# own `phx.digest` format and log "Could not warm up static assets" on every boot.
 
 # Force using SSL in production. This also sets the "strict-transport-security" header,
 # known as HSTS. If you have a health check endpoint, you may want to exclude it below.
