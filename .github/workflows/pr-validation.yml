@@ -72,6 +72,50 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: "package.json"
+          cache: pnpm
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production JS dependencies
+        run: pnpm deps:audit
+
+      - name: Generate GraphQL types
+        run: pnpm assets:codegen
+
+      # /portal/gql serves only the committed manifest, so it must match the portal's documents.
+      - name: Check persisted portal documents
+        run: |
+          pnpm --dir assets gql:persisted
+          git diff --exit-code priv/graphql/portal-documents.json
+
+      - name: Build assets
+        run: pnpm assets:build
+
+      - name: Dead-code check (knip)
+        run: pnpm assets:deadcode
+
+      - name: Architecture check (dependency-cruiser)
+        run: pnpm assets:arch
+
+      - name: Run assets unit tests
+        run: pnpm assets:test
+
+  e2e:
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: pgvector/pgvector:pg18
@@ -118,46 +162,29 @@ jobs:
           node-version-file: "package.json"
           cache: pnpm
 
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install Elixir dependencies
         run: mix deps.get
 
       - name: Prepare dev database
         run: mix ash.setup --quiet
 
-      - name: Install JS dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Audit production JS dependencies
-        run: pnpm deps:audit
-
-      - name: Generate GraphQL types
-        run: pnpm assets:codegen
-
-      # /portal/gql serves only the committed manifest, so it must match the portal's documents.
-      - name: Check persisted portal documents
-        run: |
-          pnpm --dir assets gql:persisted
-          git diff --exit-code priv/graphql/portal-documents.json
-
       - name: Build assets
-        run: pnpm assets:build
-
-      - name: Dead-code check (knip)
-        run: pnpm assets:deadcode
-
-      - name: Architecture check (dependency-cruiser)
-        run: pnpm assets:arch
-
-      - name: Run assets unit tests
-        run: pnpm assets:test
+        run: |
+          pnpm assets:codegen
+          pnpm assets:build
 
       - name: Run assets E2E tests
         run: pnpm assets:e2e
 
-      - name: Upload Playwright report on failure
-        if: failure()
+      # Also on success: retried (flaky) tests keep their first-attempt traces here.
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: playwright-report
           path: assets/playwright-report
           if-no-files-found: ignore
+          retention-days: 7
