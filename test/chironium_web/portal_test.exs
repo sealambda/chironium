@@ -28,7 +28,7 @@ defmodule ChironiumWeb.PortalTest do
 
       html = html_response(conn, 200)
       assert html =~ ~s(action="/auth/guest/magic_link")
-      assert html =~ ctx.organization.name
+      assert html =~ Plug.HTML.html_escape(ctx.organization.name)
       assert get_resp_header(conn, "referrer-policy") == ["no-referrer"]
       assert html =~ ~s(<meta name="referrer" content="no-referrer")
 
