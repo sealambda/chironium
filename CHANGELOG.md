@@ -4,6 +4,10 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+### Added
+
+- A Docker Compose setup in `deploy/` that runs Chironium with PostgreSQL and, optionally, Caddy for automatic HTTPS.
+
 ## [0.1.0] - 2026-10-23
 
 The first public release.

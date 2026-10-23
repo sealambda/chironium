@@ -1,6 +1,6 @@
 # Self-Hosting
 
-Chironium ships as a single container image that serves the web app, the GraphQL API, and background jobs. You provide PostgreSQL, a Google OAuth client for sign-in, and a reverse proxy that terminates TLS.
+Chironium ships as a single container image that serves the web app, the GraphQL API, and background jobs. It needs PostgreSQL, a Google OAuth client for sign-in, and a reverse proxy that terminates TLS. The [Docker Compose setup](#docker-compose) provides all of them except the Google client.
 
 ## Requirements
 
@@ -8,7 +8,29 @@ Chironium ships as a single container image that serves the web app, the GraphQL
 - **A Google OAuth client.** Google is the only sign-in method in production. Create a web client in the [Google Cloud console](https://console.cloud.google.com/apis/credentials) with the redirect URI `https://<your host>/auth/user/google/callback`.
 - **A TLS-terminating reverse proxy.** The app listens on plain HTTP and generates `https://` URLs on port 443 for the host in `PHX_HOST`.
 
-## Run the container
+## Docker Compose
+
+[`deploy/compose.yaml`](../deploy/compose.yaml) runs Chironium with PostgreSQL and, optionally, [Caddy](https://caddyserver.com), which obtains and renews an HTTPS certificate for your host. You need a server with Docker and a DNS record pointing your hostname at it.
+
+```sh
+mkdir chironium && cd chironium
+curl -fsSLO https://raw.githubusercontent.com/sealambda/chironium/main/deploy/compose.yaml
+curl -fsSL -o .env https://raw.githubusercontent.com/sealambda/chironium/main/deploy/.env.example
+```
+
+Fill in `.env`; its comments show how to generate each secret. Then start everything:
+
+```sh
+docker compose --profile caddy up -d
+```
+
+Open `https://<PHX_HOST>`, sign in with Google, and choose **Create New Organization**.
+
+If you already run a reverse proxy, leave out `--profile caddy` and point your proxy at `127.0.0.1:4000`. Set `APP_PORT` in `.env` to use another local port.
+
+To upgrade, raise `CHIRONIUM_VERSION` in `.env` and run `docker compose --profile caddy up -d` again. Migrations run when the app starts. Any other variable from the [configuration reference](#configuration) can go in `.env` too. For the one-off tasks under [Operations](#operations), use `docker compose exec app` instead of `docker exec chironium`.
+
+## Run the container yourself
 
 Each [release](https://github.com/sealambda/chironium/releases) publishes `ghcr.io/sealambda/chironium:<version>` (for example `0.1.0`), plus `latest` and a `<major>.<minor>` tag that follows patch releases. Pin a version in production and read the [changelog](../CHANGELOG.md) before upgrading. Every push to `main` also publishes `ghcr.io/sealambda/chironium:main`, which tracks unreleased work. To build the image yourself, run `docker build -t chironium .` from the repository root.
 

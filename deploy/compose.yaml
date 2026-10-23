@@ -1,0 +1,52 @@
+# Production deployment: Chironium and PostgreSQL, plus Caddy for HTTPS.
+# Copy .env.example to .env, fill it in, then run one of:
+#
+#   docker compose --profile caddy up -d   # Caddy gets a certificate for PHX_HOST.
+#   docker compose up -d                   # Bring your own proxy; the app listens on 127.0.0.1:4000.
+#
+# See docs/self-hosting.md for every setting.
+services:
+  app:
+    image: ghcr.io/sealambda/chironium:${CHIRONIUM_VERSION:-0.1.0}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ecto://chironium:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.}@postgres/chironium
+    ports:
+      - "127.0.0.1:${APP_PORT:-4000}:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: pgvector/pgvector:pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chironium
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.}
+      POSTGRES_DB: chironium
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chironium"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  caddy:
+    image: caddy:2
+    profiles: [caddy]
+    restart: unless-stopped
+    command: caddy reverse-proxy --from ${PHX_HOST:?Set PHX_HOST in .env.} --to app:4000
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy_data:
