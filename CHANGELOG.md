@@ -4,6 +4,8 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-24
+
 ### Added
 
 - A Docker Compose setup in `deploy/` that runs Chironium with PostgreSQL and, optionally, Caddy for automatic HTTPS.
@@ -35,5 +37,6 @@ The first public release.
 - English and Spanish interfaces with locale-aware dates and units.
 - A container image on GitHub Container Registry and a [self-hosting guide](docs/self-hosting.md).
 
-[Unreleased]: https://github.com/sealambda/chironium/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/sealambda/chironium/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/sealambda/chironium/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/sealambda/chironium/releases/tag/v0.1.0

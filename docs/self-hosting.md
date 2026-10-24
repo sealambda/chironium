@@ -32,7 +32,7 @@ To upgrade, raise `CHIRONIUM_VERSION` in `.env` and run `docker compose --profil
 
 ## Run the container yourself
 
-Each [release](https://github.com/sealambda/chironium/releases) publishes `ghcr.io/sealambda/chironium:<version>` (for example `0.1.0`), plus `latest` and a `<major>.<minor>` tag that follows patch releases. Pin a version in production and read the [changelog](../CHANGELOG.md) before upgrading. Every push to `main` also publishes `ghcr.io/sealambda/chironium:main`, which tracks unreleased work. To build the image yourself, run `docker build -t chironium .` from the repository root.
+Each [release](https://github.com/sealambda/chironium/releases) publishes `ghcr.io/sealambda/chironium:<version>` (for example `0.2.0`), plus `latest` and a `<major>.<minor>` tag that follows patch releases. Pin a version in production and read the [changelog](../CHANGELOG.md) before upgrading. Every push to `main` also publishes `ghcr.io/sealambda/chironium:main`, which tracks unreleased work. To build the image yourself, run `docker build -t chironium .` from the repository root.
 
 ```sh
 docker run -d --name chironium -p 4000:4000 \
@@ -42,7 +42,7 @@ docker run -d --name chironium -p 4000:4000 \
   -e TOKEN_SIGNING_SECRET="$(openssl rand -base64 48)" \
   -e RESEND_API_KEY=... \
   -e EMAIL_FROM_ADDRESS=chironium@example.com \
-  ghcr.io/sealambda/chironium:0.1.0
+  ghcr.io/sealambda/chironium:0.2.0
 ```
 
 Generate `SECRET_KEY_BASE` and `TOKEN_SIGNING_SECRET` once and keep them stable: changing them signs everyone out.
