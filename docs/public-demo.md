@@ -256,3 +256,10 @@ Filled in by the implementing session.
 - Tests turn demo mode on with `Chironium.DataCase.enable_demo_mode/0`, next to `disable_email/0`. The sign-in tests also follow the form's `phx-trigger-action` to `POST /demo`, and check that a refused start's flash shows on the demo sign-in page.
 - `mix gettext.extract --merge` also rewrites unrelated, already stale entries in `en/default.po`, `emails.pot` and `es/emails.po`, and creates `en/emails.po`; those changes were reverted, keeping only `default.pot` and `es/default.po`.
 - No Playwright spec was added: this phase lists none, and browser cases D1 to D3 cover it.
+
+### Phase 4
+
+- The age rule compares `inserted_at` with `now() AT TIME ZONE 'utc'`, not `now()`: timestamps are stored in UTC without a zone, so a plain `now()` would shift the 24 hours by the server's time zone (the local test database runs on `Europe/Zurich`).
+- The worker runs on the `default` queue with Oban's default retries. A `delete_organization/1` that raises is rescued and logged as `[DemoCleanup] Kept organization <id>: <message>`, so one organization can't block the rest; no known input makes it fail, so that branch has no test. `Kept user` is a warning, the summary line is info.
+- The "acted in it" test creates the questionnaire it sends, since `Seed.All` seeds none, and sends it as the owner resolved the way `SetTenant` does. Of the two "one non-demo member" cases, one adds that member next to a demo member in a year-old organization, the other has only that member at 25 hours.
+- Tests: `test/chironium/workers/demo_cleanup_test.exs` (11 cases) and two crontab cases in `test/chironium/config/runtime_test.exs`. Removing the non-demo-member rule, the owner rule or the user age rule each fails its test. The full ExUnit suite passes (516 tests). No Playwright spec: this phase lists none.

@@ -113,6 +113,13 @@ demo_mode? = System.get_env("DEMO_MODE") in ~w(true 1)
 
 config :chironium, :demo_mode?, demo_mode?
 
+# Hourly, because Oban Cron skips runs missed while the instance is down.
+# AshOban appends its own schedulers to this crontab.
+if demo_mode? do
+  config :chironium, Oban,
+    plugins: [{Oban.Plugins.Cron, crontab: [{"0 * * * *", Chironium.Workers.DemoCleanup}]}]
+end
+
 # Each of these variables is the only switch for one email, sign-in or analytics
 # path, so refusing them keeps a demo from reaching any third party. Test always
 # has email on.
