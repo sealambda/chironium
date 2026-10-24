@@ -53,27 +53,53 @@ default_scheme =
     "http"
   end
 
-default_redirect_uri =
+default_url =
   if config_env() == :prod do
-    "#{default_scheme}://#{default_host}/auth/user/google/callback"
+    "#{default_scheme}://#{default_host}"
   else
-    "#{default_scheme}://#{default_host}:#{port}/auth/user/google/callback"
+    "#{default_scheme}://#{default_host}:#{port}"
   end
 
-# Google sign-in is required in production. Development and test can run
-# without it: use the development sign-in on the sign-in page instead.
-google_oauth_env = fn name ->
-  System.get_env(name) ||
-    if config_env() == :prod, do: raise("Missing environment variable `#{name}`!")
+config :chironium, ChironiumWeb.Endpoint, http: [port: String.to_integer(port)]
+
+# Optional sign-in providers. Each one is on when all its variables are set. A
+# partial setup fails the boot, so a typo can't silently hide a sign-in button.
+sign_in_provider = fn vars ->
+  {set, unset} =
+    Enum.split_with(vars, fn {_key, name} -> System.get_env(name) not in [nil, ""] end)
+
+  names = fn vars -> Enum.map_join(vars, ", ", &elem(&1, 1)) end
+
+  cond do
+    set == [] -> nil
+    unset == [] -> Enum.map(set, fn {key, name} -> {key, System.get_env(name)} end)
+    true -> raise "#{names.(set)} is set but #{names.(unset)} is not. Set all of them or none."
+  end
 end
 
-config :chironium, ChironiumWeb.Endpoint,
-  http: [port: String.to_integer(port)],
-  google_oauth: [
-    client_id: google_oauth_env.("GOOGLE_CLIENT_ID"),
-    client_secret: google_oauth_env.("GOOGLE_CLIENT_SECRET"),
-    redirect_uri: System.get_env("GOOGLE_REDIRECT_URI") || default_redirect_uri
-  ]
+google =
+  if config =
+       sign_in_provider.(client_id: "GOOGLE_CLIENT_ID", client_secret: "GOOGLE_CLIENT_SECRET") do
+    redirect_uri =
+      System.get_env("GOOGLE_REDIRECT_URI") || "#{default_url}/auth/user/google/callback"
+
+    Keyword.put(config, :redirect_uri, redirect_uri)
+  end
+
+oidc =
+  if config =
+       sign_in_provider.(
+         base_url: "OIDC_ISSUER",
+         client_id: "OIDC_CLIENT_ID",
+         client_secret: "OIDC_CLIENT_SECRET"
+       ) do
+    Keyword.merge(config,
+      redirect_uri: "#{default_url}/auth/user/oidc/callback",
+      display_name: System.get_env("OIDC_DISPLAY_NAME", "single sign-on")
+    )
+  end
+
+config :chironium, :sign_in_providers, google: google, oidc: oidc
 
 # Email needs a Resend key. Outside production the mailer stays on the local
 # mailbox, so any value turns email on without sending anything.
@@ -81,6 +107,10 @@ email_enabled? =
   config_env() == :test or System.get_env("RESEND_API_KEY") not in [nil, ""]
 
 config :chironium, Chironium.Notifications, email_enabled?: email_enabled?
+
+if config_env() == :prod and is_nil(google) and is_nil(oidc) and not email_enabled? do
+  raise "No sign-in method is configured. Set RESEND_API_KEY for email sign-in, or set up Google or OpenID Connect. See docs/self-hosting.md."
+end
 
 # The AGPL requires a modified version run as a network service to offer its
 # source to users; point this at your fork when you deploy changes.

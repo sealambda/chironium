@@ -3,7 +3,7 @@ defmodule Chironium.Secrets do
   Secret provider for AshAuthentication.
 
   Retrieves secrets from application configuration at runtime
-  for token signing and OAuth provider credentials.
+  for token signing and identity provider credentials.
   """
   use AshAuthentication.Secret
 
@@ -18,42 +18,18 @@ defmodule Chironium.Secrets do
     Application.fetch_env(:chironium, :token_signing_secret)
   end
 
-  # Google OAuth client ID.
+  # Google and OpenID Connect settings. `:error` when the provider is off, which
+  # fails its sign-in instead of calling the provider with no credentials.
   def secret_for(
-        [:authentication, :strategies, :google, :client_id],
+        [:authentication, :strategies, provider, key],
         Chironium.Accounts.User,
         _opts,
         _context
-      ) do
-    case Application.fetch_env(:chironium, ChironiumWeb.Endpoint) do
-      {:ok, config} -> {:ok, get_in(config, [:google_oauth, :client_id])}
-      error -> error
-    end
-  end
-
-  # Google OAuth client secret.
-  def secret_for(
-        [:authentication, :strategies, :google, :client_secret],
-        Chironium.Accounts.User,
-        _opts,
-        _context
-      ) do
-    case Application.fetch_env(:chironium, ChironiumWeb.Endpoint) do
-      {:ok, config} -> {:ok, get_in(config, [:google_oauth, :client_secret])}
-      error -> error
-    end
-  end
-
-  # Google OAuth redirect URI.
-  def secret_for(
-        [:authentication, :strategies, :google, :redirect_uri],
-        Chironium.Accounts.User,
-        _opts,
-        _context
-      ) do
-    case Application.fetch_env(:chironium, ChironiumWeb.Endpoint) do
-      {:ok, config} -> {:ok, get_in(config, [:google_oauth, :redirect_uri])}
-      error -> error
+      )
+      when provider in [:google, :oidc] do
+    case get_in(Application.get_env(:chironium, :sign_in_providers, []), [provider, key]) do
+      nil -> :error
+      value -> {:ok, value}
     end
   end
 end

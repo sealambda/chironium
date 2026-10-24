@@ -2,11 +2,15 @@ defmodule ChironiumWeb.AuthController do
   use ChironiumWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
+  alias AshAuthentication.Errors.AuthenticationFailed
   alias Chironium.Accounts.GuestAccess
   alias Chironium.Accounts.Token
+  alias Chironium.Accounts.Validations.ProviderEmailVerified
   alias Chironium.Health.PatientPrincipalResolver
   alias Chironium.Health.QuestionnaireRequests
   alias ChironiumWeb.Plugs.AuthReturnState
+
+  @unverified_email ProviderEmailVerified.message()
 
   # Patient questionnaire link: claim it, which revokes its sibling links, then
   # keep the session. The redirect carries no token.
@@ -24,6 +28,13 @@ defmodule ChironiumWeb.AuthController do
     end
   end
 
+  # Registration is on, so every address gets a link: the message reveals nothing.
+  def success(conn, {:magic_link, :request}, _user, _token) do
+    conn
+    |> put_flash(:info, gettext("Check your email for a sign-in link."))
+    |> redirect(to: ~p"/sign-in")
+  end
+
   def success(conn, _activity, user, _token) do
     # Get the validated return URL from the signed state token.
     # Falls back to configured app_url if no valid token exists.
@@ -36,26 +47,23 @@ defmodule ChironiumWeb.AuthController do
     |> redirect_to_app(return_to)
   end
 
-  # Only guest links use the magic link strategy.
-  def failure(conn, {:magic_link, _phase}, _reason),
+  # A failed patient questionnaire link goes to the portal, never the staff sign-in page.
+  def failure(%{private: %{strategy: %{resource: GuestAccess}}} = conn, _activity, _reason),
     do: redirect(conn, to: ~p"/portal/link-expired")
 
   def failure(conn, activity, reason) do
     message =
-      case {activity, reason} do
-        {_,
-         %AshAuthentication.Errors.AuthenticationFailed{
-           caused_by: %Ash.Error.Forbidden{
-             errors: [%AshAuthentication.Errors.CannotConfirmUnconfirmedUser{}]
-           }
-         }} ->
-          """
-          You have already signed in another way, but have not confirmed your account.
-          You can confirm your account using the link we sent to you, or by resetting your password.
-          """
+      cond do
+        unverified_email?(reason) ->
+          gettext(
+            "Your sign-in provider has not verified this email address. Verify it with the provider, or sign in another way."
+          )
 
-        _ ->
-          "Incorrect email or password"
+        activity == {:magic_link, :sign_in} ->
+          gettext("This sign-in link has expired or was already used. Request a new one.")
+
+        true ->
+          gettext("Sign-in failed. Try again, or sign in another way.")
       end
 
     conn
@@ -93,6 +101,11 @@ defmodule ChironiumWeb.AuthController do
         end
     end
   end
+
+  defp unverified_email?(%AuthenticationFailed{caused_by: %Ash.Error.Invalid{errors: errors}}),
+    do: Enum.any?(errors, &match?(%{message: @unverified_email}, &1))
+
+  defp unverified_email?(_reason), do: false
 
   # Redirect to app URL, handling both external URLs (development) and internal paths (production).
   defp redirect_to_app(conn, url) when is_binary(url) do

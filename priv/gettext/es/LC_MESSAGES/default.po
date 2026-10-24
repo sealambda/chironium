@@ -22,27 +22,27 @@ msgstr "Acciones"
 msgid "Attempting to reconnect"
 msgstr "Intentando reconectar"
 
-#: lib/chironium_web/live/sign_in_live.ex:321
+#: lib/chironium_web/live/sign_in_live.ex:421
 #, elixir-autogen, elixir-format
 msgid "By continuing, you agree to our"
 msgstr "Al continuar, aceptas nuestros"
 
-#: lib/chironium_web/live/sign_in_live.ex:147
+#: lib/chironium_web/live/sign_in_live.ex:156
 #, elixir-autogen, elixir-format
 msgid "Change language"
 msgstr "Cambiar idioma"
 
-#: lib/chironium_web/live/sign_in_live.ex:242
+#: lib/chironium_web/live/sign_in_live.ex:261
 #, elixir-autogen, elixir-format
 msgid "Continue with Google"
 msgstr "Continuar con Google"
 
-#: lib/chironium_web/live/sign_in_live.ex:333
+#: lib/chironium_web/live/sign_in_live.ex:433
 #, elixir-autogen, elixir-format
 msgid "Privacy Policy"
 msgstr "Política de Privacidad"
 
-#: lib/chironium_web/live/sign_in_live.ex:29
+#: lib/chironium_web/live/sign_in_live.ex:31
 #, elixir-autogen, elixir-format
 msgid "Sign In"
 msgstr "Iniciar Sesión"
@@ -52,17 +52,17 @@ msgstr "Iniciar Sesión"
 msgid "Something went wrong!"
 msgstr "¡Algo salió mal!"
 
-#: lib/chironium_web/live/sign_in_live.ex:184
+#: lib/chironium_web/live/sign_in_live.ex:193
 #, elixir-autogen, elixir-format
 msgid "Switch to dark mode"
 msgstr "Cambiar a modo oscuro"
 
-#: lib/chironium_web/live/sign_in_live.ex:183
+#: lib/chironium_web/live/sign_in_live.ex:192
 #, elixir-autogen, elixir-format
 msgid "Switch to light mode"
 msgstr "Cambiar a modo claro"
 
-#: lib/chironium_web/live/sign_in_live.ex:326
+#: lib/chironium_web/live/sign_in_live.ex:426
 #, elixir-autogen, elixir-format
 msgid "Terms of Service"
 msgstr "Términos de Servicio"
@@ -72,12 +72,12 @@ msgstr "Términos de Servicio"
 msgid "We can't find the internet"
 msgstr "No podemos encontrar internet"
 
-#: lib/chironium_web/live/sign_in_live.ex:216
+#: lib/chironium_web/live/sign_in_live.ex:225
 #, elixir-autogen, elixir-format
 msgid "Welcome Back"
 msgstr "Bienvenido de Nuevo"
 
-#: lib/chironium_web/live/sign_in_live.ex:328
+#: lib/chironium_web/live/sign_in_live.ex:428
 #, elixir-autogen, elixir-format
 msgid "and"
 msgstr "y"
@@ -86,11 +86,6 @@ msgstr "y"
 #, elixir-autogen, elixir-format
 msgid "close"
 msgstr "cerrar"
-
-#: lib/chironium_web/live/sign_in_live.ex:219
-#, elixir-autogen, elixir-format
-msgid "Sign in with your Google account to continue."
-msgstr "Inicia sesión con tu cuenta de Google para continuar."
 
 #: lib/chironium_web/controllers/portal_html/sign_in.html.heex:10
 #, elixir-autogen, elixir-format
@@ -119,23 +114,69 @@ msgstr "Si no lo esperabas, puedes cerrar esta página."
 msgid "Your questionnaire"
 msgstr "Tu cuestionario"
 
-#: lib/chironium_web/live/sign_in_live.ex:282
-#, elixir-autogen, elixir-format
-msgid "Development only: sign in without Google."
-msgstr "Solo en desarrollo: inicia sesión sin Google."
-
-#: lib/chironium_web/live/sign_in_live.ex:289
+#: lib/chironium_web/live/sign_in_live.ex:293
+#: lib/chironium_web/live/sign_in_live.ex:394
 #, elixir-autogen, elixir-format
 msgid "Email"
 msgstr "Correo electrónico"
 
-#: lib/chironium_web/live/sign_in_live.ex:308
+#: lib/chironium_web/live/sign_in_live.ex:408
 #, elixir-autogen, elixir-format
 msgid "Sign in as developer"
 msgstr "Iniciar sesión como desarrollador"
 
 #: lib/chironium_web/controllers/portal_html/sign_in.html.heex:38
-#: lib/chironium_web/live/sign_in_live.ex:341
+#: lib/chironium_web/live/sign_in_live.ex:441
 #, elixir-autogen, elixir-format
 msgid "Source code"
 msgstr "Código fuente"
+
+#: lib/chironium_web/controllers/auth_controller.ex:34
+#, elixir-autogen, elixir-format
+msgid "Check your email for a sign-in link."
+msgstr "Revisa tu correo: te enviamos un enlace para iniciar sesión."
+
+#: lib/chironium_web/live/sign_in_live.ex:271
+#, elixir-autogen, elixir-format
+msgid "Continue with %{provider}"
+msgstr "Continuar con %{provider}"
+
+#: lib/chironium_web/live/sign_in_live.ex:387
+#, elixir-autogen, elixir-format
+msgid "Development only: sign in without an identity provider."
+msgstr "Solo en desarrollo: inicia sesión sin un proveedor de identidad."
+
+#: lib/chironium_web/live/sign_in_live.ex:297
+#, elixir-autogen, elixir-format
+msgid "Email me a sign-in link"
+msgstr "Enviarme un enlace de inicio de sesión"
+
+#: lib/chironium_web/live/sign_in_live.ex:316
+#, elixir-autogen, elixir-format
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+#: lib/chironium_web/live/sign_in_live.ex:228
+#, elixir-autogen, elixir-format
+msgid "Sign in to continue."
+msgstr "Inicia sesión para continuar."
+
+#: lib/chironium_web/controllers/auth_controller.ex:65
+#, elixir-autogen, elixir-format
+msgid "Sign-in failed. Try again, or sign in another way."
+msgstr "No se pudo iniciar sesión. Inténtalo de nuevo o usa otro método."
+
+#: lib/chironium_web/controllers/auth_controller.ex:62
+#, elixir-autogen, elixir-format
+msgid "This sign-in link has expired or was already used. Request a new one."
+msgstr "Este enlace de inicio de sesión ha caducado o ya se usó. Solicita uno nuevo."
+
+#: lib/chironium_web/controllers/auth_controller.ex:57
+#, elixir-autogen, elixir-format
+msgid "Your sign-in provider has not verified this email address. Verify it with the provider, or sign in another way."
+msgstr "Tu proveedor de inicio de sesión no ha verificado esta dirección de correo. Verifícala con el proveedor o usa otro método."
+
+#: lib/chironium_web/live/sign_in_live.ex:292
+#, elixir-autogen, elixir-format
+msgid "you@example.com"
+msgstr "tu@ejemplo.com"

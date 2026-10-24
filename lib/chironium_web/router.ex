@@ -143,6 +143,7 @@ defmodule ChironiumWeb.Router do
       on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
       layout: false do
       live "/sign-in", SignInLive
+      live "/sign-in/link", SignInLive, :confirm
     end
 
     # Remove this if you do not want to use the reset password feature.

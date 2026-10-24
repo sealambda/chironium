@@ -1,10 +1,10 @@
 defmodule ChironiumWeb.Plugs.PortalRateLimit do
   @moduledoc """
-  Rate-limits the patient portal's entry points by client IP.
+  Rate-limits the patient portal's entry points and emailed sign-in links by client IP.
 
-  Guest sign-in (`/auth/guest/*`), the confirm page and the portal API are
-  reachable without an account, so they are throttled to slow down token
-  guessing and abuse. Limits come from application config:
+  Guest sign-in (`/auth/guest/*`), the confirm page, the portal API and staff
+  email sign-in (`/auth/user/magic_link/*`) are reachable without an account, so
+  they are throttled to slow down token guessing and email flooding. Limits come from application config:
 
       config :chironium, ChironiumWeb.Plugs.PortalRateLimit,
         scale_ms: 60_000,
@@ -22,7 +22,7 @@ defmodule ChironiumWeb.Plugs.PortalRateLimit do
 
   import Plug.Conn
 
-  @sign_in_prefixes [["auth", "guest"], ["portal", "sign-in"]]
+  @sign_in_prefixes [["auth", "guest"], ["portal", "sign-in"], ["auth", "user", "magic_link"]]
 
   @defaults [scale_ms: 60_000, sign_in_limit: 20, api_limit: 120, trusted_proxies: 1]
 
