@@ -1,5 +1,5 @@
 defmodule ChironiumWeb.PageControllerTest do
-  # The email flag is global application env.
+  # The email and demo flags are global application env.
   use ChironiumWeb.ConnCase, async: false
 
   import Chironium.Generator
@@ -20,5 +20,14 @@ defmodule ChironiumWeb.PageControllerTest do
 
     assert conn |> get(~p"/app") |> html_response(200) =~
              ~s(<meta name="chironium:email-enabled" content="false")
+  end
+
+  test "tells the SPA about demo mode only when it is on", %{conn: conn} do
+    refute conn |> get(~p"/app") |> html_response(200) =~ "chironium:demo"
+
+    Chironium.DataCase.enable_demo_mode()
+
+    assert conn |> get(~p"/app") |> html_response(200) =~
+             ~s(<meta name="chironium:demo" content="true")
   end
 end

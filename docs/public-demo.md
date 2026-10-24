@@ -246,3 +246,13 @@ Filled in by the implementing session.
 - The Playwright suite was not run in this phase: the workflow runs it once all phases are built (gate 2). It is still the only check of `DevSignInController` and `PlaywrightE2EController` after their move to `SessionSignIn`.
 - Tests: `test/chironium_web/controllers/demo_controller_test.exs` (`async: false`, `@moduletag :capture_log` because seeding logs skipped BMI warnings) and `test/mix/tasks/chironium_seed_test.exs`. The N3 test fails when the `forbid_if` is removed. The full ExUnit suite passes (498 tests).
 - `mix ash.codegen --check` reports pending GraphQL schema generation on the base commit too; the Phase 2 policy change adds nothing to it.
+
+### Phase 3
+
+- In demo mode `SignInLive` shows only the demo form on both `/sign-in` and `/sign-in/link`. The button shows "Starting the demo..." while disabled. Without a LiveView connection the form still posts normally, since `phx-submit` only applies once connected.
+- The app banner sits at the top of the page content, inside `AppShell`'s `<main>`, not above the fixed top bar: putting it above would mean shifting the fixed header, side nav and content offsets. It scrolls with the page.
+- The portal banner is rendered in `portal_root.html.heex` above `{@inner_content}`, so it shows on the server-rendered confirm page and on the portal SPA. The SPA page loads only the Vite CSS, so `assets/src/styles/index.css` adds an `@source` for that one template. Both banners use standard Tailwind amber colors, which exist in both CSS builds and read in light and dark themes.
+- `NoOrgScreen` moved from `routes/_app.tsx` to `features/org/ui/no-org-screen.tsx` so Vitest can import it. "Start a new demo" builds and submits a form with `_csrf_token`, using `getCsrfToken`, now exported from `shared/utils/request-utils.ts`. The demo-ended screen keeps "Join organization" first-class, after "Start a new demo", and has no description.
+- Tests turn demo mode on with `Chironium.DataCase.enable_demo_mode/0`, next to `disable_email/0`. The sign-in tests also follow the form's `phx-trigger-action` to `POST /demo`, and check that a refused start's flash shows on the demo sign-in page.
+- `mix gettext.extract --merge` also rewrites unrelated, already stale entries in `en/default.po`, `emails.pot` and `es/emails.po`, and creates `en/emails.po`; those changes were reverted, keeping only `default.pot` and `es/default.po`.
+- No Playwright spec was added: this phase lists none, and browser cases D1 to D3 cover it.

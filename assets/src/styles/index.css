@@ -3,6 +3,9 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
 
+/* The portal's demo banner is rendered by Phoenix, outside the scanned sources. */
+@source "../../../lib/chironium_web/components/layouts/portal_root.html.heex";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

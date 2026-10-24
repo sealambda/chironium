@@ -16,4 +16,5 @@ export const runtimeConfig = {
   posthogKey: readMeta("chironium:posthog-key"),
   posthogHost: readMeta("chironium:posthog-host"),
   sourceCodeUrl: readMeta("chironium:source-code-url"),
+  demo: readMeta("chironium:demo") === "true",
 } as const;

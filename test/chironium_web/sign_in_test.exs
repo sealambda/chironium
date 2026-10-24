@@ -29,6 +29,49 @@ defmodule ChironiumWeb.SignInTest do
       assert html =~ "Continue with Authentik"
     end
 
+    test "demo mode shows only the demo button", %{conn: conn} do
+      set_providers(google: [client_id: "id"], oidc: [client_id: "id", display_name: "Authentik"])
+      html = conn |> get(~p"/sign-in") |> html_response(200)
+      refute html =~ ~s(data-testid="sign-in-demo-button")
+      assert html =~ ~s(data-testid="sign-in-google-link")
+      assert html =~ ~s(data-testid="sign-in-oidc-link")
+      assert html =~ ~s(data-testid="sign-in-email-form")
+
+      Chironium.DataCase.enable_demo_mode()
+      html = conn |> get(~p"/sign-in") |> html_response(200)
+      assert html =~ "Try Chironium"
+      assert html =~ ~s(data-testid="sign-in-demo-button")
+      assert html =~ ~s(action="/demo")
+      assert html =~ "Your demo is deleted after 24 hours."
+      refute html =~ ~s(data-testid="sign-in-google-link")
+      refute html =~ ~s(data-testid="sign-in-oidc-link")
+      refute html =~ ~s(data-testid="sign-in-email-form")
+    end
+
+    # Following the form starts a real demo, whose seeding logs skipped BMI warnings.
+    @tag :capture_log
+    test "the demo button posts the form only after the click is handled", %{conn: conn} do
+      Chironium.DataCase.enable_demo_mode()
+      {:ok, view, _html} = live(conn, ~p"/sign-in")
+
+      form = form(view, "form[action='/demo']")
+      assert render_submit(form) =~ ~s(phx-trigger-action)
+      conn = follow_trigger_action(form, conn)
+      assert conn.method == "POST"
+      assert conn.request_path == ~p"/demo"
+    end
+
+    test "shows the flash of a refused demo start", %{conn: conn} do
+      Chironium.DataCase.enable_demo_mode()
+      previous = Application.get_env(:chironium, Chironium.Demo, [])
+      Application.put_env(:chironium, Chironium.Demo, Keyword.put(previous, :max_demos, 0))
+      on_exit(fn -> Application.put_env(:chironium, Chironium.Demo, previous) end)
+
+      conn = post(conn, ~p"/demo")
+      html = conn |> recycle() |> get(~p"/sign-in") |> html_response(200)
+      assert html =~ "The demo is full right now. Please try again later."
+    end
+
     test "a provider that is off fails back to the sign-in page", %{conn: conn} do
       set_providers(google: nil, oidc: nil)
       conn = get(conn, ~p"/auth/user/oidc")

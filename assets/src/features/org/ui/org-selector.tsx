@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { runtimeConfig } from "@/shared/utils/runtime-config";
 import { cn } from "@/shared/utils/utils";
 
 interface OrgSelectorProps {
@@ -37,7 +38,8 @@ function getOrgMark(name: string | null): string {
 
 /**
  * Organization selector dropdown for the sidebar navigation.
- * Shows accessible organizations and a create option.
+ * Shows accessible organizations and a create option, except in demo mode,
+ * where each visitor gets exactly one organization.
  * Renders as disabled when no organizations are available.
  */
 export function OrgSelector({
@@ -120,16 +122,18 @@ export function OrgSelector({
           </span>
           <span className="font-medium text-muted-foreground">{m.org_join_by_invitation()}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={onCreateClick}
-          className="cursor-pointer gap-2 p-2"
-          data-testid="org-selector-create-button"
-        >
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
-            <Plus className="size-4" />
-          </span>
-          <span className="font-medium text-muted-foreground">{m.org_create()}</span>
-        </DropdownMenuItem>
+        {runtimeConfig.demo ? null : (
+          <DropdownMenuItem
+            onClick={onCreateClick}
+            className="cursor-pointer gap-2 p-2"
+            data-testid="org-selector-create-button"
+          >
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
+              <Plus className="size-4" />
+            </span>
+            <span className="font-medium text-muted-foreground">{m.org_create()}</span>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

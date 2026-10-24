@@ -1,5 +1,6 @@
 import { cn } from "@/shared/utils/utils";
 
+import { DemoBanner } from "./demo-banner";
 import { DetailProvider, useDetailMode } from "./detail-context";
 import { SideNav } from "./side-nav";
 import { TopNav } from "./top-nav";
@@ -47,7 +48,10 @@ function AppShellInner({ children, onCreateOrgClick, onJoinOrgClick }: AppShellP
           )}
         >
           {/* Container with max-width for large screens (prevents text line >60 chars). */}
-          <div className="mx-auto w-full max-w-7xl">{children}</div>
+          <div className="mx-auto w-full max-w-7xl">
+            <DemoBanner />
+            {children}
+          </div>
         </main>
       </div>
     </div>

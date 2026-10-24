@@ -7,6 +7,7 @@
     <meta name="chironium:email-enabled" content={to_string(email_enabled?())} />
     <%!-- Deployment settings read by the SPA at runtime (see runtime-config.ts). --%>
     <meta name="chironium:source-code-url" content={source_code_url()} />
+    <meta :if={Chironium.Demo.enabled?()} name="chironium:demo" content="true" />
     <%= if posthog = posthog_config() do %>
       <meta name="chironium:posthog-key" content={posthog.api_key} />
       <meta name="chironium:posthog-host" content={posthog.api_host} />
