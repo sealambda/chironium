@@ -35,4 +35,28 @@ defmodule ChironiumWeb.ConnCase do
     Chironium.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
+
+  @vite_manifest {:chironium, "priv/static/.vite/manifest.json"}
+
+  @doc """
+  Lets pages that use the root layout render without built assets.
+
+  The root layout reads the Vite manifest, which `mix test` runs without in CI
+  (assets build later). Seeds PhoenixVite's manifest cache when it's missing.
+  """
+  def stub_vite_manifest(_context \\ %{}) do
+    {app, path} = @vite_manifest
+
+    unless app |> Application.app_dir(path) |> File.exists?() do
+      entry = %{"file" => "assets/stub.js", "isEntry" => true}
+      manifest = PhoenixVite.Manifest.parse(%{"src/main.tsx" => entry, "js/app.js" => entry})
+      :persistent_term.put({PhoenixVite.Components, @vite_manifest}, manifest)
+
+      ExUnit.Callbacks.on_exit(fn ->
+        PhoenixVite.Components.clear_manifest_cache(@vite_manifest)
+      end)
+    end
+
+    :ok
+  end
 end
