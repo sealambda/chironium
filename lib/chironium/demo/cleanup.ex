@@ -8,6 +8,44 @@ defmodule Chironium.Demo.Cleanup do
 
   alias Chironium.Repo
 
+  @demo_email "%@demo.invalid"
+
+  # Timestamps are stored in UTC without a zone, so `now()` is shifted to UTC first.
+  @older_than_a_day "inserted_at < (now() AT TIME ZONE 'utc') - interval '24 hours'"
+
+  @doc """
+  IDs of organizations older than 24 hours whose owner and members are all demo
+  users. A single real owner or member keeps the organization.
+  """
+  def due_organizations do
+    ids("""
+    SELECT o.id::text FROM organizations o
+    JOIN users owner ON owner.id = o.owner_id
+    WHERE o.#{@older_than_a_day}
+      AND lower(owner.email::text) LIKE $1
+      AND NOT EXISTS (
+        SELECT 1 FROM organization_users ou JOIN users u ON u.id = ou.user_id
+        WHERE ou.organization_id = o.id AND lower(u.email::text) NOT LIKE $1
+      )
+    """)
+  end
+
+  @doc """
+  IDs of demo users older than 24 hours who own no organization and belong to
+  none. The age rule spares a user whose demo is still being created.
+  """
+  def due_users do
+    ids("""
+    SELECT u.id::text FROM users u
+    WHERE u.#{@older_than_a_day}
+      AND lower(u.email::text) LIKE $1
+      AND NOT EXISTS (SELECT 1 FROM organizations o WHERE o.owner_id = u.id)
+      AND NOT EXISTS (SELECT 1 FROM organization_users ou WHERE ou.user_id = u.id)
+    """)
+  end
+
+  defp ids(sql), do: Enum.map(Repo.query!(sql, [@demo_email]).rows, &hd/1)
+
   @doc "Deletes an organization, its database schema and everything public that points at it."
   def delete_organization(id) do
     uuid = Ecto.UUID.dump!(id)

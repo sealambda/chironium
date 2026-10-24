@@ -75,6 +75,37 @@ defmodule Chironium.Config.RuntimeTest do
     end
   end
 
+  describe "demo cleanup schedule" do
+    # runtime.exs sets only Oban's plugins; queues and repo come from config.exs.
+    defp crontab do
+      config =
+        Config.Reader.merge([chironium: Application.get_all_env(:chironium)], read_prod_config())
+
+      oban = AshOban.config(config[:chironium][:ash_domains], config[:chironium][Oban])
+      {Oban.Plugins.Cron, cron} = List.keyfind(oban[:plugins], Oban.Plugins.Cron, 0)
+      Enum.map(cron[:crontab], &elem(&1, 1))
+    end
+
+    test "runs hourly in demo mode, next to AshOban's schedulers" do
+      System.put_env("DEMO_MODE", "true")
+
+      config = read_prod_config()[:chironium][Oban]
+      assert [{Oban.Plugins.Cron, crontab: [{"0 * * * *", _}]}] = config[:plugins]
+
+      workers = crontab()
+      assert Chironium.Workers.DemoCleanup in workers
+      assert Chironium.Health.Task.AshOban.SendReminder.Scheduler in workers
+    end
+
+    test "is not scheduled otherwise" do
+      System.put_env("RESEND_API_KEY", "set")
+
+      workers = crontab()
+      refute Chironium.Workers.DemoCleanup in workers
+      assert Chironium.Health.Task.AshOban.SendReminder.Scheduler in workers
+    end
+  end
+
   describe "database over the Unix socket" do
     setup do
       System.put_env("DEMO_MODE", "true")
