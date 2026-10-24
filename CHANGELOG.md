@@ -4,6 +4,10 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+### Added
+
+- Demo mode (`DEMO_MODE=true`) for running a public demo: visitors start a private organization with generated data in one click, and it is deleted after 24 hours. See the [self-hosting guide](docs/self-hosting.md#optional).
+
 ## [0.2.0] - 2026-10-24
 
 ### Added

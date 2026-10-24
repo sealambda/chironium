@@ -63,7 +63,7 @@ After the first start, sign in and choose **Create New Organization**. Invite co
 
 ### Sign-in
 
-The sign-in page offers every method you configure, and the container refuses to start with none. A method turns on when all its variables are set; setting only some of them stops the boot with an error naming the missing ones.
+The sign-in page offers every method you configure, and the container refuses to start with none, unless [`DEMO_MODE`](#optional) is set. A method turns on when all its variables are set; setting only some of them stops the boot with an error naming the missing ones.
 
 Accounts are matched by email address, so a person who signs in with an email link today and Google tomorrow reaches the same account. Google and OpenID Connect sign-ins are accepted only when the provider reports the email address as verified (the `email_verified` claim). Otherwise anyone who could register someone else's address with your provider could take over that person's account.
 
@@ -77,7 +77,9 @@ Accounts are matched by email address, so a person who signs in with an email li
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | Unix socket | Connection URL, for example `ecto://USER:PASSWORD@HOST/DATABASE`. Without it, Chironium connects through `/var/run/postgresql` as the `chironium` user to the `chironium` database. |
+| `DATABASE_URL` | Unix socket | Connection URL, for example `ecto://USER:PASSWORD@HOST/DATABASE`. Without it, Chironium connects through `/var/run/postgresql` as `DATABASE_USERNAME` to `DATABASE_NAME`. |
+| `DATABASE_NAME` | `chironium` | Database to use over the Unix socket. Ignored when `DATABASE_URL` is set. |
+| `DATABASE_USERNAME` | `chironium` | PostgreSQL user for the Unix socket. Ignored when `DATABASE_URL` is set. |
 | `POOL_SIZE` | `10` | Database connections per node. |
 | `ECTO_IPV6` | unset | Set to `true` to connect to the database over IPv6. |
 
@@ -102,6 +104,7 @@ Chironium sends sign-in links, invitations, and notifications through [Resend](h
 | `DNS_CLUSTER_QUERY` | unset | DNS name that resolves to all nodes, to cluster several instances. |
 | `POSTHOG_API_KEY` | unset | Enables [PostHog](https://posthog.com) analytics and error tracking. See [Analytics](#analytics). |
 | `POSTHOG_HOST` | `https://eu.i.posthog.com` | PostHog ingestion host. |
+| `DEMO_MODE` | unset | Set to `true` to run a public demo. Never set it on an instance with real data. Refuses to boot with email, Google, OpenID Connect or PostHog set. The sign-in page offers only a "Try the demo" button, which creates a private organization with generated data, and an hourly job deletes demo organizations and users older than 24 hours. |
 
 ## Analytics
 

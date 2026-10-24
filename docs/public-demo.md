@@ -263,3 +263,9 @@ Filled in by the implementing session.
 - The worker runs on the `default` queue with Oban's default retries. A `delete_organization/1` that raises is rescued and logged as `[DemoCleanup] Kept organization <id>: <message>`, so one organization can't block the rest; no known input makes it fail, so that branch has no test. `Kept user` is a warning, the summary line is info.
 - The "acted in it" test creates the questionnaire it sends, since `Seed.All` seeds none, and sends it as the owner resolved the way `SetTenant` does. Of the two "one non-demo member" cases, one adds that member next to a demo member in a year-old organization, the other has only that member at 25 hours.
 - Tests: `test/chironium/workers/demo_cleanup_test.exs` (11 cases) and two crontab cases in `test/chironium/config/runtime_test.exs`. Removing the non-demo-member rule, the owner rule or the user age rule each fails its test. The full ExUnit suite passes (516 tests). No Playwright spec: this phase lists none.
+
+### Phase 5
+
+- `DATABASE_NAME` and `DATABASE_USERNAME` went into the self-hosting guide's Database table, next to `DATABASE_URL`, not the Optional table: that is where a reader looks for database settings. `DEMO_MODE` is in the Optional table, and the Sign-in section notes that demo mode is the one exception to "refuses to start with none".
+- The `DEMO_MODE` row and the changelog entry also say what demo mode does (one-click sign-in, deletion after 24 hours), so an operator reading only that row knows it deletes data.
+- `deploy/.env.example` adds `# DEMO_MODE=true` after the sign-in variables, telling the reader to leave them empty. Empty values count as unset for the boot refusal, so the file's blank `RESEND_API_KEY=` and friends don't block a demo.
