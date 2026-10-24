@@ -11,6 +11,7 @@ defmodule ChironiumWeb.SignInLive do
   - Theme toggle (light/dark).
   - Language selector (en/es).
   - Development-only sign-in without an identity provider.
+  - In demo mode, only a button that starts a demo (see docs/public-demo.md).
   """
   use ChironiumWeb, :live_view
 
@@ -33,6 +34,8 @@ defmodule ChironiumWeb.SignInLive do
      |> assign(:locale, locale)
      |> assign(:supported_locales, @supported_locales)
      |> assign(:show_language_menu, false)
+     |> assign(:demo?, Chironium.Demo.enabled?())
+     |> assign(:start_demo?, false)
      |> assign(:dev_sign_in?, @dev_sign_in?)
      |> assign(:providers, Application.get_env(:chironium, :sign_in_providers, []))
      |> assign(:email_sign_in?, Chironium.Notifications.email_enabled?())
@@ -44,6 +47,11 @@ defmodule ChironiumWeb.SignInLive do
   def handle_event("toggle_theme", _params, socket) do
     new_theme = if socket.assigns.theme == "dark", do: "light", else: "dark"
     {:noreply, assign(socket, :theme, new_theme)}
+  end
+
+  # Submits the form over HTTP only after `phx-disable-with` has disabled the button.
+  def handle_event("start_demo", _params, socket) do
+    {:noreply, assign(socket, :start_demo?, true)}
   end
 
   def handle_event("toggle_language_menu", _params, socket) do
@@ -116,10 +124,12 @@ defmodule ChironiumWeb.SignInLive do
       <main class="flex-1 flex items-center justify-center px-4 py-4 sm:py-6">
         <div class="w-full max-w-sm space-y-6">
           <.brand_badge />
-          <.welcome_heading />
+          <.demo_heading :if={@demo?} />
+          <.welcome_heading :if={!@demo?} />
           <.flash_message flash={@flash} />
-          <.confirm_link :if={@live_action == :confirm} token={@token} />
-          <div :if={@live_action != :confirm} class="space-y-6">
+          <.demo_start :if={@demo?} start_demo?={@start_demo?} />
+          <.confirm_link :if={!@demo? && @live_action == :confirm} token={@token} />
+          <div :if={!@demo? && @live_action != :confirm} class="space-y-6">
             <.oauth_buttons providers={@providers} />
             <.email_sign_in :if={@email_sign_in?} />
             <.dev_sign_in :if={@dev_sign_in?} />
@@ -234,6 +244,46 @@ defmodule ChironiumWeb.SignInLive do
         {gettext("Sign in to continue.")}
       </p>
     </div>
+    """
+  end
+
+  defp demo_heading(assigns) do
+    ~H"""
+    <div class="text-center space-y-1">
+      <h1 class="text-lg sm:text-xl font-medium tracking-tight" data-testid="sign-in-heading">
+        {gettext("Try Chironium")}
+      </h1>
+      <p class="text-auth-muted text-sm">
+        {gettext("Explore a private demo clinic with fake data. No account needed.")}
+      </p>
+    </div>
+    """
+  end
+
+  attr :start_demo?, :boolean, required: true
+
+  defp demo_start(assigns) do
+    ~H"""
+    <.form
+      for={%{}}
+      action={~p"/demo"}
+      method="post"
+      phx-submit="start_demo"
+      phx-trigger-action={@start_demo?}
+      class="space-y-2"
+    >
+      <button
+        type="submit"
+        phx-disable-with={gettext("Starting the demo...")}
+        class={primary_button_class()}
+        data-testid="sign-in-demo-button"
+      >
+        {gettext("Try the demo")}
+      </button>
+      <p class="text-center text-auth-muted text-xs">
+        {gettext("Your demo is deleted after 24 hours.")}
+      </p>
+    </.form>
     """
   end
 

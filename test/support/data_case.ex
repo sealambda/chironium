@@ -57,6 +57,16 @@ defmodule Chironium.DataCase do
   end
 
   @doc """
+  Turns demo mode on for the rest of the test. The flag is global application
+  env, so callers must not run `async: true`.
+  """
+  def enable_demo_mode do
+    previous = Application.get_env(:chironium, :demo_mode?, false)
+    Application.put_env(:chironium, :demo_mode?, true)
+    ExUnit.Callbacks.on_exit(fn -> Application.put_env(:chironium, :demo_mode?, previous) end)
+  end
+
+  @doc """
   A helper that transforms changeset errors into a map of messages.
 
       assert {:error, changeset} = Accounts.create_user(%{password: "short"})

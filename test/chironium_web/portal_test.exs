@@ -48,6 +48,18 @@ defmodule ChironiumWeb.PortalTest do
       assert html =~ "Continuar"
     end
 
+    test "shows the demo banner only in demo mode", %{conn: conn} = ctx do
+      path = ~p"/portal/sign-in?#{[token: ctx.token]}"
+      refute conn |> get(path) |> html_response(200) =~ "demo-banner"
+
+      Chironium.DataCase.enable_demo_mode()
+      html = conn |> get(path) |> html_response(200)
+
+      assert html =~ ~s(data-testid="demo-banner")
+      assert html =~ Plug.HTML.html_escape("Don't enter real client data.")
+      assert html =~ ~s(href="https://sealambda.com")
+    end
+
     test "sends an invalid or used link to the expired page", %{conn: conn} do
       assert conn |> get(~p"/portal/sign-in?#{[token: "nope"]}") |> redirected_to() ==
                ~p"/portal/link-expired"

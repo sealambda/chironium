@@ -1,14 +1,12 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { Building2 } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 
 import { CreateOrgModal } from "@/features/org/ui/create-org-modal";
+import { NoOrgScreen } from "@/features/org/ui/no-org-screen";
 import { PendingInvitationsDialog } from "@/features/org/ui/pending-invitations-dialog";
-import * as m from "@/paraglide/messages";
 import { AppShell } from "@/shared/layout/app-shell";
 import { OrgStoreSync } from "@/shared/session/org-store-sync";
 import { useOrg } from "@/shared/session/use-org";
-import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 
 function getInviteCodeFromUrl(): string {
@@ -34,40 +32,6 @@ function clearInviteCodeFromUrl(): void {
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
 });
-
-/**
- * Shown when the authenticated user has no organization membership.
- * Prompts them to create their first organization or request an invitation.
- */
-function NoOrgScreen({
-  onCreateOrgClick,
-  onJoinOrgClick,
-}: Readonly<{ onCreateOrgClick: () => void; onJoinOrgClick: () => void }>) {
-  return (
-    <div className="flex h-[calc(100svh-4rem)] items-center justify-center">
-      <div className="w-full max-w-lg space-y-3">
-        <EmptyState
-          icon={Building2}
-          title={m.org_no_access_title()}
-          description={m.org_no_access_desc()}
-          actions={[
-            {
-              label: m.org_join_by_invitation(),
-              testId: "no-org-join-by-invitation-button",
-              onAction: onJoinOrgClick,
-            },
-            {
-              label: m.org_no_access_action(),
-              testId: "no-org-create-organization-button",
-              onAction: onCreateOrgClick,
-            },
-          ]}
-          className="w-full"
-        />
-      </div>
-    </div>
-  );
-}
 
 /**
  * Renders the page content, or the no-organization empty state
