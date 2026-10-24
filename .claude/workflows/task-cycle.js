@@ -4,7 +4,7 @@ export const meta = {
   whenToUse:
     'Takes any task, writes or reuses its plan under docs/, then builds it phase by phase, browser-tests it and red-teams it unattended. Args: the task in words (or the docs/TODO.md entry it comes from), or the path of an existing plan ("docs/<name>.md"). Add "from:<n>" to start at build phase n when earlier phases are already committed, or "redteam" to skip building and run only the browser, red-team and closing steps; both need a plan path. The run stops before building when the plan has open product decisions: answer them in the plan and rerun with its path. When summarising the result, lead with "stopped", "decisionsNeeded" and "preexistingP0".',
   phases: [
-    { title: "Guard", detail: "clean tree, services up, migrations applied, baseline test run", model: "sonnet" },
+    { title: "Guard", detail: "clean tree, toolchain, services up, migrations applied; baseline tests run alongside planning", model: "sonnet" },
     { title: "Plan", detail: "write docs/<name>.md from the task and the code", model: "opus" },
     { title: "Plan check", detail: "plan vs task, by an agent that did not write it; open decisions stop the run", model: "opus" },
     { title: "Setup", detail: "read the plan's shape, branch, commit the plan", model: "sonnet" },
@@ -117,14 +117,23 @@ const GUARD = {
   properties: {
     ready: { type: "boolean" },
     branch: { type: "string", description: "branch checked out when the run started" },
-    baselineFailures: {
+    problems: { type: "array", items: { type: "string" } },
+  },
+  required: ["ready", "branch", "problems"],
+};
+
+const BASELINE = {
+  type: "object",
+  properties: {
+    complete: { type: "boolean", description: "both suites ran to their summary line" },
+    failures: {
       type: "array",
       items: { type: "string" },
       description: "tests already failing before this run, one per line",
     },
     problems: { type: "array", items: { type: "string" } },
   },
-  required: ["ready", "branch", "baselineFailures", "problems"],
+  required: ["complete", "failures", "problems"],
 };
 
 const PLAN_CHECK = {
@@ -628,19 +637,30 @@ async function redTeam(shape) {
 phase("Guard");
 const guard = await agent(
   `Prepare the repository for an unattended run. Do each step and report problems instead of ` +
-    `working around them.\n` +
+    `working around them. Never start a command in the background.\n` +
     `1. Report the current branch. If the working tree has uncommitted changes other than ` +
     `docs/*.md and .claude/workflows/, stop and report them.\n` +
-    `2. PostgreSQL answers (\`pg_isready\`), \`mix deps.get\` and \`pnpm install\` succeed, and ` +
+    // A missing mise version silently fell back to asdf's Erlang 28.0, and `mix test` hung.
+    `2. The toolchain matches mise.toml: \`mise ls --current\` marks no tool missing, and \`which ` +
+    `erl node pnpm\` all resolve under mise's installs directory. A missing tool needs \`mise ` +
+    `install\`; a tool resolving elsewhere (such as ~/.asdf/shims) means this session's PATH ` +
+    `predates the install and Claude Code needs a restart. Report either; fix neither.\n` +
+    `3. PostgreSQL answers (\`pg_isready\`), \`mix deps.get\` and \`pnpm install\` succeed, and ` +
     `\`mix ecto.migrate\` applies any pending migrations to the dev database.\n` +
-    `3. Baseline: run \`mix test\` (Bash timeout: 600000, not in the background) and ` +
-    `\`pnpm assets:test\`, and list every test that already fails, so later gates don't blame ` +
-    `this run for it.\n` +
-    `Return ready only when steps 1 and 2 succeeded.`,
+    `Return ready only when every step succeeded.`,
   { label: "guard", phase: "Guard", schema: GUARD, model: "sonnet", effort: "low" },
 );
-baseline = guard?.baselineFailures ?? [];
 if (!guard?.ready) return { stopped: "guard failed", problems: guard?.problems ?? ["guard returned nothing"] };
+
+// Gates need the baseline only from Setup on, so it runs while the plan is written and checked.
+const baselineRun = agent(
+  `Baseline: from the repository root, run \`mix test\`, then \`pnpm assets:test\`, each with ` +
+    `timeout: 600000 on the Bash call, never in the background and never retried. List every ` +
+    `test that already fails, so later gates don't blame this run for it. If a suite times out ` +
+    `or ends without its summary line, return complete false with its last output lines as a ` +
+    `problem. Change nothing.`,
+  { label: "baseline", phase: "Guard", schema: BASELINE, model: "sonnet", effort: "low" },
+);
 
 if (!givenPlan) {
   phase("Plan");
@@ -692,6 +712,11 @@ if (!redTeamOnly && !fromWord) {
     );
   }
 }
+
+// A suite that never finishes would hang every gate the same way.
+const base = await baselineRun;
+if (!base?.complete) return { stopped: "baseline tests did not finish", problems: base?.problems ?? ["baseline returned nothing"] };
+baseline = base.failures;
 
 phase("Setup");
 const shape = await agent(
