@@ -5,6 +5,8 @@ defmodule ChironiumWeb.SignInTest do
   import Phoenix.LiveViewTest
   import Swoosh.TestAssertions
 
+  setup :stub_vite_manifest
+
   setup do
     providers = Application.get_env(:chironium, :sign_in_providers)
     on_exit(fn -> Application.put_env(:chironium, :sign_in_providers, providers) end)
