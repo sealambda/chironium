@@ -108,7 +108,26 @@ email_enabled? =
 
 config :chironium, Chironium.Notifications, email_enabled?: email_enabled?
 
-if config_env() == :prod and is_nil(google) and is_nil(oidc) and not email_enabled? do
+# A public demo: visitors sign in with one click into throwaway organizations.
+demo_mode? = System.get_env("DEMO_MODE") in ~w(true 1)
+
+config :chironium, :demo_mode?, demo_mode?
+
+# Each of these variables is the only switch for one email, sign-in or analytics
+# path, so refusing them keeps a demo from reaching any third party. Test always
+# has email on.
+if demo_mode? and config_env() != :test do
+  third_party_vars =
+    ~w(RESEND_API_KEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET OIDC_ISSUER OIDC_CLIENT_ID OIDC_CLIENT_SECRET POSTHOG_API_KEY)
+    |> Enum.filter(&(System.get_env(&1) not in [nil, ""]))
+
+  if third_party_vars != [] do
+    raise "DEMO_MODE is set, so #{Enum.join(third_party_vars, ", ")} must be unset. A demo never sends email or data to third parties."
+  end
+end
+
+if config_env() == :prod and is_nil(google) and is_nil(oidc) and not email_enabled? and
+     not demo_mode? do
   raise "No sign-in method is configured. Set RESEND_API_KEY for email sign-in, or set up Google or OpenID Connect. See docs/self-hosting.md."
 end
 
@@ -130,12 +149,20 @@ if config_env() == :prod do
     socket_options: maybe_ipv6,
     types: Chironium.PostgrexTypes
 
-  # Without DATABASE_URL, connect over the local Unix socket as the `chironium` user.
+  # Without DATABASE_URL, connect over the local Unix socket. DATABASE_NAME and
+  # DATABASE_USERNAME let a demo share a PostgreSQL server with another instance.
+  env_or_chironium = fn name ->
+    case System.get_env(name) do
+      value when value in [nil, ""] -> "chironium"
+      value -> value
+    end
+  end
+
   case System.get_env("DATABASE_URL") do
     url when url in [nil, ""] ->
       config :chironium, Chironium.Repo,
-        database: "chironium",
-        username: "chironium",
+        database: env_or_chironium.("DATABASE_NAME"),
+        username: env_or_chironium.("DATABASE_USERNAME"),
         socket_dir: "/var/run/postgresql"
 
     url ->
