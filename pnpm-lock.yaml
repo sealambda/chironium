@@ -14,7 +14,7 @@ overrides:
   '@babel/core@7': ^7.29.6
   '@hono/node-server': ^1.19.15
   '@opentelemetry/core': ^2.8.0
-  body-parser: ^2.3.0
+  body-parser: ^2.4.0
   brace-expansion@1: ^1.1.18
   brace-expansion@2: ^2.1.4
   brace-expansion@>=3: ^5.0.9
@@ -3960,8 +3960,8 @@ packages:
     resolution: {integrity: sha512-XDrb+zql0RbFPKgj7MuH9zOc78R3Fa/P/VSGnnpdwYsvNZPWjcMYMdAkKCOQEL2A7yqgjSMTDRFp6gfSDW+/QQ==}
     hasBin: true
 
-  body-parser@2.3.0:
-    resolution: {integrity: sha512-2cGmJupaNgg+QUwVLAucDuWuoMZ6EX9iHDRswZ5lsNYEmwPaRknMPCLZz07yTzVq/83p4o/wzbDZbBrTvGGTIw==}
+  body-parser@2.4.0:
+    resolution: {integrity: sha512-Ifk1KcLrxaGt1occQagQNFNNOqRt1LFuehEnHHzB8Z6cRgIxRU1TBaiIsUiCdA+gy5PL7Y1IX31DNKkRmxtXjQ==}
     engines: {node: '>=18'}
 
   brace-expansion@1.1.21:
@@ -11503,7 +11503,7 @@ snapshots:
 
   binaryen@130.0.0: {}
 
-  body-parser@2.3.0(supports-color@9.4.0):
+  body-parser@2.4.0(supports-color@9.4.0):
     dependencies:
       bytes: 3.1.2
       content-type: 2.1.0
@@ -12228,7 +12228,7 @@ snapshots:
   express@5.3.0(supports-color@9.4.0):
     dependencies:
       accepts: 2.0.0
-      body-parser: 2.3.0(supports-color@9.4.0)
+      body-parser: 2.4.0(supports-color@9.4.0)
       content-disposition: 2.0.1
       content-type: 2.1.0
       cookie: 0.7.2
