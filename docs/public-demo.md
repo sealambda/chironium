@@ -226,3 +226,9 @@ Commit: `docs: document demo mode`
 ## Implementation Notes
 
 Filled in by the implementing session.
+
+### Phase 1
+
+- The N2 refusal raises once and names every variable that is set, joined with commas: `DEMO_MODE is set, so GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET must be unset. ...`. It checks the variables themselves (`RESEND_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `POSTHOG_API_KEY`), not whether a provider ended up configured; a partial Google or OpenID Connect setup still fails earlier with its own message. `GOOGLE_REDIRECT_URI` and `OIDC_DISPLAY_NAME` alone turn nothing on, so they are allowed.
+- An empty `DATABASE_NAME` or `DATABASE_USERNAME` counts as unset and falls back to `chironium`, as an empty `DATABASE_URL` already does.
+- The runtime test also clears `GOOGLE_REDIRECT_URI` and `OIDC_DISPLAY_NAME`, and its manifest stub creates `priv/static/.vite/` when missing (it removes only the file). Its eight cases fail when the demo rules are removed from `runtime.exs`; the full ExUnit suite passes (486 tests).
