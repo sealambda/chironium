@@ -3,6 +3,7 @@ config :chironium, Oban, testing: :manual
 
 # Tests share one client IP; the rate-limit test lowers these for its own IP.
 config :chironium, ChironiumWeb.Plugs.PortalRateLimit, sign_in_limit: 10_000, api_limit: 10_000
+config :chironium, Chironium.Demo, starts_per_ip: 10_000
 config :chironium, token_signing_secret: "Nfjg79CP92hf1U6EYNE6K9070SwI/ROg"
 config :bcrypt_elixir, log_rounds: 1
 config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true

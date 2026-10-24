@@ -136,6 +136,9 @@ defmodule ChironiumWeb.Router do
 
     sign_out_route AuthController
 
+    # Answers 404 unless demo mode is on.
+    post "/demo", DemoController, :create
+
     # Custom sign-in LiveView with branded design.
     # Uses ash_authentication_live_session to load user from session,
     # then :live_no_user redirects authenticated users to /.

@@ -232,3 +232,17 @@ Filled in by the implementing session.
 - The N2 refusal raises once and names every variable that is set, joined with commas: `DEMO_MODE is set, so GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET must be unset. ...`. It checks the variables themselves (`RESEND_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `POSTHOG_API_KEY`), not whether a provider ended up configured; a partial Google or OpenID Connect setup still fails earlier with its own message. `GOOGLE_REDIRECT_URI` and `OIDC_DISPLAY_NAME` alone turn nothing on, so they are allowed.
 - An empty `DATABASE_NAME` or `DATABASE_USERNAME` counts as unset and falls back to `chironium`, as an empty `DATABASE_URL` already does.
 - The runtime test also clears `GOOGLE_REDIRECT_URI` and `OIDC_DISPLAY_NAME`, and its manifest stub creates `priv/static/.vite/` when missing (it removes only the file). Its eight cases fail when the demo rules are removed from `runtime.exs`; the full ExUnit suite passes (486 tests).
+
+### Phase 2
+
+- `Seed.All.seed/2` returns `{practitioners, patients}`. `Seed.Organization.seed/1` takes `user:` lazily, so the mix task and `Release.seed/1` still create their own `seed-<n>@example.com` user.
+- On a failed start, `Demo.start/0` finds the organization by its slug before deleting it, because a raise inside `Seed.Organization.seed/1` loses the record. Seeding is caught with `catch kind, reason`, so exits and throws clean up too.
+- `Cleanup.delete_user/1` returns `{:error, constraint}` after rolling back when a foreign key still references the user. Logging `[DemoCleanup] Kept user ...` is left to the Phase 4 worker.
+- `Chironium.Demo` also has `config/1` (settings merged over the defaults) and `demo_user?/1`. The controller's repeat-start check (N13) uses `Ash.exists?(Organization, actor: user)`, which covers owned and joined organizations.
+- With demo mode off, `POST /demo` answers a plain-text `404 Not Found`.
+- The three flash messages use `gettext`; their Spanish translations come with the Phase 3 Gettext work.
+- If `SessionSignIn.sign_in/2` fails after a successful start, the visitor gets the N7 message and the orphaned demo waits for the cleanup job.
+- `POST /demo` takes about 1.4 seconds in the test sandbox (15 patients, 3 practitioners), so no pre-seeded pool is needed.
+- The Playwright suite was not run in this phase: the workflow runs it once all phases are built (gate 2). It is still the only check of `DevSignInController` and `PlaywrightE2EController` after their move to `SessionSignIn`.
+- Tests: `test/chironium_web/controllers/demo_controller_test.exs` (`async: false`, `@moduletag :capture_log` because seeding logs skipped BMI warnings) and `test/mix/tasks/chironium_seed_test.exs`. The N3 test fails when the `forbid_if` is removed. The full ExUnit suite passes (498 tests).
+- `mix ash.codegen --check` reports pending GraphQL schema generation on the base commit too; the Phase 2 policy change adds nothing to it.

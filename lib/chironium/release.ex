@@ -73,22 +73,7 @@ defmodule Chironium.Release do
   def seed(opts \\ []) do
     start_app()
 
-    alias Mix.Tasks.Chironium.Seed.{
-      Allergies,
-      CareTeams,
-      ClinicalNotes,
-      Conditions,
-      Goals,
-      Medications,
-      MenstrualCycles,
-      NutritionPlans,
-      Observations,
-      Organization,
-      Patients,
-      Practitioners,
-      Subscriptions,
-      Tasks
-    }
+    alias Mix.Tasks.Chironium.Seed.{All, Organization}
 
     patient_count = Keyword.get(opts, :patients, 50)
     practitioner_count = Keyword.get(opts, :practitioners, 10)
@@ -98,32 +83,7 @@ defmodule Chironium.Release do
     {user, org, tenant} = Organization.seed()
     IO.puts("[Seed] Organization '#{org.name}' created (tenant: #{tenant}).")
 
-    practitioners = Practitioners.seed(tenant, practitioner_count)
-    IO.puts("[Seed] #{length(practitioners)} practitioners created.")
-
-    patients = Patients.seed(tenant, patient_count)
-    IO.puts("[Seed] #{length(patients)} patients created.")
-
-    subscription_result = Subscriptions.seed(tenant, patients)
-
-    IO.puts(
-      "[Seed] Subscriptions created: #{subscription_result.created} " <>
-        "(expired: #{subscription_result.expired}, active: #{subscription_result.active})."
-    )
-
-    CareTeams.seed(tenant, patients, practitioners)
-    IO.puts("[Seed] Care teams created.")
-
-    Observations.seed(tenant, patients, practitioners)
-    Conditions.seed(tenant, patients, practitioners)
-    Goals.seed(tenant, patients, practitioners)
-    Medications.seed(tenant, patients, practitioners)
-    Allergies.seed(tenant, patients, practitioners)
-    NutritionPlans.seed(tenant, patients)
-    Tasks.seed(tenant, patients, practitioners)
-    MenstrualCycles.seed(tenant, patients, practitioners)
-    ClinicalNotes.seed(tenant, patients, practitioners)
-    IO.puts("[Seed] Clinical data created.")
+    All.seed(tenant, patients: patient_count, practitioners: practitioner_count, log: &IO.puts/1)
 
     invite = Organization.seed_invitation(org, user, invite_email, role)
 
