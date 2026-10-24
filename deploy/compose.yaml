@@ -7,7 +7,7 @@
 # See docs/self-hosting.md for every setting.
 services:
   app:
-    image: ghcr.io/sealambda/chironium:${CHIRONIUM_VERSION:-0.1.0}
+    image: ghcr.io/sealambda/chironium:${CHIRONIUM_VERSION:-0.2.0}
     restart: unless-stopped
     env_file: .env
     environment:
