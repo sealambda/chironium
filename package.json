@@ -26,7 +26,7 @@
     "assets:arch": "pnpm --filter chironium-assets arch",
     "assets:quality": "pnpm --filter chironium-assets quality",
     "deps:audit": "pnpm audit --prod --audit-level high",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install --reset-hooks-path"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
