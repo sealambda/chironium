@@ -33,16 +33,23 @@ defmodule Mix.Tasks.Chironium.Seed.Organization do
     end
   end
 
-  @doc "Create a user and organization. Returns `{user, org, tenant}`."
+  @doc """
+  Create an organization, owned by `user:` or by a new seed user. `authorize?:`
+  (default `true`) runs the create action's policies. Returns `{user, org, tenant}`.
+  """
   def seed(opts \\ []) do
     run_id = System.unique_integer([:positive])
-    email = "seed-#{run_id}@example.com"
-    user = Ash.Seed.seed!(%Chironium.Accounts.User{email: email})
+
+    user =
+      Keyword.get_lazy(opts, :user, fn ->
+        Ash.Seed.seed!(%Chironium.Accounts.User{email: "seed-#{run_id}@example.com"})
+      end)
 
     name = Keyword.get(opts, :name, "Seed Org #{run_id}")
     slug = Keyword.get(opts, :slug, "seed-org-#{run_id}")
+    authorize? = Keyword.get(opts, :authorize?, true)
 
-    org = generate(organization(actor: user, name: name, slug: slug))
+    org = generate(organization(actor: user, authorize?: authorize?, name: name, slug: slug))
     tenant = "org_#{org.id}"
 
     {user, org, tenant}

@@ -8,10 +8,8 @@ defmodule ChironiumWeb.DevSignInController do
 
   use ChironiumWeb, :controller
 
-  import AshAuthentication.Plug.Helpers, only: [store_in_session: 2]
-
-  alias AshAuthentication.Jwt
   alias Chironium.Dev.PlaywrightE2EFixtures
+  alias ChironiumWeb.SessionSignIn
 
   @default_email "dev@example.com"
 
@@ -22,12 +20,7 @@ defmodule ChironiumWeb.DevSignInController do
         _ -> @default_email
       end
 
-    user = PlaywrightE2EFixtures.ensure_user!(email)
-    {:ok, token, _claims} = Jwt.token_for_user(user, %{}, [authorize?: false], %{})
-    user = struct(user, %{__metadata__: Map.put(user.__metadata__ || %{}, :token, token)})
-
-    conn
-    |> store_in_session(user)
-    |> redirect(to: ~p"/")
+    {:ok, conn} = SessionSignIn.sign_in(conn, PlaywrightE2EFixtures.ensure_user!(email))
+    redirect(conn, to: ~p"/")
   end
 end

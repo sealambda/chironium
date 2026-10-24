@@ -57,7 +57,9 @@ defmodule Chironium.Accounts.Organization do
 
   policies do
     policy action(:create) do
-      description "Authenticated users can create organisations."
+      description "Authenticated users can create organisations, except in demo mode."
+      # A demo visitor gets exactly one organization, created by Chironium.Demo.start/0.
+      forbid_if Chironium.Demo.Checks.DemoMode
       authorize_if Chironium.Accounts.Checks.StaffActor
     end
 

@@ -10,9 +10,9 @@ defmodule ChironiumWeb.PlaywrightE2EController do
   use ChironiumWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
-  alias AshAuthentication.Jwt
   alias Chironium.Accounts.Invitation
   alias Chironium.Dev.PlaywrightE2EFixtures
+  alias ChironiumWeb.SessionSignIn
 
   require Ash.Query
 
@@ -57,19 +57,13 @@ defmodule ChironiumWeb.PlaywrightE2EController do
       else
         case fetch_user(email) do
           {:ok, user} ->
-            case Jwt.token_for_user(user, %{}, [authorize?: false], %{}) do
-              {:ok, token, _claims} ->
-                meta = Map.put(user.__metadata__ || %{}, :token, token)
-                user_with_token = struct(user, %{__metadata__: meta})
+            # Like AuthController.success: hand back where a signed-out visit
+            # wanted to go, so tests can follow it as a real sign-in would.
+            return_to = return_url(conn)
 
-                # Like AuthController.success: hand back where a signed-out visit
-                # wanted to go, so tests can follow it as a real sign-in would.
-                return_to = return_url(conn)
-
-                conn
-                |> delete_session(:auth_return_state)
-                |> store_in_session(user_with_token)
-                |> json(%{returnTo: return_to})
+            case conn |> delete_session(:auth_return_state) |> SessionSignIn.sign_in(user) do
+              {:ok, conn} ->
+                json(conn, %{returnTo: return_to})
 
               :error ->
                 conn
