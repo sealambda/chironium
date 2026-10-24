@@ -66,8 +66,6 @@ defmodule Chironium.Workers.NotificationEmailWorker do
             url: url
           })
 
-        {from_name, from_address} = from_address()
-
         subject =
           dgettext("emails", "%{organization} sent you a questionnaire",
             organization: task.organization_name
@@ -75,7 +73,7 @@ defmodule Chironium.Workers.NotificationEmailWorker do
 
         Swoosh.Email.new()
         |> Swoosh.Email.to(email)
-        |> Swoosh.Email.from({from_name, from_address})
+        |> Swoosh.Email.from(Mailer.from())
         |> Swoosh.Email.subject(subject)
         |> Swoosh.Email.html_body(html)
         |> Swoosh.Email.text_body(text)
@@ -94,8 +92,6 @@ defmodule Chironium.Workers.NotificationEmailWorker do
         accept_url: params["accept_url"]
       })
 
-    {from_name, from_address} = from_address()
-
     subject =
       dgettext("emails", "You've been invited to %{organization}",
         organization: params["organization_name"]
@@ -103,7 +99,7 @@ defmodule Chironium.Workers.NotificationEmailWorker do
 
     Swoosh.Email.new()
     |> Swoosh.Email.to(params["email"])
-    |> Swoosh.Email.from({from_name, from_address})
+    |> Swoosh.Email.from(Mailer.from())
     |> Swoosh.Email.subject(subject)
     |> Swoosh.Email.html_body(html)
     |> Swoosh.Email.text_body(text)
@@ -119,14 +115,12 @@ defmodule Chironium.Workers.NotificationEmailWorker do
         task_url: params["task_url"]
       })
 
-    {from_name, from_address} = from_address()
-
     subject =
       dgettext("emails", "Task reminder: %{description}", description: params["task_description"])
 
     Swoosh.Email.new()
     |> Swoosh.Email.to(params["email"])
-    |> Swoosh.Email.from({from_name, from_address})
+    |> Swoosh.Email.from(Mailer.from())
     |> Swoosh.Email.subject(subject)
     |> Swoosh.Email.html_body(html)
     |> Swoosh.Email.text_body(text)
@@ -153,12 +147,5 @@ defmodule Chironium.Workers.NotificationEmailWorker do
       {:ok, formatted} -> formatted
       {:error, _} -> Date.to_iso8601(date)
     end
-  end
-
-  defp from_address do
-    config = Application.get_env(:chironium, :email_from, [])
-
-    {Keyword.get(config, :name, "Chironium"),
-     Keyword.get(config, :address, "chironium@updates.appfor.it")}
   end
 end

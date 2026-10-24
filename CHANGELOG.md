@@ -7,6 +7,12 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 ### Added
 
 - A Docker Compose setup in `deploy/` that runs Chironium with PostgreSQL and, optionally, Caddy for automatic HTTPS.
+- Sign-in with an emailed link, and with any OpenID Connect provider such as Keycloak or Authentik. Every method reaches the same account for the same email address.
+
+### Changed
+
+- Google sign-in is optional. Production needs at least one sign-in method: email (`RESEND_API_KEY`), Google, or OpenID Connect. See the [self-hosting guide](docs/self-hosting.md#sign-in).
+- Google and OpenID Connect sign-ins are refused unless the provider has verified the email address.
 
 ### Fixed
 

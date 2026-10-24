@@ -61,12 +61,12 @@ msgstr "Te han invitado"
 msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
 msgstr "Como alternativa, abre Chironium, haz clic en el selector de organizacion, \"Unirse con invitacion\", e introduce el siguiente codigo"
 
-#: lib/chironium/workers/notification_email_worker.ex:125
+#: lib/chironium/workers/notification_email_worker.ex:119
 #, elixir-autogen, elixir-format
 msgid "Task reminder: %{description}"
 msgstr "Recordatorio de tarea: %{description}"
 
-#: lib/chironium/workers/notification_email_worker.ex:100
+#: lib/chironium/workers/notification_email_worker.ex:96
 #, elixir-autogen, elixir-format
 msgid "You've been invited to %{organization}"
 msgstr "Te han invitado a %{organization}"
@@ -81,7 +81,7 @@ msgstr "%{name}, de %{organization}, te pidió que respondas un cuestionario."
 msgid "%{organization} asked you to answer a questionnaire."
 msgstr "%{organization} te pidió que respondas un cuestionario."
 
-#: lib/chironium/workers/notification_email_worker.ex:72
+#: lib/chironium/workers/notification_email_worker.ex:70
 #, elixir-autogen, elixir-format
 msgid "%{organization} sent you a questionnaire"
 msgstr "%{organization} te envió un cuestionario"
@@ -105,3 +105,28 @@ msgstr "El enlace se puede abrir una sola vez, en un solo dispositivo, y es vál
 #, elixir-autogen, elixir-format
 msgid "View patient"
 msgstr "Ver paciente"
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:31
+#, elixir-autogen, elixir-format
+msgid "If you didn't try to sign in, you can safely ignore this email."
+msgstr "Si no intentaste iniciar sesión, puedes ignorar este correo."
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:26
+#, elixir-autogen, elixir-format
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:17
+#, elixir-autogen, elixir-format
+msgid "Sign in to Chironium"
+msgstr "Inicia sesión en Chironium"
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:20
+#, elixir-autogen, elixir-format
+msgid "Use this button to sign in. The link works once and expires in 10 minutes."
+msgstr "Usa este botón para iniciar sesión. El enlace funciona una sola vez y caduca en 10 minutos."
+
+#: lib/chironium/accounts/user/senders/send_magic_link.ex:40
+#, elixir-autogen, elixir-format
+msgid "Your Chironium sign-in link"
+msgstr "Tu enlace para iniciar sesión en Chironium"

@@ -3,12 +3,14 @@ defmodule ChironiumWeb.SignInLive do
   Custom sign-in LiveView with branded pink/black design.
 
   Features:
-  - Google OAuth authentication.
+  - Sign-in with each configured method: Google, an OpenID Connect provider, and
+    an emailed link when email is on.
+  - A confirm step for emailed links (`:confirm`), so link scanners can't use them up.
   - Accessible UI with ARIA attributes.
   - Responsive mobile-first design.
   - Theme toggle (light/dark).
   - Language selector (en/es).
-  - Development-only sign-in without Google.
+  - Development-only sign-in without an identity provider.
   """
   use ChironiumWeb, :live_view
 
@@ -32,6 +34,8 @@ defmodule ChironiumWeb.SignInLive do
      |> assign(:supported_locales, @supported_locales)
      |> assign(:show_language_menu, false)
      |> assign(:dev_sign_in?, @dev_sign_in?)
+     |> assign(:providers, Application.get_env(:chironium, :sign_in_providers, []))
+     |> assign(:email_sign_in?, Chironium.Notifications.email_enabled?())
      |> assign(:legal_urls, Application.get_env(:chironium, :legal_urls, []))
      |> assign(:source_code_url, Application.get_env(:chironium, :source_code_url))}
   end
@@ -52,13 +56,19 @@ defmodule ChironiumWeb.SignInLive do
 
   def handle_event("set_locale", %{"locale" => locale}, socket) do
     Gettext.put_locale(ChironiumWeb.Gettext, locale)
-    theme = socket.assigns.theme
+    params = [locale: locale, theme: socket.assigns.theme]
+
+    # The confirm page keeps its link token, or switching language would lose the link.
+    path =
+      if socket.assigns.live_action == :confirm,
+        do: ~p"/sign-in/link?#{[{:token, socket.assigns.token} | params]}",
+        else: ~p"/sign-in?#{params}"
 
     {:noreply,
      socket
      |> assign(:locale, locale)
      |> assign(:show_language_menu, false)
-     |> push_navigate(to: ~p"/sign-in?locale=#{locale}&theme=#{theme}")}
+     |> push_navigate(to: path)}
   end
 
   @impl true
@@ -82,7 +92,7 @@ defmodule ChironiumWeb.SignInLive do
         assign(socket, :theme, theme)
       end
 
-    {:noreply, socket}
+    {:noreply, assign(socket, :token, params["token"])}
   end
 
   # ============================================================================
@@ -107,8 +117,13 @@ defmodule ChironiumWeb.SignInLive do
         <div class="w-full max-w-sm space-y-6">
           <.brand_badge />
           <.welcome_heading />
-          <.oauth_buttons />
-          <.dev_sign_in :if={@dev_sign_in?} />
+          <.flash_message flash={@flash} />
+          <.confirm_link :if={@live_action == :confirm} token={@token} />
+          <div :if={@live_action != :confirm} class="space-y-6">
+            <.oauth_buttons providers={@providers} />
+            <.email_sign_in :if={@email_sign_in?} />
+            <.dev_sign_in :if={@dev_sign_in?} />
+          </div>
         </div>
       </main>
 
@@ -216,33 +231,129 @@ defmodule ChironiumWeb.SignInLive do
         {gettext("Welcome Back")}
       </h1>
       <p class="text-auth-muted text-sm">
-        {gettext("Sign in with your Google account to continue.")}
+        {gettext("Sign in to continue.")}
       </p>
     </div>
     """
   end
 
+  attr :flash, :map, required: true
+
+  defp flash_message(assigns) do
+    ~H"""
+    <p
+      :for={{kind, role} <- [info: "status", error: "alert"]}
+      :if={Phoenix.Flash.get(@flash, kind)}
+      role={role}
+      class="rounded-md border border-auth-border bg-auth-surface px-3 py-2 text-center text-sm"
+    >
+      {Phoenix.Flash.get(@flash, kind)}
+    </p>
+    """
+  end
+
+  attr :providers, :list, required: true
+
   defp oauth_buttons(assigns) do
     ~H"""
-    <div class="space-y-2">
+    <div :if={@providers[:google] || @providers[:oidc]} class="space-y-2">
       <a
+        :if={@providers[:google]}
         href={~p"/auth/user/google"}
         data-testid="sign-in-google-link"
-        class={[
-          "w-full h-9 sm:h-10 rounded-md",
-          "bg-auth-card hover:bg-auth-surface",
-          "text-auth-fg font-medium text-sm",
-          "flex items-center justify-center gap-2",
-          "border border-auth-border",
-          "shadow-xs transition-all",
-          "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
-        ]}
+        class={secondary_button_class()}
       >
         <.google_icon />
         <span>{gettext("Continue with Google")}</span>
       </a>
+      <a
+        :if={@providers[:oidc]}
+        href={~p"/auth/user/oidc"}
+        data-testid="sign-in-oidc-link"
+        class={secondary_button_class()}
+      >
+        <.icon name="hero-key" class="size-4" />
+        <span>
+          {gettext("Continue with %{provider}", provider: @providers[:oidc][:display_name])}
+        </span>
+      </a>
     </div>
     """
+  end
+
+  defp email_sign_in(assigns) do
+    ~H"""
+    <.form
+      for={%{}}
+      action={~p"/auth/user/magic_link/request"}
+      method="post"
+      class="space-y-2"
+      data-testid="sign-in-email-form"
+    >
+      <input
+        type="email"
+        name="user[email]"
+        required
+        autocomplete="email"
+        placeholder={gettext("you@example.com")}
+        aria-label={gettext("Email")}
+        class={input_class()}
+      />
+      <button type="submit" class={primary_button_class()}>
+        {gettext("Email me a sign-in link")}
+      </button>
+    </.form>
+    """
+  end
+
+  attr :token, :string, default: nil
+
+  defp confirm_link(assigns) do
+    ~H"""
+    <.form
+      for={%{}}
+      action={~p"/auth/user/magic_link"}
+      method="post"
+      class="space-y-2"
+      data-testid="sign-in-link-form"
+    >
+      <input type="hidden" name="token" value={@token} />
+      <button type="submit" class={primary_button_class()}>
+        {gettext("Sign in")}
+      </button>
+    </.form>
+    """
+  end
+
+  defp primary_button_class do
+    [
+      "w-full h-9 sm:h-10 rounded-md",
+      "bg-auth-primary hover:bg-auth-primary-hover",
+      "text-auth-primary-fg font-medium text-sm",
+      "shadow-xs transition-all",
+      "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
+    ]
+  end
+
+  defp secondary_button_class do
+    [
+      "w-full h-9 sm:h-10 rounded-md",
+      "bg-auth-card hover:bg-auth-surface",
+      "text-auth-fg font-medium text-sm",
+      "flex items-center justify-center gap-2",
+      "border border-auth-border",
+      "shadow-xs transition-all",
+      "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
+    ]
+  end
+
+  defp input_class do
+    [
+      "w-full h-9 sm:h-10 rounded-md px-3",
+      "bg-auth-card text-auth-fg text-sm",
+      "border border-auth-border shadow-xs",
+      "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
+    ]
   end
 
   # Inline Google SVG for brand compliance.
@@ -279,7 +390,7 @@ defmodule ChironiumWeb.SignInLive do
       data-testid="dev-sign-in-form"
     >
       <p class="text-center text-auth-muted text-xs">
-        {gettext("Development only: sign in without Google.")}
+        {gettext("Development only: sign in without an identity provider.")}
       </p>
       <input
         type="email"
@@ -287,12 +398,7 @@ defmodule ChironiumWeb.SignInLive do
         value="dev@example.com"
         required
         aria-label={gettext("Email")}
-        class={[
-          "w-full h-9 sm:h-10 rounded-md px-3",
-          "bg-auth-card text-auth-fg text-sm",
-          "border border-auth-border shadow-xs",
-          "focus:outline-none focus-visible:border-auth-ring focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
-        ]}
+        class={input_class()}
       />
       <button
         type="submit"

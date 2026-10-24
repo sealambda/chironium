@@ -61,12 +61,12 @@ msgstr ""
 msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
 msgstr ""
 
-#: lib/chironium/workers/notification_email_worker.ex:125
+#: lib/chironium/workers/notification_email_worker.ex:119
 #, elixir-autogen, elixir-format
 msgid "Task reminder: %{description}"
 msgstr ""
 
-#: lib/chironium/workers/notification_email_worker.ex:100
+#: lib/chironium/workers/notification_email_worker.ex:96
 #, elixir-autogen, elixir-format
 msgid "You've been invited to %{organization}"
 msgstr ""
@@ -81,7 +81,7 @@ msgstr ""
 msgid "%{organization} asked you to answer a questionnaire."
 msgstr ""
 
-#: lib/chironium/workers/notification_email_worker.ex:72
+#: lib/chironium/workers/notification_email_worker.ex:70
 #, elixir-autogen, elixir-format
 msgid "%{organization} sent you a questionnaire"
 msgstr ""
@@ -104,4 +104,29 @@ msgstr ""
 #: lib/chironium_web/emails/task_reminder_email.ex:45
 #, elixir-autogen, elixir-format
 msgid "View patient"
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:31
+#, elixir-autogen, elixir-format
+msgid "If you didn't try to sign in, you can safely ignore this email."
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:26
+#, elixir-autogen, elixir-format
+msgid "Sign in"
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:17
+#, elixir-autogen, elixir-format
+msgid "Sign in to Chironium"
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:20
+#, elixir-autogen, elixir-format
+msgid "Use this button to sign in. The link works once and expires in 10 minutes."
+msgstr ""
+
+#: lib/chironium/accounts/user/senders/send_magic_link.ex:40
+#, elixir-autogen, elixir-format
+msgid "Your Chironium sign-in link"
 msgstr ""

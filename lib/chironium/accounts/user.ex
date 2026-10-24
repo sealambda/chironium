@@ -2,8 +2,12 @@ defmodule Chironium.Accounts.User do
   @moduledoc """
   User resource representing an authenticated user.
 
+  Users sign in with Google, an OpenID Connect provider, or an emailed link. A
+  sign-in matches the account by email whatever the method, so one person keeps
+  one account; identity providers must have verified the address.
+
   Profile fields (`name`, `given_name`, `family_name`, `picture`) are populated from
-  Google OpenID Connect claims during OAuth authentication.
+  the identity provider's OpenID Connect claims.
 
   **Important**: None of these profile claims are guaranteed to be present.
   Only the `email` field is reliably provided when the `email` scope is requested.
@@ -48,6 +52,28 @@ defmodule Chironium.Accounts.User do
         client_secret Chironium.Secrets
         redirect_uri Chironium.Secrets
         identity_resource Chironium.Accounts.UserIdentity
+      end
+
+      oidc do
+        client_id Chironium.Secrets
+        client_secret Chironium.Secrets
+        base_url Chironium.Secrets
+        redirect_uri Chironium.Secrets
+        identity_resource Chironium.Accounts.UserIdentity
+        authorization_params scope: "openid profile email"
+        # ProviderEmailVerified refuses any sign-in without a verified email, so the
+        # claim can link a new provider to the account that owns the address.
+        trust_email_verified? true
+      end
+
+      magic_link do
+        identity_field :email
+        registration_enabled? true
+        # Sign-in is a POST from a confirm page, so link previewers can't consume it.
+        require_interaction? true
+        # SignInLinkEmail states this lifetime.
+        token_lifetime {10, :minutes}
+        sender Chironium.Accounts.User.Senders.SendMagicLink
       end
     end
   end
@@ -99,17 +125,23 @@ defmodule Chironium.Accounts.User do
       upsert? true
       upsert_identity :unique_email
 
+      validate Chironium.Accounts.Validations.ProviderEmailVerified
       change AshAuthentication.GenerateTokenChange
       change AshAuthentication.Strategy.OAuth2.IdentityChange
+      change &__MODULE__.copy_profile_claims/2
+    end
 
-      change fn changeset, _ ->
-        user_info = Ash.Changeset.get_argument(changeset, :user_info)
+    create :register_with_oidc do
+      description "Registers or signs in via the configured OpenID Connect provider."
+      argument :user_info, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
+      upsert? true
+      upsert_identity :unique_email
 
-        Ash.Changeset.change_attributes(
-          changeset,
-          Map.take(user_info, ["email", "picture", "name", "family_name", "given_name"])
-        )
-      end
+      validate Chironium.Accounts.Validations.ProviderEmailVerified
+      change AshAuthentication.GenerateTokenChange
+      change AshAuthentication.Strategy.OAuth2.IdentityChange
+      change &__MODULE__.copy_profile_claims/2
     end
   end
 
@@ -210,5 +242,15 @@ defmodule Chironium.Accounts.User do
 
   identities do
     identity :unique_email, [:email]
+  end
+
+  @doc false
+  def copy_profile_claims(changeset, _context) do
+    user_info = Ash.Changeset.get_argument(changeset, :user_info)
+
+    Ash.Changeset.change_attributes(
+      changeset,
+      Map.take(user_info, ["email", "picture", "name", "family_name", "given_name"])
+    )
   end
 end
