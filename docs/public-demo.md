@@ -12,71 +12,6 @@ A demo mode for running a public Chironium demo. A visitor clicks "Try the demo"
 - Demo mode can never delete or expose anything on a normal instance.
 - A demo instance never sends email or data to a third party.
 
-## Decisions Needed
-
-Each one has a recommendation. The phases below already follow the recommendation; answer here and adjust the phase if you choose otherwise.
-
-### N1. Scope source
-
-`docs/TODO.md` holds follow-ups from finished plans and has no demo entry, so nothing upstream confirms this scope. The Goals above are the only acceptance criteria.
-
-- **A.** Confirm this plan, as written, is the task. *(Recommended.)*
-- **B.** Add a short entry to `docs/TODO.md` first and narrow the plan to it.
-
-### N2. What demo mode refuses to boot with
-
-Goal 5 and decision 1 assume a demo has no email or external sign-in, but nothing enforces it. With `RESEND_API_KEY` set, a visitor's invitations and questionnaire links would email real addresses, and the hourly `send_reminder` job could email the seeded patients' `Faker.Internet.email()` addresses. Hiding the buttons leaves `/auth/user/google` and `/auth/user/oidc` working. `POSTHOG_API_KEY` sends events and errors that can include what visitors type, and that data outlives the 48-hour goal.
-
-- **A.** `DEMO_MODE` refuses to boot when `RESEND_API_KEY`, Google, OpenID Connect or `POSTHOG_API_KEY` is set, naming the variable. *(Recommended: one check in `runtime.exs` closes every email and external path at once.)*
-- **B.** Refuse email, Google and OpenID Connect; allow PostHog.
-- **C.** Document the rule in `docs/self-hosting.md` only.
-
-### N3. Creating more organizations
-
-The GraphQL `createOrganization` mutation lets any `%User{}` through (`StaffActor`), so a visitor can create unlimited organizations, each with its own schema, with no rate limit.
-
-- **A.** In demo mode, forbid the `create` action on `Organization` for every actor. `Demo.start/0` seeds with `authorize?: false`. *(Recommended: decision 2 already gives one organization per visitor.)*
-- **B.** Allow it, and count those organizations toward the global cap in N4.
-
-### N4. Global cap on live demos
-
-Only the per-IP limit exists, and IPv6 or many addresses get around it. Each demo is a full schema.
-
-- **A.** No cap.
-- **B.** A fixed cap of 200 live demo organizations. Past it, `POST /demo` redirects to `/sign-in` with "The demo is full right now. Please try again later." *(Recommended.)*
-- **C.** The same cap, set by a `DEMO_MAX_ORGANIZATIONS` variable.
-
-### N5. Per-IP limit
-
-5 starts per IP per hour blocks the 6th visitor behind a shared NAT, such as a conference or office network.
-
-- **A.** 5 per IP per hour.
-- **B.** 20 per IP per hour, with the global cap from N4 as the real ceiling. *(Recommended.)*
-
-### N6. Where the banner shows
-
-The patient portal has its own layout (`portal_root.html.heex`), and a visitor reaches it through a questionnaire link they create. That is where they are most likely to type real data.
-
-- **A.** React app shell only.
-- **B.** App shell and portal layout. *(Recommended.)*
-- **C.** Every layout, including the sign-in LiveView (which already says "Your demo is deleted after 24 hours.").
-
-### N7. When starting a demo fails
-
-Tenant migrations and seeding take seconds and many statements, so one wrapping transaction would hold locks for that long.
-
-- **A.** Let it raise: the visitor sees a 500, and the nightly job removes the debris after 24 hours.
-- **B.** No wrapping transaction. On any error, `Demo.start/0` deletes what it created right away with the cleanup's own delete functions, logs `[Demo] Start failed:` with the reason, and the controller redirects to `/sign-in` with "Couldn't start the demo. Please try again." *(Recommended.)*
-- **C.** Wrap everything in one transaction.
-
-### N8. Cleanup schedule
-
-Oban Cron doesn't catch up on missed runs, so with only a 03:00 run, an instance that is down at 03:00 waits another day and breaks the 48-hour goal.
-
-- **A.** Daily at 03:00 UTC only.
-- **B.** Hourly (`"0 * * * *"`). A missed run is covered by the next hour after boot, and each run is a few queries when nothing is due. *(Recommended.)*
-- **C.** Daily, plus one run enqueued at boot.
-
 ## Decisions
 
 1. **Switch:** `DEMO_MODE=true` turns demo mode on. A demo runs as its own instance with its own database and secrets. It refuses to boot with any email, external sign-in or analytics setting (N2).
@@ -86,6 +21,17 @@ Oban Cron doesn't catch up on missed runs, so with only a 03:00 run, an instance
 5. **Banner:** every app page and every patient portal page (N6) shows "Demo: your data is deleted after 24 hours. Don't enter real client data." and a "Made by Sealambda" link to `https://sealambda.com`.
 6. **Database settings:** without `DATABASE_URL`, production connects over the PostgreSQL Unix socket as user `chironium` to database `chironium`. Add `DATABASE_NAME` and `DATABASE_USERNAME`, both defaulting to `chironium`, so a demo can share a PostgreSQL server with another instance.
 7. **Limits:** 20 demo starts per IP per hour (N5) and at most 200 live demo organizations (N4).
+
+Answered before building (the phases below follow each answer):
+
+- **N1. Scope:** this plan, as written, is the task.
+- **N2. Boot refusal:** `DEMO_MODE` refuses to boot when `RESEND_API_KEY`, Google, OpenID Connect or `POSTHOG_API_KEY` is set, naming the variable. One check in `runtime.exs` closes every email and third-party path.
+- **N3. More organizations:** in demo mode, the `create` action on `Organization` is forbidden for every actor; `Demo.start/0` seeds with `authorize?: false`.
+- **N4. Global cap:** at most 200 live demo organizations. Past it, `POST /demo` redirects to `/sign-in` with "The demo is full right now. Please try again later."
+- **N5. Per-IP limit:** 20 starts per IP per hour, so a shared office or conference network isn't blocked; the global cap is the real ceiling.
+- **N6. Banner:** the app shell and the patient portal layout, where a visitor is most likely to type real data.
+- **N7. Failed start:** no wrapping transaction. On any error, `Demo.start/0` deletes what it created with the cleanup's delete functions, logs `[Demo] Start failed:` with the reason, and the controller redirects to `/sign-in` with "Couldn't start the demo. Please try again."
+- **N8. Cleanup schedule:** hourly (`"0 * * * *"`). Oban Cron skips runs missed while the instance is down, so a daily run could break the 48-hour goal.
 
 ## Codebase Findings That Shape the Design
 
