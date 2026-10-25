@@ -17,7 +17,7 @@ export function SignOutButton() {
       <input type="hidden" name="_csrf_token" value={csrfToken()} />
       <Button type="submit" variant="ghost" size="sm">
         <LogOut />
-        {m.portal_sign_out()}
+        <span className="sr-only sm:not-sr-only">{m.portal_sign_out()}</span>
       </Button>
     </form>
   );
