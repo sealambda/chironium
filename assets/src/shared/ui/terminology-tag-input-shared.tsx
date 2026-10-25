@@ -37,7 +37,7 @@ export function TerminologyTagChips({
             type="button"
             onClick={() => onRemove(index)}
             disabled={disabled}
-            className="cursor-pointer rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground"
           >
             <X className="size-3" />
           </button>
@@ -75,7 +75,7 @@ export function TerminologySuggestionsMenu({
             key={`${suggestion.system}:${suggestion.code}:${suggestion.label}`}
             type="button"
             onClick={() => onPick(suggestion)}
-            className="w-full cursor-pointer rounded px-2 py-1.5 text-left text-sm hover:bg-muted"
+            className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-muted"
           >
             {suggestion.label}
           </button>

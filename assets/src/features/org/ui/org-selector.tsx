@@ -65,7 +65,7 @@ export function OrgSelector({
               "group flex w-full items-center gap-2 rounded-lg px-2 py-2",
               !showNameOnMobile && "justify-center md:justify-start",
               "text-left transition-colors focus-visible:outline-none",
-              "cursor-pointer hover:bg-accent/50 focus-visible:bg-accent/50",
+              "hover:bg-accent/50 focus-visible:bg-accent/50",
             )}
           />
         }
@@ -99,7 +99,7 @@ export function OrgSelector({
                 <DropdownMenuItem
                   key={org.id}
                   onClick={() => onSelectOrg(org.id)}
-                  className="cursor-pointer gap-2 p-2"
+                  className="gap-2 p-2"
                   data-testid={`org-selector-item-${org.id}`}
                 >
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border text-xs font-bold">
@@ -114,7 +114,7 @@ export function OrgSelector({
         )}
         <DropdownMenuItem
           onClick={onJoinClick}
-          className="cursor-pointer gap-2 p-2"
+          className="gap-2 p-2"
           data-testid="org-selector-join-by-invitation-button"
         >
           <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
@@ -125,7 +125,7 @@ export function OrgSelector({
         {runtimeConfig.demo ? null : (
           <DropdownMenuItem
             onClick={onCreateClick}
-            className="cursor-pointer gap-2 p-2"
+            className="gap-2 p-2"
             data-testid="org-selector-create-button"
           >
             <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">

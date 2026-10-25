@@ -74,7 +74,7 @@ export function SettingsMemberActionsMenu({
       <DropdownMenuContent align="end" sideOffset={4} className="w-auto">
         {editTarget ? (
           <DropdownMenuItem
-            className="cursor-pointer whitespace-nowrap"
+            className="whitespace-nowrap"
             onClick={() => onEditRole(editTarget)}
             data-testid={`member-edit-role-${row.key}`}
           >
@@ -83,7 +83,7 @@ export function SettingsMemberActionsMenu({
         ) : null}
         {row.hasPractitionerGrant ? null : (
           <DropdownMenuItem
-            className="cursor-pointer whitespace-nowrap"
+            className="whitespace-nowrap"
             onClick={() => onMakePractitioner(makePractitionerTargetFromRow(row))}
             data-testid={`member-make-practitioner-${row.key}`}
           >
@@ -92,7 +92,7 @@ export function SettingsMemberActionsMenu({
         )}
         {row.source.kind === "invitation" && !row.source.expired ? (
           <DropdownMenuItem
-            className="cursor-pointer whitespace-nowrap"
+            className="whitespace-nowrap"
             onClick={() => onCopyInvitationLink(row)}
             data-testid={`member-copy-invitation-link-${row.key}`}
           >
@@ -101,7 +101,7 @@ export function SettingsMemberActionsMenu({
         ) : null}
         {row.source.kind === "invitation" && row.source.expired ? (
           <DropdownMenuItem
-            className="cursor-pointer whitespace-nowrap"
+            className="whitespace-nowrap"
             onClick={() => onRenewInvitation(row)}
             data-testid={`member-renew-invitation-${row.key}`}
           >
@@ -110,7 +110,7 @@ export function SettingsMemberActionsMenu({
         ) : null}
         {row.source.kind === "invitation" ? (
           <DropdownMenuItem
-            className="cursor-pointer whitespace-nowrap"
+            className="whitespace-nowrap"
             onClick={() =>
               onRevokeInvitation(row.source.kind === "invitation" ? row.source.invitationId : "")
             }

@@ -211,7 +211,7 @@ export function AddRecordDialog({
                           disabled={disabled}
                           onClick={() => selectType(id)}
                           className={cn(
-                            "flex h-full cursor-pointer flex-col items-center rounded-xl border border-border/50 bg-card p-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                            "flex h-full flex-col items-center rounded-xl border border-border/50 bg-card p-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                             disabled
                               ? "cursor-not-allowed opacity-50"
                               : "hover:border-primary/30 hover:bg-primary/5",

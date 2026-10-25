@@ -29,14 +29,9 @@ const tagPillVariants = cva(
         muted:
           "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700/50 dark:bg-neutral-900/40 dark:text-neutral-300 dark:hover:bg-neutral-900/60",
       },
-      interactive: {
-        true: "cursor-pointer",
-        false: "",
-      },
     },
     defaultVariants: {
       tone: "blue",
-      interactive: false,
     },
   },
 );
@@ -54,7 +49,7 @@ interface TagPillProps
 
 export function TagPill({ tone, className, onClick, children, srLabel, ...props }: TagPillProps) {
   const interactive = onClick != null;
-  const classes = cn(tagPillVariants({ tone, interactive }), className);
+  const classes = cn(tagPillVariants({ tone }), className);
   const content = srLabel ? (
     <>
       {children}

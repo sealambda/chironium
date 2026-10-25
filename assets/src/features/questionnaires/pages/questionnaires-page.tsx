@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNowStrict } from "date-fns";
 import { ClipboardList, FilePlus2, Plus } from "lucide-react";
-import { useState } from "react";
+import { type KeyboardEvent, useState } from "react";
 
 import {
   fetchQuestionnaires,
@@ -26,6 +26,7 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { getDateLocale } from "@/shared/utils/date-locale";
 import { questionnairesQueryKeys } from "@/shared/utils/query-keys";
+import { cn } from "@/shared/utils/utils";
 
 function statusLabel(status: QuestionnaireStatus): string {
   switch (status) {
@@ -50,15 +51,30 @@ function statusVariant(status: QuestionnaireStatus): "default" | "secondary" | "
   return "outline";
 }
 
+/** Makes a card keyboard-operable like a button without changing its look. */
+function cardButtonProps(onActivate: () => void) {
+  return {
+    role: "button",
+    tabIndex: 0,
+    onClick: onActivate,
+    onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+      if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        onActivate();
+      }
+    },
+  } as const;
+}
+
+const CARD_BUTTON_CLASS =
+  "transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
+
 function QuestionnaireRow({
   questionnaire,
   onOpen,
 }: Readonly<{ questionnaire: QuestionnaireListItem; onOpen: () => void }>) {
   return (
-    <Card
-      className="cursor-pointer p-4 transition-colors hover:border-primary/30 hover:bg-primary/5"
-      onClick={onOpen}
-    >
+    <Card className={cn("p-4", CARD_BUTTON_CLASS)} {...cardButtonProps(onOpen)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-medium text-foreground">
@@ -106,8 +122,8 @@ function TemplatePickerDialog({
         </DialogHeader>
         <div className="space-y-2">
           <Card
-            className="cursor-pointer p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
-            onClick={() => onPick(undefined)}
+            className={cn("p-3", CARD_BUTTON_CLASS)}
+            {...cardButtonProps(() => onPick(undefined))}
           >
             <div className="flex items-center gap-3">
               <FilePlus2 className="size-5 shrink-0 text-muted-foreground" />
@@ -122,8 +138,8 @@ function TemplatePickerDialog({
           {QUESTIONNAIRE_TEMPLATES.map((template) => (
             <Card
               key={template.id}
-              className="cursor-pointer p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
-              onClick={() => onPick(template.id)}
+              className={cn("p-3", CARD_BUTTON_CLASS)}
+              {...cardButtonProps(() => onPick(template.id))}
             >
               <div className="flex items-center gap-3">
                 <ClipboardList className="size-5 shrink-0 text-muted-foreground" />
