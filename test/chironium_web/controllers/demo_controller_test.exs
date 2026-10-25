@@ -70,6 +70,19 @@ defmodule ChironiumWeb.DemoControllerTest do
       assert count("SELECT count(*) FROM organizations") == orgs
     end
 
+    test "gives a visitor who signed out the same demo", %{conn: conn} do
+      put_config(seed: fn _tenant, _opts -> :ok end)
+      started = post(conn, ~p"/demo")
+      signed_out = started |> recycle() |> delete(~p"/sign-out") |> recycle()
+      users = count("SELECT count(*) FROM users")
+
+      returned = post(signed_out, ~p"/demo")
+
+      assert redirected_to(returned) == ~p"/app"
+      assert user_id(returned) == user_id(started)
+      assert count("SELECT count(*) FROM users") == users
+    end
+
     test "refuses a start when the demo is full", %{conn: conn} do
       put_config(max_demos: 2)
       demo_user!()

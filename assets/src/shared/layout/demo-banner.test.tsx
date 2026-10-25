@@ -16,10 +16,9 @@ describe("DemoBanner", () => {
     render(<DemoBanner />);
 
     expect(screen.getByTestId("demo-banner")).toHaveTextContent(m.demo_banner());
-    expect(screen.getByRole("link", { name: m.demo_made_by() })).toHaveAttribute(
-      "href",
-      "https://sealambda.com",
-    );
+    const link = screen.getByRole("link", { name: m.demo_made_by() });
+    expect(link).toHaveAttribute("href", "https://sealambda.com");
+    expect(link).toHaveAttribute("target", "_blank");
   });
 
   it("renders nothing outside demo mode", () => {

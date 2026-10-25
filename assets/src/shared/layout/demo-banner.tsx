@@ -17,7 +17,12 @@ export function DemoBanner() {
       data-testid="demo-banner"
     >
       <span>{m.demo_banner()}</span>
-      <a href="https://sealambda.com" className="font-medium underline underline-offset-4">
+      <a
+        href="https://sealambda.com"
+        target="_blank"
+        rel="noreferrer"
+        className="font-medium underline underline-offset-4"
+      >
         {m.demo_made_by()}
       </a>
     </div>
