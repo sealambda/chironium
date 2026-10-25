@@ -160,7 +160,7 @@ export function selectFoodPreferenceLabels(
   return { included, excluded };
 }
 
-function labelsForFoodPreferenceItem(item: FoodPreferenceHistoryItem): string[] {
+export function labelsForFoodPreferenceItem(item: FoodPreferenceHistoryItem): string[] {
   if (item.codings.length > 0) {
     // Coded rows: prefer the localized display, fall back to the raw code so chips never render empty.
     return item.codings.flatMap((coding) => {

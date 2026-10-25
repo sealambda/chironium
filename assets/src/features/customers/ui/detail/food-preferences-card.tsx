@@ -1,7 +1,10 @@
 import { Utensils } from "lucide-react";
 import { useState } from "react";
 
-import type { FoodPreferenceHistoryItem } from "@/features/customers/api/food-preferences-api";
+import {
+  type FoodPreferenceHistoryItem,
+  labelsForFoodPreferenceItem,
+} from "@/features/customers/api/food-preferences-api";
 import { FoodPreferenceDetailDialog } from "@/features/customers/ui/detail/food-preference-detail-dialog";
 import { FoodPreferencePill } from "@/features/customers/ui/detail/food-preference-pill";
 import { FoodPreferenceRemoveDialog } from "@/features/customers/ui/detail/food-preference-remove-dialog";
@@ -38,12 +41,10 @@ export function FoodPreferencesCard({
 
   const included = history
     .filter((item) => item.type === "inclusion")
-    .map((item) => ({ item, label: labelOf(item) }))
-    .filter((entry) => entry.label);
+    .flatMap((item) => labelsForFoodPreferenceItem(item).map((label) => ({ item, label })));
   const excluded = history
     .filter((item) => item.type === "exclusion")
-    .map((item) => ({ item, label: labelOf(item) }))
-    .filter((entry) => entry.label);
+    .flatMap((item) => labelsForFoodPreferenceItem(item).map((label) => ({ item, label })));
   const selfReportedLabels = [...included, ...excluded]
     .filter(({ item }) => item.selfReported)
     .map(({ label }) => label);
@@ -74,9 +75,9 @@ export function FoodPreferencesCard({
           className="pr-3"
         >
           <TagsCardPillList>
-            {included.map(({ item, label }) => (
+            {included.map(({ item, label }, index) => (
               <FoodPreferencePill
-                key={item.id}
+                key={`${item.id}-${index}`}
                 variant="inclusion"
                 onClick={canInteract ? () => setViewingItem(item) : undefined}
               >
@@ -92,9 +93,9 @@ export function FoodPreferencesCard({
           className="pl-3"
         >
           <TagsCardPillList>
-            {excluded.map(({ item, label }) => (
+            {excluded.map(({ item, label }, index) => (
               <FoodPreferencePill
-                key={item.id}
+                key={`${item.id}-${index}`}
                 variant="exclusion"
                 onClick={canInteract ? () => setViewingItem(item) : undefined}
               >
