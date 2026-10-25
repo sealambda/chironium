@@ -2,22 +2,8 @@ import { Building2 } from "lucide-react";
 
 import * as m from "@/paraglide/messages";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { getCsrfToken } from "@/shared/utils/request-utils";
+import { submitForm } from "@/shared/utils/request-utils";
 import { runtimeConfig } from "@/shared/utils/runtime-config";
-
-/** A plain form POST, so the server signs the visitor in and redirects. */
-function startNewDemo() {
-  const form = document.createElement("form");
-  form.method = "post";
-  form.action = "/demo";
-  const csrf = document.createElement("input");
-  csrf.type = "hidden";
-  csrf.name = "_csrf_token";
-  csrf.value = getCsrfToken() ?? "";
-  form.append(csrf);
-  document.body.append(form);
-  form.submit();
-}
 
 /**
  * Shown when the authenticated user has no organization membership.
@@ -40,7 +26,7 @@ export function NoOrgScreen({
               {
                 label: m.demo_start_new(),
                 testId: "no-org-start-demo-button",
-                onAction: startNewDemo,
+                onAction: () => submitForm("/demo"),
               },
             ]}
             className="w-full"

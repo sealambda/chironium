@@ -134,7 +134,8 @@ defmodule ChironiumWeb.Router do
     auth_routes AuthController, [Chironium.Accounts.User, Chironium.Accounts.GuestAccess],
       path: "/auth"
 
-    sign_out_route AuthController
+    # The app signs out with a DELETE form, skipping the library's untranslated confirmation page.
+    delete "/sign-out", AuthController, :sign_out
 
     # Answers 404 unless demo mode is on.
     post "/demo", DemoController, :create
@@ -144,6 +145,7 @@ defmodule ChironiumWeb.Router do
     # then :live_no_user redirects authenticated users to /.
     ash_authentication_live_session :auth,
       on_mount: [{ChironiumWeb.LiveUserAuth, :live_no_user}],
+      session: {ChironiumWeb.Plugs.SetLocale, :live_session, []},
       layout: false do
       live "/sign-in", SignInLive
       live "/sign-in/link", SignInLive, :confirm
