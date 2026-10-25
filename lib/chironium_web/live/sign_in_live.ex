@@ -119,6 +119,7 @@ defmodule ChironiumWeb.SignInLive do
         locale={@locale}
         supported_locales={@supported_locales}
         show_language_menu={@show_language_menu}
+        source_code_url={@source_code_url}
       />
 
       <main class="flex-1 flex items-center justify-center px-4 py-4 sm:py-6">
@@ -137,7 +138,7 @@ defmodule ChironiumWeb.SignInLive do
         </div>
       </main>
 
-      <.auth_footer legal_urls={@legal_urls} source_code_url={@source_code_url} />
+      <.auth_footer legal_urls={@legal_urls} />
     </div>
     """
   end
@@ -150,6 +151,7 @@ defmodule ChironiumWeb.SignInLive do
   attr :locale, :string, required: true
   attr :supported_locales, :list, required: true
   attr :show_language_menu, :boolean, required: true
+  attr :source_code_url, :string, default: nil
 
   defp auth_header(assigns) do
     ~H"""
@@ -163,6 +165,17 @@ defmodule ChironiumWeb.SignInLive do
         </span>
       </div>
       <div class="flex items-center gap-1">
+        <a
+          :if={@source_code_url}
+          href={@source_code_url}
+          target="_blank"
+          rel="noreferrer"
+          class="size-9 rounded-md flex items-center justify-center text-auth-muted hover:text-auth-fg hover:bg-auth-surface transition-all focus:outline-none focus-visible:ring-[3px] focus-visible:ring-auth-ring/50"
+          aria-label={gettext("Source code")}
+          data-testid="sign-in-source-code"
+        >
+          <.github_icon />
+        </a>
         <%!-- Language selector --%>
         <div class="relative">
           <button
@@ -430,6 +443,15 @@ defmodule ChironiumWeb.SignInLive do
     """
   end
 
+  # GitHub's mark (Octicons `mark-github`).
+  defp github_icon(assigns) do
+    ~H"""
+    <svg class="size-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+    </svg>
+    """
+  end
+
   defp dev_sign_in(assigns) do
     ~H"""
     <.form
@@ -468,7 +490,6 @@ defmodule ChironiumWeb.SignInLive do
   end
 
   attr :legal_urls, :list, required: true
-  attr :source_code_url, :string, default: nil
 
   defp auth_footer(assigns) do
     ~H"""
@@ -487,14 +508,6 @@ defmodule ChironiumWeb.SignInLive do
           class="text-auth-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm"
         >
           {gettext("Privacy Policy")}
-        </a>
-      </p>
-      <p :if={@source_code_url}>
-        <a
-          href={@source_code_url}
-          class="underline-offset-4 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-auth-ring rounded-sm"
-        >
-          {gettext("Source code")}
         </a>
       </p>
     </footer>

@@ -72,6 +72,19 @@ defmodule ChironiumWeb.SignInTest do
       assert html =~ "The demo is full right now. Please try again later."
     end
 
+    test "links to the source code from the header, in a new tab", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/sign-in")
+
+      assert [link] =
+               html
+               |> LazyHTML.from_document()
+               |> LazyHTML.query("header a[target=_blank]")
+               |> Enum.to_list()
+
+      assert LazyHTML.attribute(link, "href") == ["https://github.com/sealambda/chironium"]
+      assert LazyHTML.attribute(link, "aria-label") == ["Source code"]
+    end
+
     test "a provider that is off fails back to the sign-in page", %{conn: conn} do
       set_providers(google: nil, oidc: nil)
       conn = get(conn, ~p"/auth/user/oidc")
