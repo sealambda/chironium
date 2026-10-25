@@ -18,8 +18,10 @@ defmodule Chironium.Demo do
   @defaults [max_demos: 200, seed: &Seed.All.seed/2]
 
   # Serializes the cap check with the user insert, so concurrent starts can't pass the cap.
+  # The key is "DEMO" in ASCII.
   @lock_key 0x44454D4F
 
+  # The only thing that marks a user as a demo user.
   @email_domain "@demo.invalid"
 
   @doc "Whether this instance runs as a public demo."
@@ -34,7 +36,13 @@ defmodule Chironium.Demo do
   end
 
   @doc "Whether `user` is a throwaway demo user."
-  def demo_user?(user), do: user.email |> to_string() |> String.ends_with?(@email_domain)
+  def demo_user?(user) do
+    user.email |> to_string() |> String.downcase() |> String.ends_with?(@email_domain)
+  end
+
+  @doc "SQL `LIKE` pattern for demo user emails. `users.email` is `citext`, so it ignores case."
+  @spec email_pattern() :: String.t()
+  def email_pattern, do: "%" <> @email_domain
 
   @doc """
   Creates a demo user who owns a seeded organization. Returns `{:ok, user}`,
@@ -68,7 +76,7 @@ defmodule Chironium.Demo do
       Repo.query!("SELECT pg_advisory_xact_lock($1)", [@lock_key])
 
       %{rows: [[count]]} =
-        Repo.query!("SELECT count(*) FROM users WHERE email LIKE $1", ["%" <> @email_domain])
+        Repo.query!("SELECT count(*) FROM users WHERE email LIKE $1", [email_pattern()])
 
       if count >= config(:max_demos) do
         Repo.rollback(:full)

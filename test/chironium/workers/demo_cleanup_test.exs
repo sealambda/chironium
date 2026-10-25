@@ -274,6 +274,33 @@ defmodule Chironium.Workers.DemoCleanupTest do
     assert exists?("organizations", org.id)
   end
 
+  test "keeps going when one organization fails to delete, and keeps that one whole" do
+    {failing_owner, failing} = start_demo!()
+    {owner, org} = start_demo!()
+    Enum.each([failing_owner, failing, owner, org], &age!(&1, 25))
+
+    # Stands in for any database error while deleting this one organization.
+    Repo.query!("""
+    CREATE FUNCTION refuse_delete() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN RAISE EXCEPTION 'refused by test'; END $$
+    """)
+
+    Repo.query!("""
+    CREATE TRIGGER refuse_delete BEFORE DELETE ON organizations
+    FOR EACH ROW WHEN (OLD.id = '#{failing.id}') EXECUTE FUNCTION refuse_delete()
+    """)
+
+    log = capture_log(fn -> assert :ok = perform_job(DemoCleanup, %{}) end)
+
+    assert log =~ "[DemoCleanup] Kept organization #{failing.id}:"
+    assert log =~ "refused by test"
+    assert exists?("organizations", failing.id)
+    assert schema_exists?(failing)
+    assert exists?("users", failing_owner.id)
+    refute exists?("organizations", org.id)
+    refute exists?("users", owner.id)
+  end
+
   test "cancels and deletes nothing when demo mode is off" do
     {user, org} = start_demo!()
     age!(org, 25)

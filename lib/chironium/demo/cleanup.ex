@@ -6,9 +6,8 @@ defmodule Chironium.Demo.Cleanup do
   deleted, and `User` has no destroy action.
   """
 
+  alias Chironium.Demo
   alias Chironium.Repo
-
-  @demo_email "%@demo.invalid"
 
   # Timestamps are stored in UTC without a zone, so `now()` is shifted to UTC first.
   @older_than_a_day "inserted_at < (now() AT TIME ZONE 'utc') - interval '24 hours'"
@@ -22,10 +21,10 @@ defmodule Chironium.Demo.Cleanup do
     SELECT o.id::text FROM organizations o
     JOIN users owner ON owner.id = o.owner_id
     WHERE o.#{@older_than_a_day}
-      AND lower(owner.email::text) LIKE $1
+      AND owner.email LIKE $1
       AND NOT EXISTS (
         SELECT 1 FROM organization_users ou JOIN users u ON u.id = ou.user_id
-        WHERE ou.organization_id = o.id AND lower(u.email::text) NOT LIKE $1
+        WHERE ou.organization_id = o.id AND u.email NOT LIKE $1
       )
     """)
   end
@@ -38,13 +37,13 @@ defmodule Chironium.Demo.Cleanup do
     ids("""
     SELECT u.id::text FROM users u
     WHERE u.#{@older_than_a_day}
-      AND lower(u.email::text) LIKE $1
+      AND u.email LIKE $1
       AND NOT EXISTS (SELECT 1 FROM organizations o WHERE o.owner_id = u.id)
       AND NOT EXISTS (SELECT 1 FROM organization_users ou WHERE ou.user_id = u.id)
     """)
   end
 
-  defp ids(sql), do: Enum.map(Repo.query!(sql, [@demo_email]).rows, &hd/1)
+  defp ids(sql), do: Enum.map(Repo.query!(sql, [Demo.email_pattern()]).rows, &hd/1)
 
   @doc "Deletes an organization, its database schema and everything public that points at it."
   def delete_organization(id) do
