@@ -489,17 +489,21 @@ async function exploreBatch(mode, cases, label) {
 // Agents run one at a time: they share port 4000 and the dev database.
 async function explore(mode, cases) {
   const found = [];
-  const seen = new Set();
-  const key = (id, width) => `${id}@${width}`;
+  const seen = [];
+  // Agents split a case into sub-checks such as "D1-en" or "D6 sign-in unchanged", which still
+  // cover D1 and D6. A separator must follow the ID, so "D10" doesn't cover D1.
+  const covers = (reported, id) =>
+    reported === id || (reported.startsWith(id) && !/[A-Za-z0-9]/.test(reported[id.length]));
   const take = (e) => {
-    for (const c of e?.cases ?? []) seen.add(key(c.id, c.width));
+    seen.push(...(e?.cases ?? []));
     report.explore.push({ mode, blocked: e?.blocked ?? "no result", cases: e?.cases ?? [] });
     found.push(...(e?.findings ?? []));
   };
   for (let i = 0; i < cases.length; i += CHUNK) {
     take(await exploreBatch(mode, cases.slice(i, i + CHUNK), `${mode.replace(" ", "-")}-${i / CHUNK + 1}`));
   }
-  const missing = () => cases.filter((c) => WIDTHS.some((w) => !seen.has(key(c.id, w))));
+  const missing = () =>
+    cases.filter((c) => WIDTHS.some((w) => !seen.some((s) => s.width === w && covers(s.id, c.id))));
   if (missing().length) take(await exploreBatch(mode, missing(), `${mode.replace(" ", "-")}-retry`));
   const left = missing();
   if (left.length) {
