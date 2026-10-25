@@ -6,7 +6,10 @@ defmodule ChironiumWeb.DemoController do
   alias Chironium.Accounts.Organization
   alias Chironium.Accounts.User
   alias Chironium.Demo
+  alias ChironiumWeb.Plugs.PortalRateLimit
   alias ChironiumWeb.SessionSignIn
+
+  @hour_ms 60 * 60 * 1000
 
   # Remembers the visitor's demo user. Signing out clears only the session, so a
   # visitor who signs out and clicks "Try the demo" again gets the same demo.
@@ -28,8 +31,32 @@ defmodule ChironiumWeb.DemoController do
     conn = fetch_cookies(conn, signed: [@demo_cookie])
 
     case returning_user(conn) do
-      nil -> start(conn)
+      nil -> limit_starts(conn)
       user -> enter(conn, user)
+    end
+  end
+
+  # Only new demos count, so a visitor returning to their demo never hits the limit.
+  defp limit_starts(conn) do
+    key = {:demo_start, network(PortalRateLimit.client_ip(conn))}
+
+    case ChironiumWeb.RateLimit.hit(key, @hour_ms, Demo.config(:starts_per_network)) do
+      {:allow, _count} ->
+        start(conn)
+
+      {:deny, _retry_after_ms} ->
+        back_to_sign_in(
+          conn,
+          gettext("Too many demos were started from your network. Please try again in an hour.")
+        )
+    end
+  end
+
+  # One IPv6 visitor usually gets a whole /64, so the /64 counts as one address.
+  defp network(ip) do
+    case :inet.parse_address(String.to_charlist(ip)) do
+      {:ok, {a, b, c, d, _, _, _, _}} -> :inet.ntoa({a, b, c, d, 0, 0, 0, 0}) |> to_string()
+      _ -> ip
     end
   end
 
@@ -49,8 +76,6 @@ defmodule ChironiumWeb.DemoController do
 
   defp remembered_user(_id), do: nil
 
-  # No per-address limit: one IPv6 network has billions of addresses, so it wouldn't hold.
-  # The max_demos cap protects the server, and the worst abuse is a full demo for 24 hours.
   defp start(conn) do
     case Demo.start() do
       {:ok, user} ->

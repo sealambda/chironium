@@ -44,12 +44,10 @@ defmodule ChironiumWeb.Plugs.PortalRateLimit do
   end
 
   defp check(conn, bucket) do
-    config = Keyword.merge(@defaults, Application.get_env(:chironium, __MODULE__, []))
+    config = config()
     limit = Keyword.fetch!(config, :"#{bucket}_limit")
 
-    client = client_ip(conn, config[:trusted_proxies])
-
-    case ChironiumWeb.RateLimit.hit({bucket, client}, config[:scale_ms], limit) do
+    case ChironiumWeb.RateLimit.hit({bucket, client_ip(conn)}, config[:scale_ms], limit) do
       {:allow, _count} ->
         conn
 
@@ -60,6 +58,12 @@ defmodule ChironiumWeb.Plugs.PortalRateLimit do
         |> halt()
     end
   end
+
+  defp config, do: Keyword.merge(@defaults, Application.get_env(:chironium, __MODULE__, []))
+
+  @doc "The client's address, read from `x-forwarded-for` past `trusted_proxies` proxies."
+  @spec client_ip(Plug.Conn.t()) :: String.t()
+  def client_ip(conn), do: client_ip(conn, config()[:trusted_proxies])
 
   defp client_ip(conn, trusted_proxies) when trusted_proxies > 0 do
     hops =
