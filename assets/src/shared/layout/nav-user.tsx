@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { getUserInitials } from "@/shared/utils/name-utils";
+import { submitForm } from "@/shared/utils/request-utils";
 import { runtimeConfig } from "@/shared/utils/runtime-config";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { cn } from "@/shared/utils/utils";
@@ -35,7 +36,7 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
 
   const handleSignOut = () => {
     onAction?.();
-    globalThis.location.href = AUTH_URLS.signOut;
+    submitForm(AUTH_URLS.signOut, "delete");
   };
 
   return (

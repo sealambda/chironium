@@ -78,7 +78,7 @@ defmodule ChironiumWeb.AuthController do
 
     conn
     |> clear_session(:chironium)
-    |> put_flash(:info, "You are now signed out")
+    |> put_flash(:info, gettext("You are now signed out."))
     |> redirect_to_app(app_url)
   end
 

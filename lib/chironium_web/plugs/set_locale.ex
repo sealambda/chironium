@@ -28,6 +28,12 @@ defmodule ChironiumWeb.Plugs.SetLocale do
     Plug.Conn.assign(conn, :locale, locale)
   end
 
+  @doc """
+  Passes the request's locale to a LiveView session. The connected LiveView runs in
+  another process and can't read cookies, so without it the page falls back to English.
+  """
+  def live_session(conn), do: %{"locale" => conn.assigns[:locale]}
+
   defp from_header(conn) do
     conn
     |> Plug.Conn.get_req_header(@locale_header)

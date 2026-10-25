@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { LanguageToggle } from "@/shared/ui/language-toggle";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getUserInitials } from "@/shared/utils/name-utils";
+import { submitForm } from "@/shared/utils/request-utils";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 
 export function ProfilePage() {
@@ -21,7 +22,7 @@ export function ProfilePage() {
         <Button
           variant="link"
           onClick={() => {
-            globalThis.location.href = AUTH_URLS.signOut;
+            submitForm(AUTH_URLS.signOut, "delete");
           }}
         >
           <LogOut className="size-4" data-icon="inline-start" />

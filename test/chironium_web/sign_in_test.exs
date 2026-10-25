@@ -72,6 +72,13 @@ defmodule ChironiumWeb.SignInTest do
       assert html =~ "The demo is full right now. Please try again later."
     end
 
+    test "keeps the language from the cookie once connected", %{conn: conn} do
+      {:ok, view, _html} =
+        conn |> put_req_cookie("PARAGLIDE_LOCALE", "es") |> live(~p"/sign-in")
+
+      assert render(view) =~ "Cambiar idioma"
+    end
+
     test "links to the source code from the header, in a new tab", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/sign-in")
 
@@ -83,6 +90,16 @@ defmodule ChironiumWeb.SignInTest do
 
       assert LazyHTML.attribute(link, "href") == ["https://github.com/sealambda/chironium"]
       assert LazyHTML.attribute(link, "aria-label") == ["Source code"]
+    end
+
+    test "signing out keeps the language", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_cookie("PARAGLIDE_LOCALE", "es")
+        |> Plug.Test.init_test_session(%{})
+        |> delete(~p"/sign-out")
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) == "Has cerrado sesión."
     end
 
     test "a provider that is off fails back to the sign-in page", %{conn: conn} do
