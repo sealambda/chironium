@@ -42,8 +42,8 @@ defmodule ChironiumWeb.DemoControllerTest do
       assert conn |> recycle() |> get(~p"/app") |> html_response(200)
     end
 
-    # The seed code lives under Mix.Tasks, but Mix isn't in a release, so a Mix
-    # shell call on this path would pass here and crash every start in production.
+    # Seeding must not use Mix, which a release does not include, so a Mix
+    # shell call there would pass in tests and crash every start in production.
     test "seeds without Mix's shell" do
       previous = Mix.shell()
       Mix.shell(__MODULE__.RefusingShell)

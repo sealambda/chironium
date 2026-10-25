@@ -1,11 +1,11 @@
-defmodule Mix.Tasks.Chironium.Seed.All do
+defmodule Chironium.Seed.All do
   @moduledoc """
   Fills an existing organization with practitioners, patients and their clinical data.
 
   Shared by `mix chironium.seed`, `Chironium.Release.seed/1` and `Chironium.Demo.start/0`.
   """
 
-  alias Mix.Tasks.Chironium.Seed.{
+  alias Chironium.Seed.{
     Allergies,
     CareTeams,
     ClinicalNotes,

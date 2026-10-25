@@ -4,7 +4,8 @@ defmodule Mix.Tasks.Chironium.Seed do
 
   use Mix.Task
 
-  alias Mix.Tasks.Chironium.Seed.{All, Helpers, Organization}
+  alias Chironium.Seed.{All, Organization}
+  alias Mix.Tasks.Chironium.Seed.Helpers
 
   @default_patients 50
   @default_practitioners 10

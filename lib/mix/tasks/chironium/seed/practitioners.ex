@@ -4,8 +4,7 @@ defmodule Mix.Tasks.Chironium.Seed.Practitioners do
 
   use Mix.Task
 
-  import Chironium.Generator
-
+  alias Chironium.Seed
   alias Mix.Tasks.Chironium.Seed.Helpers
 
   @default_count 10
@@ -16,13 +15,8 @@ defmodule Mix.Tasks.Chironium.Seed.Practitioners do
     count = Keyword.get(opts, :count, @default_count)
 
     Helpers.ensure_started!()
-    practitioners = seed(tenant, count)
+    practitioners = Seed.Practitioners.seed(tenant, count)
 
     Helpers.info("[Seed] #{length(practitioners)} practitioners created.")
-  end
-
-  @doc "Seed `count` practitioners. Returns the list of created practitioners."
-  def seed(tenant, count \\ @default_count) do
-    generate_many(practitioner(Helpers.ash_opts(tenant)), count)
   end
 end
