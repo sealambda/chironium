@@ -43,9 +43,9 @@ jobs:
           install: false
           cache: true
       - run: mise install osv-scanner
-      # Scoped to the JS dependency tree (frontend). Honors osv-scanner.toml allowlist.
+      # Scans the JS (frontend) and Hex (backend) dependency trees. Honors osv-scanner.toml allowlist.
       - name: osv-scanner
-        run: mise exec -- osv-scanner scan source --lockfile pnpm-lock.yaml --config osv-scanner.toml
+        run: mise exec -- osv-scanner scan source --lockfile pnpm-lock.yaml --lockfile mix.lock --config osv-scanner.toml
 
   sast:
     name: opengrep (SAST)
