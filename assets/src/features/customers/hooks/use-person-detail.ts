@@ -65,8 +65,8 @@ export function usePersonDetail(personId: string) {
   const patientObservations = patientDetail.data?.observations ?? [];
 
   const anthropometryHistoryData = useMemo(
-    () => selectAnthropometryHistory(patientObservations),
-    [patientObservations],
+    () => selectAnthropometryHistory(patientObservations, selectedOrg?.timezone),
+    [patientObservations, selectedOrg?.timezone],
   );
   const menstrualCycleData = useMemo(
     () => selectLatestMenstrualCycle(patientObservations),

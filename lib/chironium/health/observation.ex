@@ -6,7 +6,6 @@ defmodule Chironium.Health.Observation do
   """
   require Ash.Resource.Change.Builtins
   require Ash.Query
-  require Logger
 
   use Chironium.BaseResources.Tenantable,
     otp_app: :chironium,
@@ -24,8 +23,6 @@ defmodule Chironium.Health.Observation do
   @unit_of_measure_system "http://unitsofmeasure.org"
   @unit_of_measure_code_kg "kg"
   @unit_of_measure_code_cm "cm"
-  @unit_of_measure_code_bmi "kg/m2"
-  @unit_of_measure_code_ratio "1"
   @unit_of_measure_code_day "d"
   @unit_of_measure_code_year "a"
 
@@ -205,29 +202,6 @@ defmodule Chironium.Health.Observation do
                  value: arg(:weight_kg)
                }
              )
-
-      # TODO Maybe we should move this to a external change?
-      change after_action(fn changeset, observation, context ->
-               opts = [tenant: context.tenant, authorize?: false]
-
-               case Chironium.Health.Observation
-                    |> Ash.Changeset.for_create(
-                      :compute_bmi,
-                      %{subject_id: observation.subject_id},
-                      opts
-                    )
-                    |> Ash.create() do
-                 {:ok, _} ->
-                   :ok
-
-                 {:error, reason} ->
-                   Logger.warning(
-                     "[Observation] BMI computation skipped after weight log: #{inspect(reason)}"
-                   )
-               end
-
-               {:ok, observation}
-             end)
     end
 
     read :read_body_weight do
@@ -277,29 +251,6 @@ defmodule Chironium.Health.Observation do
                  value: arg(:height_cm)
                }
              )
-
-      # TODO Maybe we should move this to a external change?
-      change after_action(fn changeset, observation, context ->
-               opts = [tenant: context.tenant, authorize?: false]
-
-               case Chironium.Health.Observation
-                    |> Ash.Changeset.for_create(
-                      :compute_bmi,
-                      %{subject_id: observation.subject_id},
-                      opts
-                    )
-                    |> Ash.create() do
-                 {:ok, _} ->
-                   :ok
-
-                 {:error, reason} ->
-                   Logger.warning(
-                     "[Observation] BMI computation skipped after height log: #{inspect(reason)}"
-                   )
-               end
-
-               {:ok, observation}
-             end)
     end
 
     read :read_body_height do
@@ -316,68 +267,6 @@ defmodule Chironium.Health.Observation do
     end
 
     ### BMI
-    create :compute_bmi do
-      description "Auto-generate a BMI observation from the latest weight and height."
-      accept [:subject_id, :effective_date_time]
-
-      change set_attribute(:code, %{
-               coding: [
-                 %{
-                   system: @loinc_system,
-                   code: @loinc_code_bmi
-                 }
-               ]
-             })
-
-      # TODO Maybe we should move this to a external change?
-      change fn changeset, context ->
-        subject_id = Ash.Changeset.get_attribute(changeset, :subject_id)
-        tenant = context.tenant
-
-        weight_query =
-          Chironium.Health.Observation
-          |> Ash.Query.for_read(:read_body_weight)
-          |> Ash.Query.filter(subject_id == ^subject_id)
-          |> Ash.Query.sort(id: :desc)
-
-        height_query =
-          Chironium.Health.Observation
-          |> Ash.Query.for_read(:read_body_height)
-          |> Ash.Query.filter(subject_id == ^subject_id)
-          |> Ash.Query.sort(id: :desc)
-
-        with {:ok, %{results: [weight]}} <-
-               Ash.read(weight_query, tenant: tenant, authorize?: false, page: [limit: 1]),
-             {:ok, %{results: [height]}} <-
-               Ash.read(height_query, tenant: tenant, authorize?: false, page: [limit: 1]) do
-          weight_kg = weight.value_quantity.value
-          height_cm = height.value_quantity.value
-          height_m = Decimal.div(height_cm, Decimal.new(100))
-          bmi = Decimal.div(weight_kg, Decimal.mult(height_m, height_m))
-
-          effective_date_time =
-            Enum.max([weight.effective_date_time, height.effective_date_time], DateTime)
-
-          changeset =
-            changeset
-            |> Ash.Changeset.change_attribute(:value_quantity, %{
-              system: @unit_of_measure_system,
-              code: @unit_of_measure_code_bmi,
-              value: Decimal.round(bmi, 1)
-            })
-            |> Ash.Changeset.change_attribute(:effective_date_time, effective_date_time)
-
-          changeset
-        else
-          _ ->
-            Ash.Changeset.add_error(changeset,
-              field: :subject_id,
-              message: "No weight or height observation found for subject."
-            )
-        end
-      end
-    end
-
     read :read_bmi do
       description "Read all BMI observations."
       pagination default_limit: 1, keyset?: true
@@ -392,63 +281,6 @@ defmodule Chironium.Health.Observation do
     end
 
     ### Waist/hip ratio
-    create :compute_waist_hip_ratio do
-      description "Auto-generate a waist/hip ratio observation from the latest waist and hip circumference."
-      accept [:subject_id, :effective_date_time]
-
-      change set_attribute(:code, %{
-               coding: [
-                 %{
-                   system: @snomed_system,
-                   code: @snomed_waist_hip_ratio
-                 }
-               ]
-             })
-
-      change fn changeset, context ->
-        subject_id = Ash.Changeset.get_attribute(changeset, :subject_id)
-        tenant = context.tenant
-
-        waist_query =
-          Chironium.Health.Observation
-          |> Ash.Query.for_read(:read_waist_circumference)
-          |> Ash.Query.filter(subject_id == ^subject_id)
-          |> Ash.Query.sort(id: :desc)
-
-        hip_query =
-          Chironium.Health.Observation
-          |> Ash.Query.for_read(:read_hip_circumference)
-          |> Ash.Query.filter(subject_id == ^subject_id)
-          |> Ash.Query.sort(id: :desc)
-
-        with {:ok, %{results: [waist]}} <-
-               Ash.read(waist_query, tenant: tenant, authorize?: false, page: [limit: 1]),
-             {:ok, %{results: [hip]}} <-
-               Ash.read(hip_query, tenant: tenant, authorize?: false, page: [limit: 1]) do
-          waist_cm = waist.value_quantity.value
-          hip_cm = hip.value_quantity.value
-          ratio = Decimal.div(waist_cm, hip_cm)
-
-          effective_date_time =
-            Enum.max([waist.effective_date_time, hip.effective_date_time], DateTime)
-
-          changeset
-          |> Ash.Changeset.change_attribute(:value_quantity, %{
-            system: @unit_of_measure_system,
-            code: @unit_of_measure_code_ratio,
-            value: Decimal.round(ratio, 2)
-          })
-          |> Ash.Changeset.change_attribute(:effective_date_time, effective_date_time)
-        else
-          _ ->
-            Ash.Changeset.add_error(changeset,
-              field: :subject_id,
-              message: "No waist or hip circumference observation found for subject."
-            )
-        end
-      end
-    end
-
     read :read_waist_hip_ratio do
       description "Read all waist/hip ratio observations."
       pagination default_limit: 1, keyset?: true
@@ -527,28 +359,6 @@ defmodule Chironium.Health.Observation do
                code: @unit_of_measure_code_cm,
                value: arg(:hip_circumference_cm)
              })
-
-      change after_action(fn changeset, observation, context ->
-               opts = [tenant: context.tenant, authorize?: false]
-
-               case Chironium.Health.Observation
-                    |> Ash.Changeset.for_create(
-                      :compute_waist_hip_ratio,
-                      %{subject_id: observation.subject_id},
-                      opts
-                    )
-                    |> Ash.create() do
-                 {:ok, _} ->
-                   :ok
-
-                 {:error, reason} ->
-                   Logger.warning(
-                     "[Observation] Waist/hip ratio computation skipped after hip log: #{inspect(reason)}"
-                   )
-               end
-
-               {:ok, observation}
-             end)
     end
 
     read :read_hip_circumference do
@@ -589,28 +399,6 @@ defmodule Chironium.Health.Observation do
                code: @unit_of_measure_code_cm,
                value: arg(:waist_circumference_cm)
              })
-
-      change after_action(fn changeset, observation, context ->
-               opts = [tenant: context.tenant, authorize?: false]
-
-               case Chironium.Health.Observation
-                    |> Ash.Changeset.for_create(
-                      :compute_waist_hip_ratio,
-                      %{subject_id: observation.subject_id},
-                      opts
-                    )
-                    |> Ash.create() do
-                 {:ok, _} ->
-                   :ok
-
-                 {:error, reason} ->
-                   Logger.warning(
-                     "[Observation] Waist/hip ratio computation skipped after waist log: #{inspect(reason)}"
-                   )
-               end
-
-               {:ok, observation}
-             end)
     end
 
     read :read_waist_circumference do
@@ -843,6 +631,10 @@ defmodule Chironium.Health.Observation do
     policy action_type([:create, :update, :destroy]) do
       authorize_if Chironium.Accounts.Checks.StaffActor
     end
+  end
+
+  changes do
+    change Chironium.Health.Observation.Changes.RecomputeDerived, on: [:create, :update]
   end
 
   validations do

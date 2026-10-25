@@ -1,3 +1,5 @@
+import { format, parseISO } from "date-fns";
+
 import type {
   AnthropometricSnapshot,
   AnthropometryAnnotation,
@@ -7,6 +9,7 @@ import type {
 import { CIRCUMFERENCE_KEYS } from "@/features/customers/api/anthropometry-api";
 import { extractValue } from "@/features/customers/api/anthropometry-api.helpers";
 import type { PatientObservation } from "@/features/customers/api/patients-api";
+import { inZone } from "@/shared/utils/date-time-input";
 
 const ANTHROPOMETRY_OBSERVATION_KEYS: readonly AnthropometryObservationKey[] = [
   "weight",
@@ -66,18 +69,21 @@ function getObservationRef(
 /**
  * Select the full anthropometric history from patient observations.
  *
- * Observations are grouped by calendar date so measurements recorded on different days are
- * never merged into the same snapshot. Returns snapshots sorted DESC by date — consumers that
+ * Observations are grouped by calendar date in `timeZone` (the organization's, matching how the
+ * server derives BMI per day) so measurements recorded on different days are never merged into
+ * the same snapshot. Returns snapshots sorted DESC by date — consumers that
  * only need the latest entries can read `result[0]` (most recent) and `result[1]` (previous).
  */
 export function selectAnthropometryHistory(
   observations: readonly ObservationRecord[] | null | undefined,
+  timeZone?: string,
 ): AnthropometricSnapshot[] {
-  // Truncate an ISO datetime to a YYYY-MM-DD date key for grouping.
-  const toDateKey = (dt: string): string => dt.slice(0, 10);
+  const toDateKey = (dt: string): string => format(parseISO(dt), "yyyy-MM-dd", inZone(timeZone));
 
   // Accumulate one snapshot per calendar date.
   const byDate = new Map<string, AnthropometricSnapshot>();
+  // Sort key of the observation each field currently holds, per date.
+  const fieldOrder = new Map<string, string>();
 
   const mergeObservation = (
     snapshot: AnthropometricSnapshot,
@@ -116,6 +122,13 @@ export function selectAnthropometryHistory(
       snapshot = { date: dt };
       byDate.set(key, snapshot);
     }
+    // A day can hold several values for one field; show the latest, as the server does for BMI.
+    const order = `${dt}|${obs.id ?? ""}`;
+    const fieldKey = `${key}:${field}`;
+    if ((fieldOrder.get(fieldKey) ?? "") > order) {
+      continue;
+    }
+    fieldOrder.set(fieldKey, order);
     mergeObservation(snapshot, field, obs, dt);
   }
 
