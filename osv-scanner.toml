@@ -1,6 +1,6 @@
 # OSV-Scanner configuration — https://google.github.io/osv-scanner/configuration/
 #
-# SCA gate for the JS/pnpm dependency tree (scans pnpm-lock.yaml). Any high/critical
+# SCA gate for the JS and Hex dependency trees (scans pnpm-lock.yaml and mix.lock). Any
 # CVE must be remediated (via pnpm overrides / a dependency bump) OR explicitly ignored
 # here WITH a reason and a review date. Keep this list short and revisit on every
 # Renovate run. Example:
