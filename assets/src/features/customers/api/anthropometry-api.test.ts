@@ -68,3 +68,36 @@ describe("selfReportedAnthropometryKeys", () => {
     ).toEqual([]);
   });
 });
+
+describe("selectAnthropometryHistory", () => {
+  it("shows the latest value of a field when a day holds several", () => {
+    const [day] = selectAnthropometryHistory([
+      buildObservation({
+        id: "weight-late",
+        effectiveDateTime: "2026-09-22T18:00:00.000Z",
+        valueQuantity: { value: "70", unit: "kg", system: null, code: "kg" },
+      }),
+      buildObservation({
+        id: "weight-early",
+        effectiveDateTime: "2026-09-22T10:00:00.000Z",
+        valueQuantity: { value: "80", unit: "kg", system: null, code: "kg" },
+      }),
+    ]);
+
+    expect(day?.weight).toBe(70);
+    expect(day?.observations?.weight?.id).toBe("weight-late");
+  });
+
+  it("groups days in the given timezone", () => {
+    const history = selectAnthropometryHistory(
+      [
+        buildObservation({ id: "morning", effectiveDateTime: "2026-09-22T10:00:00.000Z" }),
+        // 00:30 on the 23rd in Madrid, still the 22nd in UTC.
+        buildObservation({ id: "after-midnight", effectiveDateTime: "2026-09-22T22:30:00.000Z" }),
+      ],
+      "Europe/Madrid",
+    );
+
+    expect(history).toHaveLength(2);
+  });
+});
