@@ -1,5 +1,10 @@
+import { SiGithub } from "@icons-pack/react-simple-icons";
+
+import * as m from "@/paraglide/messages";
 import { useCurrentUser } from "@/shared/session/use-current-user";
+import { buttonVariants } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { runtimeConfig } from "@/shared/utils/runtime-config";
 import { cn } from "@/shared/utils/utils";
 
 import { useDetailMode } from "./detail-context";
@@ -32,7 +37,7 @@ export function TopNav({ onCreateOrgClick, onJoinOrgClick }: TopNavProps) {
             <Skeleton className="h-9 w-9 rounded-md" />
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <Skeleton className="h-9 w-72 rounded-md" />
+            <Skeleton className="size-9 rounded-md" />
           </div>
         </div>
       </header>
@@ -55,7 +60,18 @@ export function TopNav({ onCreateOrgClick, onJoinOrgClick }: TopNavProps) {
         <div className="sm:hidden">
           <MobileSideNav onCreateOrgClick={onCreateOrgClick} onJoinOrgClick={onJoinOrgClick} />
         </div>
-        <div className="min-w-0 flex-1">{headerContent}</div>
+        {runtimeConfig.sourceCodeUrl ? (
+          <a
+            href={runtimeConfig.sourceCodeUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={m.nav_source_code()}
+            title={m.nav_source_code()}
+            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "ml-auto")}
+          >
+            <SiGithub size={16} aria-hidden />
+          </a>
+        ) : null}
       </div>
     </header>
   );

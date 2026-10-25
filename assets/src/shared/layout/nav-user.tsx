@@ -1,4 +1,5 @@
-import { ChevronsUpDown, Code, LogOut } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 
 import * as m from "@/paraglide/messages";
 import { useCurrentUser } from "@/shared/session/use-current-user";
@@ -12,7 +13,6 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { getUserInitials } from "@/shared/utils/name-utils";
 import { submitForm } from "@/shared/utils/request-utils";
-import { runtimeConfig } from "@/shared/utils/runtime-config";
 import { AUTH_URLS } from "@/shared/utils/url-utils";
 import { cn } from "@/shared/utils/utils";
 
@@ -82,7 +82,11 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" side="top" sideOffset={4} className="w-64 rounded-lg">
-        <div className="flex items-center gap-2 px-2 py-2 text-left text-sm">
+        <DropdownMenuItem
+          render={<Link to="/profile" />}
+          onClick={onAction}
+          className="gap-2 px-2 py-2"
+        >
           <Avatar className="size-8 border border-border/60">
             <AvatarImage
               src={user?.picture ?? undefined}
@@ -97,18 +101,9 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
             <span className="truncate font-semibold">{displayName}</span>
             <span className="truncate text-xs text-muted-foreground">{displayEmail}</span>
           </div>
-        </div>
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-
-        {runtimeConfig.sourceCodeUrl ? (
-          <DropdownMenuItem
-            render={<a href={runtimeConfig.sourceCodeUrl} target="_blank" rel="noreferrer" />}
-          >
-            <Code aria-hidden />
-            {m.nav_source_code()}
-          </DropdownMenuItem>
-        ) : null}
 
         <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
           <LogOut aria-hidden />

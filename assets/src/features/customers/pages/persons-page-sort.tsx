@@ -14,22 +14,18 @@ import {
 export function CustomerSortDropdown({
   sortOption,
   onSortOptionChange,
-  compact = false,
 }: Readonly<{
   sortOption: PersonListSortOption;
   onSortOptionChange: (sort: PersonListSortOption) => void;
-  compact?: boolean;
 }>) {
   const selectedSortLabel = getSortOptionLabel(sortOption);
   const SortIcon = getSortTriggerIcon(sortOption);
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="outline" size={compact ? "icon-sm" : "sm"} type="button" />}
-      >
+      <DropdownMenuTrigger render={<Button variant="outline" size="sm" type="button" />}>
         <SortIcon data-icon="inline-start" aria-hidden />
-        <span className={compact ? "sr-only" : undefined}>{selectedSortLabel}</span>
+        <span className="sr-only sm:not-sr-only">{selectedSortLabel}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>{m.customers_sort_by()}</DropdownMenuLabel>

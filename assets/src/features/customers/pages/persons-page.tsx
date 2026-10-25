@@ -33,7 +33,6 @@ import { OnboardingDialog } from "@/features/customers/ui/onboarding/onboarding-
 import { ReassignCustomersDialog } from "@/features/customers/ui/reassign-customers-dialog";
 import { invalidatePersonDetail } from "@/features/customers/utils/person-detail-cache";
 import * as m from "@/paraglide/messages";
-import { useDetailMode } from "@/shared/layout/detail-context";
 import { useCurrentUser } from "@/shared/session/use-current-user";
 import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
@@ -108,7 +107,6 @@ export function CustomersPage() {
   const queryClient = useQueryClient();
   const { selectedOrg, loading: orgsLoading } = useOrg();
   const { user } = useCurrentUser();
-  const { setHeaderContent } = useDetailMode();
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -199,35 +197,6 @@ export function CustomersPage() {
     setListFilters(getStoredCustomerListFilters(selectedOrg.id));
   }, [selectedOrg?.id]);
 
-  useEffect(() => {
-    if (!selectedOrg || isLoading || error) {
-      setHeaderContent(null);
-      return;
-    }
-
-    setHeaderContent(
-      <div className="ml-auto flex w-full items-center justify-end gap-3">
-        {showListControls ? (
-          <div className="hidden w-72 sm:block">
-            <ListSearchField
-              value={search}
-              onChange={setSearch}
-              placeholder={m.customers_search_placeholder()}
-            />
-          </div>
-        ) : null}
-        <Button onClick={() => setOnboardingOpen(true)} data-testid="customers-new-button-header">
-          <Plus data-icon="inline-start" aria-hidden />
-          <span className="hidden md:inline">{m.customer_add()}</span>
-        </Button>
-      </div>,
-    );
-
-    return () => {
-      setHeaderContent(null);
-    };
-  }, [error, isLoading, search, selectedOrg, setHeaderContent, showListControls]);
-
   if (orgsLoading || (selectedOrg && isLoading)) {
     return <Loading />;
   }
@@ -250,11 +219,11 @@ export function CustomersPage() {
 
   return (
     <div className="flex flex-col gap-4 pt-7">
-      <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-baseline gap-2">
             <h1
-              className="text-xl font-bold tracking-wide text-foreground uppercase"
+              className="text-xl leading-9 font-bold tracking-wide text-foreground uppercase"
               data-testid="customers-heading"
             >
               {m.customers_title()}
@@ -267,19 +236,35 @@ export function CustomersPage() {
             </p>
           ) : null}
         </div>
-        {showListControls ? (
-          <div className="hidden items-center gap-2 sm:flex">
-            <CustomerSortDropdown
-              sortOption={sortOption}
-              onSortOptionChange={handleSortOptionChange}
-            />
-            <CustomerFiltersButton listFilters={listFilters} onClick={() => setFilterOpen(true)} />
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {showListControls ? (
+            <div className="hidden items-center gap-2 xl:flex">
+              <div className="w-72">
+                <ListSearchField
+                  value={search}
+                  onChange={setSearch}
+                  placeholder={m.customers_search_placeholder()}
+                />
+              </div>
+              <CustomerSortDropdown
+                sortOption={sortOption}
+                onSortOptionChange={handleSortOptionChange}
+              />
+              <CustomerFiltersButton
+                listFilters={listFilters}
+                onClick={() => setFilterOpen(true)}
+              />
+            </div>
+          ) : null}
+          <Button onClick={() => setOnboardingOpen(true)} data-testid="customers-new-button-header">
+            <Plus data-icon="inline-start" aria-hidden />
+            <span className="sr-only sm:not-sr-only">{m.customer_add()}</span>
+          </Button>
+        </div>
       </header>
 
       {showListControls ? (
-        <div className="flex items-center gap-2 sm:hidden">
+        <div className="flex items-center gap-2 xl:hidden">
           <div className="min-w-0 flex-1">
             <ListSearchField
               value={search}
@@ -290,13 +275,8 @@ export function CustomersPage() {
           <CustomerSortDropdown
             sortOption={sortOption}
             onSortOptionChange={handleSortOptionChange}
-            compact
           />
-          <CustomerFiltersButton
-            listFilters={listFilters}
-            onClick={() => setFilterOpen(true)}
-            compact
-          />
+          <CustomerFiltersButton listFilters={listFilters} onClick={() => setFilterOpen(true)} />
         </div>
       ) : null}
 
@@ -361,11 +341,9 @@ function formatFilterSummary(filters: CustomerListFilters): string {
 function CustomerFiltersButton({
   listFilters,
   onClick,
-  compact = false,
 }: Readonly<{
   listFilters: CustomerListFilters;
   onClick: () => void;
-  compact?: boolean;
 }>) {
   const hasActiveFilters = hasCustomerListFilters(listFilters);
   const filterSummary = formatFilterSummary(listFilters);
@@ -373,7 +351,7 @@ function CustomerFiltersButton({
   return (
     <Button
       variant={hasActiveFilters ? "secondary" : "outline"}
-      size={compact ? "icon-sm" : "sm"}
+      size="sm"
       type="button"
       onClick={onClick}
       aria-label={
@@ -384,7 +362,7 @@ function CustomerFiltersButton({
       data-testid="customer-filters-button"
     >
       <ListFilterIcon data-icon="inline-start" aria-hidden />
-      {compact ? null : <span>{m.customers_filters()}</span>}
+      <span className="hidden sm:inline">{m.customers_filters()}</span>
     </Button>
   );
 }

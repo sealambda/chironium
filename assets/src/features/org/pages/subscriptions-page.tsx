@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Building2, CreditCard, Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { fetchSubscriptionPlans } from "@/features/customers/api/subscriptions-api";
 import { fetchOrganizationSettings } from "@/features/org/api/org-api";
@@ -12,7 +12,6 @@ import {
 import { SubscriptionPlansTable } from "@/features/org/ui/subscription-plans-table";
 import { canManageOrgMembers } from "@/features/org/utils/settings-member-table-model";
 import * as m from "@/paraglide/messages";
-import { useDetailMode } from "@/shared/layout/detail-context";
 import { useCurrentUser } from "@/shared/session/use-current-user";
 import { useOrg } from "@/shared/session/use-org";
 import type { SubscriptionPlan } from "@/shared/types/subscriptions";
@@ -28,7 +27,6 @@ import { orgSettingsQueryKey, subscriptionPlansQueryKey } from "@/shared/utils/q
 export function SubscriptionsPage() {
   const { user: currentUser } = useCurrentUser();
   const { selectedOrg, loading: orgsLoading } = useOrg();
-  const { setHeaderContent } = useDetailMode();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
 
@@ -59,31 +57,6 @@ export function SubscriptionsPage() {
       queryKey: subscriptionPlansQueryKey(selectedOrg?.id ?? ""),
     });
 
-  useEffect(() => {
-    if (!selectedOrg || plansLoading || plansError) {
-      setHeaderContent(null);
-      return;
-    }
-
-    if (!canAddPlans) {
-      setHeaderContent(null);
-      return;
-    }
-
-    setHeaderContent(
-      <div className="ml-auto flex w-full items-center justify-end gap-3">
-        <Button onClick={() => setAddOpen(true)}>
-          <Plus className="size-4" data-icon="inline-start" />
-          <span className="hidden md:inline">{m.subscriptions_add_plan()}</span>
-        </Button>
-      </div>,
-    );
-
-    return () => {
-      setHeaderContent(null);
-    };
-  }, [canAddPlans, plansError, plansLoading, selectedOrg, setHeaderContent]);
-
   if (orgsLoading || plansLoading) {
     return <Loading />;
   }
@@ -99,13 +72,19 @@ export function SubscriptionsPage() {
 
   return (
     <div className="space-y-4 pt-7">
-      <header className="flex items-center justify-between">
+      <header className="flex items-start justify-between gap-3">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-2xl font-bold tracking-wide text-foreground uppercase">
+          <h1 className="text-xl leading-9 font-bold tracking-wide text-foreground uppercase">
             {m.subscriptions_title()}
           </h1>
           <span className="text-sm text-muted-foreground">({plans.length})</span>
         </div>
+        {canAddPlans ? (
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="size-4" data-icon="inline-start" />
+            <span className="sr-only sm:not-sr-only">{m.subscriptions_add_plan()}</span>
+          </Button>
+        ) : null}
       </header>
 
       <PlanList items={plans} canAddPlans={canAddPlans} onAdd={() => setAddOpen(true)} />

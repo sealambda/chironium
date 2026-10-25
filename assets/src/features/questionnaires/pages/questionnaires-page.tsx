@@ -204,16 +204,13 @@ export function QuestionnairesPage() {
 
   return (
     <div className="flex flex-col gap-4 pt-7">
-      <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-xl font-bold tracking-wide text-foreground uppercase">
-            {m.questionnaire_library_title()}
-          </h1>
-          <p className="text-sm text-muted-foreground">{m.questionnaire_library_hint()}</p>
-        </div>
+      <header className="flex items-start justify-between gap-3">
+        <h1 className="text-xl leading-9 font-bold tracking-wide text-foreground uppercase">
+          {m.questionnaire_library_title()}
+        </h1>
         <Button onClick={() => setPickerOpen(true)}>
           <Plus className="size-4" />
-          {m.questionnaire_new()}
+          <span className="sr-only sm:not-sr-only">{m.questionnaire_new()}</span>
         </Button>
       </header>
 

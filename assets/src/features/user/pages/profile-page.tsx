@@ -1,8 +1,6 @@
 import { LogOut } from "lucide-react";
-import { useEffect } from "react";
 
 import * as m from "@/paraglide/messages";
-import { useDetailMode } from "@/shared/layout/detail-context";
 import { useCurrentUser } from "@/shared/session/use-current-user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -14,28 +12,6 @@ import { AUTH_URLS } from "@/shared/utils/url-utils";
 
 export function ProfilePage() {
   const { user, isLoading } = useCurrentUser();
-  const { setHeaderContent } = useDetailMode();
-
-  useEffect(() => {
-    setHeaderContent(
-      <div className="ml-auto flex w-full justify-end">
-        <Button
-          variant="link"
-          onClick={() => {
-            submitForm(AUTH_URLS.signOut, "delete");
-          }}
-        >
-          <LogOut className="size-4" data-icon="inline-start" />
-          <span className="hidden sm:inline">{m.nav_sign_out()}</span>
-        </Button>
-      </div>,
-    );
-
-    return () => {
-      setHeaderContent(null);
-    };
-  }, [setHeaderContent]);
-
   if (isLoading) {
     return (
       <div className="flex min-h-svh flex-col items-center pt-10">
@@ -64,6 +40,16 @@ export function ProfilePage() {
         <div className="mt-3 flex justify-center">
           <LanguageToggle />
         </div>
+        <Button
+          variant="link"
+          className="mt-6"
+          onClick={() => {
+            submitForm(AUTH_URLS.signOut, "delete");
+          }}
+        >
+          <LogOut className="size-4" data-icon="inline-start" />
+          {m.nav_sign_out()}
+        </Button>
       </div>
     </div>
   );

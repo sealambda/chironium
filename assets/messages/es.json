@@ -687,7 +687,6 @@
   "questionnaire_fill_success": "Respuesta guardada.",
   "questionnaire_fill_title": "Completar un cuestionario",
   "questionnaire_items_heading": "Preguntas",
-  "questionnaire_library_hint": "Complétalos desde la ficha del paciente: Añadir registro → Cuestionario.",
   "questionnaire_library_title": "Cuestionarios",
   "questionnaire_link_desc": "Envía este enlace al paciente. Abre el cuestionario en un solo dispositivo.",
   "questionnaire_link_email_sent": "El enlace también se envió al paciente por correo electrónico.",
