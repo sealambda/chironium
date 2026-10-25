@@ -22,7 +22,9 @@ async function waitForVite(): Promise<void> {
 
   while (Date.now() < deadline) {
     try {
-      if ((await fetch(`${VITE_URL}/@vite/client`)).ok) return;
+      if ((await fetch(`${VITE_URL}/@vite/client`)).ok) {
+        return;
+      }
     } catch {
       // Not listening yet.
     }
