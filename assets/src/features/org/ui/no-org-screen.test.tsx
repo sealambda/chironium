@@ -29,13 +29,13 @@ describe("NoOrgScreen", () => {
     expect(screen.queryByTestId("no-org-start-demo-button")).toBeNull();
   });
 
-  it("says the demo ended and offers a new one, not a new organization", () => {
+  it("says the demo ended and offers only a new one", () => {
     config.demo = true;
     renderScreen();
 
     expect(screen.getByText(m.demo_ended_title())).toBeVisible();
     expect(screen.getByRole("button", { name: m.demo_start_new() })).toBeVisible();
-    expect(screen.getByTestId("no-org-join-by-invitation-button")).toBeVisible();
+    expect(screen.queryByTestId("no-org-join-by-invitation-button")).toBeNull();
     expect(screen.queryByTestId("no-org-create-organization-button")).toBeNull();
   });
 
