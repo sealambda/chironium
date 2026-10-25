@@ -83,6 +83,34 @@ defmodule ChironiumWeb.DemoControllerTest do
       assert count("SELECT count(*) FROM users") == users
     end
 
+    test "limits new demos per network, but not visitors returning to theirs" do
+      put_config(seed: fn _tenant, _opts -> :ok end, starts_per_network: 2)
+      ip = unique_ipv4()
+
+      first = start_from(ip)
+      assert redirected_to(first) == ~p"/app"
+      assert redirected_to(start_from(ip)) == ~p"/app"
+
+      refused = start_from(ip)
+      assert redirected_to(refused) == ~p"/sign-in"
+
+      assert Phoenix.Flash.get(refused.assigns.flash, :error) ==
+               "Too many demos were started from your network. Please try again in an hour."
+
+      returned = first |> recycle() |> put_req_header("x-forwarded-for", ip) |> post(~p"/demo")
+      assert user_id(returned) == user_id(first)
+      assert redirected_to(start_from(unique_ipv4())) == ~p"/app"
+    end
+
+    test "counts an IPv6 /64 network as one address" do
+      put_config(seed: fn _tenant, _opts -> :ok end, starts_per_network: 1)
+      group = Integer.to_string(rem(System.unique_integer([:positive]), 0xFFFF), 16)
+
+      assert redirected_to(start_from("2001:db8:#{group}:1::1")) == ~p"/app"
+      assert redirected_to(start_from("2001:db8:#{group}:1:ffff:ffff:ffff:ffff")) == ~p"/sign-in"
+      assert redirected_to(start_from("2001:db8:#{group}:2::1")) == ~p"/app"
+    end
+
     test "refuses a start when the demo is full", %{conn: conn} do
       put_config(max_demos: 2)
       demo_user!()
@@ -203,6 +231,15 @@ defmodule ChironiumWeb.DemoControllerTest do
       Keyword.merge(Application.get_env(:chironium, Chironium.Demo, []), opts)
     )
   end
+
+  # The rate limiter keeps its counts across tests, so each test uses its own addresses.
+  defp unique_ipv4 do
+    n = System.unique_integer([:positive])
+    "10.#{rem(div(n, 65_536), 256)}.#{rem(div(n, 256), 256)}.#{rem(n, 256)}"
+  end
+
+  defp start_from(ip),
+    do: build_conn() |> put_req_header("x-forwarded-for", ip) |> post(~p"/demo")
 
   defp demo_user! do
     token = :crypto.strong_rand_bytes(10) |> Base.encode32(case: :lower, padding: false)
