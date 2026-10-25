@@ -1,7 +1,9 @@
+import { SiGithub } from "@icons-pack/react-simple-icons";
 import type { ReactNode } from "react";
 
 import * as m from "@/paraglide/messages";
 import { SignOutButton } from "@/portal/ui/sign-out-button";
+import { buttonVariants } from "@/shared/ui/button";
 import { runtimeConfig } from "@/shared/utils/runtime-config";
 
 interface PortalShellProps {
@@ -22,16 +24,23 @@ export function PortalShell({
         <span className="truncate text-sm font-medium text-muted-foreground">
           {organizationName}
         </span>
-        {signedIn ? <SignOutButton /> : null}
+        <div className="flex items-center gap-1">
+          {runtimeConfig.sourceCodeUrl ? (
+            <a
+              href={runtimeConfig.sourceCodeUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={m.nav_source_code()}
+              title={m.nav_source_code()}
+              className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            >
+              <SiGithub size={16} aria-hidden />
+            </a>
+          ) : null}
+          {signedIn ? <SignOutButton /> : null}
+        </div>
       </header>
       <main className="mx-auto max-w-2xl px-4 pb-12">{children}</main>
-      {runtimeConfig.sourceCodeUrl ? (
-        <footer className="pb-6 text-center text-xs text-muted-foreground">
-          <a href={runtimeConfig.sourceCodeUrl} className="underline-offset-4 hover:underline">
-            {m.nav_source_code()}
-          </a>
-        </footer>
-      ) : null}
     </div>
   );
 }
