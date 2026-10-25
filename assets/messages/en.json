@@ -871,6 +871,8 @@
   "settings_org_section_title": "Organization",
   "settings_org_slug_label": "Slug",
   "settings_org_timezone_label": "Timezone",
+  "settings_org_timezone_no_results": "No timezone matches your search.",
+  "settings_org_timezone_placeholder": "Search timezones",
   "settings_org_timezone_update_error": "Failed to update organization timezone.",
   "settings_org_timezone_update_success": "Organization timezone updated.",
   "settings_renew_invitation_error": "Could not renew the invitation.",
