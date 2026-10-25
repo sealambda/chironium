@@ -5,7 +5,7 @@
  * For URL configuration (API paths, auth URLs), see url-utils.ts.
  */
 
-export function getCsrfToken(): string | null {
+function getCsrfToken(): string | null {
   if (typeof document === "undefined") {
     return null;
   }
