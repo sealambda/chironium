@@ -209,7 +209,7 @@ export function ReassignCustomersDialog({
                               <label
                                 htmlFor={rowId}
                                 data-testid={`reassign-practitioner-label-${item.value}`}
-                                className="min-w-0 flex-1 cursor-pointer text-sm leading-snug text-foreground"
+                                className="min-w-0 flex-1 text-sm leading-snug text-foreground"
                               >
                                 {item.label}
                               </label>
@@ -234,10 +234,7 @@ export function ReassignCustomersDialog({
                 onCheckedChange={(v) => setReplaceExistingAssignments(Boolean(v))}
               />
               <div className="grid gap-1">
-                <FieldLabel
-                  htmlFor="reassign-replace-assignments"
-                  className="cursor-pointer font-medium"
-                >
+                <FieldLabel htmlFor="reassign-replace-assignments" className="font-medium">
                   {m.customers_reassign_replace_assignments_label()}
                 </FieldLabel>
                 <p className="text-sm text-muted-foreground">

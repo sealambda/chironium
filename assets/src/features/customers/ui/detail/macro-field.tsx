@@ -79,7 +79,7 @@ export function MacroField({
           aria-label={lockLabel}
           title={lockLabel}
           className={cn(
-            "flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
+            "flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
             locked && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
           )}
         >

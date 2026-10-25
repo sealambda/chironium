@@ -139,7 +139,7 @@ defmodule ChironiumWeb.AuthOverrides do
         "h-9 w-full rounded-md border border-destructive bg-transparent px-2.5 py-1 text-base md:text-sm shadow-xs transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:border-destructive/50 dark:focus-visible:ring-destructive/40"
 
     set :submit_class,
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-2.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/80 transition-all focus-visible:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 w-full min-h-[44px] select-none cursor-pointer"
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-2.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/80 transition-all focus-visible:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 w-full min-h-[44px] select-none"
 
     set :identity_input_label, "Email"
     set :identity_input_placeholder, nil
@@ -156,7 +156,7 @@ defmodule ChironiumWeb.AuthOverrides do
     set :checkbox_class,
         "h-4 w-4 shrink-0 rounded border border-input shadow-xs focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 accent-primary"
 
-    set :checkbox_label_class, "text-sm font-medium text-foreground select-none cursor-pointer"
+    set :checkbox_label_class, "text-sm font-medium text-foreground select-none"
   end
 
   # ===========================================================================
@@ -190,7 +190,7 @@ defmodule ChironiumWeb.AuthOverrides do
 
   override Components.Confirm.Input do
     set :submit_class,
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-2.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/80 transition-all focus-visible:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 w-full min-h-[44px] select-none cursor-pointer"
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-2.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/80 transition-all focus-visible:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 w-full min-h-[44px] select-none"
   end
 
   # ===========================================================================

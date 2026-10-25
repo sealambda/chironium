@@ -48,7 +48,7 @@ function Section({
           <button
             type="button"
             onClick={() => setIsExpanded((current) => !current)}
-            className="flex cursor-pointer items-center gap-1.5"
+            className="flex items-center gap-1.5"
             aria-expanded={isExpanded}
           >
             <h2 className="text-sm font-medium tracking-wider text-muted-foreground uppercase">

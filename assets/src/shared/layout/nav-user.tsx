@@ -49,7 +49,7 @@ export function NavUser({ showLabelsOnMobile = false, onAction }: Readonly<NavUs
               "group flex w-full items-center gap-2 rounded-lg px-2 py-2",
               !showLabelsOnMobile && "justify-center md:justify-start",
               "text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden",
-              "cursor-pointer hover:bg-accent/50 focus-visible:bg-accent/50",
+              "hover:bg-accent/50 focus-visible:bg-accent/50",
             )}
           />
         }

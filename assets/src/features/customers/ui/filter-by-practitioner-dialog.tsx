@@ -119,7 +119,7 @@ export function CustomerFiltersDialog({
           />
           <label
             htmlFor="filter-practitioner-unassigned"
-            className="min-w-0 flex-1 cursor-pointer text-sm leading-snug text-foreground"
+            className="min-w-0 flex-1 text-sm leading-snug text-foreground"
           >
             {m.customers_filter_unassigned()}
           </label>
@@ -208,7 +208,7 @@ export function CustomerFiltersDialog({
                           <label
                             htmlFor={rowId}
                             data-testid={`filter-practitioner-label-${item.value}`}
-                            className="min-w-0 flex-1 cursor-pointer text-sm leading-snug text-foreground"
+                            className="min-w-0 flex-1 text-sm leading-snug text-foreground"
                           >
                             {item.label}
                           </label>
@@ -239,7 +239,7 @@ export function CustomerFiltersDialog({
               <div className="min-w-0 flex-1">
                 <label
                   htmlFor="filter-hide-finished-plans"
-                  className="cursor-pointer text-sm leading-snug text-foreground"
+                  className="text-sm leading-snug text-foreground"
                 >
                   {m.customers_filters_hide_finished()}
                 </label>

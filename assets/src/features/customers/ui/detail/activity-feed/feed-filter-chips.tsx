@@ -155,7 +155,7 @@ export function FeedFilterChips({ active, onChange }: Readonly<FeedFilterChipsPr
               onClick={() => onChange(value)}
               aria-pressed={isActive}
               className={cn(
-                "flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                "flex shrink-0 items-center justify-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                 isActive ? activeClass : INACTIVE_BUTTON_CLASS,
               )}
             >

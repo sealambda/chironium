@@ -20,6 +20,7 @@
  */
 
 @import "tailwindcss" source(none);
+@import "../src/styles/base-cursor.css";
 @source "../../deps/ash_authentication_phoenix";
 @source "../css";
 @source "../js";

@@ -1,0 +1,21 @@
+/* Tailwind 4 resets buttons to `cursor: default`; restore the pointer on every
+ * enabled clickable element. Shared by the React app (`index.css`) and the
+ * Phoenix pages (`css/app.css`). Must be imported after `@import "tailwindcss"`. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="option"],
+  [role="tab"],
+  [role="switch"],
+  [role="checkbox"],
+  summary,
+  label[for],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    cursor: pointer;
+  }
+}

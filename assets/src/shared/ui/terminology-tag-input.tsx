@@ -142,7 +142,7 @@ export function TerminologyTagInput({
             <button
               type="button"
               onClick={resetInput}
-              className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-2.5 text-muted-foreground hover:text-foreground"
+              className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted-foreground hover:text-foreground"
             >
               <X className="size-3.5" />
             </button>

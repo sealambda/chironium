@@ -125,7 +125,7 @@ export function NumberStepperInput({
       />
       <button
         type="button"
-        className="absolute inset-y-0 left-0 flex w-9 cursor-pointer items-center justify-center rounded-l-md text-muted-foreground outline-hidden transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-30"
+        className="absolute inset-y-0 left-0 flex w-9 items-center justify-center rounded-l-md text-muted-foreground outline-hidden transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-30"
         onClick={handleDecrement}
         disabled={!canDecrement}
         aria-label={decrementLabel}
@@ -135,7 +135,7 @@ export function NumberStepperInput({
       </button>
       <button
         type="button"
-        className="absolute inset-y-0 right-0 flex w-9 cursor-pointer items-center justify-center rounded-r-md text-muted-foreground outline-hidden transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-30"
+        className="absolute inset-y-0 right-0 flex w-9 items-center justify-center rounded-r-md text-muted-foreground outline-hidden transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-30"
         onClick={handleIncrement}
         disabled={!canIncrement}
         aria-label={incrementLabel}
