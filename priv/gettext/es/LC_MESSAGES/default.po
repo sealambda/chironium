@@ -181,7 +181,7 @@ msgstr "Tu proveedor de inicio de sesión no ha verificado esta dirección de co
 msgid "you@example.com"
 msgstr "tu@ejemplo.com"
 
-#: lib/chironium_web/controllers/demo_controller.ex:45
+#: lib/chironium_web/controllers/demo_controller.ex:33
 #, elixir-autogen, elixir-format
 msgid "Couldn't start the demo. Please try again."
 msgstr "No se pudo iniciar la demo. Inténtalo de nuevo."
@@ -206,15 +206,10 @@ msgstr "Hecho por Sealambda"
 msgid "Starting the demo..."
 msgstr "Iniciando la demo..."
 
-#: lib/chironium_web/controllers/demo_controller.ex:42
+#: lib/chironium_web/controllers/demo_controller.ex:30
 #, elixir-autogen, elixir-format
 msgid "The demo is full right now. Please try again later."
 msgstr "La demo está llena en este momento. Inténtalo más tarde."
-
-#: lib/chironium_web/controllers/demo_controller.ex:29
-#, elixir-autogen, elixir-format
-msgid "Too many demos were started from your network. Please try again in an hour."
-msgstr "Se han iniciado demasiadas demos desde tu red. Inténtalo de nuevo dentro de una hora."
 
 #: lib/chironium_web/live/sign_in_live.ex:254
 #, elixir-autogen, elixir-format

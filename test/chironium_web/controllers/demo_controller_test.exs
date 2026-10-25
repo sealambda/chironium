@@ -162,30 +162,6 @@ defmodule ChironiumWeb.DemoControllerTest do
     refute Enum.any?(b_patients.results, &(patients.resp_body =~ &1.id))
   end
 
-  test "limits starts per client address", %{conn: conn} do
-    put_config(starts_per_ip: 2, seed: fn _tenant, _opts -> :ok end)
-    ip = "203.0.113.#{System.unique_integer([:positive]) |> rem(250)}"
-
-    start = fn forwarded_for ->
-      conn |> put_req_header("x-forwarded-for", forwarded_for) |> post(~p"/demo")
-    end
-
-    assert start.(ip) |> redirected_to() == ~p"/app"
-    assert start.(ip) |> redirected_to() == ~p"/app"
-
-    message = "Too many demos were started from your network. Please try again in an hour."
-
-    refused = start.(ip)
-    assert redirected_to(refused) == ~p"/sign-in"
-    assert Phoenix.Flash.get(refused.assigns.flash, :error) == message
-    assert length(demo_users()) == 2
-
-    # Entries left of the proxy's own are client-supplied and can't open a new bucket.
-    spoofed = start.("198.51.100.7, #{ip}")
-    assert Phoenix.Flash.get(spoofed.assigns.flash, :error) == message
-    assert length(demo_users()) == 2
-  end
-
   defp put_env(key, value) do
     previous = Application.fetch_env(:chironium, key)
     Application.put_env(:chironium, key, value)

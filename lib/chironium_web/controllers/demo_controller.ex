@@ -4,13 +4,10 @@ defmodule ChironiumWeb.DemoController do
   use ChironiumWeb, :controller
 
   alias Chironium.Demo
-  alias ChironiumWeb.Plugs.PortalRateLimit
   alias ChironiumWeb.SessionSignIn
 
   # Routes compile before runtime config, so the route always exists.
   plug :require_demo_mode
-
-  @hour_ms 3_600_000
 
   def create(conn, _params) do
     user = conn.assigns[:current_user]
@@ -18,21 +15,12 @@ defmodule ChironiumWeb.DemoController do
     if user && Demo.demo_user?(user) && Ash.exists?(Chironium.Accounts.Organization, actor: user) do
       redirect(conn, to: ~p"/app")
     else
-      ip = PortalRateLimit.client_ip(conn)
-
-      case ChironiumWeb.RateLimit.hit({:demo, ip}, @hour_ms, Demo.config(:starts_per_ip)) do
-        {:allow, _count} ->
-          start(conn)
-
-        {:deny, _retry_after_ms} ->
-          message =
-            gettext("Too many demos were started from your network. Please try again in an hour.")
-
-          back_to_sign_in(conn, message)
-      end
+      start(conn)
     end
   end
 
+  # No per-address limit: one IPv6 network has billions of addresses, so it wouldn't hold.
+  # The max_demos cap protects the server, and the worst abuse is a full demo for 24 hours.
   defp start(conn) do
     with {:ok, user} <- Demo.start(),
          {:ok, conn} <- SessionSignIn.sign_in(conn, user) do

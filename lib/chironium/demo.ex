@@ -6,7 +6,6 @@ defmodule Chironium.Demo do
 
       config :chironium, Chironium.Demo,
         max_demos: 200,
-        starts_per_ip: 20,
         seed: &Mix.Tasks.Chironium.Seed.All.seed/2
   """
 
@@ -16,7 +15,7 @@ defmodule Chironium.Demo do
   alias Chironium.Repo
   alias Mix.Tasks.Chironium.Seed
 
-  @defaults [max_demos: 200, starts_per_ip: 20, seed: &Seed.All.seed/2]
+  @defaults [max_demos: 200, seed: &Seed.All.seed/2]
 
   # Serializes the cap check with the user insert, so concurrent starts can't pass the cap.
   @lock_key 0x44454D4F
