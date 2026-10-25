@@ -127,7 +127,7 @@ Commit: `feat(demo): start a private demo organization in one click`
 - `DemoBanner` component at the top of the app shell, with the text from decision 5. Follow AGENTS.md: one responsive component, standard Tailwind tokens only.
 - When `runtimeConfig.demo` is true (N9, N14):
   - `OrgSelector` hides its "Create organization" item, in both `SideNav` and `MobileSideNav`;
-  - `NoOrgScreen` shows "Your demo has ended." with a "Start a new demo" button that posts to `/demo` with the page's CSRF token, instead of "Create organization". "Join organization" stays (N10).
+  - `NoOrgScreen` shows "Your demo has ended." with a "Start a new demo" button that posts to `/demo` with the page's CSRF token, instead of "Create organization". It has no "Join organization": the cleanup deleted the visitor's user, so accepting a code would fail. A visitor whose demo is still live can join from the organization selector (N10).
 - Portal layout (`portal_root.html.heex`): the same banner text when demo mode is on (N6).
 - Translations: Gettext for the sign-in page, the flash messages and the portal banner, Paraglide for the app banner and the demo-ended screen, in English and Spanish.
 
@@ -252,7 +252,7 @@ Filled in by the implementing session.
 - In demo mode `SignInLive` shows only the demo form on both `/sign-in` and `/sign-in/link`. The button shows "Starting the demo..." while disabled. Without a LiveView connection the form still posts normally, since `phx-submit` only applies once connected.
 - The app banner sits at the top of the page content, inside `AppShell`'s `<main>`, not above the fixed top bar: putting it above would mean shifting the fixed header, side nav and content offsets. It scrolls with the page.
 - The portal banner is rendered in `portal_root.html.heex` above `{@inner_content}`, so it shows on the server-rendered confirm page and on the portal SPA. The SPA page loads only the Vite CSS, so `assets/src/styles/index.css` adds an `@source` for that one template. Both banners use standard Tailwind amber colors, which exist in both CSS builds and read in light and dark themes.
-- `NoOrgScreen` moved from `routes/_app.tsx` to `features/org/ui/no-org-screen.tsx` so Vitest can import it. "Start a new demo" builds and submits a form with `_csrf_token`, using `getCsrfToken`, now exported from `shared/utils/request-utils.ts`. The demo-ended screen keeps "Join organization" first-class, after "Start a new demo", and has no description.
+- `NoOrgScreen` moved from `routes/_app.tsx` to `features/org/ui/no-org-screen.tsx` so Vitest can import it. "Start a new demo" builds and submits a form with `_csrf_token`, using `getCsrfToken`, now exported from `shared/utils/request-utils.ts`. The demo-ended screen offers only "Start a new demo" and has no description.
 - Tests turn demo mode on with `Chironium.DataCase.enable_demo_mode/0`, next to `disable_email/0`. The sign-in tests also follow the form's `phx-trigger-action` to `POST /demo`, and check that a refused start's flash shows on the demo sign-in page.
 - `mix gettext.extract --merge` also rewrites unrelated, already stale entries in `en/default.po`, `emails.pot` and `es/emails.po`, and creates `en/emails.po`; those changes were reverted, keeping only `default.pot` and `es/default.po`.
 - No Playwright spec was added: this phase lists none, and browser cases D1 to D3 cover it.

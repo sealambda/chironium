@@ -22,18 +22,13 @@ function startNewDemo() {
 /**
  * Shown when the authenticated user has no organization membership.
  * Prompts them to create their first organization or request an invitation.
- * In demo mode the visitor's organization was deleted, so it offers a new demo instead.
+ * In demo mode the cleanup deleted the visitor along with their organization, so it offers
+ * only a new demo: joining by invitation would fail without a user.
  */
 export function NoOrgScreen({
   onCreateOrgClick,
   onJoinOrgClick,
 }: Readonly<{ onCreateOrgClick: () => void; onJoinOrgClick: () => void }>) {
-  const joinAction = {
-    label: m.org_join_by_invitation(),
-    testId: "no-org-join-by-invitation-button",
-    onAction: onJoinOrgClick,
-  };
-
   return (
     <div className="flex h-[calc(100svh-4rem)] items-center justify-center">
       <div className="w-full max-w-lg space-y-3">
@@ -47,7 +42,6 @@ export function NoOrgScreen({
                 testId: "no-org-start-demo-button",
                 onAction: startNewDemo,
               },
-              joinAction,
             ]}
             className="w-full"
           />
@@ -57,7 +51,11 @@ export function NoOrgScreen({
             title={m.org_no_access_title()}
             description={m.org_no_access_desc()}
             actions={[
-              joinAction,
+              {
+                label: m.org_join_by_invitation(),
+                testId: "no-org-join-by-invitation-button",
+                onAction: onJoinOrgClick,
+              },
               {
                 label: m.org_no_access_action(),
                 testId: "no-org-create-organization-button",
