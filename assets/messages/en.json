@@ -687,7 +687,6 @@
   "questionnaire_fill_success": "Response saved.",
   "questionnaire_fill_title": "Fill a questionnaire",
   "questionnaire_items_heading": "Questions",
-  "questionnaire_library_hint": "Fill one in from a patient's page: Add record → Questionnaire.",
   "questionnaire_library_title": "Questionnaires",
   "questionnaire_link_desc": "Send this link to the patient. It opens the questionnaire on one device only.",
   "questionnaire_link_email_sent": "The link was also emailed to the patient.",
