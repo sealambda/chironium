@@ -4,8 +4,8 @@ defmodule Mix.Tasks.Chironium.Seed.Tasks do
 
   use Mix.Task
 
-  import Chironium.Generator
-
+  alias Chironium.Seed
+  alias Chironium.Seed.Tenant
   alias Mix.Tasks.Chironium.Seed.Helpers
 
   @impl true
@@ -13,24 +13,11 @@ defmodule Mix.Tasks.Chironium.Seed.Tasks do
     {tenant, _opts} = Helpers.parse_tenant!(args)
 
     Helpers.ensure_started!()
-    patients = Helpers.fetch_patients!(tenant)
-    practitioners = Helpers.fetch_practitioners!(tenant)
+    patients = Tenant.fetch_patients!(tenant)
+    practitioners = Tenant.fetch_practitioners!(tenant)
 
-    seed(tenant, patients, practitioners)
+    Seed.Tasks.seed(tenant, patients, practitioners)
 
     Helpers.info("[Seed] Tasks created for #{length(patients)} patients.")
-  end
-
-  @doc "Seed 1–5 tasks per patient."
-  def seed(tenant, patients, practitioners) do
-    opts = Helpers.ash_opts(tenant)
-
-    Enum.each(patients, fn patient ->
-      for _ <- 1..Enum.random(1..5) do
-        generate(
-          task(Keyword.merge(opts, for_patient_id: patient.id, actor: Enum.random(practitioners)))
-        )
-      end
-    end)
   end
 end

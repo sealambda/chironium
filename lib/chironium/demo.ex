@@ -7,14 +7,14 @@ defmodule Chironium.Demo do
       config :chironium, Chironium.Demo,
         max_demos: 200,
         starts_per_network: 10,
-        seed: &Mix.Tasks.Chironium.Seed.All.seed/2
+        seed: &Chironium.Seed.All.seed/2
   """
 
   require Logger
 
   alias Chironium.Demo.Cleanup
   alias Chironium.Repo
-  alias Mix.Tasks.Chironium.Seed
+  alias Chironium.Seed
 
   @defaults [max_demos: 200, starts_per_network: 10, seed: &Seed.All.seed/2]
 

@@ -81,7 +81,7 @@ Commit: `feat(demo): add a demo mode switch`
 
 ## Phase 2 — Start a Demo
 
-- **Shared seeding.** Add `Mix.Tasks.Chironium.Seed.All.seed(tenant, opts)` in `lib/mix/tasks/chironium/seed/all.ex`. It runs the steps from practitioners through clinical notes, takes `patients:`, `practitioners:` and a `log:` function, and returns the practitioners and patients. Its three callers:
+- **Shared seeding.** Add `Chironium.Seed.All.seed(tenant, opts)` in `lib/chironium/seed/all.ex`. It runs the steps from practitioners through clinical notes, takes `patients:`, `practitioners:` and a `log:` function, and returns the practitioners and patients. Its three callers:
   - `Release.seed/1`, with `log: &IO.puts/1`;
   - `Mix.Tasks.Chironium.Seed.run/1`, with `log: &Helpers.info/1`;
   - `Demo.start/0`, with a no-op `log`.

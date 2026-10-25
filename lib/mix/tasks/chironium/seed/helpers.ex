@@ -18,22 +18,6 @@ defmodule Mix.Tasks.Chironium.Seed.Helpers do
     end
   end
 
-  def ash_opts(tenant) do
-    [tenant: tenant, authorize?: false]
-  end
-
-  def fetch_patients!(tenant) do
-    Chironium.Health.Patient
-    |> Ash.stream!(ash_opts(tenant))
-    |> Enum.to_list()
-  end
-
-  def fetch_practitioners!(tenant) do
-    Chironium.Health.Practitioner
-    |> Ash.stream!(ash_opts(tenant))
-    |> Enum.to_list()
-  end
-
   @valid_roles ~w(member power_user)
 
   @doc "Parse --role from CLI opts, defaulting to :power_user. Raises on invalid values."

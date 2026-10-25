@@ -4,8 +4,7 @@ defmodule Mix.Tasks.Chironium.Seed.Patients do
 
   use Mix.Task
 
-  import Chironium.Generator
-
+  alias Chironium.Seed
   alias Mix.Tasks.Chironium.Seed.Helpers
 
   @default_count 50
@@ -16,13 +15,8 @@ defmodule Mix.Tasks.Chironium.Seed.Patients do
     count = Keyword.get(opts, :count, @default_count)
 
     Helpers.ensure_started!()
-    patients = seed(tenant, count)
+    patients = Seed.Patients.seed(tenant, count)
 
     Helpers.info("[Seed] #{length(patients)} patients created.")
-  end
-
-  @doc "Seed `count` patients with person records. Returns the list of created patients."
-  def seed(tenant, count \\ @default_count) do
-    generate_many(patient_with_person(Helpers.ash_opts(tenant)), count)
   end
 end

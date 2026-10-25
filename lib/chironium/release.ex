@@ -73,7 +73,7 @@ defmodule Chironium.Release do
   def seed(opts \\ []) do
     start_app()
 
-    alias Mix.Tasks.Chironium.Seed.{All, Organization}
+    alias Chironium.Seed.{All, Organization}
 
     patient_count = Keyword.get(opts, :patients, 50)
     practitioner_count = Keyword.get(opts, :practitioners, 10)
