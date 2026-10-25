@@ -39,16 +39,17 @@ import { useCurrentUser } from "@/shared/session/use-current-user";
 import { useOrg } from "@/shared/session/use-org";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/shared/ui/combobox";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Loading } from "@/shared/ui/loading";
 import { LocaleFlagLabel, LocaleSelect } from "@/shared/ui/locale-select";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectPositioner,
-  SelectTrigger,
-} from "@/shared/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { orgSettingsQueryKey, practitionersBulkReassignQueryKey } from "@/shared/utils/query-keys";
 import { cn } from "@/shared/utils/utils";
@@ -92,20 +93,30 @@ function OrgTimezoneField({ value, editable, onChange }: Readonly<OrgTimezoneFie
   }
 
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-64" data-testid="settings-org-timezone-select">
-        {value}
-      </SelectTrigger>
-      <SelectPositioner>
-        <SelectContent>
-          {timezones.map((timezone) => (
-            <SelectItem key={timezone} value={timezone}>
+    <Combobox
+      items={timezones}
+      value={value}
+      onValueChange={(timezone: string | null) => onChange(timezone)}
+    >
+      <ComboboxInput
+        className="w-64"
+        placeholder={m.settings_org_timezone_placeholder()}
+        aria-label={m.settings_org_timezone_label()}
+        // The field holds the current zone; selecting it lets typing start a fresh search.
+        onFocus={(event) => event.currentTarget.select()}
+        data-testid="settings-org-timezone-select"
+      />
+      <ComboboxContent>
+        <ComboboxEmpty>{m.settings_org_timezone_no_results()}</ComboboxEmpty>
+        <ComboboxList>
+          {(timezone: string) => (
+            <ComboboxItem key={timezone} value={timezone}>
               {timezone}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </SelectPositioner>
-    </Select>
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   );
 }
 
