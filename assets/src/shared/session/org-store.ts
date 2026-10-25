@@ -36,12 +36,9 @@ function resolveSelectedOrg(
     return refreshed;
   }
 
-  const preferredOrgId = getStoredPreference();
-  if (preferredOrgId) {
-    return availableOrgs.find((org) => org.id === preferredOrgId) ?? null;
-  }
-
-  return availableOrgs[0] ?? null;
+  // The stored preference can name an organization the user has since lost, such as a deleted demo.
+  const preferred = availableOrgs.find((org) => org.id === getStoredPreference());
+  return preferred ?? availableOrgs[0] ?? null;
 }
 
 export const useOrgStore = create<OrgStoreState>()(
