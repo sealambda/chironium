@@ -46,7 +46,10 @@ export function TagsCardShell({
     >
       {columns === 2 ? (
         <div
-          className={cn("grid grid-cols-2 divide-x divide-border", compact ? "gap-x-3" : "gap-x-4")}
+          className={cn(
+            "grid flex-1 grid-cols-2 divide-x divide-border",
+            compact ? "gap-x-3" : "gap-x-4",
+          )}
         >
           {children}
         </div>
