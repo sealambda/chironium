@@ -181,7 +181,7 @@ msgstr ""
 msgid "you@example.com"
 msgstr ""
 
-#: lib/chironium_web/controllers/demo_controller.ex:45
+#: lib/chironium_web/controllers/demo_controller.ex:33
 #, elixir-autogen, elixir-format
 msgid "Couldn't start the demo. Please try again."
 msgstr ""
@@ -206,14 +206,9 @@ msgstr ""
 msgid "Starting the demo..."
 msgstr ""
 
-#: lib/chironium_web/controllers/demo_controller.ex:42
+#: lib/chironium_web/controllers/demo_controller.ex:30
 #, elixir-autogen, elixir-format
 msgid "The demo is full right now. Please try again later."
-msgstr ""
-
-#: lib/chironium_web/controllers/demo_controller.ex:29
-#, elixir-autogen, elixir-format
-msgid "Too many demos were started from your network. Please try again in an hour."
 msgstr ""
 
 #: lib/chironium_web/live/sign_in_live.ex:254
