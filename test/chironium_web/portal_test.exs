@@ -57,7 +57,7 @@ defmodule ChironiumWeb.PortalTest do
 
       assert html =~ ~s(data-testid="demo-banner")
       assert html =~ Plug.HTML.html_escape("Don't enter real client data.")
-      assert html =~ ~s(href="https://sealambda.com")
+      assert html =~ ~s(href="https://sealambda.com" target="_blank")
     end
 
     test "sends an invalid or used link to the expired page", %{conn: conn} do
