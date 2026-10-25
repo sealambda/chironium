@@ -42,6 +42,16 @@ defmodule ChironiumWeb.DemoControllerTest do
       assert conn |> recycle() |> get(~p"/app") |> html_response(200)
     end
 
+    # The seed code lives under Mix.Tasks, but Mix isn't in a release, so a Mix
+    # shell call on this path would pass here and crash every start in production.
+    test "seeds without Mix's shell" do
+      previous = Mix.shell()
+      Mix.shell(__MODULE__.RefusingShell)
+      on_exit(fn -> Mix.shell(previous) end)
+
+      assert {:ok, _user} = Chironium.Demo.start()
+    end
+
     test "returns 404 when demo mode is off", %{conn: conn} do
       put_env(:demo_mode?, false)
 
@@ -214,5 +224,10 @@ defmodule ChironiumWeb.DemoControllerTest do
 
   defp count_schemas do
     count("SELECT count(*) FROM information_schema.schemata WHERE schema_name LIKE 'org\\_%'")
+  end
+
+  defmodule RefusingShell do
+    @moduledoc false
+    # Defines no functions, so any Mix shell call raises UndefinedFunctionError.
   end
 end
