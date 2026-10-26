@@ -2,16 +2,13 @@ name: Dependencies
 
 # Dependency CVE gate (osv-scanner), split from security.yml so a newly published CVE fails only
 # pull requests that change dependencies, not every open one. Renovate opens the fixes; the weekly
-# run on main surfaces CVEs published since the last dependency change.
+# run on main surfaces CVEs published since the last dependency change. The job runs on every pull
+# request and passes without scanning when no dependency file changed, because the main ruleset
+# requires it.
 
 on:
   pull_request:
     branches: [main]
-    paths:
-      - pnpm-lock.yaml
-      - mix.lock
-      - osv-scanner.toml
-      - .github/workflows/dependencies.yml
   schedule:
     - cron: "0 7 * * 1" # Mondays 07:00 UTC, after Renovate's morning run.
   workflow_dispatch:
@@ -31,11 +28,24 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           persist-credentials: false
+      - name: Check for dependency changes
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --quiet --depth=1 origin "$BASE_SHA"
+          if git diff --quiet "$BASE_SHA" HEAD -- pnpm-lock.yaml mix.lock osv-scanner.toml .github/workflows/dependencies.yml; then
+            echo "skip=true" >>"$GITHUB_OUTPUT"
+          fi
       - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        if: steps.changes.outputs.skip != 'true'
         with:
           install: false
           cache: true
       - run: mise install osv-scanner
+        if: steps.changes.outputs.skip != 'true'
       # Scans the JS (frontend) and Hex (backend) dependency trees. Honors osv-scanner.toml allowlist.
       - name: osv-scanner
+        if: steps.changes.outputs.skip != 'true'
         run: mise exec -- osv-scanner scan source --lockfile pnpm-lock.yaml --lockfile mix.lock --config osv-scanner.toml
