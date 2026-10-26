@@ -27,5 +27,5 @@ jobs:
           path-to-signatures: signatures/version1/cla.json
           path-to-document: https://github.com/sealambda/chironium/blob/main/CLA.md
           branch: cla-signatures
-          allowlist: dependabot[bot],copilot-swe-agent[bot],github-actions[bot]
+          allowlist: dependabot[bot],sealambda-renovate[bot],copilot-swe-agent[bot],github-actions[bot]
           custom-notsigned-prcomment: "Thank you for your contribution. Before we can merge it, please read the [Contributor License Agreement](https://github.com/sealambda/chironium/blob/main/CLA.md) and sign it by posting the sentence below as a comment on this pull request."
