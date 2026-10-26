@@ -9,20 +9,3 @@
 # id = "GHSA-xxxx-xxxx-xxxx"
 # ignoreUntil = 2026-09-16
 # reason = "No upstream fix available; not reachable from our code paths. Re-review on this date."
-
-# --- No-upstream-fix, dev-tooling-only (shadcn CLI dependency chain; not in app runtime) ---
-
-[[IgnoredVulns]]
-id = "GHSA-g3ch-rx76-35fx"
-ignoreUntil = 2026-11-21
-reason = "vue-template-compiler 2.7.16: no fixed version exists. Transitive dev-only dep of the shadcn CLI (no Vue in this React app). Re-review on this date."
-
-[[IgnoredVulns]]
-id = "GHSA-vfj7-8cjw-p6xm"
-ignoreUntil = 2026-11-21
-reason = "braces 3.0.3: no fixed version exists. ReDoS-style stack exhaustion on nested glob patterns; only reached by dev tooling (Tailwind CLI watcher, shadcn CLI, Phoenix devDeps) on our own globs. Re-review on this date."
-
-[[IgnoredVulns]]
-id = "GHSA-hp3w-g68c-fv3c"
-ignoreUntil = 2026-11-21
-reason = "sprintf-js 1.0.3: no fixed version exists. Transitive dev-only dep of Phoenix's Jest setup (via js-yaml 3); never in app runtime. Re-review on this date."
