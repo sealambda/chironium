@@ -4,9 +4,26 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-26
+
 ### Added
 
 - Demo mode (`DEMO_MODE=true`) for running a public demo: visitors start a private organization with generated data in one click, and it is deleted after 24 hours. See the [self-hosting guide](docs/self-hosting.md#optional).
+- The organization timezone list is searchable.
+
+### Changed
+
+- Each list page shows its title and add button on one row; the top bar no longer holds page actions.
+
+### Fixed
+
+- BMI and waist-to-hip ratio are created when weight, height, or circumferences are saved together, and update when those measurements are edited.
+- Coded food preferences show every label.
+- Signing in and out keeps the visitor's language.
+
+### Security
+
+- Updated ash, ash_postgres, and plug_crypto to fix EEF-CVE-2026-96581, EEF-CVE-2026-114214, EEF-CVE-2026-115627, EEF-CVE-2026-115635, and CVE-2026-105963.
 
 ## [0.2.0] - 2026-10-24
 
@@ -41,6 +58,7 @@ The first public release.
 - English and Spanish interfaces with locale-aware dates and units.
 - A container image on GitHub Container Registry and a [self-hosting guide](docs/self-hosting.md).
 
-[Unreleased]: https://github.com/sealambda/chironium/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/sealambda/chironium/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/sealambda/chironium/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/sealambda/chironium/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/sealambda/chironium/releases/tag/v0.1.0
