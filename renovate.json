@@ -1,33 +1,59 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    ":semanticCommits",
-    ":dependencyDashboard",
-    "helpers:pinGitHubActionDigests"
-  ],
-  "timezone": "Europe/Zurich",
-  "schedule": ["before 6am on monday"],
+  "description": "Dependency updates for sealambda/chironium. sealambda/infra runs Renovate for every repository of the organization (its record 0021).",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "ignorePresets": [":semanticPrefixFixDepsChoreOthers"],
+  "timezone": "Europe/Madrid",
+  "schedule": ["before 10am on monday"],
   "labels": ["dependencies"],
-  "rangeStrategy": "bump",
+  "semanticCommits": "enabled",
+  "semanticCommitType": "build",
+  "semanticCommitScope": "deps",
+  "platformCommit": "enabled",
+  "enabledManagers": ["mix", "npm", "github-actions"],
+  "minimumReleaseAge": "7 days",
+  "rebaseWhen": "conflicted",
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "schedule": ["before 10am on the first day of the month"]
   },
   "vulnerabilityAlerts": {
-    "labels": ["security"],
-    "schedule": ["at any time"]
+    "labels": ["security"]
   },
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "dev dependencies (non-major)"
+      "description": "Mix: only what the requirements in mix.exs already allow, as mix deps.update moves mix.lock; a person widens a requirement by hand.",
+      "matchManagers": ["mix"],
+      "rangeStrategy": "in-range-only"
     },
     {
+      "description": "Mix: one pull request for the minor and patch versions.",
+      "matchManagers": ["mix"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Mix minor and patch"
+    },
+    {
+      "description": "pnpm: one pull request for the minor and patch versions.",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "pnpm minor and patch"
+    },
+    {
+      "description": "Phoenix ships each JavaScript client both in its Hex package and on npm. assets/package.json pins the npm copy to the version in mix.lock, so both move in one pull request.",
+      "matchPackageNames": ["phoenix", "phoenix_html", "phoenix_live_view"],
+      "groupName": "Phoenix"
+    },
+    {
+      "description": "The actions that .github/workflows pins by commit SHA, with the version in a comment: one pull request for all of them.",
       "matchManagers": ["github-actions"],
-      "groupName": "github-actions digests"
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "A new major version of a pnpm dependency waits on the Dependency Dashboard until a person ticks it.",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
     }
   ]
 }
