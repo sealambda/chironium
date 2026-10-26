@@ -1,9 +1,5 @@
 packages:
   - assets
-  # Phoenix dependencies for workspace linking.
-  - deps/phoenix
-  - deps/phoenix_html
-  - deps/phoenix_live_view
 
 # Security overrides: pin vulnerable transitive deps to fixed versions (osv-scanner SCA gate).
 # Many originate from the shadcn CLI devDep chain (dev tooling, not app runtime). See osv-scanner.toml.
@@ -30,27 +26,6 @@ overrides:
   undici@7: ^7.29.0
   vite: ^8.0.16
   ws@8: ^8.21.3
-
-auditConfig:
-  # deps/phoenix's own devDep `documentation` pulls vue-template-compiler 2.x.
-  # No patched release exists on that package name; not part of our build output.
-  ignoreGhsas:
-    - GHSA-g3ch-rx76-35fx
-
-peerDependencyRules:
-  allowedVersions:
-    '@typescript-eslint/eslint-plugin>typescript': '6'
-    '@typescript-eslint/parser>typescript': '6'
-    '@typescript-eslint/utils>typescript': '6'
-    '@typescript-eslint/type-utils>typescript': '6'
-    '@typescript-eslint/typescript-estree>typescript': '6'
-    '@typescript-eslint/project-service>typescript': '6'
-    '@typescript-eslint/tsconfig-utils>typescript': '6'
-    eslint-plugin-jest>typescript: '6'
-    '@typescript-eslint/eslint-plugin>eslint': '10'
-    '@typescript-eslint/parser>eslint': '10'
-    '@typescript-eslint/type-utils>eslint': '10'
-    '@typescript-eslint/utils>eslint': '10'
 
 minimumReleaseAgeExclude:
   - '@posthog/core@1.34.0'
