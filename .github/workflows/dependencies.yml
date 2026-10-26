@@ -1,0 +1,41 @@
+name: Dependencies
+
+# Dependency CVE gate (osv-scanner), split from security.yml so a newly published CVE fails only
+# pull requests that change dependencies, not every open one. Renovate opens the fixes; the weekly
+# run on main surfaces CVEs published since the last dependency change.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - pnpm-lock.yaml
+      - mix.lock
+      - osv-scanner.toml
+      - .github/workflows/dependencies.yml
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC, after Renovate's morning run.
+  workflow_dispatch:
+
+concurrency:
+  group: dependencies-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sca:
+    name: osv-scanner (dependency CVEs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          install: false
+          cache: true
+      - run: mise install osv-scanner
+      # Scans the JS (frontend) and Hex (backend) dependency trees. Honors osv-scanner.toml allowlist.
+      - name: osv-scanner
+        run: mise exec -- osv-scanner scan source --lockfile pnpm-lock.yaml --lockfile mix.lock --config osv-scanner.toml

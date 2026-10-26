@@ -31,22 +31,6 @@ jobs:
       - name: gitleaks
         run: mise exec -- gitleaks git --no-banner --redact --config .gitleaks.toml .
 
-  sca:
-    name: osv-scanner (dependency CVEs)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          persist-credentials: false
-      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
-        with:
-          install: false
-          cache: true
-      - run: mise install osv-scanner
-      # Scans the JS (frontend) and Hex (backend) dependency trees. Honors osv-scanner.toml allowlist.
-      - name: osv-scanner
-        run: mise exec -- osv-scanner scan source --lockfile pnpm-lock.yaml --lockfile mix.lock --config osv-scanner.toml
-
   sast:
     name: opengrep (SAST)
     runs-on: ubuntu-latest
