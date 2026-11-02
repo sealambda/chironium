@@ -9,3 +9,18 @@
 # id = "GHSA-xxxx-xxxx-xxxx"
 # ignoreUntil = 2026-09-16
 # reason = "No upstream fix available; not reachable from our code paths. Re-review on this date."
+
+[[IgnoredVulns]]
+id = "EEF-CVE-2026-117656"
+ignoreUntil = 2026-12-02
+reason = "Fixed in assent 0.3.2, but ash_authentication 4.15.0 requires assent < 0.3. Only the Sign in with Apple strategy is affected, and we sign in with Google and OpenID Connect only."
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2026-12-02
+reason = "No fixed deepmerge release. Reached only through the shadcn CLI, a dev tool that never merges untrusted input."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2026-12-02
+reason = "Fixed in minimatch 11, which eslint and ts-morph do not accept yet. The DoS needs attacker-controlled glob patterns; these build tools only read our own config."
