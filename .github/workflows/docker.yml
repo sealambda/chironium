@@ -60,7 +60,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # Deployment secrets live in the `production` environment, not in repository secrets.
-    # Configure the environment with required reviewers so a merge alone never reaches the server.
+    # The environment has no required reviewers. Its branch policy admits only `main`, so every
+    # merge to main deploys.
     environment: production
     permissions:
       contents: read
