@@ -99,14 +99,14 @@ importers:
         specifier: ^6.3.0
         version: 6.3.0
       phoenix:
-        specifier: 1.8.16
-        version: 1.8.16
+        specifier: 1.8.17
+        version: 1.8.17
       phoenix_html:
         specifier: 4.3.0
         version: 4.3.0
       phoenix_live_view:
-        specifier: 1.2.13
-        version: 1.2.13
+        specifier: 1.2.15
+        version: 1.2.15
       posthog-js:
         specifier: ^1.438.13
         version: 1.447.7(@types/react@19.3.0)(react@19.3.1)
@@ -3388,14 +3388,14 @@ packages:
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
 
-  phoenix@1.8.16:
-    resolution: {integrity: sha512-bNNJkYBnES2MHo8XjBg6ROK7iU7FeYfkANpTnYzh2ecOipI+8ZF1wiiWdvqv2YfV4MVb9yFJBE2BPF+RXgXXuw==}
+  phoenix@1.8.17:
+    resolution: {integrity: sha512-lu+Cnz+o6QGG3rmTg4rAJbnBLSEjKDTtkD3PeTC3DLBP0zjBfEmQ7yOZniMTRpmMowlrUVRfoC693xxv+Yqa4Q==}
 
   phoenix_html@4.3.0:
     resolution: {integrity: sha512-6vnR2Y7KxEPX1DdN59AuO98TTFtsYBqfUiUOo3NY6vyVp3o94RTawdaKtELFOKfiUD7LCEclBcpCltJM2GWuKw==}
 
-  phoenix_live_view@1.2.13:
-    resolution: {integrity: sha512-HsDIXeM5R6p8ZBrcND6qZm5LtWnmp3pVF4K+zqBRsvEpL7CWPr7brJQyFXhuGhU5LuyEtOk8E2sFkomR6lz2Kw==}
+  phoenix_live_view@1.2.15:
+    resolution: {integrity: sha512-TMZWjlAeN9dgLFOpKe0spY1vUV8hINkG5b4BX1gdcEtt0nd0HBX3N7ZTCMAYksLkosPP1rAkqEO9R5Y24FDSUA==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -7233,11 +7233,11 @@ snapshots:
 
   pathe@2.0.3: {}
 
-  phoenix@1.8.16: {}
+  phoenix@1.8.17: {}
 
   phoenix_html@4.3.0: {}
 
-  phoenix_live_view@1.2.13: {}
+  phoenix_live_view@1.2.15: {}
 
   picocolors@1.1.1: {}
 

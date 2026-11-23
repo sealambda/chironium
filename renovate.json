@@ -3,6 +3,10 @@
   "description": "Dependency updates for sealambda/chironium. sealambda/infra runs Renovate for every repository of the organization (its record 0021). The shared policy is in github>sealambda/.github.",
   "extends": ["github>sealambda/.github"],
   "enabledManagers": ["mix", "npm", "github-actions"],
+  "constraints": {
+    "elixir": "1.20.5",
+    "erlang": "29"
+  },
   "packageRules": [
     {
       "description": "Phoenix ships each JavaScript client both in its Hex package and on npm. assets/package.json pins the npm copy to the version in mix.lock, so both move in one pull request.",

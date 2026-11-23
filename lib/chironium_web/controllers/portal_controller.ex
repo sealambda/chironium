@@ -10,8 +10,6 @@ defmodule ChironiumWeb.PortalController do
 
   use ChironiumWeb, :controller
 
-  require Ash.Query
-
   alias Chironium.Accounts.GuestAccess
   alias Chironium.Accounts.Organization
   alias Chironium.Accounts.Token

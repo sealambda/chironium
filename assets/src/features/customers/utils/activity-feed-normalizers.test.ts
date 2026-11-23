@@ -181,7 +181,10 @@ describe("feed filters", () => {
       (event) => event.kind,
     );
 
-    expect(kinds.sort()).toEqual(["questionnaire", "questionnaire-request"]);
+    expect(kinds.sort((a, b) => a.localeCompare(b))).toEqual([
+      "questionnaire",
+      "questionnaire-request",
+    ]);
   });
 
   it("keeps requests out of the task filter", () => {

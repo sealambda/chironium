@@ -13,7 +13,7 @@ defmodule ChironiumWeb.SessionSignIn do
   def sign_in(conn, user) do
     case Jwt.token_for_user(user, %{}, [authorize?: false], %{}) do
       {:ok, token, _claims} ->
-        user = struct(user, %{__metadata__: Map.put(user.__metadata__ || %{}, :token, token)})
+        user = struct(user, %{__metadata__: Map.put(user.__metadata__, :token, token)})
         {:ok, store_in_session(conn, user)}
 
       :error ->
