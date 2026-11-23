@@ -2,8 +2,6 @@ defmodule Chironium.Dev.PlaywrightE2EFixtures do
   @moduledoc false
   # Dev-only helpers, called from PlaywrightE2EController (secret-gated) and DevSignInController.
 
-  require Ash.Query
-
   alias Chironium.Accounts.User
 
   def ensure_user!(email) when is_binary(email) do

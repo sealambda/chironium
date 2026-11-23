@@ -5,7 +5,6 @@ defmodule Chironium.Health.Observation do
   https://hl7.org/fhir/R5/observation.html
   """
   require Ash.Resource.Change.Builtins
-  require Ash.Query
 
   use Chironium.BaseResources.Tenantable,
     otp_app: :chironium,

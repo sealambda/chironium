@@ -10,9 +10,6 @@ defmodule Chironium.Health.QuestionnaireRequests do
   access expires.
   """
 
-  require Ash.Query
-  require Logger
-
   alias Chironium.Accounts.GuestAccess
   alias Chironium.Health.Task
 
