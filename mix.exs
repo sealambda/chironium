@@ -106,7 +106,7 @@ defmodule Chironium.MixProject do
       {:faker, "~> 0.19-alpha.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
+      {:sobelow, "~> 0.19", only: [:dev, :test], runtime: false}
     ]
   end
 
