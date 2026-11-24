@@ -56,7 +56,7 @@
     "lucide-react": "^1.60.0",
     "n2words": "^6.3.0",
     "phoenix": "1.8.17",
-    "phoenix_html": "4.3.0",
+    "phoenix_html": "4.4.0",
     "phoenix_live_view": "1.2.15",
     "posthog-js": "^1.438.13",
     "react": "^19.3.1",
