@@ -1,17 +1,48 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": "Dependency updates for sealambda/chironium. sealambda/infra runs Renovate for every repository of the organization (its record 0021). The shared policy is in github>sealambda/.github.",
-  "extends": ["github>sealambda/.github"],
-  "enabledManagers": ["mix", "npm", "github-actions"],
+  "extends": ["github>sealambda/.github", "customManagers:dockerfileVersions"],
+  "enabledManagers": ["mix", "npm", "github-actions", "mise", "dockerfile", "docker-compose", "custom.regex"],
   "constraints": {
     "elixir": "1.20.5",
     "erlang": "29"
   },
+  "rebaseWhen": "conflicted",
   "packageRules": [
     {
       "description": "Phoenix ships each JavaScript client both in its Hex package and on npm. assets/package.json pins the npm copy to the version in mix.lock, so both move in one pull request.",
       "matchPackageNames": ["phoenix", "phoenix_html", "phoenix_live_view"],
       "groupName": "Phoenix"
+    },
+    {
+      "description": "The tools of mise.toml: one pull request for the minor and patch versions.",
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "mise tools"
+    },
+    {
+      "description": "A person moves Elixir and Erlang in mise.toml together with the constraints above, which Renovate uses to update mix.lock.",
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["elixir", "erlang"],
+      "enabled": false
+    },
+    {
+      "description": "pnpm of mise.toml moves with the packageManager field of package.json.",
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["pnpm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "pnpm minor and patch"
+    },
+    {
+      "description": "Docker images: the Dockerfile's builder and runner, the services of the compose files and the CI service containers. A registry other than Docker Hub gives no release dates, and without one minimumReleaseAge holds a digest back for ever, so an image with no date counts as old enough; Docker Hub's dates still apply.",
+      "matchDatasources": ["docker"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional",
+      "groupName": "Docker images"
+    },
+    {
+      "description": "A merge to main deploys to production, so a person merges every security fix, including one that changes only a lock file, unlike in the shared policy. This rule comes last, so that no rule above can turn the merge on.",
+      "matchJsonata": ["isVulnerabilityAlert = true"],
+      "automerge": false
     }
   ]
 }
