@@ -1,19 +1,7 @@
-# Find eligible builder and runner images on Docker Hub. We use Ubuntu/Debian
-# instead of Alpine to avoid DNS resolution issues in production.
-#
-# https://hub.docker.com/r/hexpm/elixir/tags?page=1&name=ubuntu
-# https://hub.docker.com/_/ubuntu?tab=tags
-#
-# This file is based on these images:
-#
-#   - https://hub.docker.com/r/hexpm/elixir/tags - for the build image
-#   - https://hub.docker.com/_/debian?tab=tags&page=1&name=bullseye-20251208-slim - for the release image
-#   - https://pkgs.org/ - resource for finding needed packages
-#   - Ex: hexpm/elixir:1.19.4-erlang-28.2-debian-bullseye-20251208-slim
-#
-ARG DEBIAN_VERSION=13-slim
-
-ARG IMAGE="debian:${DEBIAN_VERSION}"
+# Debian rather than Alpine, whose DNS resolution fails in production. mise
+# installs the toolchain of mise.toml. Renovate moves the image digest and
+# MISE_VERSION.
+ARG IMAGE=debian:13-slim@sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0
 
 FROM ${IMAGE} AS builder
 
@@ -29,8 +17,9 @@ ENV MISE_CONFIG_DIR="/mise"
 ENV MISE_CACHE_DIR="/mise/cache"
 ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
 ENV PATH="/mise/shims:$PATH"
-# ENV MISE_VERSION="..."
-RUN curl https://mise.run | sh
+# renovate: datasource=github-releases depName=jdx/mise
+ENV MISE_VERSION="v2026.11.9"
+RUN curl -fsSL https://mise.run | sh
 
 # prepare build dir
 WORKDIR /app
