@@ -11,9 +11,10 @@ defmodule Chironium.Seed.Tasks do
 
     Enum.each(patients, fn patient ->
       for _ <- 1..Enum.random(1..5) do
-        generate(
-          task(Keyword.merge(opts, for_patient_id: patient.id, actor: Enum.random(practitioners)))
-        )
+        actor = Enum.random(practitioners)
+        task = generate(task(Keyword.merge(opts, for_patient_id: patient.id, actor: actor)))
+        # The app readies a reminder right after creating it; the pending list skips drafts.
+        Ash.update!(task, %{}, Keyword.merge(opts, action: :ready, actor: actor))
       end
     end)
   end
