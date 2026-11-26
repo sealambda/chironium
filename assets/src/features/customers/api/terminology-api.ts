@@ -30,12 +30,6 @@ const SearchConceptsQuery = graphql(`
   }
 `);
 
-const AvailableConceptContextsQuery = graphql(`
-  query AvailableConceptContexts {
-    availableConceptContexts
-  }
-`);
-
 // ─── Types ───────────────────────────────────────────────────────────
 
 export interface TerminologySuggestion {
@@ -112,12 +106,4 @@ export async function searchTerminologySuggestions(
       },
     ];
   });
-}
-
-/** The search contexts whose code system has concepts loaded on this instance. */
-export async function fetchAvailableConceptContexts(): Promise<ConceptSearchContext[]> {
-  const result = await requestGraphql<ResultOf<typeof AvailableConceptContextsQuery>>({
-    document: AvailableConceptContextsQuery,
-  });
-  return result.availableConceptContexts;
 }
