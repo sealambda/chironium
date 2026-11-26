@@ -1,9 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
   type ConceptSearchContext,
+  fetchAvailableConceptContexts,
   searchTerminologySuggestions,
   type TerminologySuggestion,
 } from "@/features/customers/api/terminology-api";
@@ -117,6 +119,14 @@ export function useTerminologyTagSearchField({
   } | null>(null);
   const inputContainerRef = useRef<HTMLDivElement | null>(null);
   const locale = getLocale();
+  const { data: availableContexts } = useQuery({
+    queryKey: ["availableConceptContexts"],
+    queryFn: fetchAvailableConceptContexts,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+  // Without its code system (e.g. no SNOMED on the demo) a search never finds anything, so the
+  // field only takes free text. Until the answer arrives, it searches as before.
+  const searchable = availableContexts?.includes(conceptContext) ?? true;
 
   const showSuggestions = !disabled && suggestions.length > 0;
   const showMenu = !disabled && (isSearching || showSuggestions);
@@ -136,7 +146,7 @@ export function useTerminologyTagSearchField({
   }, [showMenu]);
 
   useEffect(() => {
-    if (!organizationId || inputValue.trim().length < 2 || disabled) {
+    if (!organizationId || inputValue.trim().length < 2 || disabled || !searchable) {
       setSuggestions([]);
       setIsSearching(false);
       return;
@@ -170,7 +180,7 @@ export function useTerminologyTagSearchField({
       cancelled = true;
       globalThis.clearTimeout(timer);
     };
-  }, [conceptContext, disabled, inputValue, locale, organizationId]);
+  }, [conceptContext, disabled, inputValue, locale, organizationId, searchable]);
 
   useEffect(() => {
     if (!showMenu) {

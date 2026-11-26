@@ -24,11 +24,17 @@ defmodule Chironium.Terminology.Concept do
       list :list_concepts, :read
       read_one :get_concept, :read
       list :search_concepts, :search
+      action :available_concept_contexts, :available_contexts
     end
   end
 
   actions do
     defaults [:read]
+
+    action :available_contexts, {:array, Chironium.Terminology.Concept.ConceptContext} do
+      description "The search contexts whose code system has concepts loaded."
+      run fn _input, _context -> {:ok, Chironium.Terminology.ContextMapper.available()} end
+    end
 
     read :search do
       description "Search active concepts by designation text and optional system filters."
@@ -68,6 +74,11 @@ defmodule Chironium.Terminology.Concept do
     # Terminology is shared, non-clinical reference data.
     policy action_type(:read) do
       authorize_if always()
+    end
+
+    # Only the staff app's tag fields need it; portal patients have no use for it.
+    policy action(:available_contexts) do
+      authorize_if Chironium.Accounts.Checks.StaffActor
     end
 
     policy action_type([:create, :update, :destroy]) do
