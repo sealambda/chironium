@@ -9,10 +9,10 @@ This file covers third-party content that the AGPL does **not** cover: the clini
 Chironium's data model follows HL7 FHIR and identifies clinical concepts with codes from standard terminologies. The repository contains:
 
 - **A small number of code identifiers** where the application needs a fixed concept, such as the LOINC codes for body weight, height and BMI in `lib/chironium/health/observation.ex`, and the SNOMED CT parent concepts that scope terminology searches in `lib/chironium/terminology/context_mapper.ex`.
-- **Sample-data catalogs** used to generate development data: about thirty SNOMED CT concepts with their descriptions and ten RxNorm drug codes in `lib/chironium/generator.ex`, and a pathology catalog with ICD-10-CM codes in `priv/repo/seeds/`.
+- **Sample-data catalogs** used to generate development data: about thirty SNOMED CT concepts with their descriptions and ten RxNorm drug codes in `lib/chironium/generator.ex`.
 - **Importers** in `lib/chironium/terminology/importer/` that load full LOINC and SNOMED CT releases from files you supply. No release content (tables, descriptions, relationships, reference sets) is stored in this repository or in the published Docker images.
 
-Each organization that deploys Chironium is responsible for obtaining the terminology releases it imports under the terminology owner's license and for complying with that license. Chironium's AGPL license grants no rights in LOINC, SNOMED CT, RxNorm, ICD-10-CM or UCUM.
+Each organization that deploys Chironium is responsible for obtaining the terminology releases it imports under the terminology owner's license and for complying with that license. Chironium's AGPL license grants no rights in LOINC, SNOMED CT, RxNorm or UCUM.
 
 ## SNOMED CT®
 
@@ -53,10 +53,6 @@ RxNorm normalized names and codes (RXCUI) are created by the U.S. National Libra
 > This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product.
 
 Terms: [RxNorm Terms of Service](https://www.nlm.nih.gov/research/umls/rxnorm/docs/termsofservice.html).
-
-## ICD-10-CM
-
-The pathology catalog seed uses ICD-10-CM codes. ICD-10-CM is published by the U.S. National Center for Health Statistics and is in the public domain in the United States. The WHO classifications it derives from (ICD-10, ICD-11) are copyright of the World Health Organization; do not add WHO ICD content to the repository without a WHO license.
 
 ## UCUM
 
