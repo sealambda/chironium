@@ -36,7 +36,7 @@
     --%>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <PhoenixVite.Components.assets
-      names={["src/main.tsx", "js/app.js"]}
+      names={if assigns[:spa], do: ["src/main.tsx", "js/app.js"], else: ["js/app.js"]}
       manifest={{:chironium, "priv/static/.vite/manifest.json"}}
       dev_server={PhoenixVite.Components.has_vite_watcher?(ChironiumWeb.Endpoint)}
       to_url={fn p -> static_url(@conn, p) end}
