@@ -48,8 +48,11 @@ defmodule ChironiumWeb.ConnCase do
     {app, path} = @vite_manifest
 
     unless app |> Application.app_dir(path) |> File.exists?() do
-      entry = %{"file" => "assets/stub.js", "isEntry" => true}
-      manifest = PhoenixVite.Manifest.parse(%{"src/main.tsx" => entry, "js/app.js" => entry})
+      manifest =
+        PhoenixVite.Manifest.parse(%{
+          "src/main.tsx" => %{"file" => "assets/main.js", "isEntry" => true},
+          "js/app.js" => %{"file" => "assets/app.js", "isEntry" => true}
+        })
       :persistent_term.put({PhoenixVite.Components, @vite_manifest}, manifest)
 
       ExUnit.Callbacks.on_exit(fn ->

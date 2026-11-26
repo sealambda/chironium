@@ -30,4 +30,13 @@ defmodule ChironiumWeb.PageControllerTest do
     assert conn |> get(~p"/app") |> html_response(200) =~
              ~s(<meta name="chironium:demo" content="true")
   end
+
+  # Elsewhere the bundle throws: 'Root element with id "root" not found.'
+  test "loads the React bundle on the SPA shell only", %{conn: conn} do
+    assert conn |> get(~p"/app") |> html_response(200) =~ ~r{assets/main[-.]}
+
+    sign_in = build_conn() |> get(~p"/sign-in") |> html_response(200)
+    refute sign_in =~ ~r{assets/main[-.]}
+    assert sign_in =~ ~r{assets/app[-.]}
+  end
 end
