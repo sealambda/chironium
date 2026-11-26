@@ -4,7 +4,7 @@ Chironium ships as a single container image that serves the web app, the GraphQL
 
 ## Requirements
 
-- **PostgreSQL 18 with the [pgvector](https://github.com/pgvector/pgvector) extension.** This is the version CI tests against; the `pgvector/pgvector:pg18` image works out of the box.
+- **PostgreSQL 18 with the [pgvector](https://github.com/pgvector/pgvector) extension.** This is the version CI tests against; the `pgvector/pgvector:pg18` image works out of the box. Chironium stores terminology embeddings in a vector column, ready for the semantic search it plans to add.
 - **A sign-in method.** Email links (through Resend), Google, an OpenID Connect provider such as Keycloak or Authentik, or any mix of them. See [Sign-in](#sign-in).
 - **A TLS-terminating reverse proxy.** The app listens on plain HTTP and generates `https://` URLs on port 443 for the host in `PHX_HOST`. It cannot be served under a subpath.
 - **An amd64 host.** The published image is built for amd64 only.
