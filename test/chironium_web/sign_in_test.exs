@@ -55,7 +55,16 @@ defmodule ChironiumWeb.SignInTest do
       {:ok, view, _html} = live(conn, ~p"/sign-in")
 
       form = form(view, "form[action='/demo']")
-      assert render_submit(form) =~ ~s(phx-trigger-action)
+      html = render_submit(form)
+      assert html =~ ~s(phx-trigger-action)
+
+      assert has_element?(
+               view,
+               "[data-testid='sign-in-demo-button'][disabled]",
+               "Starting the demo"
+             )
+
+      assert html =~ "This takes about 10 seconds."
       conn = follow_trigger_action(form, conn)
       assert conn.method == "POST"
       assert conn.request_path == ~p"/demo"

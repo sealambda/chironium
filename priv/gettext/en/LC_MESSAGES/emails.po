@@ -1,0 +1,132 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/chironium_web/emails/invitation_email.ex:23
+#, elixir-autogen, elixir-format
+msgid "%{name} invited you to join %{organization}."
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:29
+#, elixir-autogen, elixir-format
+msgid "Accept invitation"
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:24
+#, elixir-autogen, elixir-format
+msgid "Hi %{name}, you have an upcoming task."
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:45
+#, elixir-autogen, elixir-format
+msgid "If you weren't expecting this invitation, you can safely ignore this email."
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:36
+#, elixir-autogen, elixir-format
+msgid "Patient: %{name}"
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:39
+#, elixir-autogen, elixir-format
+msgid "Priority: %{priority}"
+msgstr ""
+
+#: lib/chironium_web/emails/components.ex:90
+#, elixir-autogen, elixir-format
+msgid "Sent by Chironium"
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:21
+#, elixir-autogen, elixir-format
+msgid "Task reminder"
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:20
+#, elixir-autogen, elixir-format
+msgid "You've been invited"
+msgstr ""
+
+#: lib/chironium_web/emails/invitation_email.ex:34
+#, elixir-autogen, elixir-format
+msgid "Alternatively, open Chironium, then click on the organization switcher, \"Join with invitation\" - and enter the following code"
+msgstr ""
+
+#: lib/chironium/workers/notification_email_worker.ex:119
+#, elixir-autogen, elixir-format
+msgid "Task reminder: %{description}"
+msgstr ""
+
+#: lib/chironium/workers/notification_email_worker.ex:96
+#, elixir-autogen, elixir-format
+msgid "You've been invited to %{organization}"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:27
+#, elixir-autogen, elixir-format
+msgid "%{name} from %{organization} asked you to answer a questionnaire."
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:32
+#, elixir-autogen, elixir-format
+msgid "%{organization} asked you to answer a questionnaire."
+msgstr ""
+
+#: lib/chironium/workers/notification_email_worker.ex:70
+#, elixir-autogen, elixir-format
+msgid "%{organization} sent you a questionnaire"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:22
+#, elixir-autogen, elixir-format
+msgid "A questionnaire for you"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:41
+#, elixir-autogen, elixir-format
+msgid "Answer the questionnaire"
+msgstr ""
+
+#: lib/chironium_web/emails/questionnaire_requested_email.ex:46
+#, elixir-autogen, elixir-format
+msgid "The link can be opened once, on one device, and stays valid until %{date}. Please don't forward it: anyone with the link can answer in your name."
+msgstr ""
+
+#: lib/chironium_web/emails/task_reminder_email.ex:45
+#, elixir-autogen, elixir-format
+msgid "View patient"
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:31
+#, elixir-autogen, elixir-format
+msgid "If you didn't try to sign in, you can safely ignore this email."
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:26
+#, elixir-autogen, elixir-format
+msgid "Sign in"
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:17
+#, elixir-autogen, elixir-format
+msgid "Sign in to Chironium"
+msgstr ""
+
+#: lib/chironium_web/emails/sign_in_link_email.ex:20
+#, elixir-autogen, elixir-format
+msgid "Use this button to sign in. The link works once and expires in 10 minutes."
+msgstr ""
+
+#: lib/chironium/accounts/user/senders/send_magic_link.ex:41
+#, elixir-autogen, elixir-format
+msgid "Your Chironium sign-in link"
+msgstr ""

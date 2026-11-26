@@ -222,6 +222,11 @@ msgstr "Prueba Chironium"
 msgid "Try the demo"
 msgstr "Probar la demo"
 
+#: lib/chironium_web/live/sign_in_live.ex
+#, elixir-autogen, elixir-format
+msgid "Creating your demo clinic. This takes about 10 seconds."
+msgstr "Creando tu clínica de demo. Tarda unos 10 segundos."
+
 #: lib/chironium_web/live/sign_in_live.ex:297
 #, elixir-autogen, elixir-format
 msgid "Your demo is deleted after 24 hours."
