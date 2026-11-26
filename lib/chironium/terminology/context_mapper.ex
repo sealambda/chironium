@@ -12,8 +12,6 @@ defmodule Chironium.Terminology.ContextMapper do
           | :food
           | :lab_result
           | :medication
-  require Ash.Query
-
   @type mapping :: %{system: String.t(), parent_code: String.t() | nil}
 
   @contexts %{
@@ -32,26 +30,4 @@ defmodule Chironium.Terminology.ContextMapper do
   """
   @spec get(context()) :: {:ok, mapping()} | :error
   def get(context) when is_atom(context), do: Map.fetch(@contexts, context)
-
-  @doc """
-  Returns the contexts whose code system has active concepts loaded. A
-  self-hosted instance or the public demo may load LOINC without SNOMED.
-  """
-  @spec available() :: [context()]
-  def available do
-    loaded =
-      @contexts
-      |> Map.values()
-      |> Enum.map(& &1.system)
-      |> Enum.uniq()
-      |> Enum.filter(&system_loaded?/1)
-
-    for {context, %{system: system}} <- @contexts, system in loaded, do: context
-  end
-
-  defp system_loaded?(url) do
-    Chironium.Terminology.Concept
-    |> Ash.Query.filter(active == true and code_system.url == ^url)
-    |> Ash.exists?(authorize?: false)
-  end
 end
