@@ -42,7 +42,7 @@ pnpm assets:test       # Vitest unit tests
 pnpm assets:e2e        # Playwright end-to-end tests against the dev server
 ```
 
-CI runs the backend tests and every frontend check. It does not check Elixir formatting or compiler warnings yet, so `mix precommit` is the only gate for those. `mix quality` adds Credo, Sobelow, and Dialyzer; it is slow and optional.
+CI runs the backend tests, every frontend check, and a check that no Ash migration is missing. It does not check Elixir formatting or compiler warnings yet, so `mix precommit` is the only gate for those. `mix quality` adds Credo, Sobelow, and Dialyzer; it is slow and optional.
 
 `pnpm install` sets up Git hooks that format staged frontend files, scan staged changes for secrets, and, before a push, typecheck the frontend and audit its dependencies. Commit messages follow [Conventional Commits](https://www.conventionalcommits.org), for example `fix: keep the visitor's language after sign-out`; a hook rejects other formats.
 

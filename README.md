@@ -17,6 +17,7 @@ Personal trainers, nutritionists, and physicians use Chironium to follow the peo
 
 ## Get Chironium
 
+- **Try it.** The [public demo](https://chironium-demo.sealambda.com) creates a sample clinic for you, with no sign-up, and deletes it after 24 hours. It has no SNOMED CT data, so conditions and allergies are free text there.
 - **Hosted.** [Sealambda](https://sealambda.com) runs Chironium for practices that would rather not operate it themselves. Write to hello@sealambda.com.
 - **Self-hosted.** The [self-hosting guide](docs/self-hosting.md) sets up Chironium, PostgreSQL, and automatic HTTPS with Docker Compose.
 - **From source.** Follow the [development quick start](#development-quick-start).
@@ -25,7 +26,7 @@ Personal trainers, nutritionists, and physicians use Chironium to follow the peo
 
 - **Customer profiles and onboarding.** A guided multi-step wizard, contact details, and an activity feed of every clinical record.
 - **Anthropometry.** Weight, height, and body circumferences, with BMI and waist-to-hip ratio calculated automatically.
-- **Clinical history.** Conditions, allergies and intolerances, medications and supplements, with autocomplete over the SNOMED CT and LOINC releases you [import](docs/terminology.md).
+- **Clinical history.** Conditions, allergies and intolerances, medications and supplements, with autocomplete over the SNOMED CT release you [import](docs/terminology.md).
 - **Nutrition plans.** Calorie and macronutrient targets with live balance checks.
 - **Menstrual cycle tracking,** questionnaires, clinical notes, goals, and tasks.
 - **Care teams and subscriptions.** Assign practitioners to customers and track plan progress and renewals.
