@@ -47,7 +47,6 @@ defmodule ChironiumWeb.Router do
 
       forward "/", Absinthe.Plug.GraphiQL,
         schema: ChironiumWeb.GraphqlSchema,
-        socket: ChironiumWeb.GraphqlSocket,
         interface: :playground
     end
   end

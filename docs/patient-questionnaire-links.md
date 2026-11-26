@@ -212,10 +212,8 @@ Planned 2026-09-24. Patients answer questionnaires through a single-use link. Th
 ## Pre-existing Issues (Follow-ups, Out of Scope)
 
 1. Staff creates don't check patient visibility: any member can create a Task, QR or Observation for any patient ID in the tenant.
-2. `/gql` has CSRF protection commented out, although the frontend already sends the token.
-3. `GraphqlSocket.connect/3` accepts unauthenticated sockets.
-4. The dead `AshRateLimiter` reference on `User`.
-5. The Invitation `create` policy TODO.
+2. The dead `AshRateLimiter` reference on `User`.
+3. The Invitation `create` policy TODO.
 
 ## Implementation Notes
 
