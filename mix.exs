@@ -119,10 +119,9 @@ defmodule Chironium.MixProject do
         "ash.setup --quiet",
         "assets.setup",
         "assets.codegen",
-        "assets.build",
-        "run priv/repo/seeds.exs"
+        "assets.build"
       ],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ash.setup --quiet", "test"],
       "assets.setup": ["cmd sh -c 'pnpm install --frozen-lockfile'"],
