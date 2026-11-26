@@ -15,21 +15,31 @@ Personal trainers, nutritionists, and physicians use Chironium to follow the peo
 > [!NOTE]
 > Chironium is pre-1.0 and under active development. Expect breaking changes to the data model and the GraphQL API between releases.
 
+## Get Chironium
+
+- **Hosted.** [Sealambda](https://sealambda.com) runs Chironium for practices that would rather not operate it themselves. Write to hello@sealambda.com.
+- **Self-hosted.** The [self-hosting guide](docs/self-hosting.md) sets up Chironium, PostgreSQL, and automatic HTTPS with Docker Compose.
+- **From source.** Follow the [development quick start](#development-quick-start).
+
 ## Features
 
 - **Customer profiles and onboarding.** A guided multi-step wizard, contact details, and an activity feed of every clinical record.
 - **Anthropometry.** Weight, height, and body circumferences, with BMI and waist-to-hip ratio calculated automatically.
-- **Clinical history.** Conditions, allergies and intolerances, medications and supplements, coded with SNOMED CT, LOINC, and RxNorm.
+- **Clinical history.** Conditions, allergies and intolerances, medications and supplements, with autocomplete over the SNOMED CT and LOINC releases you [import](docs/terminology.md).
 - **Nutrition plans.** Calorie and macronutrient targets with live balance checks.
 - **Menstrual cycle tracking,** questionnaires, clinical notes, goals, and tasks.
 - **Care teams and subscriptions.** Assign practitioners to customers and track plan progress and renewals.
 - **Multi-tenant organizations.** Each organization's data is isolated, with role-based permissions for its members.
-- **Standards-based.** The data model follows HL7 FHIR, and everything is available through a GraphQL API.
+- **Standards-based.** Records are modeled on HL7 FHIR resources and available through a GraphQL API. Chironium is not a FHIR server: it has no FHIR REST API yet.
 - **Localized.** English and Spanish, with locale-aware dates and units.
 
-## Quick start
+## Not there yet
 
-You need [mise](https://mise.jdx.dev) (it installs the pinned Elixir, Erlang, Node.js, and pnpm versions) and Docker for the database.
+Chironium does not replace a full clinic suite. It has no appointment scheduling, invoicing or payments, file attachments, bulk import of existing customers, or PDF export. Records can be archived but not permanently erased. Email goes through [Resend](https://resend.com) only, and the published container image is built for amd64 only.
+
+## Development quick start
+
+You need [mise](https://mise.jdx.dev) (it installs the pinned Elixir, Erlang, Node.js, and pnpm versions), Docker for the database, and a C compiler for the native dependencies (`build-essential` on Debian and Ubuntu, the Xcode Command Line Tools on macOS).
 
 ```sh
 mise install
@@ -70,7 +80,7 @@ Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) to get starte
 
 Copyright © 2026 Sealambda GmbH and the Chironium contributors. Chironium is licensed under the [GNU Affero General Public License v3.0 only](LICENSE): if you run a modified version as a network service, you must offer its source code to its users.
 
-[Sealambda GmbH](https://sealambda.com) also offers hosted and commercially licensed editions for organizations that cannot meet the AGPL's terms; write to hello@sealambda.com.
+[Sealambda GmbH](https://sealambda.com) also offers commercially licensed editions for organizations that cannot meet the AGPL's terms; write to hello@sealambda.com.
 
 The clinical terminologies that Chironium references, including SNOMED CT and LOINC, have their own licenses; see [NOTICE.md](NOTICE.md). "Chironium" and the Chironium logo are trademarks of Sealambda GmbH. You may say your software is based on Chironium, but not present a modified version as an official Sealambda release.
 

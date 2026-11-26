@@ -6,7 +6,8 @@ Chironium ships as a single container image that serves the web app, the GraphQL
 
 - **PostgreSQL 18 with the [pgvector](https://github.com/pgvector/pgvector) extension.** This is the version CI tests against; the `pgvector/pgvector:pg18` image works out of the box.
 - **A sign-in method.** Email links (through Resend), Google, an OpenID Connect provider such as Keycloak or Authentik, or any mix of them. See [Sign-in](#sign-in).
-- **A TLS-terminating reverse proxy.** The app listens on plain HTTP and generates `https://` URLs on port 443 for the host in `PHX_HOST`.
+- **A TLS-terminating reverse proxy.** The app listens on plain HTTP and generates `https://` URLs on port 443 for the host in `PHX_HOST`. It cannot be served under a subpath.
+- **An amd64 host.** The published image is built for amd64 only.
 
 ## Docker Compose
 
@@ -26,9 +27,9 @@ docker compose --profile caddy up -d
 
 Open `https://<PHX_HOST>`, sign in, and choose **Create New Organization**.
 
-If you already run a reverse proxy, leave out `--profile caddy` and point your proxy at `127.0.0.1:4000`. Set `APP_PORT` in `.env` to use another local port.
+If you already run a reverse proxy, leave out `--profile caddy` and point your proxy at `127.0.0.1:4000`. Set `APP_PORT` in `.env` to use another local port. A proxy that runs in a container cannot reach that address: attach it to this Compose network and point it at `app:4000`. The proxy must send the `X-Forwarded-Proto` header, which the app uses to redirect plain HTTP to HTTPS, and pass WebSocket upgrades.
 
-To upgrade, raise `CHIRONIUM_VERSION` in `.env` and run `docker compose --profile caddy up -d` again. Migrations run when the app starts. Any other variable from the [configuration reference](#configuration) can go in `.env` too. For the one-off tasks under [Operations](#operations), use `docker compose exec app` instead of `docker exec chironium`.
+To upgrade, [back up the database](#backups), raise `CHIRONIUM_VERSION` in `.env`, and run `docker compose --profile caddy up -d` again. Migrations run when the app starts. Any other variable from the [configuration reference](#configuration) can go in `.env` too. For the one-off tasks under [Operations](#operations), use `docker compose exec app` instead of `docker exec chironium`.
 
 ## Run the container yourself
 
@@ -47,7 +48,7 @@ docker run -d --name chironium -p 4000:4000 \
 
 Generate `SECRET_KEY_BASE` and `TOKEN_SIGNING_SECRET` once and keep them stable: changing them signs everyone out.
 
-The container's entrypoint, `bin/server`, runs all pending migrations before it starts, so upgrading means pulling a newer image and restarting the container.
+The container's default command, `bin/server`, runs all pending migrations before it starts, so upgrading means pulling a newer image and restarting the container. If you override the command, run `bin/migrate` yourself.
 
 After the first start, sign in and choose **Create New Organization**. Invite colleagues from the organization settings.
 
@@ -66,6 +67,8 @@ After the first start, sign in and choose **Create New Organization**. Invite co
 The sign-in page offers every method you configure, and the container refuses to start with none, unless [`DEMO_MODE`](#optional) is set. A method turns on when all its variables are set; setting only some of them stops the boot with an error naming the missing ones.
 
 Accounts are matched by email address, so a person who signs in with an email link today and Google tomorrow reaches the same account. Google and OpenID Connect sign-ins are accepted only when the provider reports the email address as verified (the `email_verified` claim). Otherwise anyone who could register someone else's address with your provider could take over that person's account.
+
+Sign-up is open: anyone who can sign in gets an account and can create their own organization. With email links that is anyone with an email address, and with Google anyone with a Google account. They see no data of other organizations, but to keep an instance to your own staff, offer only OpenID Connect and decide who has an account in your provider.
 
 | Method | Variables | Setup |
 | --- | --- | --- |
@@ -90,7 +93,7 @@ Chironium sends sign-in links, invitations, and notifications through [Resend](h
 | Variable | Default | Description |
 | --- | --- | --- |
 | `RESEND_API_KEY` | unset | Resend API key. Without it, no email is delivered and email sign-in is off. |
-| `EMAIL_FROM_ADDRESS` | Sealambda's sender | Sender address. Set it to an address on a domain you have verified with Resend. |
+| `EMAIL_FROM_ADDRESS` | Sealambda's sender | Sender address. Always set it to an address on a domain you have verified with Resend; your Resend account cannot send from the default. |
 | `EMAIL_FROM_NAME` | `Chironium` | Sender display name. |
 
 ### Optional
@@ -108,7 +111,7 @@ Chironium sends sign-in links, invitations, and notifications through [Resend](h
 
 ## Analytics
 
-Chironium sends nothing to third parties unless you set `POSTHOG_API_KEY`. When you do:
+Chironium has no telemetry and sends no analytics unless you set `POSTHOG_API_KEY`. The only other services it contacts are the ones you configure: Resend for email, and Google or your OpenID Connect provider for sign-in. When you set the key:
 
 - The browser reports page views and interactions, and identifies each signed-in practitioner by user ID, email address, and name.
 - Autocapture and session recordings mask all on-screen text, element attributes, and form inputs, so patient data shown in the interface is never collected.
@@ -127,4 +130,22 @@ docker exec chironium bin/chironium eval 'Chironium.Release.import_loinc("/data/
 
 [Clinical terminologies](terminology.md) covers the terminology imports. `bin/seed` fills an organization with generated demo data; never run it against a database with real records.
 
-Back up the database with your usual PostgreSQL tooling, such as `pg_dump`. All application state lives there.
+## Backups
+
+All application state lives in the PostgreSQL database, one schema per organization, so a full `pg_dump` is a complete backup. Keep `.env` with it: without `SECRET_KEY_BASE` and `TOKEN_SIGNING_SECRET`, everyone is signed out after a restore. With the Compose setup:
+
+```sh
+docker compose exec -T postgres pg_dump -U chironium -Fc chironium > chironium.dump
+```
+
+To restore, stop the app and load the dump into an empty database:
+
+```sh
+docker compose stop app
+docker compose exec -T postgres dropdb -U chironium chironium
+docker compose exec -T postgres createdb -U chironium chironium
+docker compose exec -T postgres pg_restore -U chironium -d chironium < chironium.dump
+docker compose start app
+```
+
+Back up before every upgrade. Migrations run automatically and releases before 1.0 can change the data model, so to go back to an older version, restore the backup taken before the upgrade.

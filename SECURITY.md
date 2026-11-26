@@ -4,7 +4,7 @@ Chironium handles health data, so we treat security reports as our highest prior
 
 ## Supported versions
 
-Chironium is pre-1.0. Only the latest commit on `main` receives security fixes.
+Chironium is pre-1.0. Security fixes land on `main` and ship in the next release; older releases get no backports, so run the latest release.
 
 ## Reporting a vulnerability
 
