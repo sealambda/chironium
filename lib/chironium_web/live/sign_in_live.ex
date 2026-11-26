@@ -281,32 +281,35 @@ defmodule ChironiumWeb.SignInLive do
       for={%{}}
       action={~p"/demo"}
       method="post"
-      phx-submit="start_demo"
+      phx-submit={JS.push("start_demo") |> JS.add_class("demo-starting")}
       phx-trigger-action={@start_demo?}
-      class="space-y-2"
+      class="group space-y-2"
     >
-      <%!-- Seeding takes seconds and the native post shows no progress, so the button stays busy. --%>
+      <%!--
+        Seeding takes seconds and the native post shows no progress, so the button stays busy.
+        The class is added in the browser: the native post leaves before LiveView patches the
+        button, and a JS class survives later patches.
+      --%>
       <button
         type="submit"
         disabled={@start_demo?}
         aria-busy={to_string(@start_demo?)}
-        phx-disable-with={gettext("Starting the demo...")}
         class={primary_button_class()}
         data-testid="sign-in-demo-button"
       >
-        <%= if @start_demo? do %>
+        <span class="group-[.demo-starting]:hidden">{gettext("Try the demo")}</span>
+        <span class="hidden items-center group-[.demo-starting]:inline-flex">
           <.icon name="hero-arrow-path" class="mr-2 size-4 motion-safe:animate-spin" />
           {gettext("Starting the demo...")}
-        <% else %>
-          {gettext("Try the demo")}
-        <% end %>
+        </span>
       </button>
       <p class="text-center text-auth-muted text-xs" role="status">
-        <%= if @start_demo? do %>
-          {gettext("Creating your demo clinic. This takes about 10 seconds.")}
-        <% else %>
+        <span class="group-[.demo-starting]:hidden">
           {gettext("Your demo is deleted after 24 hours.")}
-        <% end %>
+        </span>
+        <span class="hidden group-[.demo-starting]:inline">
+          {gettext("Creating your demo clinic. This takes about 10 seconds.")}
+        </span>
       </p>
     </.form>
     """
