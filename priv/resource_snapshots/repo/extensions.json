@@ -5,6 +5,6 @@
     "citext",
     "pg_trgm",
     "vector",
-    "ash_money_v5"
+    "ash_money_v6"
   ]
 }
