@@ -183,7 +183,7 @@ import { customerDetailHandlers } from "./handlers/customer-detail";
 ### Tooling
 
 Biome's `organizeImports` (configured in `biome.jsonc`) enforces import group ordering
-automatically. Run `pnpm check:fix` after edits to auto-sort imports.
+automatically. Run `pnpm assets:check:fix` after edits to auto-sort imports.
 
 ### Auto-Generated Files (Do Not Touch)
 

@@ -4,6 +4,18 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+### Changed
+
+- The image is built with Elixir 1.20 and Erlang/OTP 29.
+
+### Removed
+
+- The GraphQL WebSocket endpoint at `/ws/gql`. It accepted unauthenticated connections and nothing used it.
+
+### Security
+
+- Updated ash, ash_authentication, ecto, db_connection, phoenix, phoenix_live_view, plug, bandit, jose, and phoenix_html to fix EEF-CVE-2026-110826, EEF-CVE-2026-118391, EEF-CVE-2026-133555, and the other advisories reported against them.
+
 ## [0.3.0] - 2026-10-26
 
 ### Added

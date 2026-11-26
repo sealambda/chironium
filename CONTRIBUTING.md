@@ -33,17 +33,20 @@ Open [localhost:4000](http://localhost:4000) and choose **Sign in as developer**
 
 ## Before you open a pull request
 
-Run the same checks CI runs:
+Run these checks:
 
 ```sh
 mix precommit          # compile with warnings as errors, format, test
-pnpm assets:check      # Biome lint and format for the frontend
-pnpm assets:typecheck
+pnpm assets:quality    # Biome, typecheck, duplication, dead code, and architecture checks
 pnpm assets:test       # Vitest unit tests
 pnpm assets:e2e        # Playwright end-to-end tests against the dev server
 ```
 
-Keep pull requests focused on one change and describe the why in the description. Changes to Ash resources must include the generated migrations and resource snapshots (`mix ash.codegen`).
+CI runs the backend tests and every frontend check. It does not check Elixir formatting or compiler warnings yet, so `mix precommit` is the only gate for those. `mix quality` adds Credo, Sobelow, and Dialyzer; it is slow and optional.
+
+`pnpm install` sets up Git hooks that format staged frontend files, scan staged changes for secrets, and, before a push, typecheck the frontend and audit its dependencies. Commit messages follow [Conventional Commits](https://www.conventionalcommits.org), for example `fix: keep the visitor's language after sign-out`; a hook rejects other formats.
+
+Keep pull requests focused on one change and describe the why in the description. Changes to Ash resources must include the generated migrations and resource snapshots (`mix ash.codegen`). Changes to the patient portal's GraphQL documents must include the regenerated `priv/graphql/portal-documents.json` (`pnpm --dir assets gql:persisted`).
 
 ## Clinical terminologies
 
