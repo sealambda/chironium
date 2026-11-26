@@ -115,9 +115,10 @@ jobs:
           mix compile
 
       # A dependency update can need a migration too (ash_money 0.2.8 did); the dev server refuses to
-      # start until it exists. Here, not in the backend matrix, so it runs once.
+      # start until it exists. Migrations only: the GraphQL SDL check is a known false positive
+      # (ChironiumWeb.Plugs.CheckCodegenStatus). Here, not in the backend matrix, so it runs once.
       - name: Check for missing Ash migrations
-        run: mix ash.codegen --check
+        run: mix ash_postgres.generate_migrations --check
 
       - name: Audit production JS dependencies
         run: pnpm deps:audit
