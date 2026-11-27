@@ -5,7 +5,7 @@ defmodule Chironium.Config.RuntimeTest do
   @vars ~w(DEMO_MODE SECRET_KEY_BASE TOKEN_SIGNING_SECRET DATABASE_URL DATABASE_NAME
            DATABASE_USERNAME RESEND_API_KEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
            GOOGLE_REDIRECT_URI OIDC_ISSUER OIDC_CLIENT_ID OIDC_CLIENT_SECRET OIDC_DISPLAY_NAME
-           POSTHOG_API_KEY)
+           POSTHOG_API_KEY EMAIL_FROM_ADDRESS)
 
   setup do
     saved = Map.new(@vars, &{&1, System.get_env(&1)})
@@ -55,6 +55,21 @@ defmodule Chironium.Config.RuntimeTest do
     end
   end
 
+  describe "email sender" do
+    test "production refuses to boot with RESEND_API_KEY but no EMAIL_FROM_ADDRESS" do
+      System.put_env("RESEND_API_KEY", "set")
+
+      assert_raise RuntimeError, ~r/EMAIL_FROM_ADDRESS must be set/, &read_prod_config/0
+    end
+
+    test "uses EMAIL_FROM_ADDRESS" do
+      System.put_env("RESEND_API_KEY", "set")
+      System.put_env("EMAIL_FROM_ADDRESS", "chironium@example.com")
+
+      assert read_prod_config()[:chironium][:email_from][:address] == "chironium@example.com"
+    end
+  end
+
   describe "demo mode refuses third-party settings" do
     for vars <- [
           ~w(RESEND_API_KEY),
@@ -97,8 +112,18 @@ defmodule Chironium.Config.RuntimeTest do
       assert Chironium.Health.Task.AshOban.SendReminder.Scheduler in workers
     end
 
+    test "keeps the Pruner from config.exs" do
+      System.put_env("DEMO_MODE", "true")
+
+      config =
+        Config.Reader.merge([chironium: Application.get_all_env(:chironium)], read_prod_config())
+
+      assert List.keymember?(config[:chironium][Oban][:plugins], Oban.Plugins.Pruner, 0)
+    end
+
     test "is not scheduled otherwise" do
       System.put_env("RESEND_API_KEY", "set")
+      System.put_env("EMAIL_FROM_ADDRESS", "chironium@example.com")
 
       workers = crontab()
       refute Chironium.Workers.DemoCleanup in workers

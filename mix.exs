@@ -138,25 +138,13 @@ defmodule Chironium.MixProject do
         "rebuild.finalize"
       ],
 
-      # Finalize rebuild - reset database, seed, and build assets.
+      # Finalize rebuild - reset database and build assets.
       "rebuild.finalize": [
         # Uses ash.reset (not ecto.reset) to handle all Ash extensions: Oban, paper_trail, events, etc.
         "ash.reset",
         "assets.setup",
         "assets.codegen",
         "assets.build"
-      ],
-
-      # Nuclear rebuild - regenerates all migrations (pre-production only!)
-      "rebuild.nuke": [
-        "cmd sh -c \"rm -rf _build deps assets/node_modules priv/repo/migrations priv/repo/tenant_migrations priv/resource_snapshots priv/plts mix.lock\"",
-        "deps.get",
-        "compile",
-        "deps.unlock --unused",
-        "oban.install",
-        "ash.codegen init",
-        "compile",
-        "rebuild.finalize"
       ],
 
       # Quality - comprehensive checks including type checking (slow).

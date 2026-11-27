@@ -31,7 +31,7 @@ defmodule Chironium.Notifications do
         email: "alice@example.com",
         invited_by_name: "Bob",
         organization_name: "Acme",
-        accept_url: "https://chironium.appfor.it/?invite_code=abc"
+        invitation_id: invitation.id
       })
 
   """

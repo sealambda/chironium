@@ -32,7 +32,10 @@ config :chironium, Oban,
   notifier: Oban.Notifiers.Postgres,
   queues: [default: 10, notifications: 5, task_send_reminder: 5],
   repo: Chironium.Repo,
-  plugins: [{Oban.Plugins.Cron, []}]
+  # The Pruner deletes finished jobs after 60 seconds, so their arguments (names and email
+  # addresses) don't stay in `oban_jobs`. Tuples keep this a keyword list that runtime.exs
+  # can merge into.
+  plugins: [{Oban.Plugins.Cron, []}, {Oban.Plugins.Pruner, []}]
 
 config :ash_graphql, authorize_update_destroy_with_error?: true
 
@@ -154,8 +157,8 @@ config :chironium, ChironiumWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :chironium, Chironium.Mailer, adapter: Swoosh.Adapters.Local
 
-# Default sender address for transactional emails.
-config :chironium, :email_from, name: "Chironium", address: "chironium@updates.appfor.it"
+# Development sender; mail stays in the local mailbox. Production reads EMAIL_FROM_ADDRESS.
+config :chironium, :email_from, name: "Chironium", address: "chironium@example.com"
 
 # PostHog stays disabled unless config/runtime.exs finds POSTHOG_API_KEY in production.
 config :posthog,

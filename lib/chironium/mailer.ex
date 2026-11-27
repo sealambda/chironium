@@ -5,7 +5,6 @@ defmodule Chironium.Mailer do
   def from do
     config = Application.get_env(:chironium, :email_from, [])
 
-    {Keyword.get(config, :name, "Chironium"),
-     Keyword.get(config, :address, "chironium@updates.appfor.it")}
+    {Keyword.get(config, :name, "Chironium"), config[:address]}
   end
 end

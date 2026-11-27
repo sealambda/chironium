@@ -93,7 +93,7 @@ Chironium sends sign-in links, invitations, and notifications through [Resend](h
 | Variable | Default | Description |
 | --- | --- | --- |
 | `RESEND_API_KEY` | unset | Resend API key. Without it, no email is delivered and email sign-in is off. |
-| `EMAIL_FROM_ADDRESS` | Sealambda's sender | Sender address. Always set it to an address on a domain you have verified with Resend; your Resend account cannot send from the default. |
+| `EMAIL_FROM_ADDRESS` | unset | Sender address, on a domain you have verified with Resend. Required whenever `RESEND_API_KEY` is set. |
 | `EMAIL_FROM_NAME` | `Chironium` | Sender display name. |
 
 ### Optional

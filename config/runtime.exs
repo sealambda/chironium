@@ -272,8 +272,14 @@ if config_env() == :prod do
     api_host: System.get_env("POSTHOG_HOST", "https://eu.i.posthog.com"),
     api_key: if(posthog_enabled, do: posthog_api_key, else: "disabled")
 
-  # Sender address for transactional emails.
+  # Resend sends only from domains verified in the same account, so there is no usable default.
+  email_from_address = System.get_env("EMAIL_FROM_ADDRESS")
+
+  if email_enabled? and email_from_address in [nil, ""] do
+    raise "RESEND_API_KEY is set, so EMAIL_FROM_ADDRESS must be set too, to an address on a domain you verified with Resend. See docs/self-hosting.md."
+  end
+
   config :chironium, :email_from,
     name: System.get_env("EMAIL_FROM_NAME", "Chironium"),
-    address: System.get_env("EMAIL_FROM_ADDRESS", "chironium@updates.appfor.it")
+    address: email_from_address
 end

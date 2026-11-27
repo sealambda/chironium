@@ -7,6 +7,8 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 ### Changed
 
 - The image is built with Elixir 1.20 and Erlang/OTP 29.
+- **Breaking:** with `RESEND_API_KEY` set, Chironium refuses to start unless `EMAIL_FROM_ADDRESS` is set too. The default sender belonged to Sealambda, and other Resend accounts can't send from it.
+- Oban deletes finished jobs after 60 seconds, so their arguments no longer stay in the database.
 
 ### Removed
 
@@ -14,6 +16,7 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 
 ### Security
 
+- Invitation email jobs store the invitation ID instead of the invite code and link. A retried job no longer sends a code that was revoked or renewed meanwhile.
 - Updated ash, ash_authentication, ecto, db_connection, phoenix, phoenix_live_view, plug, bandit, jose, and phoenix_html to fix EEF-CVE-2026-110826, EEF-CVE-2026-118391, EEF-CVE-2026-133555, and the other advisories reported against them.
 
 ## [0.3.0] - 2026-10-26

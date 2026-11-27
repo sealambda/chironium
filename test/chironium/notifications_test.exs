@@ -10,8 +10,7 @@ defmodule Chironium.NotificationsTest do
     email: "alice@example.com",
     invited_by_name: "Bob",
     organization_name: "Acme",
-    code: "ABC",
-    accept_url: "https://example.com/invite/ABC"
+    invitation_id: "00000000-0000-0000-0000-000000000000"
   }
 
   test "send/2 enqueues an email notification job" do
@@ -26,8 +25,7 @@ defmodule Chironium.NotificationsTest do
           "email" => "alice@example.com",
           "invited_by_name" => "Bob",
           "organization_name" => "Acme",
-          "code" => "ABC",
-          "accept_url" => "https://example.com/invite/ABC"
+          "invitation_id" => "00000000-0000-0000-0000-000000000000"
         }
       }
     )
