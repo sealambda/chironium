@@ -6,7 +6,10 @@ defmodule Chironium.Workers.NotificationEmailWorker do
   use Oban.Worker, queue: :notifications
   use Gettext, backend: ChironiumWeb.Gettext
 
+  require Ash.Query
+
   alias Chironium.Accounts.GuestAccess
+  alias Chironium.Accounts.Invitation
   alias Chironium.Health.QuestionnaireRequests
   alias Chironium.Health.Task
   alias Chironium.Mailer
@@ -83,26 +86,39 @@ defmodule Chironium.Workers.NotificationEmailWorker do
     end
   end
 
+  # The job holds the invitation ID only: the code is read here, so it never sits
+  # in `oban_jobs`, and a retry can't send a code that was revoked or renewed meanwhile.
   defp build_email("invitation_created", params) do
-    %{html: html, text: text} =
-      Renderer.render(&ChironiumWeb.Emails.InvitationEmail.render/1, %{
-        invited_by_name: params["invited_by_name"],
-        organization_name: params["organization_name"],
-        code: params["code"],
-        accept_url: params["accept_url"]
-      })
+    invitation_id = params["invitation_id"]
 
-    subject =
-      dgettext("emails", "You've been invited to %{organization}",
-        organization: params["organization_name"]
-      )
+    with true <- is_binary(invitation_id),
+         {:ok, %Invitation{} = invitation} <-
+           Invitation
+           |> Ash.Query.filter(id == ^invitation_id and state == :pending and expires_at > now())
+           |> Ash.Query.load(:accept_url)
+           |> Ash.read_one(authorize?: false) do
+      %{html: html, text: text} =
+        Renderer.render(&ChironiumWeb.Emails.InvitationEmail.render/1, %{
+          invited_by_name: params["invited_by_name"],
+          organization_name: params["organization_name"],
+          code: to_string(invitation.invite_code),
+          accept_url: invitation.accept_url
+        })
 
-    Swoosh.Email.new()
-    |> Swoosh.Email.to(params["email"])
-    |> Swoosh.Email.from(Mailer.from())
-    |> Swoosh.Email.subject(subject)
-    |> Swoosh.Email.html_body(html)
-    |> Swoosh.Email.text_body(text)
+      subject =
+        dgettext("emails", "You've been invited to %{organization}",
+          organization: params["organization_name"]
+        )
+
+      Swoosh.Email.new()
+      |> Swoosh.Email.to(params["email"])
+      |> Swoosh.Email.from(Mailer.from())
+      |> Swoosh.Email.subject(subject)
+      |> Swoosh.Email.html_body(html)
+      |> Swoosh.Email.text_body(text)
+    else
+      _ -> {:cancel, "Invitation #{inspect(invitation_id)} is no longer pending."}
+    end
   end
 
   defp build_email("task_reminder", params) do

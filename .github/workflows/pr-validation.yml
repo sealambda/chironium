@@ -120,6 +120,9 @@ jobs:
       - name: Check for missing Ash migrations
         run: mix ash_postgres.generate_migrations --check
 
+      - name: Check Elixir formatting
+        run: mix format --check-formatted
+
       - name: Audit production JS dependencies
         run: pnpm deps:audit
 

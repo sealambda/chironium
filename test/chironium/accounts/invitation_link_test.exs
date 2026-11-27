@@ -310,9 +310,14 @@ defmodule Chironium.Accounts.InvitationLinkTest do
         worker: NotificationEmailWorker,
         args: %{
           "type" => "invitation_created",
-          "params" => %{"code" => to_string(renewed.invite_code)}
+          "params" => %{"invitation_id" => renewed.id}
         }
       )
+
+      refute Enum.any?(
+               all_enqueued(worker: NotificationEmailWorker),
+               &Map.has_key?(&1.args["params"], "code")
+             )
     end
   end
 

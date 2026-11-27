@@ -53,6 +53,7 @@ defmodule ChironiumWeb.ConnCase do
           "src/main.tsx" => %{"file" => "assets/main.js", "isEntry" => true},
           "js/app.js" => %{"file" => "assets/app.js", "isEntry" => true}
         })
+
       :persistent_term.put({PhoenixVite.Components, @vite_manifest}, manifest)
 
       ExUnit.Callbacks.on_exit(fn ->

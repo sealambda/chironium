@@ -403,8 +403,7 @@ defmodule Chironium.Accounts.Invitation do
       email: to_string(result.email),
       invited_by_name: invited_by.name || to_string(invited_by.email),
       organization_name: result.organization.name,
-      code: result.invite_code,
-      accept_url: result.accept_url,
+      invitation_id: result.id,
       locale: locale
     })
 
