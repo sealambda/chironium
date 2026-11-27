@@ -4,6 +4,8 @@ All notable changes to Chironium are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-27
+
 ### Changed
 
 - The image is built with Elixir 1.20 and Erlang/OTP 29.
@@ -73,7 +75,8 @@ The first public release.
 - English and Spanish interfaces with locale-aware dates and units.
 - A container image on GitHub Container Registry and a [self-hosting guide](docs/self-hosting.md).
 
-[Unreleased]: https://github.com/sealambda/chironium/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/sealambda/chironium/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/sealambda/chironium/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/sealambda/chironium/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/sealambda/chironium/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/sealambda/chironium/releases/tag/v0.1.0
